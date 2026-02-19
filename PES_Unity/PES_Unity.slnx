@@ -1,0 +1,8 @@
+﻿<Solution>
+  <Project Path="Assembly-CSharp-Editor.csproj" />
+  <Project Path="PES.Grid.csproj" />
+  <Project Path="PES.Core.csproj" />
+  <Project Path="PES.Combat.csproj" />
+  <Project Path="Assembly-CSharp.csproj" />
+  <Project Path="PES.Tests.EditMode.csproj" />
+</Solution>
