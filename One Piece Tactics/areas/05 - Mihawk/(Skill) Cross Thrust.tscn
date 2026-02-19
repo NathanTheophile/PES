@@ -1,0 +1,81 @@
+[gd_scene load_steps=8 format=2]
+
+[ext_resource path="res://skills/SkillScript.gd" type="Script" id=1]
+[ext_resource path="res://areas/05 - Mihawk/ChargeF1.tscn" type="PackedScene" id=2]
+[ext_resource path="res://skills/HelperWindows/Push.tscn" type="PackedScene" id=3]
+[ext_resource path="res://areas/05 - Mihawk/ChargeF2.tscn" type="PackedScene" id=4]
+[ext_resource path="res://areas/05 - Mihawk/ChargeB1.tscn" type="PackedScene" id=5]
+[ext_resource path="res://areas/05 - Mihawk/ChargeB2.tscn" type="PackedScene" id=6]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Node
+
+# targetArray = Array contendo as posições que esse feitiço atingiu
+#               A célula central será contida em um Array sozinha, para fácil identificação
+var skill
+func effects(targetArray):
+	skill = get_parent()
+
+	
+	if BattleMechanics.getState(skill.caster,\"Phases\").lvl == 1:
+		BattleMechanics.playAnimEntity(skill.caster, \"Atk\")
+	else:
+		BattleMechanics.playAnimEntity(skill.caster, \"Atk2\")
+	
+	yield(get_tree().create_timer(0.55),\"timeout\")
+	
+	var tgt = BattleMechanics.getEntityAt(targetArray[0])
+	if tgt:
+		
+		if BattleMechanics.getState(skill.caster,\"Phases\").lvl>1 and BattleMechanics.distanceTo(skill.caster.posit,tgt.posit)==1:
+			BattleMechanics.dealDmg([100,\"n\"],tgt,skill.caster)
+		else:
+			BattleMechanics.dealDmg([40,\"n\"],tgt,skill.caster)
+		
+		var cell
+		if BattleMechanics.area.tilemap.get_cellv(tgt.posit + skill.caster.direction)==0:
+			cell =  tgt.posit + skill.caster.direction
+		elif BattleMechanics.area.tilemap.get_cellv(tgt.posit - skill.caster.direction)==0:
+			cell =  tgt.posit - skill.caster.direction
+		else:
+			cell = skill.caster.posit
+		
+		BattleMechanics.teleport(skill.caster, cell, skill.caster)
+		skill.caster.visible=false
+		BattleMechanics.playAnim(
+			skill.visuals[
+			(
+				0 if BattleMechanics.getState(skill.caster,\"Phases\").lvl==1 else 1
+			) if skill.caster.direction in [Vector2(1,0),Vector2(0,1)] else (
+				2 if BattleMechanics.getState(skill.caster,\"Phases\").lvl==1 else 3
+			)
+			], 
+			cell,
+			false if skill.caster.direction in [Vector2(1,0), Vector2(-1,0)] else true, 
+			\"over\")
+		
+		
+		yield(get_tree().create_timer(1),\"timeout\")
+		BattleMechanics.playAnimEntity(skill.caster, \"AtkBack\")
+		skill.caster.visible=true
+		#yield(get_tree().create_timer(0.1),\"timeout\")
+	
+	
+			
+	
+	
+	
+"
+
+[node name="Skill" type="Node2D"]
+script = ExtResource( 1 )
+skillName = "Cross Thrust"
+apCost = 1
+linear = true
+sight = true
+usePerTgt = 1
+visuals = [ ExtResource( 2 ), ExtResource( 4 ), ExtResource( 5 ), ExtResource( 6 ) ]
+effects = SubResource( 1 )
+helpertext = [ ExtResource( 3 ) ]
+
+[node name="Effects" type="Node" parent="."]

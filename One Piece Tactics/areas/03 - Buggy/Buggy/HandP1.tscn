@@ -1,0 +1,33 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://hue.shader" type="Shader" id=1]
+[ext_resource path="res://areas/03 - Buggy/Buggy/f/f_17.png" type="Texture" id=2]
+[ext_resource path="res://areas/03 - Buggy/Buggy/f/f_16.png" type="Texture" id=3]
+
+[sub_resource type="ShaderMaterial" id=1]
+shader = ExtResource( 1 )
+shader_param/Shift_Hue = null
+shader_param/Shift_Sat = null
+shader_param/Shift_Val = 0.0
+
+[node name="Node2D" type="Node2D"]
+
+[node name="Node2D" type="Node2D" parent="."]
+position = Vector2( 0, -34 )
+rotation = 1.39362
+
+[node name="F16" type="Sprite" parent="Node2D"]
+material = SubResource( 1 )
+position = Vector2( -9.19085, 2.65093 )
+rotation = -1.24171
+texture = ExtResource( 3 )
+offset = Vector2( 5, 5 )
+
+[node name="F17" type="Sprite" parent="Node2D"]
+material = SubResource( 1 )
+position = Vector2( 2.83697, -5.59876 )
+rotation = -1.24105
+texture = ExtResource( 2 )
+offset = Vector2( 4, 4 )
+
+[node name="Tween" type="Tween" parent="."]

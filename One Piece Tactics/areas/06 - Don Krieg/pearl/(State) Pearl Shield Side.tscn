@@ -1,0 +1,73 @@
+[gd_scene load_steps=8 format=2]
+
+[ext_resource path="res://areas/06 - Don Krieg/pearl/(State) Pearl's Desperation.tscn" type="PackedScene" id=1]
+[ext_resource path="res://areas/05 - Mihawk/inv.png" type="Texture" id=2]
+[ext_resource path="res://Roboto-Bold.ttf" type="DynamicFontData" id=3]
+[ext_resource path="res://states/StatePreview.tscn" type="PackedScene" id=4]
+[ext_resource path="res://states/StateScript.gd" type="Script" id=5]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Node
+
+var state
+var porter
+
+func stateSetup():
+	state = get_parent()
+	porter = state.get_parent().get_parent()
+	porter.connect(\"dmg_taken\",self,\"dmg\")
+	state.connect(\"tree_exiting\",self,\"out\")
+func out():
+	BattleMechanics.addState(state.extraStates[0], porter, porter, 1)
+
+func dmg(_dmg, attacker, before):
+	if before and BattleMechanics.getDirectionalDmg(attacker, porter) == 1.1:
+		BattleMechanics.dmgHolder[porter.name][\"base\"] = 0
+		BattleMechanics.procDown(state,1)
+"
+
+[sub_resource type="DynamicFont" id=2]
+outline_size = 3
+outline_color = Color( 0.215686, 0.215686, 0.215686, 1 )
+font_data = ExtResource( 3 )
+
+[node name="State" type="Node2D"]
+z_as_relative = false
+script = ExtResource( 5 )
+stateName = "Lateral Pearl Shield"
+description = "[b]Invulnerable[/b] from the sides."
+type = 1
+effects = SubResource( 1 )
+extraStates = [ ExtResource( 1 ) ]
+appearOver = true
+maxStack = 20
+stacks = true
+
+[node name="Effects" type="Node" parent="."]
+
+[node name="Icon" type="TextureRect" parent="."]
+visible = false
+margin_right = 32.0
+margin_bottom = 32.0
+mouse_filter = 0
+texture = ExtResource( 2 )
+
+[node name="LVl" type="Label" parent="Icon"]
+margin_left = 21.0
+margin_top = 17.0
+margin_right = 30.0
+margin_bottom = 36.0
+custom_fonts/font = SubResource( 2 )
+text = "1"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Window" type="Node2D" parent="Icon"]
+
+[node name="Panel" parent="Icon/Window" instance=ExtResource( 4 )]
+visible = false
+margin_left = 32.0
+margin_top = -60.0
+margin_right = 238.0
+margin_bottom = -7.0

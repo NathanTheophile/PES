@@ -1,0 +1,43 @@
+[gd_scene load_steps=4 format=2]
+
+[ext_resource path="res://skills/SkillScript.gd" type="Script" id=1]
+[ext_resource path="res://states/(Player) - Tenebrus/002 - Espada/(State) Espada.tscn" type="PackedScene" id=2]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Node
+
+# targetArray = Array contendo as posições que esse feitiço atingiu
+#               A célula central será contida em um Array sozinha, para fácil identificação
+var skill
+func effects(targetArray):
+	skill = get_parent()
+	
+	if BattleMechanics.hasState(skill.caster, \"Machado\"):
+		BattleMechanics.removeState(\"Machado\",skill.caster)
+	elif BattleMechanics.hasState(skill.caster, \"Martelo\"):
+		BattleMechanics.removeState(\"Martelo\",skill.caster)
+	
+	BattleMechanics.addState(skill.states[0],skill.caster,skill.caster)
+	BattleMechanics.playAnimEntity(skill.caster, \"EquiEspada\")
+	yield(get_tree().create_timer(0.5),\"timeout\")
+	
+	
+	
+	
+"
+
+[node name="Skill" type="Node2D"]
+script = ExtResource( 1 )
+skillName = "Equipar Espada"
+description = "Equipa a [b]Espada[/b]:
+- [b]Golpe Armado[/b] agora causa danos em uma linha de 4 células."
+apCost = 1
+rangeMin = 0
+rangeMax = 0
+linear = true
+sight = true
+usePerTurn = 1
+effects = SubResource( 1 )
+states = [ ExtResource( 2 ) ]
+
+[node name="Effects" type="Node" parent="."]

@@ -1,0 +1,15 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+path="res://.import/stretch 1.mp3-fbf0fddada04089317ead9a7e47d7094.mp3str"
+
+[deps]
+
+source_file="res://sfx/stretch 1.mp3"
+dest_files=[ "res://.import/stretch 1.mp3-fbf0fddada04089317ead9a7e47d7094.mp3str" ]
+
+[params]
+
+loop=false
+loop_offset=0

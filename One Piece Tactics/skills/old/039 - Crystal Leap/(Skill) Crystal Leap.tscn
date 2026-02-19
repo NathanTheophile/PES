@@ -1,0 +1,161 @@
+[gd_scene load_steps=7 format=2]
+
+[ext_resource path="res://skills/SkillScript.gd" type="Script" id=1]
+[ext_resource path="res://skills/old/039 - Crystal Leap/Jump.tscn" type="PackedScene" id=2]
+[ext_resource path="res://skills/old/039 - Crystal Leap/CrystalBig.tscn" type="PackedScene" id=3]
+[ext_resource path="res://skills/old/039 - Crystal Leap/Crystal2.tscn" type="PackedScene" id=4]
+[ext_resource path="res://skills/old/039 - Crystal Leap/JumpB.tscn" type="PackedScene" id=5]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Node
+
+# targetArray = Array contendo as posições que esse feitiço atingiu
+#               A célula central será contida em um Array sozinha, para fácil identificação
+var skill
+func effects(targetArray):
+	skill = get_parent()
+	
+	BattleMechanics.playAnimEntity(skill.caster, \"Jump\")
+	yield(get_tree().create_timer(0.8),\"timeout\")
+	
+	var tgt = BattleMechanics.getEntityAt(targetArray[0])
+	var dir
+	if tgt:
+		for i in 4:
+			var offset
+			match i:
+				0:
+					offset = tgt.direction
+				1:
+					offset = Vector2(tgt.direction.y,tgt.direction.x)
+				2:
+					offset = Vector2(tgt.direction.y,tgt.direction.x) * -1
+				3:
+					offset = tgt.direction * -1
+			
+			if BattleMechanics.area.tilemap.get_cellv(tgt.posit+offset) == 0:
+				dir = offset
+				break
+		
+	BattleMechanics.shootProjectile(skill.visuals[0 if skill.caster.direction.x + skill.caster.direction.y > 0 else 3],skill.caster.posit,tgt.posit+dir,0.6, Vector2(0,0), Vector2(0,0), true, false if abs(skill.caster.direction.x) > abs(skill.caster.direction.y) else true)
+	if dir and tgt:
+		BattleMechanics.teleport(skill.caster,tgt.posit+dir,skill.caster)
+	yield(get_tree().create_timer(0.6),\"timeout\")
+	BattleMechanics.playAnim(skill.visuals[1],skill.caster.posit)
+	
+	yield(get_tree().create_timer(0.35),\"timeout\")
+	
+	if BattleMechanics.hasState(skill.caster, 27):
+		
+		var cells = BattleMechanics.getCellInRadius(skill.caster.posit, 2, false, 0)
+		var cellsOrder = {}
+		
+		for i in cells:
+			if cellsOrder.has(BattleMechanics.distanceTo(skill.caster.posit, i)) and BattleMechanics.distanceTo(skill.caster.posit, i)>0:
+				cellsOrder[BattleMechanics.distanceTo(skill.caster.posit, i)].append(i)
+			elif BattleMechanics.distanceTo(skill.caster.posit, i)>0:
+				cellsOrder[BattleMechanics.distanceTo(skill.caster.posit, i)] = [i]
+		
+		var keys = cellsOrder.keys()
+		keys.sort()
+		for i in keys:
+			for j in cellsOrder[i].size():
+				BattleMechanics.playAnim(skill.visuals[2],cellsOrder[i][j])
+				var aoeTgt = BattleMechanics.getEntityAt(cellsOrder[i][j])
+				if aoeTgt and aoeTgt.player:
+					BattleMechanics.dealDmg([5,\"f\"],aoeTgt,skill.caster)
+			yield(get_tree().create_timer(0.1),\"timeout\")
+	
+	elif BattleMechanics.hasState(skill.caster, 28):
+		
+		var cells = BattleMechanics.getCellInRadius(skill.caster.posit, 4, false, 0, [], 3)
+		var cellsOrder = {}
+		
+		for i in cells:
+			if cellsOrder.has(BattleMechanics.distanceTo(skill.caster.posit, i)) and BattleMechanics.distanceTo(skill.caster.posit, i)>0:
+				cellsOrder[BattleMechanics.distanceTo(skill.caster.posit, i)].append(i)
+			elif BattleMechanics.distanceTo(skill.caster.posit, i)>0:
+				cellsOrder[BattleMechanics.distanceTo(skill.caster.posit, i)] = [i]
+		
+		var keys = cellsOrder.keys()
+		keys.sort()
+		for i in keys:
+			for j in cellsOrder[i].size():
+				BattleMechanics.playAnim(skill.visuals[2],cellsOrder[i][j])
+				var aoeTgt = BattleMechanics.getEntityAt(cellsOrder[i][j])
+				if aoeTgt and aoeTgt.player:
+					BattleMechanics.dealDmg([5,\"w\"],aoeTgt,skill.caster)
+			yield(get_tree().create_timer(0.1),\"timeout\")
+	
+	elif BattleMechanics.hasState(skill.caster, 29):
+		
+		var cells = BattleMechanics.getCellInRadius(skill.caster.posit, 3, false, 0, [], 0)
+		var cellsOrder = {}
+		
+		for i in cells:
+			if i.x == skill.caster.posit.x or i.y == skill.caster.posit.y:
+				if cellsOrder.has(BattleMechanics.distanceTo(skill.caster.posit, i)) and BattleMechanics.distanceTo(skill.caster.posit, i)>0:
+					cellsOrder[BattleMechanics.distanceTo(skill.caster.posit, i)].append(i)
+				elif BattleMechanics.distanceTo(skill.caster.posit, i)>0:
+					cellsOrder[BattleMechanics.distanceTo(skill.caster.posit, i)] = [i]
+		
+		var keys = cellsOrder.keys()
+		keys.sort()
+		var pushed = []
+		for i in keys:
+			for j in cellsOrder[i].size():
+				BattleMechanics.playAnim(skill.visuals[2],cellsOrder[i][j])
+				var aoeTgt = BattleMechanics.getEntityAt(cellsOrder[i][j])
+				if aoeTgt:
+					pushed.append(aoeTgt)
+					if aoeTgt.player:
+						BattleMechanics.dealDmg([5,\"a\"],aoeTgt,skill.caster)
+			yield(get_tree().create_timer(0.1),\"timeout\")
+		for i in pushed:
+			BattleMechanics.push(i, skill.caster, 2, BattleMechanics.directionTo(skill.caster.posit, i.posit),[1,\"n\"])
+	
+	elif BattleMechanics.hasState(skill.caster, 30):
+		
+		var cells = BattleMechanics.getCellInRadius(skill.caster.posit, 3, false, 0, [],0)
+		var cellsOrder = {}
+		
+		for i in cells:
+			if cellsOrder.has(BattleMechanics.distanceTo(skill.caster.posit, i)) and BattleMechanics.distanceTo(skill.caster.posit, i)>0:
+				cellsOrder[BattleMechanics.distanceTo(skill.caster.posit, i)].append(i)
+			elif BattleMechanics.distanceTo(skill.caster.posit, i)>0:
+				cellsOrder[BattleMechanics.distanceTo(skill.caster.posit, i)] = [i]
+		
+		var keys = cellsOrder.keys()
+		keys.sort()
+		for i in keys:
+			for j in cellsOrder[i].size():
+				BattleMechanics.playAnim(skill.visuals[2],cellsOrder[i][j])
+				var aoeTgt = BattleMechanics.getEntityAt(cellsOrder[i][j])
+				if aoeTgt and aoeTgt.player:
+					BattleMechanics.dealDmg([5,\"e\"],aoeTgt,skill.caster)
+					BattleMechanics.heal(BattleMechanics.dmgHolder[aoeTgt.name][0], skill.caster, skill.caster)
+			yield(get_tree().create_timer(0.1),\"timeout\")
+	
+	
+
+	
+	
+
+
+	
+	
+"
+
+[node name="Skill" type="Node2D"]
+script = ExtResource( 1 )
+skillName = "Crystal Leap"
+description = "Deals [color=#f09ee5]5 air damage[/color]. "
+apCost = 1
+rangeMin = 3
+rangeMax = 3
+usePerTgt = 1
+tgtTypeEntity = true
+visuals = [ ExtResource( 2 ), ExtResource( 3 ), ExtResource( 4 ), ExtResource( 5 ) ]
+effects = SubResource( 1 )
+
+[node name="Effects" type="Node" parent="."]

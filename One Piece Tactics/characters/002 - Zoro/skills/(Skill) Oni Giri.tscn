@@ -1,0 +1,71 @@
+[gd_scene load_steps=9 format=2]
+
+[ext_resource path="res://skills/SkillScript.gd" type="Script" id=1]
+[ext_resource path="res://characters/002 - Zoro/skills/aura.tscn" type="PackedScene" id=2]
+[ext_resource path="res://skills/icons/move.png" type="Texture" id=3]
+[ext_resource path="res://characters/002 - Zoro/skills/onigiri.tscn" type="PackedScene" id=4]
+[ext_resource path="res://skills/icons/atk.png" type="Texture" id=5]
+[ext_resource path="res://characters/002 - Zoro/skills/thrust1.tscn" type="PackedScene" id=6]
+[ext_resource path="res://characters/002 - Zoro/skills/thrust2.tscn" type="PackedScene" id=7]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Node
+
+# targetArray = Array contendo as posições que esse feitiço atingiu
+#               A célula central será contida em um Array sozinha, para fácil identificação
+var skill
+func effects(targetArray):
+	skill = get_parent()
+	
+	BattleMechanics.playAnimEntity(skill.caster, \"Onigiri\")
+	yield(get_tree().create_timer(0.5),\"timeout\")
+	AM.play(skill.caster.audioEX[1])
+	BattleMechanics.playAnim(skill.visuals[1],skill.caster.posit,false,\"under\")
+	
+	yield(get_tree().create_timer(1.7),\"timeout\")
+	BattleMechanics.playAnim(skill.visuals[2 if skill.caster.direction > Vector2.ZERO else 3],skill.caster.posit, false if skill.caster.direction.x!=0 else true)
+	
+	
+
+	var tgt = BattleMechanics.getEntityAt(targetArray[0])
+	
+	if tgt:
+		BattleMechanics.dealDmg([skill.base*dmgMod(tgt),\"n\"],tgt,skill.caster)
+		if tgt.ent_name != \"Dracule Mihawk\":
+			BattleMechanics.playAnim(skill.visuals[0], targetArray[0], false if skill.caster.direction.x!=0 else true)
+	AM.play(skill.caster.audioEX[2],{\"randp\": true})
+	var i = 1
+	if tgt and tgt.big:
+		while BattleMechanics.getEntityAt(targetArray[0]+skill.caster.direction*i):
+			i+=1
+	
+	BattleMechanics.teleport(skill.caster, targetArray[0]+skill.caster.direction*i, skill.caster)
+	yield(get_tree().create_timer(1),\"timeout\")
+			
+func dmgMod(target=false):
+	return 2 if target.direction == BattleMechanics.currentPlaying.direction * -1 else 1
+	
+	
+"
+
+[node name="Skill" type="Node2D"]
+script = ExtResource( 1 )
+skillName = "Oni Giri"
+description = "[b]{b}[/b] [img]res://skills/sword.png[/img] and moves behind the target after dealing damage.
+
+[b]Frontal:[/b] Doubles damage dealt"
+icon1 = ExtResource( 5 )
+icon2 = ExtResource( 3 )
+base = 15
+apCost = 1
+element = 1
+rangeMin = 2
+rangeMax = 6
+linear = true
+sight = true
+usePerTgt = 1
+usePerTurn = 2
+visuals = [ ExtResource( 4 ), ExtResource( 2 ), ExtResource( 6 ), ExtResource( 7 ) ]
+effects = SubResource( 1 )
+
+[node name="Effects" type="Node" parent="."]

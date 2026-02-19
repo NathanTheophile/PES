@@ -1,0 +1,123 @@
+[gd_scene load_steps=9 format=2]
+
+[ext_resource path="res://Roboto-Bold.ttf" type="DynamicFontData" id=1]
+[ext_resource path="res://states/StatePreview.tscn" type="PackedScene" id=2]
+[ext_resource path="res://states/(Area) - Invasão dos Golens/027 - Rubi/icon.png" type="Texture" id=3]
+[ext_resource path="res://states/Estados Globais/038 - Bônus de Danos/(State) Bônus de Danos.tscn" type="PackedScene" id=4]
+[ext_resource path="res://states/Estados Globais/039 - Penalidade de Resistência/(State) Penalidade de Resistência.tscn" type="PackedScene" id=5]
+[ext_resource path="res://states/StateScript.gd" type="Script" id=13]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Node
+
+var state
+var porter
+func stateSetup():
+	state = get_parent()
+	porter = state.get_node(\"../..\")
+	porter.connect(\"dmg_taken\",self,\"change\")
+	porter.connect(\"turn_start\",self,\"check\")
+	#porter.connect(\"turn_end\",self,\"autoChange\")
+
+func change(_dmg, _a, before):
+	if not before:
+		if BattleMechanics.dmgHolder[porter.name][1] != \"n\":
+			for i in 4:
+				var stateName = \"Corpo de \"
+				var end = \"\"
+				match i:
+					0:
+						end = \"Rubi\"
+					1:
+						end = \"Esmeralda\"
+					2:
+						end = \"Safira\"
+					3:
+						end = \"Ametista\"
+				stateName += end
+				print(stateName)
+				if BattleMechanics.hasState(porter, stateName):
+					var crystalState = BattleMechanics.getState(porter, stateName)
+					print(crystalState)
+					if crystalState:
+						BattleMechanics.removeState(crystalState)
+					break
+			
+			porter.get_node(\"Crystals\").assume(BattleMechanics.dmgHolder[porter.name][1])
+			
+func autoChange():
+	randomize()
+	for i in 4:
+		var stateName = \"Corpo de \"
+		var end = \"\"
+		match i:
+			0:
+				end = \"Rubi\"
+			1:
+				end = \"Esmeralda\"
+			2:
+				end = \"Safira\"
+			3:
+				end = \"Ametista\"
+		stateName += end
+		if BattleMechanics.hasState(porter, stateName):
+			BattleMechanics.getState(porter, stateName).get_node(\"Effects\").expire()
+			break
+	porter.get_node(\"Crystals\").assume([\"w\",\"f\",\"a\",\"e\"][wrapi(randi(),0,4)])
+
+var last
+func check():
+	var current = porter.get_node(\"Crystals\").currentElm
+	if last == current:
+		BattleMechanics.addState(state.extraStates[0], porter, porter, 20)
+		BattleMechanics.addState(state.extraStates[1], porter, porter, 10)
+	last = current
+"
+
+[sub_resource type="DynamicFont" id=2]
+outline_size = 3
+outline_color = Color( 0.215686, 0.215686, 0.215686, 1 )
+font_data = ExtResource( 1 )
+
+[node name="State" type="Node2D"]
+z_as_relative = false
+script = ExtResource( 13 )
+stateName = "Cristais"
+description = "Ao receber danos, absorve o elemento do dano recebido.
+
+Para cada turno consecutivo que esse monstro passa no mesmo elemento:
+[b]+20% de danos causados[/b] (permanente)"
+type = 3
+effects = SubResource( 1 )
+extraStates = [ ExtResource( 4 ), ExtResource( 5 ) ]
+appearOver = true
+
+[node name="Effects" type="Node" parent="."]
+
+[node name="Icon" type="TextureRect" parent="."]
+visible = false
+margin_right = 32.0
+margin_bottom = 32.0
+mouse_filter = 0
+texture = ExtResource( 3 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="LVl" type="Label" parent="Icon"]
+margin_left = 21.0
+margin_top = 17.0
+margin_right = 30.0
+margin_bottom = 36.0
+custom_fonts/font = SubResource( 2 )
+text = "1"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Window" type="Node2D" parent="Icon"]
+
+[node name="Panel" parent="Icon/Window" instance=ExtResource( 2 )]
+visible = false
+margin_top = -59.0
+margin_bottom = -6.0

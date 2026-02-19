@@ -1,0 +1,193 @@
+[gd_scene load_steps=14 format=2]
+
+[ext_resource path="res://Roboto-Bold.ttf" type="DynamicFontData" id=1]
+[ext_resource path="res://characters/001 - Luffy/anvil.png" type="Texture" id=2]
+[ext_resource path="res://states/StatePreview.tscn" type="PackedScene" id=3]
+[ext_resource path="res://states/StateScript.gd" type="Script" id=4]
+[ext_resource path="res://skills/Recursos Comuns/impact.png" type="Texture" id=5]
+[ext_resource path="res://characters/001 - Luffy/skills/cracks.png" type="Texture" id=6]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Node
+
+var state
+var porter
+func stateSetup():
+	state = get_parent()
+	porter = state.get_node(\"../..\")
+	porter.pushStab = true
+	state.connect(\"tree_exiting\",self,\"expire\")
+	porter.connect(\"killed\",self,\"expire\")
+	BattleMechanics.connect(\"endPlayersTurn\",self,\"end\")
+
+func end():
+	porter.pushStab = false
+	BattleMechanics.aiMonsterYield = 0.6
+	state.get_node(\"AnimationPlayer\").play(\"m\")
+	yield(get_tree().create_timer(0.6),\"timeout\")
+
+	BattleMechanics.removeState(state)
+
+func expire(_a=0):
+	end()
+
+"
+
+[sub_resource type="DynamicFont" id=2]
+outline_size = 3
+outline_color = Color( 0.215686, 0.215686, 0.215686, 1 )
+font_data = ExtResource( 1 )
+
+[sub_resource type="Gradient" id=3]
+offsets = PoolRealArray( 0, 0.407767, 1 )
+colors = PoolColorArray( 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0 )
+
+[sub_resource type="GradientTexture" id=4]
+gradient = SubResource( 3 )
+
+[sub_resource type="ParticlesMaterial" id=5]
+lifetime_randomness = 0.62
+emission_shape = 1
+emission_sphere_radius = 15.22
+flag_disable_z = true
+gravity = Vector3( 0, 60, 0 )
+orbit_velocity = 0.0
+orbit_velocity_random = 0.0
+color = Color( 0.203922, 0.203922, 0.203922, 1 )
+color_ramp = SubResource( 4 )
+
+[sub_resource type="Animation" id=6]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/path = NodePath("Cracks2:self_modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ Color( 1, 1, 1, 0.254902 ) ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Cracks:self_modulate")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ Color( 1, 1, 1, 0.254902 ) ]
+}
+
+[sub_resource type="Animation" id=7]
+resource_name = "m"
+length = 0.6
+tracks/0/type = "value"
+tracks/0/path = NodePath("Cracks2:self_modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 0.6 ),
+"transitions": PoolRealArray( 1, 1 ),
+"update": 0,
+"values": [ Color( 1, 1, 1, 0.254902 ), Color( 1, 1, 1, 0 ) ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Cracks:self_modulate")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0, 0.6 ),
+"transitions": PoolRealArray( 1, 1 ),
+"update": 0,
+"values": [ Color( 1, 1, 1, 0.254902 ), Color( 1, 1, 1, 0 ) ]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("Particles2D:emitting")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ false ]
+}
+
+[node name="State" type="Node2D"]
+z_as_relative = false
+script = ExtResource( 4 )
+stateName = "Unpushable"
+description = "Cannot be [b]pushed[/b]. Still takes collision damage."
+effects = SubResource( 1 )
+appearOver = true
+lvlMlt = 0.5
+lvl2Mlt = 0.02
+
+[node name="Effects" type="Node" parent="."]
+
+[node name="Icon" type="TextureRect" parent="."]
+visible = false
+margin_right = 32.0
+margin_bottom = 32.0
+mouse_filter = 0
+texture = ExtResource( 2 )
+
+[node name="LVl" type="Label" parent="Icon"]
+margin_left = 21.0
+margin_top = 17.0
+margin_right = 30.0
+margin_bottom = 36.0
+grow_horizontal = 2
+custom_fonts/font = SubResource( 2 )
+text = "1"
+align = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Window" type="Node2D" parent="Icon"]
+
+[node name="Panel" parent="Icon/Window" instance=ExtResource( 3 )]
+visible = false
+margin_left = 32.0
+margin_top = -60.0
+margin_right = 238.0
+margin_bottom = -7.0
+
+[node name="Particles2D" type="Particles2D" parent="."]
+position = Vector2( 0, -24 )
+amount = 6
+lifetime = 1.5
+local_coords = false
+process_material = SubResource( 5 )
+texture = ExtResource( 5 )
+
+[node name="Cracks" type="Sprite" parent="."]
+modulate = Color( 0.584314, 0.380392, 0.215686, 0.698039 )
+self_modulate = Color( 1, 1, 1, 0.254902 )
+position = Vector2( -9, 15 )
+scale = Vector2( 1.66875, 1.66875 )
+texture = ExtResource( 6 )
+offset = Vector2( 1.43051e-06, 4.19476 )
+
+[node name="Cracks2" type="Sprite" parent="."]
+modulate = Color( 0.207843, 0.184314, 0.184314, 1 )
+self_modulate = Color( 1, 1, 1, 0.254902 )
+position = Vector2( -9, 19 )
+scale = Vector2( 1.66875, 1.66875 )
+texture = ExtResource( 6 )
+offset = Vector2( 1.43051e-06, 4.19476 )
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+anims/RESET = SubResource( 6 )
+anims/m = SubResource( 7 )

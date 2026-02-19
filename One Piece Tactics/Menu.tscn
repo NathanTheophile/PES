@@ -1,0 +1,1783 @@
+[gd_scene load_steps=34 format=2]
+
+[ext_resource path="res://Roboto-Regular.ttf" type="DynamicFontData" id=1]
+[ext_resource path="res://menus/MainMenu.gd" type="Script" id=2]
+[ext_resource path="res://characters/003 - Usopp/icon.png" type="Texture" id=3]
+[ext_resource path="res://Run.tscn" type="PackedScene" id=4]
+[ext_resource path="res://Roboto-Bold.ttf" type="DynamicFontData" id=5]
+[ext_resource path="res://characters/004 - Sanji/icon.png" type="Texture" id=6]
+[ext_resource path="res://back.png" type="Texture" id=7]
+[ext_resource path="res://scroll.gdshader" type="Shader" id=8]
+[ext_resource path="res://areas/smallCrown.png" type="Texture" id=9]
+[ext_resource path="res://StageButton.gd" type="Script" id=10]
+[ext_resource path="res://characters/001 - Luffy/icon.png" type="Texture" id=11]
+[ext_resource path="res://characters/002 - Zoro/icon.png" type="Texture" id=12]
+[ext_resource path="res://skills/Recursos Comuns/shinePtcl.png" type="Texture" id=13]
+
+[sub_resource type="ShaderMaterial" id=10]
+shader = ExtResource( 8 )
+shader_param/d = Vector2( 1, 0.3 )
+shader_param/s = 0.2
+
+[sub_resource type="DynamicFont" id=2]
+size = 12
+outline_color = Color( 0.301961, 0.235294, 0.235294, 1 )
+font_data = ExtResource( 5 )
+
+[sub_resource type="StyleBoxFlat" id=26]
+content_margin_left = 8.0
+content_margin_right = 8.0
+content_margin_top = 8.0
+content_margin_bottom = 8.0
+bg_color = Color( 0.576471, 0.509804, 0.364706, 0.831373 )
+border_color = Color( 0.145098, 0.145098, 0.12549, 1 )
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="DynamicFont" id=42]
+font_data = ExtResource( 5 )
+
+[sub_resource type="StyleBoxFlat" id=28]
+content_margin_left = 20.0
+content_margin_right = 20.0
+content_margin_top = 8.0
+content_margin_bottom = 8.0
+bg_color = Color( 0.243137, 0.541176, 0.717647, 1 )
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color( 0.290196, 0.309804, 0.415686, 1 )
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="Gradient" id=32]
+offsets = PoolRealArray( 0, 0.232258, 1 )
+colors = PoolColorArray( 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0 )
+
+[sub_resource type="GradientTexture" id=8]
+gradient = SubResource( 32 )
+
+[sub_resource type="Curve" id=33]
+_data = [ Vector2( 0.00561798, 0.295455 ), 0.0, 3.73427, 0, 0, Vector2( 0.297753, 1 ), 0.0, 0.0, 0, 0, Vector2( 1, 0.240909 ), -1.75889, 0.0, 0, 0 ]
+
+[sub_resource type="CurveTexture" id=34]
+curve = SubResource( 33 )
+
+[sub_resource type="ParticlesMaterial" id=35]
+lifetime_randomness = 0.22
+emission_shape = 1
+emission_sphere_radius = 9.84
+flag_disable_z = true
+spread = 180.0
+gravity = Vector3( 0, 0, 0 )
+initial_velocity = 15.0
+initial_velocity_random = 1.0
+orbit_velocity = 0.0
+orbit_velocity_random = 0.0
+scale = 0.3
+scale_random = 0.5
+scale_curve = SubResource( 34 )
+color_ramp = SubResource( 8 )
+
+[sub_resource type="StyleBoxFlat" id=29]
+draw_center = false
+border_width_top = 3
+border_width_right = 3
+border_color = Color( 0.290196, 0.309804, 0.415686, 0.301961 )
+
+[sub_resource type="DynamicFont" id=30]
+font_data = ExtResource( 1 )
+
+[sub_resource type="DynamicFont" id=36]
+size = 13
+font_data = ExtResource( 5 )
+
+[sub_resource type="StyleBoxFlat" id=31]
+content_margin_left = 10.0
+content_margin_right = 10.0
+content_margin_top = 5.0
+content_margin_bottom = 5.0
+bg_color = Color( 0.294118, 0.294118, 0.294118, 1 )
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color( 0.145098, 0.145098, 0.12549, 1 )
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="GDScript" id=25]
+script/source = "extends Panel
+
+
+func gui_input(event):
+	if event is InputEventMouseButton and event.pressed and event.button_index==1:
+		visible = false
+		Save.data[\"disclaimer\"] = false
+		Save.save()
+"
+
+[sub_resource type="StyleBoxFlat" id=24]
+bg_color = Color( 0.447059, 0.286275, 0.0980392, 1 )
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color( 0.145098, 0.145098, 0.12549, 1 )
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id=19]
+content_margin_left = 5.0
+content_margin_right = 5.0
+content_margin_top = 5.0
+content_margin_bottom = 5.0
+bg_color = Color( 0.576471, 0.168627, 0.168627, 1 )
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color( 0.145098, 0.145098, 0.12549, 1 )
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="DynamicFont" id=22]
+size = 12
+font_data = ExtResource( 5 )
+
+[sub_resource type="DynamicFont" id=23]
+size = 12
+font_data = ExtResource( 1 )
+
+[sub_resource type="GDScript" id=37]
+script/source = "extends Panel
+
+
+func gui_input(event):
+	if event is InputEventMouseButton and event.pressed and event.button_index==1:
+		visible = false
+"
+
+[node name="Node2D" type="Node2D"]
+script = ExtResource( 2 )
+run = ExtResource( 4 )
+
+[node name="Panel" type="TextureRect" parent="."]
+material = SubResource( 10 )
+margin_left = -11.0
+margin_top = -2.0
+margin_right = 1058.0
+margin_bottom = 631.0
+texture = ExtResource( 7 )
+stretch_mode = 2
+
+[node name="Button2" type="Button" parent="."]
+margin_left = 846.0
+margin_top = 12.0
+margin_right = 982.0
+margin_bottom = 32.0
+toggle_mode = true
+text = "Go / Exit Fullscreen"
+align = 0
+expand_icon = true
+
+[node name="Button3" type="Button" parent="."]
+margin_left = 846.0
+margin_top = 34.0
+margin_right = 982.0
+margin_bottom = 54.0
+text = "Reset Save"
+align = 0
+expand_icon = true
+
+[node name="Button4" type="Button" parent="."]
+margin_left = 14.0
+margin_top = 33.0
+margin_right = 157.0
+margin_bottom = 53.0
+text = "Check Controls HERE"
+align = 0
+expand_icon = true
+
+[node name="Label4" type="Label" parent="."]
+margin_left = 7.0
+margin_top = 582.0
+margin_right = 440.0
+margin_bottom = 687.0
+custom_colors/font_color = Color( 0.160784, 0.156863, 0.156863, 1 )
+custom_fonts/font = SubResource( 2 )
+text = "Credits: Neze (art and programming): @neze on Discord, @neifaneze on Twitter / X"
+
+[node name="Label5" type="Label" parent="."]
+margin_left = 13.0
+margin_top = 11.0
+margin_right = 735.0
+margin_bottom = 62.0
+custom_colors/font_color = Color( 0.160784, 0.156863, 0.156863, 1 )
+custom_fonts/font = SubResource( 2 )
+text = "One Piece Tactics v0.5, have fun!
+
+
+IMPORTANT: All stages are always playable, even if they are still gray, the \"Fight!\" button always works."
+
+[node name="PanelContainer" type="PanelContainer" parent="."]
+margin_left = 14.0
+margin_top = 89.0
+margin_right = 1004.0
+margin_bottom = 561.0
+custom_styles/panel = SubResource( 26 )
+
+[node name="ScrollContainer" type="ScrollContainer" parent="PanelContainer"]
+margin_left = 8.0
+margin_top = 8.0
+margin_right = 982.0
+margin_bottom = 464.0
+scroll_vertical = 100
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/ScrollContainer"]
+margin_top = -100.0
+margin_right = 962.0
+margin_bottom = 921.0
+size_flags_horizontal = 3
+custom_constants/separation = 6
+
+[node name="Label" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer"]
+margin_right = 962.0
+margin_bottom = 19.0
+size_flags_horizontal = 3
+custom_fonts/font = SubResource( 42 )
+text = "Romance Dawn:"
+valign = 2
+
+[node name="Stage1" type="PanelContainer" parent="PanelContainer/ScrollContainer/VBoxContainer"]
+margin_top = 25.0
+margin_right = 962.0
+margin_bottom = 163.0
+rect_min_size = Vector2( 0, 80 )
+custom_styles/panel = SubResource( 28 )
+script = ExtResource( 10 )
+scene = "res://areas/01 - Alvida/Area1.tscn"
+lvl = 1
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage1"]
+margin_left = 20.0
+margin_top = 8.0
+margin_right = 942.0
+margin_bottom = 130.0
+custom_constants/separation = 5
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage1/VBoxContainer"]
+margin_right = 922.0
+margin_bottom = 23.0
+size_flags_horizontal = 3
+
+[node name="Label" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage1/VBoxContainer/HBoxContainer"]
+margin_top = 2.0
+margin_right = 823.0
+margin_bottom = 21.0
+size_flags_horizontal = 3
+custom_fonts/font = SubResource( 42 )
+text = "Stage 1 - Alvida"
+
+[node name="crowns" type="HBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage1/VBoxContainer/HBoxContainer"]
+margin_left = 827.0
+margin_right = 922.0
+margin_bottom = 23.0
+
+[node name="c1" type="TextureRect" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage1/VBoxContainer/HBoxContainer/crowns"]
+modulate = Color( 0.301961, 0.301961, 0.301961, 0.54902 )
+margin_right = 29.0
+margin_bottom = 23.0
+rect_pivot_offset = Vector2( -322, 79 )
+hint_tooltip = "Never get hit by a Pirate Swordsman's attack."
+mouse_default_cursor_shape = 16
+texture = ExtResource( 9 )
+stretch_mode = 6
+
+[node name="Particles2D" type="Particles2D" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage1/VBoxContainer/HBoxContainer/crowns/c1"]
+position = Vector2( 15, 11 )
+emitting = false
+amount = 3
+randomness = 0.9
+process_material = SubResource( 35 )
+texture = ExtResource( 13 )
+
+[node name="c2" type="TextureRect" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage1/VBoxContainer/HBoxContainer/crowns"]
+modulate = Color( 0.301961, 0.301961, 0.301961, 0.54902 )
+margin_left = 33.0
+margin_right = 62.0
+margin_bottom = 23.0
+hint_tooltip = "Never get hit by Alvida's cannonballs."
+mouse_default_cursor_shape = 16
+texture = ExtResource( 9 )
+stretch_mode = 6
+
+[node name="Particles2D" type="Particles2D" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage1/VBoxContainer/HBoxContainer/crowns/c2"]
+position = Vector2( 15, 11 )
+emitting = false
+amount = 3
+randomness = 0.9
+process_material = SubResource( 35 )
+texture = ExtResource( 13 )
+
+[node name="c3" type="TextureRect" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage1/VBoxContainer/HBoxContainer/crowns"]
+modulate = Color( 0.301961, 0.301961, 0.301961, 0.54902 )
+margin_left = 66.0
+margin_right = 95.0
+margin_bottom = 23.0
+hint_tooltip = "All enemies must be finished by Alvida's cannonballs."
+mouse_default_cursor_shape = 16
+texture = ExtResource( 9 )
+stretch_mode = 6
+
+[node name="Particles2D" type="Particles2D" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage1/VBoxContainer/HBoxContainer/crowns/c3"]
+position = Vector2( 15, 11 )
+emitting = false
+amount = 3
+randomness = 0.9
+process_material = SubResource( 35 )
+texture = ExtResource( 13 )
+
+[node name="HSeparator" type="HSeparator" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage1/VBoxContainer"]
+margin_top = 28.0
+margin_right = 922.0
+margin_bottom = 32.0
+custom_styles/separator = SubResource( 29 )
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage1/VBoxContainer"]
+margin_top = 37.0
+margin_right = 922.0
+margin_bottom = 79.0
+custom_constants/separation = 0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage1/VBoxContainer/HBoxContainer2"]
+margin_right = 165.0
+margin_bottom = 42.0
+
+[node name="Label2" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage1/VBoxContainer/HBoxContainer2/VBoxContainer"]
+margin_right = 165.0
+margin_bottom = 19.0
+custom_fonts/font = SubResource( 30 )
+text = "Best Time:"
+
+[node name="Label3" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage1/VBoxContainer/HBoxContainer2/VBoxContainer"]
+margin_top = 23.0
+margin_right = 165.0
+margin_bottom = 42.0
+custom_fonts/font = SubResource( 30 )
+text = "Best Time (All Crowns):"
+
+[node name="VBoxContainer2" type="VBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage1/VBoxContainer/HBoxContainer2"]
+margin_left = 165.0
+margin_right = 197.0
+margin_bottom = 42.0
+
+[node name="bt" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage1/VBoxContainer/HBoxContainer2/VBoxContainer2"]
+margin_right = 32.0
+margin_bottom = 19.0
+size_flags_horizontal = 3
+size_flags_vertical = 10
+custom_fonts/font = SubResource( 42 )
+text = "0:00"
+
+[node name="btac" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage1/VBoxContainer/HBoxContainer2/VBoxContainer2"]
+margin_top = 23.0
+margin_right = 32.0
+margin_bottom = 42.0
+size_flags_horizontal = 3
+size_flags_vertical = 10
+custom_fonts/font = SubResource( 42 )
+text = "0:00"
+
+[node name="VBoxContainer3" type="VBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage1/VBoxContainer/HBoxContainer2"]
+margin_left = 197.0
+margin_right = 215.0
+margin_bottom = 42.0
+
+[node name="btD" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage1/VBoxContainer/HBoxContainer2/VBoxContainer3"]
+margin_top = 2.0
+margin_right = 18.0
+margin_bottom = 19.0
+size_flags_vertical = 10
+custom_fonts/font = SubResource( 36 )
+text = ".00"
+
+[node name="btacD" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage1/VBoxContainer/HBoxContainer2/VBoxContainer3"]
+margin_top = 25.0
+margin_right = 18.0
+margin_bottom = 42.0
+size_flags_vertical = 10
+custom_fonts/font = SubResource( 36 )
+text = ".00"
+
+[node name="HSeparator2" type="HSeparator" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage1/VBoxContainer"]
+margin_top = 84.0
+margin_right = 922.0
+margin_bottom = 88.0
+custom_styles/separator = SubResource( 29 )
+
+[node name="HBoxContainer4" type="HBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage1/VBoxContainer"]
+margin_top = 93.0
+margin_right = 922.0
+margin_bottom = 122.0
+custom_constants/separation = 10
+
+[node name="Label4" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage1/VBoxContainer/HBoxContainer4"]
+margin_top = 5.0
+margin_right = 167.0
+margin_bottom = 24.0
+custom_fonts/font = SubResource( 30 )
+text = "Characters in this Fight:"
+
+[node name="HBoxContainer3" type="HBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage1/VBoxContainer/HBoxContainer4"]
+margin_left = 177.0
+margin_right = 852.0
+margin_bottom = 29.0
+size_flags_horizontal = 3
+
+[node name="TextureRect" type="TextureRect" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage1/VBoxContainer/HBoxContainer4/HBoxContainer3"]
+margin_right = 29.0
+margin_bottom = 29.0
+hint_tooltip = "Luffy"
+texture = ExtResource( 11 )
+
+[node name="Fight" type="PanelContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage1/VBoxContainer/HBoxContainer4"]
+margin_left = 862.0
+margin_right = 922.0
+margin_bottom = 29.0
+rect_pivot_offset = Vector2( -962, 40 )
+mouse_default_cursor_shape = 2
+custom_styles/panel = SubResource( 31 )
+
+[node name="Label" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage1/VBoxContainer/HBoxContainer4/Fight"]
+margin_left = 10.0
+margin_top = 5.0
+margin_right = 50.0
+margin_bottom = 24.0
+size_flags_horizontal = 3
+custom_fonts/font = SubResource( 42 )
+text = "Fight!"
+
+[node name="Stage2" type="PanelContainer" parent="PanelContainer/ScrollContainer/VBoxContainer"]
+margin_top = 169.0
+margin_right = 962.0
+margin_bottom = 307.0
+rect_min_size = Vector2( 0, 80 )
+custom_styles/panel = SubResource( 28 )
+script = ExtResource( 10 )
+scene = "res://areas/02 - Cap Morgan/Area2.tscn"
+lvl = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage2"]
+margin_left = 20.0
+margin_top = 8.0
+margin_right = 942.0
+margin_bottom = 130.0
+custom_constants/separation = 5
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage2/VBoxContainer"]
+margin_right = 922.0
+margin_bottom = 23.0
+size_flags_horizontal = 3
+
+[node name="Label" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage2/VBoxContainer/HBoxContainer"]
+margin_top = 2.0
+margin_right = 823.0
+margin_bottom = 21.0
+size_flags_horizontal = 3
+custom_fonts/font = SubResource( 42 )
+text = "Stage 2 - Captain Morgan"
+
+[node name="crowns" type="HBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage2/VBoxContainer/HBoxContainer"]
+margin_left = 827.0
+margin_right = 922.0
+margin_bottom = 23.0
+
+[node name="c1" type="TextureRect" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage2/VBoxContainer/HBoxContainer/crowns"]
+modulate = Color( 0.301961, 0.301961, 0.301961, 0.54902 )
+margin_right = 29.0
+margin_bottom = 23.0
+hint_tooltip = "Morgan should be defeated only when he's the last enemy remaining"
+mouse_default_cursor_shape = 16
+texture = ExtResource( 9 )
+stretch_mode = 6
+
+[node name="Particles2D" type="Particles2D" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage2/VBoxContainer/HBoxContainer/crowns/c1"]
+position = Vector2( 15, 11 )
+emitting = false
+amount = 3
+randomness = 0.9
+process_material = SubResource( 35 )
+texture = ExtResource( 13 )
+
+[node name="c2" type="TextureRect" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage2/VBoxContainer/HBoxContainer/crowns"]
+modulate = Color( 0.301961, 0.301961, 0.301961, 0.54902 )
+margin_left = 33.0
+margin_right = 62.0
+margin_bottom = 23.0
+hint_tooltip = "Morgan should be defeated before round 8."
+mouse_default_cursor_shape = 16
+texture = ExtResource( 9 )
+stretch_mode = 6
+
+[node name="Particles2D" type="Particles2D" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage2/VBoxContainer/HBoxContainer/crowns/c2"]
+position = Vector2( 15, 11 )
+emitting = false
+amount = 3
+randomness = 0.9
+process_material = SubResource( 35 )
+texture = ExtResource( 13 )
+
+[node name="c3" type="TextureRect" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage2/VBoxContainer/HBoxContainer/crowns"]
+modulate = Color( 0.301961, 0.301961, 0.301961, 0.54902 )
+margin_left = 66.0
+margin_right = 95.0
+margin_bottom = 23.0
+hint_tooltip = "Luffy and Zoro must both be above 80% HP when the fight ends."
+mouse_default_cursor_shape = 16
+texture = ExtResource( 9 )
+stretch_mode = 6
+
+[node name="Particles2D" type="Particles2D" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage2/VBoxContainer/HBoxContainer/crowns/c3"]
+position = Vector2( 15, 11 )
+emitting = false
+amount = 3
+randomness = 0.9
+process_material = SubResource( 35 )
+texture = ExtResource( 13 )
+
+[node name="HSeparator" type="HSeparator" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage2/VBoxContainer"]
+margin_top = 28.0
+margin_right = 922.0
+margin_bottom = 32.0
+custom_styles/separator = SubResource( 29 )
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage2/VBoxContainer"]
+margin_top = 37.0
+margin_right = 922.0
+margin_bottom = 79.0
+custom_constants/separation = 0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage2/VBoxContainer/HBoxContainer2"]
+margin_right = 165.0
+margin_bottom = 42.0
+
+[node name="Label2" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage2/VBoxContainer/HBoxContainer2/VBoxContainer"]
+margin_right = 165.0
+margin_bottom = 19.0
+custom_fonts/font = SubResource( 30 )
+text = "Best Time:"
+
+[node name="Label3" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage2/VBoxContainer/HBoxContainer2/VBoxContainer"]
+margin_top = 23.0
+margin_right = 165.0
+margin_bottom = 42.0
+custom_fonts/font = SubResource( 30 )
+text = "Best Time (All Crowns):"
+
+[node name="VBoxContainer2" type="VBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage2/VBoxContainer/HBoxContainer2"]
+margin_left = 165.0
+margin_right = 197.0
+margin_bottom = 42.0
+
+[node name="bt" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage2/VBoxContainer/HBoxContainer2/VBoxContainer2"]
+margin_right = 32.0
+margin_bottom = 19.0
+size_flags_horizontal = 3
+size_flags_vertical = 10
+custom_fonts/font = SubResource( 42 )
+text = "0:00"
+
+[node name="btac" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage2/VBoxContainer/HBoxContainer2/VBoxContainer2"]
+margin_top = 23.0
+margin_right = 32.0
+margin_bottom = 42.0
+size_flags_horizontal = 3
+size_flags_vertical = 10
+custom_fonts/font = SubResource( 42 )
+text = "0:00"
+
+[node name="VBoxContainer3" type="VBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage2/VBoxContainer/HBoxContainer2"]
+margin_left = 197.0
+margin_right = 215.0
+margin_bottom = 42.0
+
+[node name="btD" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage2/VBoxContainer/HBoxContainer2/VBoxContainer3"]
+margin_top = 2.0
+margin_right = 18.0
+margin_bottom = 19.0
+size_flags_vertical = 10
+custom_fonts/font = SubResource( 36 )
+text = ".00"
+
+[node name="btacD" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage2/VBoxContainer/HBoxContainer2/VBoxContainer3"]
+margin_top = 25.0
+margin_right = 18.0
+margin_bottom = 42.0
+size_flags_vertical = 10
+custom_fonts/font = SubResource( 36 )
+text = ".00"
+
+[node name="HSeparator2" type="HSeparator" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage2/VBoxContainer"]
+margin_top = 84.0
+margin_right = 922.0
+margin_bottom = 88.0
+custom_styles/separator = SubResource( 29 )
+
+[node name="HBoxContainer4" type="HBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage2/VBoxContainer"]
+margin_top = 93.0
+margin_right = 922.0
+margin_bottom = 122.0
+custom_constants/separation = 10
+
+[node name="Label4" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage2/VBoxContainer/HBoxContainer4"]
+margin_top = 5.0
+margin_right = 167.0
+margin_bottom = 24.0
+custom_fonts/font = SubResource( 30 )
+text = "Characters in this Fight:"
+
+[node name="HBoxContainer3" type="HBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage2/VBoxContainer/HBoxContainer4"]
+margin_left = 177.0
+margin_right = 852.0
+margin_bottom = 29.0
+size_flags_horizontal = 3
+
+[node name="TextureRect" type="TextureRect" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage2/VBoxContainer/HBoxContainer4/HBoxContainer3"]
+margin_right = 29.0
+margin_bottom = 29.0
+hint_tooltip = "Luffy"
+texture = ExtResource( 11 )
+
+[node name="TextureRect2" type="TextureRect" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage2/VBoxContainer/HBoxContainer4/HBoxContainer3"]
+margin_left = 33.0
+margin_right = 62.0
+margin_bottom = 29.0
+hint_tooltip = "Zoro"
+texture = ExtResource( 12 )
+
+[node name="Fight" type="PanelContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage2/VBoxContainer/HBoxContainer4"]
+margin_left = 862.0
+margin_right = 922.0
+margin_bottom = 29.0
+rect_pivot_offset = Vector2( -962, 40 )
+mouse_default_cursor_shape = 2
+custom_styles/panel = SubResource( 31 )
+
+[node name="Label" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage2/VBoxContainer/HBoxContainer4/Fight"]
+margin_left = 10.0
+margin_top = 5.0
+margin_right = 50.0
+margin_bottom = 24.0
+size_flags_horizontal = 3
+custom_fonts/font = SubResource( 42 )
+text = "Fight!"
+
+[node name="Label2" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer"]
+margin_top = 313.0
+margin_right = 962.0
+margin_bottom = 353.0
+rect_min_size = Vector2( 0, 40 )
+size_flags_horizontal = 3
+custom_fonts/font = SubResource( 42 )
+text = "Orange Town:"
+valign = 2
+
+[node name="Stage3" type="PanelContainer" parent="PanelContainer/ScrollContainer/VBoxContainer"]
+margin_top = 359.0
+margin_right = 962.0
+margin_bottom = 497.0
+rect_min_size = Vector2( 0, 80 )
+custom_styles/panel = SubResource( 28 )
+script = ExtResource( 10 )
+scene = "res://areas/03 - Buggy/Area3.tscn"
+lvl = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage3"]
+margin_left = 20.0
+margin_top = 8.0
+margin_right = 942.0
+margin_bottom = 130.0
+custom_constants/separation = 5
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage3/VBoxContainer"]
+margin_right = 922.0
+margin_bottom = 23.0
+size_flags_horizontal = 3
+
+[node name="Label" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage3/VBoxContainer/HBoxContainer"]
+margin_top = 2.0
+margin_right = 823.0
+margin_bottom = 21.0
+size_flags_horizontal = 3
+custom_fonts/font = SubResource( 42 )
+text = "Stage 3 - Buggy, Cabaji & Mohji"
+
+[node name="crowns" type="HBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage3/VBoxContainer/HBoxContainer"]
+margin_left = 827.0
+margin_right = 922.0
+margin_bottom = 23.0
+
+[node name="c1" type="TextureRect" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage3/VBoxContainer/HBoxContainer/crowns"]
+modulate = Color( 0.301961, 0.301961, 0.301961, 0.54902 )
+margin_right = 29.0
+margin_bottom = 23.0
+hint_tooltip = "Never destroy any of Cabaji's tops,"
+mouse_default_cursor_shape = 16
+texture = ExtResource( 9 )
+stretch_mode = 6
+
+[node name="Particles2D" type="Particles2D" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage3/VBoxContainer/HBoxContainer/crowns/c1"]
+position = Vector2( 15, 11 )
+emitting = false
+amount = 3
+randomness = 0.9
+process_material = SubResource( 35 )
+texture = ExtResource( 13 )
+
+[node name="c2" type="TextureRect" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage3/VBoxContainer/HBoxContainer/crowns"]
+modulate = Color( 0.301961, 0.301961, 0.301961, 0.54902 )
+margin_left = 33.0
+margin_right = 62.0
+margin_bottom = 23.0
+hint_tooltip = "Mohji and Richie must be the first two enemies to be defeated."
+mouse_default_cursor_shape = 16
+texture = ExtResource( 9 )
+stretch_mode = 6
+
+[node name="Particles2D" type="Particles2D" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage3/VBoxContainer/HBoxContainer/crowns/c2"]
+position = Vector2( 15, 11 )
+emitting = false
+amount = 3
+randomness = 0.9
+process_material = SubResource( 35 )
+texture = ExtResource( 13 )
+
+[node name="c3" type="TextureRect" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage3/VBoxContainer/HBoxContainer/crowns"]
+modulate = Color( 0.301961, 0.301961, 0.301961, 0.54902 )
+margin_left = 66.0
+margin_right = 95.0
+margin_bottom = 23.0
+hint_tooltip = "Buggy should not use Chop Chop Festival more than once during the fight."
+mouse_default_cursor_shape = 16
+texture = ExtResource( 9 )
+stretch_mode = 6
+
+[node name="Particles2D" type="Particles2D" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage3/VBoxContainer/HBoxContainer/crowns/c3"]
+position = Vector2( 15, 11 )
+emitting = false
+amount = 3
+randomness = 0.9
+process_material = SubResource( 35 )
+texture = ExtResource( 13 )
+
+[node name="HSeparator" type="HSeparator" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage3/VBoxContainer"]
+margin_top = 28.0
+margin_right = 922.0
+margin_bottom = 32.0
+custom_styles/separator = SubResource( 29 )
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage3/VBoxContainer"]
+margin_top = 37.0
+margin_right = 922.0
+margin_bottom = 79.0
+custom_constants/separation = 0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage3/VBoxContainer/HBoxContainer2"]
+margin_right = 165.0
+margin_bottom = 42.0
+
+[node name="Label2" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage3/VBoxContainer/HBoxContainer2/VBoxContainer"]
+margin_right = 165.0
+margin_bottom = 19.0
+custom_fonts/font = SubResource( 30 )
+text = "Best Time:"
+
+[node name="Label3" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage3/VBoxContainer/HBoxContainer2/VBoxContainer"]
+margin_top = 23.0
+margin_right = 165.0
+margin_bottom = 42.0
+custom_fonts/font = SubResource( 30 )
+text = "Best Time (All Crowns):"
+
+[node name="VBoxContainer2" type="VBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage3/VBoxContainer/HBoxContainer2"]
+margin_left = 165.0
+margin_right = 197.0
+margin_bottom = 42.0
+
+[node name="bt" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage3/VBoxContainer/HBoxContainer2/VBoxContainer2"]
+margin_right = 32.0
+margin_bottom = 19.0
+size_flags_horizontal = 3
+size_flags_vertical = 10
+custom_fonts/font = SubResource( 42 )
+text = "0:00"
+
+[node name="btac" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage3/VBoxContainer/HBoxContainer2/VBoxContainer2"]
+margin_top = 23.0
+margin_right = 32.0
+margin_bottom = 42.0
+size_flags_horizontal = 3
+size_flags_vertical = 10
+custom_fonts/font = SubResource( 42 )
+text = "0:00"
+
+[node name="VBoxContainer3" type="VBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage3/VBoxContainer/HBoxContainer2"]
+margin_left = 197.0
+margin_right = 215.0
+margin_bottom = 42.0
+
+[node name="btD" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage3/VBoxContainer/HBoxContainer2/VBoxContainer3"]
+margin_top = 2.0
+margin_right = 18.0
+margin_bottom = 19.0
+size_flags_vertical = 10
+custom_fonts/font = SubResource( 36 )
+text = ".00"
+
+[node name="btacD" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage3/VBoxContainer/HBoxContainer2/VBoxContainer3"]
+margin_top = 25.0
+margin_right = 18.0
+margin_bottom = 42.0
+size_flags_vertical = 10
+custom_fonts/font = SubResource( 36 )
+text = ".00"
+
+[node name="HSeparator2" type="HSeparator" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage3/VBoxContainer"]
+margin_top = 84.0
+margin_right = 922.0
+margin_bottom = 88.0
+custom_styles/separator = SubResource( 29 )
+
+[node name="HBoxContainer4" type="HBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage3/VBoxContainer"]
+margin_top = 93.0
+margin_right = 922.0
+margin_bottom = 122.0
+custom_constants/separation = 10
+
+[node name="Label4" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage3/VBoxContainer/HBoxContainer4"]
+margin_top = 5.0
+margin_right = 167.0
+margin_bottom = 24.0
+custom_fonts/font = SubResource( 30 )
+text = "Characters in this Fight:"
+
+[node name="HBoxContainer3" type="HBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage3/VBoxContainer/HBoxContainer4"]
+margin_left = 177.0
+margin_right = 852.0
+margin_bottom = 29.0
+size_flags_horizontal = 3
+
+[node name="TextureRect" type="TextureRect" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage3/VBoxContainer/HBoxContainer4/HBoxContainer3"]
+margin_right = 29.0
+margin_bottom = 29.0
+hint_tooltip = "Luffy"
+texture = ExtResource( 11 )
+
+[node name="TextureRect2" type="TextureRect" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage3/VBoxContainer/HBoxContainer4/HBoxContainer3"]
+margin_left = 33.0
+margin_right = 62.0
+margin_bottom = 29.0
+hint_tooltip = "Zoro"
+texture = ExtResource( 12 )
+
+[node name="Fight" type="PanelContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage3/VBoxContainer/HBoxContainer4"]
+margin_left = 862.0
+margin_right = 922.0
+margin_bottom = 29.0
+rect_pivot_offset = Vector2( -962, 40 )
+mouse_default_cursor_shape = 2
+custom_styles/panel = SubResource( 31 )
+
+[node name="Label" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage3/VBoxContainer/HBoxContainer4/Fight"]
+margin_left = 10.0
+margin_top = 5.0
+margin_right = 50.0
+margin_bottom = 24.0
+size_flags_horizontal = 3
+custom_fonts/font = SubResource( 42 )
+text = "Fight!"
+
+[node name="Label3" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer"]
+margin_top = 503.0
+margin_right = 962.0
+margin_bottom = 543.0
+rect_min_size = Vector2( 0, 40 )
+size_flags_horizontal = 3
+custom_fonts/font = SubResource( 42 )
+text = "Syrup Village:"
+valign = 2
+
+[node name="Stage4" type="PanelContainer" parent="PanelContainer/ScrollContainer/VBoxContainer"]
+margin_top = 549.0
+margin_right = 962.0
+margin_bottom = 687.0
+rect_min_size = Vector2( 0, 80 )
+custom_styles/panel = SubResource( 28 )
+script = ExtResource( 10 )
+scene = "res://areas/04 - Kuro/Area4.tscn"
+lvl = 4
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage4"]
+margin_left = 20.0
+margin_top = 8.0
+margin_right = 942.0
+margin_bottom = 130.0
+custom_constants/separation = 5
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage4/VBoxContainer"]
+margin_right = 922.0
+margin_bottom = 23.0
+size_flags_horizontal = 3
+
+[node name="Label" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage4/VBoxContainer/HBoxContainer"]
+margin_top = 2.0
+margin_right = 823.0
+margin_bottom = 21.0
+size_flags_horizontal = 3
+custom_fonts/font = SubResource( 42 )
+text = "Stage 4 - Kuro, Jango, Sham & Buchi"
+
+[node name="crowns" type="HBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage4/VBoxContainer/HBoxContainer"]
+margin_left = 827.0
+margin_right = 922.0
+margin_bottom = 23.0
+
+[node name="c1" type="TextureRect" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage4/VBoxContainer/HBoxContainer/crowns"]
+modulate = Color( 0.301961, 0.301961, 0.301961, 0.54902 )
+margin_right = 29.0
+margin_bottom = 23.0
+hint_tooltip = "Don't let any of the 3 characters be defeated."
+mouse_default_cursor_shape = 16
+texture = ExtResource( 9 )
+stretch_mode = 6
+
+[node name="Particles2D" type="Particles2D" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage4/VBoxContainer/HBoxContainer/crowns/c1"]
+position = Vector2( 15, 11 )
+emitting = false
+amount = 3
+randomness = 0.9
+process_material = SubResource( 35 )
+texture = ExtResource( 13 )
+
+[node name="c2" type="TextureRect" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage4/VBoxContainer/HBoxContainer/crowns"]
+modulate = Color( 0.301961, 0.301961, 0.301961, 0.54902 )
+margin_left = 33.0
+margin_right = 62.0
+margin_bottom = 23.0
+hint_tooltip = "When a player character deals direct damage to an enemy, there must be at least one other ally aligned with that enemy."
+mouse_default_cursor_shape = 16
+texture = ExtResource( 9 )
+stretch_mode = 6
+
+[node name="Particles2D" type="Particles2D" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage4/VBoxContainer/HBoxContainer/crowns/c2"]
+position = Vector2( 15, 11 )
+emitting = false
+amount = 3
+randomness = 0.9
+process_material = SubResource( 35 )
+texture = ExtResource( 13 )
+
+[node name="c3" type="TextureRect" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage4/VBoxContainer/HBoxContainer/crowns"]
+modulate = Color( 0.301961, 0.301961, 0.301961, 0.54902 )
+margin_left = 66.0
+margin_right = 95.0
+margin_bottom = 23.0
+hint_tooltip = "Player characters should end their turn with at least one other ally in a radius of 3 cells of themselves."
+mouse_default_cursor_shape = 16
+texture = ExtResource( 9 )
+stretch_mode = 6
+
+[node name="Particles2D" type="Particles2D" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage4/VBoxContainer/HBoxContainer/crowns/c3"]
+position = Vector2( 15, 11 )
+emitting = false
+amount = 3
+randomness = 0.9
+process_material = SubResource( 35 )
+texture = ExtResource( 13 )
+
+[node name="HSeparator" type="HSeparator" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage4/VBoxContainer"]
+margin_top = 28.0
+margin_right = 922.0
+margin_bottom = 32.0
+custom_styles/separator = SubResource( 29 )
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage4/VBoxContainer"]
+margin_top = 37.0
+margin_right = 922.0
+margin_bottom = 79.0
+custom_constants/separation = 0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage4/VBoxContainer/HBoxContainer2"]
+margin_right = 165.0
+margin_bottom = 42.0
+
+[node name="Label2" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage4/VBoxContainer/HBoxContainer2/VBoxContainer"]
+margin_right = 165.0
+margin_bottom = 19.0
+custom_fonts/font = SubResource( 30 )
+text = "Best Time:"
+
+[node name="Label3" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage4/VBoxContainer/HBoxContainer2/VBoxContainer"]
+margin_top = 23.0
+margin_right = 165.0
+margin_bottom = 42.0
+custom_fonts/font = SubResource( 30 )
+text = "Best Time (All Crowns):"
+
+[node name="VBoxContainer2" type="VBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage4/VBoxContainer/HBoxContainer2"]
+margin_left = 165.0
+margin_right = 197.0
+margin_bottom = 42.0
+
+[node name="bt" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage4/VBoxContainer/HBoxContainer2/VBoxContainer2"]
+margin_right = 32.0
+margin_bottom = 19.0
+size_flags_horizontal = 3
+size_flags_vertical = 10
+custom_fonts/font = SubResource( 42 )
+text = "0:00"
+
+[node name="btac" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage4/VBoxContainer/HBoxContainer2/VBoxContainer2"]
+margin_top = 23.0
+margin_right = 32.0
+margin_bottom = 42.0
+size_flags_horizontal = 3
+size_flags_vertical = 10
+custom_fonts/font = SubResource( 42 )
+text = "0:00"
+
+[node name="VBoxContainer3" type="VBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage4/VBoxContainer/HBoxContainer2"]
+margin_left = 197.0
+margin_right = 215.0
+margin_bottom = 42.0
+
+[node name="btD" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage4/VBoxContainer/HBoxContainer2/VBoxContainer3"]
+margin_top = 2.0
+margin_right = 18.0
+margin_bottom = 19.0
+size_flags_vertical = 10
+custom_fonts/font = SubResource( 36 )
+text = ".00"
+
+[node name="btacD" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage4/VBoxContainer/HBoxContainer2/VBoxContainer3"]
+margin_top = 25.0
+margin_right = 18.0
+margin_bottom = 42.0
+size_flags_vertical = 10
+custom_fonts/font = SubResource( 36 )
+text = ".00"
+
+[node name="HSeparator2" type="HSeparator" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage4/VBoxContainer"]
+margin_top = 84.0
+margin_right = 922.0
+margin_bottom = 88.0
+custom_styles/separator = SubResource( 29 )
+
+[node name="HBoxContainer4" type="HBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage4/VBoxContainer"]
+margin_top = 93.0
+margin_right = 922.0
+margin_bottom = 122.0
+custom_constants/separation = 10
+
+[node name="Label4" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage4/VBoxContainer/HBoxContainer4"]
+margin_top = 5.0
+margin_right = 167.0
+margin_bottom = 24.0
+custom_fonts/font = SubResource( 30 )
+text = "Characters in this Fight:"
+
+[node name="HBoxContainer3" type="HBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage4/VBoxContainer/HBoxContainer4"]
+margin_left = 177.0
+margin_right = 852.0
+margin_bottom = 29.0
+size_flags_horizontal = 3
+
+[node name="TextureRect" type="TextureRect" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage4/VBoxContainer/HBoxContainer4/HBoxContainer3"]
+margin_right = 29.0
+margin_bottom = 29.0
+hint_tooltip = "Luffy"
+texture = ExtResource( 11 )
+
+[node name="TextureRect2" type="TextureRect" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage4/VBoxContainer/HBoxContainer4/HBoxContainer3"]
+margin_left = 33.0
+margin_right = 62.0
+margin_bottom = 29.0
+hint_tooltip = "Zoro"
+texture = ExtResource( 12 )
+
+[node name="TextureRect3" type="TextureRect" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage4/VBoxContainer/HBoxContainer4/HBoxContainer3"]
+margin_left = 66.0
+margin_right = 95.0
+margin_bottom = 29.0
+hint_tooltip = "Usopp"
+texture = ExtResource( 3 )
+
+[node name="Fight" type="PanelContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage4/VBoxContainer/HBoxContainer4"]
+margin_left = 862.0
+margin_right = 922.0
+margin_bottom = 29.0
+rect_pivot_offset = Vector2( -962, 40 )
+mouse_default_cursor_shape = 2
+custom_styles/panel = SubResource( 31 )
+
+[node name="Label" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage4/VBoxContainer/HBoxContainer4/Fight"]
+margin_left = 10.0
+margin_top = 5.0
+margin_right = 50.0
+margin_bottom = 24.0
+size_flags_horizontal = 3
+custom_fonts/font = SubResource( 42 )
+text = "Fight!"
+
+[node name="Label4" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer"]
+margin_top = 693.0
+margin_right = 962.0
+margin_bottom = 733.0
+rect_min_size = Vector2( 0, 40 )
+size_flags_horizontal = 3
+custom_fonts/font = SubResource( 42 )
+text = "Baratie:"
+valign = 2
+
+[node name="Stage5" type="PanelContainer" parent="PanelContainer/ScrollContainer/VBoxContainer"]
+margin_top = 739.0
+margin_right = 962.0
+margin_bottom = 877.0
+rect_min_size = Vector2( 0, 80 )
+custom_styles/panel = SubResource( 28 )
+script = ExtResource( 10 )
+scene = "res://areas/05 - Mihawk/Area5.tscn"
+lvl = 5
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage5"]
+margin_left = 20.0
+margin_top = 8.0
+margin_right = 942.0
+margin_bottom = 130.0
+custom_constants/separation = 5
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage5/VBoxContainer"]
+margin_right = 922.0
+margin_bottom = 23.0
+size_flags_horizontal = 3
+
+[node name="Label" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage5/VBoxContainer/HBoxContainer"]
+margin_top = 2.0
+margin_right = 823.0
+margin_bottom = 21.0
+size_flags_horizontal = 3
+custom_fonts/font = SubResource( 42 )
+text = "Stage 5 - Mihawk"
+
+[node name="crowns" type="HBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage5/VBoxContainer/HBoxContainer"]
+margin_left = 827.0
+margin_right = 922.0
+margin_bottom = 23.0
+
+[node name="c1" type="TextureRect" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage5/VBoxContainer/HBoxContainer/crowns"]
+modulate = Color( 0.301961, 0.301961, 0.301961, 0.54902 )
+margin_right = 29.0
+margin_bottom = 23.0
+hint_tooltip = "Score at least 2000."
+mouse_default_cursor_shape = 16
+texture = ExtResource( 9 )
+stretch_mode = 6
+
+[node name="Particles2D" type="Particles2D" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage5/VBoxContainer/HBoxContainer/crowns/c1"]
+position = Vector2( 15, 11 )
+emitting = false
+amount = 3
+randomness = 0.9
+process_material = SubResource( 35 )
+texture = ExtResource( 13 )
+
+[node name="c2" type="TextureRect" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage5/VBoxContainer/HBoxContainer/crowns"]
+modulate = Color( 0.301961, 0.301961, 0.301961, 0.54902 )
+margin_left = 33.0
+margin_right = 62.0
+margin_bottom = 23.0
+hint_tooltip = "Take Mihawk's Impression up to level 10 at least once during the fight."
+mouse_default_cursor_shape = 16
+texture = ExtResource( 9 )
+stretch_mode = 6
+
+[node name="Particles2D" type="Particles2D" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage5/VBoxContainer/HBoxContainer/crowns/c2"]
+position = Vector2( 15, 11 )
+emitting = false
+amount = 3
+randomness = 0.9
+process_material = SubResource( 35 )
+texture = ExtResource( 13 )
+
+[node name="c3" type="TextureRect" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage5/VBoxContainer/HBoxContainer/crowns"]
+modulate = Color( 0.301961, 0.301961, 0.301961, 0.54902 )
+margin_left = 66.0
+margin_right = 95.0
+margin_bottom = 23.0
+hint_tooltip = "Never get hit by any of Mihawk's start of turn attacks."
+mouse_default_cursor_shape = 16
+texture = ExtResource( 9 )
+stretch_mode = 6
+
+[node name="Particles2D" type="Particles2D" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage5/VBoxContainer/HBoxContainer/crowns/c3"]
+position = Vector2( 15, 11 )
+emitting = false
+amount = 3
+randomness = 0.9
+process_material = SubResource( 35 )
+texture = ExtResource( 13 )
+
+[node name="HSeparator" type="HSeparator" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage5/VBoxContainer"]
+margin_top = 28.0
+margin_right = 922.0
+margin_bottom = 32.0
+custom_styles/separator = SubResource( 29 )
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage5/VBoxContainer"]
+margin_top = 37.0
+margin_right = 922.0
+margin_bottom = 79.0
+custom_constants/separation = 0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage5/VBoxContainer/HBoxContainer2"]
+margin_right = 165.0
+margin_bottom = 42.0
+
+[node name="Label2" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage5/VBoxContainer/HBoxContainer2/VBoxContainer"]
+margin_right = 165.0
+margin_bottom = 19.0
+custom_fonts/font = SubResource( 30 )
+text = "Best Time:"
+
+[node name="Label3" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage5/VBoxContainer/HBoxContainer2/VBoxContainer"]
+margin_top = 23.0
+margin_right = 165.0
+margin_bottom = 42.0
+custom_fonts/font = SubResource( 30 )
+text = "Best Time (All Crowns):"
+
+[node name="VBoxContainer2" type="VBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage5/VBoxContainer/HBoxContainer2"]
+margin_left = 165.0
+margin_right = 197.0
+margin_bottom = 42.0
+
+[node name="bt" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage5/VBoxContainer/HBoxContainer2/VBoxContainer2"]
+margin_right = 32.0
+margin_bottom = 19.0
+size_flags_horizontal = 3
+size_flags_vertical = 10
+custom_fonts/font = SubResource( 42 )
+text = "0:00"
+
+[node name="btac" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage5/VBoxContainer/HBoxContainer2/VBoxContainer2"]
+margin_top = 23.0
+margin_right = 32.0
+margin_bottom = 42.0
+size_flags_horizontal = 3
+size_flags_vertical = 10
+custom_fonts/font = SubResource( 42 )
+text = "0:00"
+
+[node name="VBoxContainer3" type="VBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage5/VBoxContainer/HBoxContainer2"]
+margin_left = 197.0
+margin_right = 215.0
+margin_bottom = 42.0
+
+[node name="btD" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage5/VBoxContainer/HBoxContainer2/VBoxContainer3"]
+margin_top = 2.0
+margin_right = 18.0
+margin_bottom = 19.0
+size_flags_vertical = 10
+custom_fonts/font = SubResource( 36 )
+text = ".00"
+
+[node name="btacD" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage5/VBoxContainer/HBoxContainer2/VBoxContainer3"]
+margin_top = 25.0
+margin_right = 18.0
+margin_bottom = 42.0
+size_flags_vertical = 10
+custom_fonts/font = SubResource( 36 )
+text = ".00"
+
+[node name="VSeparator" type="VSeparator" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage5/VBoxContainer/HBoxContainer2"]
+margin_left = 215.0
+margin_right = 231.0
+margin_bottom = 42.0
+custom_constants/separation = 16
+custom_styles/separator = SubResource( 29 )
+
+[node name="VBoxContainer4" type="VBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage5/VBoxContainer/HBoxContainer2"]
+margin_left = 231.0
+margin_right = 326.0
+margin_bottom = 42.0
+
+[node name="Label2" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage5/VBoxContainer/HBoxContainer2/VBoxContainer4"]
+margin_right = 95.0
+margin_bottom = 19.0
+custom_fonts/font = SubResource( 30 )
+text = "Best Score:    "
+
+[node name="VBoxContainer5" type="VBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage5/VBoxContainer/HBoxContainer2"]
+margin_left = 326.0
+margin_right = 335.0
+margin_bottom = 42.0
+alignment = 1
+
+[node name="score" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage5/VBoxContainer/HBoxContainer2/VBoxContainer5"]
+margin_right = 9.0
+margin_bottom = 19.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 0
+size_flags_vertical = 2
+custom_fonts/font = SubResource( 42 )
+text = "0"
+
+[node name="HSeparator2" type="HSeparator" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage5/VBoxContainer"]
+margin_top = 84.0
+margin_right = 922.0
+margin_bottom = 88.0
+custom_styles/separator = SubResource( 29 )
+
+[node name="HBoxContainer4" type="HBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage5/VBoxContainer"]
+margin_top = 93.0
+margin_right = 922.0
+margin_bottom = 122.0
+custom_constants/separation = 10
+
+[node name="Label4" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage5/VBoxContainer/HBoxContainer4"]
+margin_top = 5.0
+margin_right = 167.0
+margin_bottom = 24.0
+custom_fonts/font = SubResource( 30 )
+text = "Characters in this Fight:"
+
+[node name="HBoxContainer3" type="HBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage5/VBoxContainer/HBoxContainer4"]
+margin_left = 177.0
+margin_right = 852.0
+margin_bottom = 29.0
+size_flags_horizontal = 3
+
+[node name="TextureRect2" type="TextureRect" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage5/VBoxContainer/HBoxContainer4/HBoxContainer3"]
+margin_right = 29.0
+margin_bottom = 29.0
+hint_tooltip = "Zoro"
+texture = ExtResource( 12 )
+
+[node name="Fight" type="PanelContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage5/VBoxContainer/HBoxContainer4"]
+margin_left = 862.0
+margin_right = 922.0
+margin_bottom = 29.0
+rect_pivot_offset = Vector2( -962, 40 )
+mouse_default_cursor_shape = 2
+custom_styles/panel = SubResource( 31 )
+
+[node name="Label" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage5/VBoxContainer/HBoxContainer4/Fight"]
+margin_left = 10.0
+margin_top = 5.0
+margin_right = 50.0
+margin_bottom = 24.0
+size_flags_horizontal = 3
+custom_fonts/font = SubResource( 42 )
+text = "Fight!"
+
+[node name="Stage6" type="PanelContainer" parent="PanelContainer/ScrollContainer/VBoxContainer"]
+margin_top = 883.0
+margin_right = 962.0
+margin_bottom = 1021.0
+rect_min_size = Vector2( 0, 80 )
+custom_styles/panel = SubResource( 28 )
+script = ExtResource( 10 )
+scene = "res://areas/06 - Don Krieg/Area6.tscn"
+lvl = 6
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage6"]
+margin_left = 20.0
+margin_top = 8.0
+margin_right = 942.0
+margin_bottom = 130.0
+custom_constants/separation = 5
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage6/VBoxContainer"]
+margin_right = 922.0
+margin_bottom = 23.0
+size_flags_horizontal = 3
+
+[node name="Label" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage6/VBoxContainer/HBoxContainer"]
+margin_top = 2.0
+margin_right = 823.0
+margin_bottom = 21.0
+size_flags_horizontal = 3
+custom_fonts/font = SubResource( 42 )
+text = "Stage 6 - Gin, Pearl & Don Krieg"
+
+[node name="crowns" type="HBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage6/VBoxContainer/HBoxContainer"]
+margin_left = 827.0
+margin_right = 922.0
+margin_bottom = 23.0
+
+[node name="c1" type="TextureRect" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage6/VBoxContainer/HBoxContainer/crowns"]
+modulate = Color( 0.301961, 0.301961, 0.301961, 0.54902 )
+margin_right = 29.0
+margin_bottom = 23.0
+hint_tooltip = "Score at least 2000."
+mouse_default_cursor_shape = 16
+texture = ExtResource( 9 )
+stretch_mode = 6
+
+[node name="Particles2D" type="Particles2D" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage6/VBoxContainer/HBoxContainer/crowns/c1"]
+position = Vector2( 15, 11 )
+emitting = false
+amount = 3
+randomness = 0.9
+process_material = SubResource( 35 )
+texture = ExtResource( 13 )
+
+[node name="c2" type="TextureRect" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage6/VBoxContainer/HBoxContainer/crowns"]
+modulate = Color( 0.301961, 0.301961, 0.301961, 0.54902 )
+margin_left = 33.0
+margin_right = 62.0
+margin_bottom = 23.0
+hint_tooltip = "Take Mihawk's Impression up to level 10 at least once during the fight."
+mouse_default_cursor_shape = 16
+texture = ExtResource( 9 )
+stretch_mode = 6
+
+[node name="Particles2D" type="Particles2D" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage6/VBoxContainer/HBoxContainer/crowns/c2"]
+position = Vector2( 15, 11 )
+emitting = false
+amount = 3
+randomness = 0.9
+process_material = SubResource( 35 )
+texture = ExtResource( 13 )
+
+[node name="c3" type="TextureRect" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage6/VBoxContainer/HBoxContainer/crowns"]
+modulate = Color( 0.301961, 0.301961, 0.301961, 0.54902 )
+margin_left = 66.0
+margin_right = 95.0
+margin_bottom = 23.0
+hint_tooltip = "Never get hit by any of Mihawk's start of turn attacks."
+mouse_default_cursor_shape = 16
+texture = ExtResource( 9 )
+stretch_mode = 6
+
+[node name="Particles2D" type="Particles2D" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage6/VBoxContainer/HBoxContainer/crowns/c3"]
+position = Vector2( 15, 11 )
+emitting = false
+amount = 3
+randomness = 0.9
+process_material = SubResource( 35 )
+texture = ExtResource( 13 )
+
+[node name="HSeparator" type="HSeparator" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage6/VBoxContainer"]
+margin_top = 28.0
+margin_right = 922.0
+margin_bottom = 32.0
+custom_styles/separator = SubResource( 29 )
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage6/VBoxContainer"]
+margin_top = 37.0
+margin_right = 922.0
+margin_bottom = 79.0
+custom_constants/separation = 0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage6/VBoxContainer/HBoxContainer2"]
+margin_right = 165.0
+margin_bottom = 42.0
+
+[node name="Label2" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage6/VBoxContainer/HBoxContainer2/VBoxContainer"]
+margin_right = 165.0
+margin_bottom = 19.0
+custom_fonts/font = SubResource( 30 )
+text = "Best Time:"
+
+[node name="Label3" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage6/VBoxContainer/HBoxContainer2/VBoxContainer"]
+margin_top = 23.0
+margin_right = 165.0
+margin_bottom = 42.0
+custom_fonts/font = SubResource( 30 )
+text = "Best Time (All Crowns):"
+
+[node name="VBoxContainer2" type="VBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage6/VBoxContainer/HBoxContainer2"]
+margin_left = 165.0
+margin_right = 197.0
+margin_bottom = 42.0
+
+[node name="bt" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage6/VBoxContainer/HBoxContainer2/VBoxContainer2"]
+margin_right = 32.0
+margin_bottom = 19.0
+size_flags_horizontal = 3
+size_flags_vertical = 10
+custom_fonts/font = SubResource( 42 )
+text = "0:00"
+
+[node name="btac" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage6/VBoxContainer/HBoxContainer2/VBoxContainer2"]
+margin_top = 23.0
+margin_right = 32.0
+margin_bottom = 42.0
+size_flags_horizontal = 3
+size_flags_vertical = 10
+custom_fonts/font = SubResource( 42 )
+text = "0:00"
+
+[node name="VBoxContainer3" type="VBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage6/VBoxContainer/HBoxContainer2"]
+margin_left = 197.0
+margin_right = 215.0
+margin_bottom = 42.0
+
+[node name="btD" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage6/VBoxContainer/HBoxContainer2/VBoxContainer3"]
+margin_top = 2.0
+margin_right = 18.0
+margin_bottom = 19.0
+size_flags_vertical = 10
+custom_fonts/font = SubResource( 36 )
+text = ".00"
+
+[node name="btacD" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage6/VBoxContainer/HBoxContainer2/VBoxContainer3"]
+margin_top = 25.0
+margin_right = 18.0
+margin_bottom = 42.0
+size_flags_vertical = 10
+custom_fonts/font = SubResource( 36 )
+text = ".00"
+
+[node name="VBoxContainer4" type="VBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage6/VBoxContainer/HBoxContainer2"]
+margin_left = 215.0
+margin_right = 215.0
+margin_bottom = 42.0
+
+[node name="VBoxContainer5" type="VBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage6/VBoxContainer/HBoxContainer2"]
+margin_left = 215.0
+margin_right = 215.0
+margin_bottom = 42.0
+alignment = 1
+
+[node name="HSeparator2" type="HSeparator" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage6/VBoxContainer"]
+margin_top = 84.0
+margin_right = 922.0
+margin_bottom = 88.0
+custom_styles/separator = SubResource( 29 )
+
+[node name="HBoxContainer4" type="HBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage6/VBoxContainer"]
+margin_top = 93.0
+margin_right = 922.0
+margin_bottom = 122.0
+custom_constants/separation = 10
+
+[node name="Label4" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage6/VBoxContainer/HBoxContainer4"]
+margin_top = 5.0
+margin_right = 167.0
+margin_bottom = 24.0
+custom_fonts/font = SubResource( 30 )
+text = "Characters in this Fight:"
+
+[node name="HBoxContainer3" type="HBoxContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage6/VBoxContainer/HBoxContainer4"]
+margin_left = 177.0
+margin_right = 852.0
+margin_bottom = 29.0
+size_flags_horizontal = 3
+
+[node name="TextureRect2" type="TextureRect" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage6/VBoxContainer/HBoxContainer4/HBoxContainer3"]
+margin_right = 29.0
+margin_bottom = 29.0
+hint_tooltip = "Luffy"
+texture = ExtResource( 11 )
+
+[node name="TextureRect3" type="TextureRect" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage6/VBoxContainer/HBoxContainer4/HBoxContainer3"]
+margin_left = 33.0
+margin_right = 62.0
+margin_bottom = 29.0
+hint_tooltip = "Usopp"
+texture = ExtResource( 3 )
+
+[node name="TextureRect4" type="TextureRect" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage6/VBoxContainer/HBoxContainer4/HBoxContainer3"]
+margin_left = 66.0
+margin_right = 95.0
+margin_bottom = 29.0
+hint_tooltip = "Sanji"
+texture = ExtResource( 6 )
+
+[node name="Fight" type="PanelContainer" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage6/VBoxContainer/HBoxContainer4"]
+margin_left = 862.0
+margin_right = 922.0
+margin_bottom = 29.0
+rect_pivot_offset = Vector2( -962, 40 )
+mouse_default_cursor_shape = 2
+custom_styles/panel = SubResource( 31 )
+
+[node name="Label" type="Label" parent="PanelContainer/ScrollContainer/VBoxContainer/Stage6/VBoxContainer/HBoxContainer4/Fight"]
+margin_left = 10.0
+margin_top = 5.0
+margin_right = 50.0
+margin_bottom = 24.0
+size_flags_horizontal = 3
+custom_fonts/font = SubResource( 42 )
+text = "Fight!"
+
+[node name="Disclaimer" type="Panel" parent="."]
+visible = false
+self_modulate = Color( 1, 1, 1, 0.654902 )
+margin_left = -37.0
+margin_top = -34.0
+margin_right = 1075.0
+margin_bottom = 701.0
+script = SubResource( 25 )
+
+[node name="Panel3" type="Panel" parent="Disclaimer"]
+self_modulate = Color( 1, 1, 1, 0.701961 )
+margin_left = 251.0
+margin_top = 140.0
+margin_right = 849.0
+margin_bottom = 448.0
+rect_clip_content = true
+custom_styles/panel = SubResource( 24 )
+
+[node name="Panel" type="Panel" parent="Disclaimer/Panel3"]
+margin_left = 561.0
+margin_top = 7.0
+margin_right = 589.0
+margin_bottom = 35.0
+custom_styles/panel = SubResource( 19 )
+
+[node name="RichTextLabel" type="RichTextLabel" parent="Disclaimer/Panel3/Panel"]
+margin_left = 10.0
+margin_top = 7.0
+margin_right = 23.0
+margin_bottom = 23.0
+mouse_filter = 2
+custom_fonts/bold_font = SubResource( 22 )
+custom_fonts/normal_font = SubResource( 23 )
+bbcode_enabled = true
+bbcode_text = "[b]X[/b]"
+text = "X"
+
+[node name="RichTextLabel" type="RichTextLabel" parent="Disclaimer/Panel3"]
+margin_left = 9.0
+margin_top = 11.0
+margin_right = 589.0
+margin_bottom = 318.0
+mouse_filter = 2
+custom_fonts/bold_font = SubResource( 22 )
+custom_fonts/normal_font = SubResource( 23 )
+bbcode_enabled = true
+bbcode_text = "[b]Hello and thank you for playing my game![/b]
+
+This is a disclaimer of some shortcomings of the game:
+
+- Yes, the game has no audio, neither music nor sound effects, and [b]it will stay this way[/b]. This is a hobby of mine and honestly, I find messing around with audio / sfx extremely unfun.
+
+- Why not add just music then?  Well... I'm not that proficient in composing yet and would rather not rip music directly from the anime, I'm not a fan of the ideia of having stuff not created by me here.
+
+- If this breaks a bit of the immersion for you, I suggest listening to the soundtrack of your choice while you fight the bosses, I'm sure you can find this online.
+
+- Also take note that due to this being a for fun project, if my opnion on this matter changes any time in the future, I might reconsider what's said here
+
+Oh, also the obvious I guess: [b]This is not official, I make no money with this project nor do I intend on eventually making money with it[/b]."
+text = "Hello and thank you for playing my game!
+
+This is a disclaimer of some shortcomings of the game:
+
+- Yes, the game has no audio, neither music nor sound effects, and it will stay this way. This is a hobby of mine and honestly, I find messing around with audio / sfx extremely unfun.
+
+- Why not add just music then?  Well... I'm not that proficient in composing yet and would rather not rip music directly from the anime, I'm not a fan of the ideia of having stuff not created by me here.
+
+- If this breaks a bit of the immersion for you, I suggest listening to the soundtrack of your choice while you fight the bosses, I'm sure you can find this online.
+
+- Also take note that due to this being a for fun project, if my opnion on this matter changes any time in the future, I might reconsider what's said here
+
+Oh, also the obvious I guess: This is not official, I make no money with this project nor do I intend on eventually making money with it."
+
+[node name="Controls" type="Panel" parent="."]
+visible = false
+self_modulate = Color( 1, 1, 1, 0.654902 )
+margin_left = -37.0
+margin_top = -34.0
+margin_right = 1075.0
+margin_bottom = 701.0
+script = SubResource( 37 )
+
+[node name="Panel3" type="Panel" parent="Controls"]
+self_modulate = Color( 1, 1, 1, 0.701961 )
+margin_left = 251.0
+margin_top = 140.0
+margin_right = 849.0
+margin_bottom = 384.0
+rect_clip_content = true
+custom_styles/panel = SubResource( 24 )
+
+[node name="Panel" type="Panel" parent="Controls/Panel3"]
+margin_left = 561.0
+margin_top = 7.0
+margin_right = 589.0
+margin_bottom = 35.0
+custom_styles/panel = SubResource( 19 )
+
+[node name="RichTextLabel" type="RichTextLabel" parent="Controls/Panel3/Panel"]
+margin_left = 10.0
+margin_top = 7.0
+margin_right = 23.0
+margin_bottom = 23.0
+mouse_filter = 2
+custom_fonts/bold_font = SubResource( 22 )
+custom_fonts/normal_font = SubResource( 23 )
+bbcode_enabled = true
+bbcode_text = "[b]X[/b]"
+text = "X"
+
+[node name="RichTextLabel" type="RichTextLabel" parent="Controls/Panel3"]
+margin_left = 9.0
+margin_top = 11.0
+margin_right = 589.0
+margin_bottom = 259.0
+mouse_filter = 2
+custom_fonts/bold_font = SubResource( 22 )
+custom_fonts/normal_font = SubResource( 23 )
+bbcode_enabled = true
+bbcode_text = "[b]Game Controls:[/b]
+
+[b]Spacebar:[/b] End turn / Confirm.
+
+[b]Mouse / Left Mouse Button:[/b] Menu navigation and selection of characters and skills. You can also select skills in battle using the [b]number keys[/b].
+
+[b]ESC / Right Mouse Button:[/b] Deselects, can be used to deselect a character (if you haven't done any action with it yet) and to deselect a skill.
+
+[b]Z Key (hold):[/b] Hides all HP bars and state icons, helping visibility.
+
+[b]WASD / Arrow Keys:[/b] Turns the character towards the pressed direction. This is usable both during a character's turn and on the placement phase of the combat.
+"
+text = "Game Controls:
+
+Spacebar: End turn / Confirm.
+
+Mouse / Left Mouse Button: Menu navigation and selection of characters and skills. You can also select skills in battle using the number keys.
+
+ESC / Right Mouse Button: Deselects, can be used to deselect a character (if you haven't done any action with it yet) and to deselect a skill.
+
+Z Key (hold): Hides all HP bars and state icons, helping visibility.
+
+WASD / Arrow Keys: Turns the character towards the pressed direction. This is usable both during a character's turn and on the placement phase of the combat.
+"
+
+[connection signal="toggled" from="Button2" to="." method="fullscreen"]
+[connection signal="button_down" from="Button3" to="." method="reset_save"]
+[connection signal="button_down" from="Button4" to="." method="checkControls"]
+[connection signal="gui_input" from="PanelContainer/ScrollContainer/VBoxContainer/Stage1/VBoxContainer/HBoxContainer4/Fight" to="PanelContainer/ScrollContainer/VBoxContainer/Stage1" method="gui_input"]
+[connection signal="gui_input" from="PanelContainer/ScrollContainer/VBoxContainer/Stage2/VBoxContainer/HBoxContainer4/Fight" to="PanelContainer/ScrollContainer/VBoxContainer/Stage2" method="gui_input"]
+[connection signal="gui_input" from="PanelContainer/ScrollContainer/VBoxContainer/Stage3/VBoxContainer/HBoxContainer4/Fight" to="PanelContainer/ScrollContainer/VBoxContainer/Stage3" method="gui_input"]
+[connection signal="gui_input" from="PanelContainer/ScrollContainer/VBoxContainer/Stage4/VBoxContainer/HBoxContainer4/Fight" to="PanelContainer/ScrollContainer/VBoxContainer/Stage4" method="gui_input"]
+[connection signal="gui_input" from="PanelContainer/ScrollContainer/VBoxContainer/Stage5/VBoxContainer/HBoxContainer4/Fight" to="PanelContainer/ScrollContainer/VBoxContainer/Stage5" method="gui_input"]
+[connection signal="gui_input" from="PanelContainer/ScrollContainer/VBoxContainer/Stage6/VBoxContainer/HBoxContainer4/Fight" to="PanelContainer/ScrollContainer/VBoxContainer/Stage6" method="gui_input"]
+[connection signal="gui_input" from="Disclaimer/Panel3/Panel" to="Disclaimer" method="gui_input"]
+[connection signal="gui_input" from="Controls/Panel3/Panel" to="Controls" method="gui_input"]

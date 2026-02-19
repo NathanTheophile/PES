@@ -1,0 +1,99 @@
+[gd_scene load_steps=7 format=2]
+
+[ext_resource path="res://Roboto-Bold.ttf" type="DynamicFontData" id=1]
+[ext_resource path="res://characters/001 - Luffy/fed.png" type="Texture" id=2]
+[ext_resource path="res://states/StatePreview.tscn" type="PackedScene" id=3]
+[ext_resource path="res://states/StateScript.gd" type="Script" id=4]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Node
+
+var state
+var porter
+func stateSetup():
+	state = get_parent()
+	porter = state.get_node(\"../..\")
+	state.connect(\"tree_exiting\",self,\"expire\")
+	porter.connect(\"turn_end\",self,\"end\")
+	lvlUpdate()
+	
+
+var bonusDmg = 1
+var bonusAp = 0
+func lvlUpdate():
+	porter.dmgModMltGeneral /= bonusDmg
+	porter.ap -= bonusAp
+	
+	bonusDmg = (floor(float(state.lvl)/2) * 0.01) + 1.0
+	bonusAp = floor(float(state.lvl)/50)
+	
+	porter.ap += bonusAp
+	porter.dmgModMltGeneral *= bonusDmg
+	porter.pushMod = bonusAp
+	BattleMechanics.area.updateEntityDetails(porter)
+	
+
+func expire():
+	porter.dmgModMltGeneral /= bonusDmg
+	porter.pushMod = 0
+	porter.ap -= bonusAp
+
+func end():
+	if porter.hp_loss >= porter.hp / 2:
+		BattleMechanics.heal(float(porter.hp) * float(state.lvl) * 0.01, porter, porter)
+		BattleMechanics.removeState(state)
+"
+
+[sub_resource type="DynamicFont" id=2]
+outline_size = 3
+outline_color = Color( 0.215686, 0.215686, 0.215686, 1 )
+font_data = ExtResource( 1 )
+
+[node name="State" type="Node2D"]
+z_as_relative = false
+script = ExtResource( 4 )
+stateName = "Stuffed"
+description = " [b]+{lvl}%[/b] [img]res://skills/sword.png[/img] (1 every 2 levels)
+ [b]+{lvl2} [b]AP[/b][/b] [img]res://areas/ui/apIconSmall.png[/img] (1 every 50 levels)
+ [b]+{lvl2} [b]Push Amount[/b][/b] (1 every 50 levels)
+
+End of turn, if HP < 50%:
+- Heal by [b]{lvl3}% of HP[/b] and consume this"
+type = 1
+effects = SubResource( 1 )
+appearOver = true
+stacks = true
+modularDesc = true
+lvlMlt = 0.5
+lvl2Mlt = 0.02
+
+[node name="Effects" type="Node" parent="."]
+
+[node name="Icon" type="TextureRect" parent="."]
+visible = false
+margin_right = 32.0
+margin_bottom = 32.0
+mouse_filter = 0
+texture = ExtResource( 2 )
+
+[node name="LVl" type="Label" parent="Icon"]
+margin_left = 21.0
+margin_top = 17.0
+margin_right = 30.0
+margin_bottom = 36.0
+grow_horizontal = 2
+custom_fonts/font = SubResource( 2 )
+text = "1"
+align = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Window" type="Node2D" parent="Icon"]
+
+[node name="Panel" parent="Icon/Window" instance=ExtResource( 3 )]
+visible = false
+margin_left = 32.0
+margin_top = -60.0
+margin_right = 238.0
+margin_bottom = -7.0

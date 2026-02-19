@@ -1,0 +1,276 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://skills/SkillScript.gd" type="Script" id=1]
+[ext_resource path="res://skills/(Area) - Invasão dos Golens/Descarga Cristalizada/CrystalPrepare.tscn" type="PackedScene" id=2]
+[ext_resource path="res://skills/(Area) - Invasão dos Golens/Descarga Cristalizada/CrystalPrepare2.tscn" type="PackedScene" id=3]
+[ext_resource path="res://skills/old/039 - Crystal Leap/Crystal2.tscn" type="PackedScene" id=4]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Node
+
+# targetArray = Array contendo as posições que esse feitiço atingiu
+#               A célula central será contida em um Array sozinha, para fácil identificação
+var skill
+func effects(targetArray):
+	skill = get_parent()
+	
+	
+	BattleMechanics.playAnimEntity(skill.caster, \"Attack\")
+	yield(get_tree().create_timer(0.1),\"timeout\")
+	BattleMechanics.playAnim(skill.visuals[0],skill.caster.posit,false,\"under\")
+	BattleMechanics.playAnim(skill.visuals[2],skill.caster.posit)
+	yield(get_tree().create_timer(1.1),\"timeout\")
+	
+	for i in 4:
+		var stateName = \"Corpo de \"
+		var end = \"\"
+		match i:
+			0:
+				end = \"Rubi\"
+			1:
+				end = \"Safira\"
+			2:
+				end = \"Ametista\"
+			3:
+				end = \"Esmeralda\"
+		stateName += end
+		if BattleMechanics.hasState(skill.caster, stateName):
+			mainEffect(i)
+			yield(get_tree().create_timer(2),\"timeout\")
+			for j in BattleMechanics.area.entities.get_children():
+				if j.ent_name == \"Gema Instável\":
+					cristEffect(i,j)
+					yield(get_tree().create_timer(1),\"timeout\")
+	
+	skill.caster.get_node(\"Crystals\").currentSummons = []
+					
+	
+		
+func mainEffect(n):
+	match n:
+				0: #Fogo
+					for i in BattleMechanics.area.entities.get_children():
+						if i != skill.caster and i.player:
+							var cells = BattleMechanics.getCellInRadius(i.posit, 2, false, 0, [], 0, true)
+							cells = BattleMechanics.orderAoE(cells)
+							var keys = cells.keys()
+							keys.sort()
+							
+							for j in keys:
+								if j>0:
+									for k in cells[j]:
+										
+										var tgt = BattleMechanics.getEntityAt(k)
+										
+										if tgt and tgt.player:
+											BattleMechanics.dealDmg([200,\"f\"], tgt, skill.caster)
+											BattleMechanics.playAnim(skill.visuals[1],k)
+										elif not tgt:
+											BattleMechanics.playAnim(skill.visuals[1],k)
+									yield(get_tree().create_timer(0.1),\"timeout\")
+							
+				1: #Água
+					var allCells = BattleMechanics.area.tilemap.get_used_cells()
+					var cells = []
+					var p = skill.caster.posit
+					
+					for i in allCells:
+						if BattleMechanics.distanceTo(i,p)<=4:
+							cells.append(i)
+					
+					cells.append([p])
+					cells = BattleMechanics.orderAoE(cells)
+					var keys = cells.keys()
+					keys.sort()
+					
+					for i in keys:
+						if i>0:
+							for j in cells[i]:
+							
+								var tgt = BattleMechanics.getEntityAt(j)
+								if tgt and tgt.player:
+									BattleMechanics.dealDmg([200,\"w\"], tgt, skill.caster)
+									BattleMechanics.playAnim(skill.visuals[1],j)
+								elif not tgt:
+									BattleMechanics.playAnim(skill.visuals[1],j)
+							yield(get_tree().create_timer(0.1),\"timeout\")
+				2: #Ar
+					var allCells = BattleMechanics.area.tilemap.get_used_cells()
+					var cells = []
+					var p = skill.caster.posit
+					
+					for i in allCells:
+						if BattleMechanics.distanceTo(i,p)>7:
+							cells.append(i)
+					cells.append([p])
+					cells = BattleMechanics.orderAoE(cells)
+					var keys = cells.keys()
+					keys.sort()
+					
+					for i in keys:
+						if i>0:
+							for j in cells[i]:
+								
+								var tgt = BattleMechanics.getEntityAt(j)
+								if tgt and tgt.player:
+									BattleMechanics.dealDmg([200,\"a\"], tgt, skill.caster)
+									BattleMechanics.playAnim(skill.visuals[1],j)
+								elif not tgt:
+									BattleMechanics.playAnim(skill.visuals[1],j)
+							yield(get_tree().create_timer(0.1),\"timeout\")
+				3: #Terra
+					var allCells = BattleMechanics.area.tilemap.get_used_cells()
+
+					var dir = skill.caster.direction
+					var p = skill.caster.posit
+					var cA = []
+					match dir:
+						Vector2(1,0):
+							cA = [p.y+1, p.y-1, p.y]
+						Vector2(-1,0):
+							cA = [p.y+1, p.y-1, p.y]
+						Vector2(0,1):
+							cA = [p.x+1, p.x-1, p.x]
+						Vector2(0,-1):
+							cA = [p.x+1, p.x-1, p.x]
+					
+					var cells=[]
+					for i in allCells:
+						if i == p+dir:
+							cells.append([i])
+						else:
+							var c1 = i.y in cA if abs(dir.x)>abs(dir.y) else i.x in cA
+							if c1:
+								var compare = i.x if abs(dir.x)>abs(dir.y) else i.y
+								var compare2 = p.x if abs(dir.x)>abs(dir.y) else p.y
+								var c2 = compare > compare2 if dir.x+dir.y > 0 else compare < compare2
+								if c2:
+									cells.append(i)
+					
+					cells = BattleMechanics.orderAoE(cells)
+					var keys = cells.keys()
+					keys.sort()
+					
+					for i in keys:
+						for j in cells[i]:
+							
+							var tgt = BattleMechanics.getEntityAt(j)
+							if tgt and tgt.player:
+								BattleMechanics.dealDmg([200,\"e\"], tgt, skill.caster)
+								BattleMechanics.playAnim(skill.visuals[1],j)
+							elif not tgt:
+								BattleMechanics.playAnim(skill.visuals[1],j)
+						yield(get_tree().create_timer(0.1),\"timeout\")
+
+func cristEffect(n,e):
+	match n:
+		0: #Fogo
+			var cells = BattleMechanics.getCellInRadius(e.posit, 5, false, 0, [], 3)
+			cells.append([e.posit])
+			cells = BattleMechanics.orderAoE(cells)
+			var keys = cells.keys()
+			keys.sort()
+			
+			BattleMechanics.killEntity(e,skill.caster)
+			for i in keys:
+				if i>0:
+					for j in cells[i]:
+						
+						var tgt = BattleMechanics.getEntityAt(j)
+						if tgt and tgt.player:
+							BattleMechanics.dealDmg([200,\"f\"], tgt, skill.caster)
+							BattleMechanics.playAnim(skill.visuals[1],j)
+						elif not tgt:
+							BattleMechanics.playAnim(skill.visuals[1],j)
+					yield(get_tree().create_timer(0.1),\"timeout\")
+		1: #Água
+			var cells = []
+			for i in 4:
+				var m = i+1
+				cells.append_array([m*Vector2(1,1)+e.posit, m*Vector2(-1,1)+e.posit, m*Vector2(1,-1)+e.posit, m*Vector2(-1,-1)+e.posit])
+			cells.append([e.posit])
+			
+			
+			cells=BattleMechanics.orderAoE(cells)
+			var keys=cells.keys()
+			keys.sort()
+			
+			BattleMechanics.killEntity(e,skill.caster)
+			for i in keys:
+				if i>0:
+					for j in cells[i]:
+						
+						var tgt = BattleMechanics.getEntityAt(j)
+						if tgt and tgt.player:
+							BattleMechanics.dealDmg([200,\"w\"], tgt, skill.caster)
+							BattleMechanics.playAnim(skill.visuals[1],j)
+						elif not tgt:
+							BattleMechanics.playAnim(skill.visuals[1],j)
+					yield(get_tree().create_timer(0.1),\"timeout\")
+		2: #Ar
+			var cells = []
+			for i in 8:
+				var m = i+1
+				cells.append_array([m*Vector2(1,0)+e.posit, m*Vector2(-1,0)+e.posit, m*Vector2(0,-1)+e.posit, m*Vector2(0,1)+e.posit])
+			cells.append([e.posit])
+			
+			
+			cells=BattleMechanics.orderAoE(cells)
+			var keys=cells.keys()
+			keys.sort()
+			
+			BattleMechanics.killEntity(e,skill.caster)
+			for i in keys:
+				if i>0:
+					for j in cells[i]:
+						
+						var tgt = BattleMechanics.getEntityAt(j)
+						if tgt and tgt.player:
+							BattleMechanics.dealDmg([200,\"a\"], tgt, skill.caster)
+							BattleMechanics.playAnim(skill.visuals[1],j)
+						elif not tgt:
+							BattleMechanics.playAnim(skill.visuals[1],j)
+					yield(get_tree().create_timer(0.1),\"timeout\")
+		3: #Terra
+			var cells = BattleMechanics.getCellInRadius(e.posit, 3, false, 0, [], 0)
+			cells.append([e.posit])
+			cells = BattleMechanics.orderAoE(cells)
+			var keys = cells.keys()
+			keys.sort()
+			
+			BattleMechanics.killEntity(e,skill.caster)
+			for i in keys:
+				if i>0:
+					for j in cells[i]:
+						
+						var tgt = BattleMechanics.getEntityAt(j)
+						if tgt and tgt.player:
+							BattleMechanics.dealDmg([200,\"e\"], tgt, skill.caster)
+							BattleMechanics.playAnim(skill.visuals[1],j)
+						elif not tgt:
+							BattleMechanics.playAnim(skill.visuals[1],j)
+					yield(get_tree().create_timer(0.1),\"timeout\")
+	
+	
+
+	
+	
+
+
+	
+	
+"
+
+[node name="Skill" type="Node2D"]
+script = ExtResource( 1 )
+skillName = "Descarga Cristalizada"
+description = "Deals [color=#f09ee5]5 air damage[/color]. "
+rangeMin = 0
+rangeMax = 0
+sight = true
+usePerTgt = 1
+tgtTypeEntity = true
+visuals = [ ExtResource( 2 ), ExtResource( 4 ), ExtResource( 3 ) ]
+effects = SubResource( 1 )
+
+[node name="Effects" type="Node" parent="."]

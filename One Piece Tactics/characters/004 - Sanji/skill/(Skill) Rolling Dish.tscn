@@ -1,0 +1,51 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://skills/SkillScript.gd" type="Script" id=1]
+[ext_resource path="res://skills/Recursos Comuns/Hit.tscn" type="PackedScene" id=2]
+[ext_resource path="res://characters/003 - Usopp/skill/Proj.tscn" type="PackedScene" id=3]
+[ext_resource path="res://skills/icons/aoe.png" type="Texture" id=4]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Node
+
+# targetArray = Array contendo as posições que esse feitiço atingiu
+#               A célula central será contida em um Array sozinha, para fácil identificação
+var skill
+func effects(targetArray):
+	skill = get_parent()
+	var d = skill.caster.direction
+	
+	
+	BattleMechanics.playAnimEntity(skill.caster, \"Attack\")
+	
+	yield(get_tree().create_timer(0.3),\"timeout\")
+	AM.play(skill.caster.audioEX[0],{\"randp\": true})
+	yield(get_tree().create_timer(0.8),\"timeout\")
+	
+	AM.play(skill.caster.audioEX[1],{\"randp\": true})
+	yield(BattleMechanics.shootProjectile(skill.visuals[1],skill.caster.posit, targetArray[0], 0.05, Vector2(0,0), Vector2(0,-30), false),\"completed\")
+	BattleMechanics.playAnim(skill.visuals[0],targetArray[0])
+	var tgt = BattleMechanics.getEntityAt(targetArray[0])
+	if tgt:
+		BattleMechanics.dealDmg([skill.base,\"n\"],tgt,skill.caster)
+	AM.play(skill.caster.audioEX[3],{\"randp\": true, \"db\": -8})
+	yield(get_tree().create_timer(0.3),\"timeout\")
+			
+	
+	
+	
+"
+
+[node name="Skill" type="Node2D"]
+script = ExtResource( 1 )
+skillName = "Rolling Dish"
+description = "[b]{b}[/b] [img]res://skills/sword.png[/img]"
+icon1 = ExtResource( 4 )
+base = 15
+apCost = 1
+element = 1
+sight = true
+visuals = [ ExtResource( 2 ), ExtResource( 3 ) ]
+effects = SubResource( 1 )
+
+[node name="Effects" type="Node" parent="."]

@@ -1,0 +1,15 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+path="res://.import/Anime Narcissism Twinkle (One Piece Sanji) - Sound Effect for editing.mp3-dd23db27459d9b0eb25afc7aa32aa384.mp3str"
+
+[deps]
+
+source_file="res://sfx/Anime Narcissism Twinkle (One Piece Sanji) - Sound Effect for editing.mp3"
+dest_files=[ "res://.import/Anime Narcissism Twinkle (One Piece Sanji) - Sound Effect for editing.mp3-dd23db27459d9b0eb25afc7aa32aa384.mp3str" ]
+
+[params]
+
+loop=false
+loop_offset=0

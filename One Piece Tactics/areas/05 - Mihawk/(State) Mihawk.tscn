@@ -1,0 +1,82 @@
+[gd_scene load_steps=8 format=2]
+
+[ext_resource path="res://states/StateScript.gd" type="Script" id=1]
+[ext_resource path="res://skills/Recursos Comuns/q.png" type="Texture" id=2]
+[ext_resource path="res://Roboto-Bold.ttf" type="DynamicFontData" id=3]
+[ext_resource path="res://states/StatePreview.tscn" type="PackedScene" id=4]
+[ext_resource path="res://areas/04 - Kuro/kuro/(State) Captain Kuro 2.tscn" type="PackedScene" id=5]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Node
+
+var state
+var porter
+var mark
+var cell
+func stateSetup():
+	state = get_parent()
+	porter = state.get_parent().get_parent()
+	porter.connect(\"dmg_taken\",  self, \"dmg\")
+
+var n = 1
+func dmg(_1,zoro, b):
+	if !b:
+		porter.turn_to(BattleMechanics.directionTo(porter.posit, zoro.posit))
+		n = wrapi(n,1,4)
+		if BattleMechanics.getState(porter,\"Phases\").lvl == 1:
+			BattleMechanics.playAnimEntity(porter,\"Def\"+str(n))
+		else:
+			BattleMechanics.playAnimEntity(porter,\"Def\"+str(n)+\"B\")
+		n+=1
+		
+		if BattleMechanics.area.get_node(\"Score\").currentScore >= 2000:
+			BattleMechanics.area.trophies[0] = true
+			BattleMechanics.area.ui.crowns.setup(BattleMechanics.area.trophies,BattleMechanics.area.get_node(\"Trophies\").text)
+
+"
+
+[sub_resource type="DynamicFont" id=2]
+outline_size = 3
+outline_color = Color( 0.215686, 0.215686, 0.215686, 1 )
+font_data = ExtResource( 3 )
+
+[node name="State" type="Node2D"]
+z_as_relative = false
+script = ExtResource( 1 )
+stateName = "Mihawk"
+description = "[b]{lvl}% damage reduction[/b].
+
+Goes down by 1 every time you hit a [b]marked direction[/b]."
+effects = SubResource( 1 )
+extraStates = [ ExtResource( 5 ) ]
+modularDesc = true
+lvlMlt = 10
+
+[node name="Effects" type="Node" parent="."]
+
+[node name="Icon" type="TextureRect" parent="."]
+visible = false
+margin_right = 32.0
+margin_bottom = 32.0
+mouse_filter = 0
+texture = ExtResource( 2 )
+
+[node name="LVl" type="Label" parent="Icon"]
+margin_left = 21.0
+margin_top = 17.0
+margin_right = 30.0
+margin_bottom = 36.0
+custom_fonts/font = SubResource( 2 )
+text = "1"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Window" type="Node2D" parent="Icon"]
+
+[node name="Panel" parent="Icon/Window" instance=ExtResource( 4 )]
+visible = false
+margin_left = 32.0
+margin_top = -60.0
+margin_right = 238.0
+margin_bottom = -7.0

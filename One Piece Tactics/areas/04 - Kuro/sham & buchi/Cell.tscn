@@ -1,0 +1,249 @@
+[gd_scene load_steps=15 format=2]
+
+[ext_resource path="res://areas/04 - Kuro/sham & buchi/cell.png" type="Texture" id=1]
+[ext_resource path="res://areas/cell.png" type="Texture" id=2]
+[ext_resource path="res://skills/Recursos Comuns/smoke.png" type="Texture" id=3]
+[ext_resource path="res://skills/Recursos Comuns/rock.png" type="Texture" id=4]
+
+[sub_resource type="Gradient" id=11]
+offsets = PoolRealArray( 0, 0.0903226, 1 )
+colors = PoolColorArray( 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0 )
+
+[sub_resource type="GradientTexture" id=6]
+gradient = SubResource( 11 )
+
+[sub_resource type="Curve" id=12]
+_data = [ Vector2( 0, 0.6875 ), 0.0, 0.485454, 0, 0, Vector2( 1, 1 ), 0.0, 0.0, 0, 0 ]
+
+[sub_resource type="CurveTexture" id=8]
+curve = SubResource( 12 )
+
+[sub_resource type="ParticlesMaterial" id=13]
+lifetime_randomness = 0.38
+emission_shape = 1
+emission_sphere_radius = 19.07
+flag_disable_z = true
+direction = Vector3( 0, -1, 0 )
+gravity = Vector3( 0, 0, 0 )
+initial_velocity = 50.0
+initial_velocity_random = 0.58
+orbit_velocity = 0.0
+orbit_velocity_random = 0.0
+damping = 57.65
+scale = 2.0
+scale_random = 0.51
+scale_curve = SubResource( 8 )
+color = Color( 0.466667, 0.368627, 0.270588, 0.65098 )
+color_ramp = SubResource( 6 )
+
+[sub_resource type="Gradient" id=9]
+offsets = PoolRealArray( 0, 0.63871, 1 )
+colors = PoolColorArray( 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0 )
+
+[sub_resource type="GradientTexture" id=3]
+gradient = SubResource( 9 )
+
+[sub_resource type="ParticlesMaterial" id=10]
+lifetime_randomness = 0.48
+emission_shape = 1
+emission_sphere_radius = 11.54
+flag_disable_z = true
+direction = Vector3( 0, -1, 0 )
+gravity = Vector3( 0, 98, 0 )
+initial_velocity = 100.0
+initial_velocity_random = 0.49
+angular_velocity = 203.3
+angular_velocity_random = 1.0
+orbit_velocity = 0.0
+orbit_velocity_random = 0.0
+scale = 0.9
+scale_random = 1.0
+color_ramp = SubResource( 3 )
+
+[sub_resource type="Animation" id=1]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/path = NodePath("Cell:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ Vector2( 2, 32 ) ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Cell:rotation_degrees")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ 3.74593 ]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("Cell:scale")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ Vector2( 1, 1 ) ]
+}
+tracks/3/type = "value"
+tracks/3/path = NodePath("Cell:modulate")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ Color( 1, 1, 1, 1 ) ]
+}
+tracks/4/type = "value"
+tracks/4/path = NodePath("Particles2D:emitting")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ false ]
+}
+tracks/5/type = "value"
+tracks/5/path = NodePath("Particles2D2:emitting")
+tracks/5/interp = 1
+tracks/5/loop_wrap = true
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ true ]
+}
+
+[sub_resource type="Animation" id=2]
+resource_name = "m"
+length = 3.0
+tracks/0/type = "value"
+tracks/0/path = NodePath("Cell:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 0.5 ),
+"transitions": PoolRealArray( 0.5, 1 ),
+"update": 0,
+"values": [ Vector2( 4, 33 ), Vector2( 4, 31 ) ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Cell:rotation_degrees")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0, 0.5 ),
+"transitions": PoolRealArray( 0.5, 1 ),
+"update": 0,
+"values": [ 3.74593, 3.74593 ]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("Cell:scale")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/keys = {
+"times": PoolRealArray( 0, 0.5 ),
+"transitions": PoolRealArray( 0.5, 1 ),
+"update": 0,
+"values": [ Vector2( 1, 0.901654 ), Vector2( 1, 0.901654 ) ]
+}
+tracks/3/type = "value"
+tracks/3/path = NodePath("Cell:modulate")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/keys = {
+"times": PoolRealArray( 0, 0.5, 1 ),
+"transitions": PoolRealArray( 1, 1, 1 ),
+"update": 0,
+"values": [ Color( 1, 1, 1, 1 ), Color( 1, 1, 1, 1 ), Color( 1, 1, 1, 0 ) ]
+}
+tracks/4/type = "value"
+tracks/4/path = NodePath("Particles2D:emitting")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ true ]
+}
+tracks/5/type = "value"
+tracks/5/path = NodePath("Particles2D2:emitting")
+tracks/5/interp = 1
+tracks/5/loop_wrap = true
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ true ]
+}
+
+[node name="Node2D" type="Node2D"]
+
+[node name="Sprite" type="Sprite" parent="."]
+visible = false
+position = Vector2( 0, 21 )
+texture = ExtResource( 2 )
+
+[node name="Particles2D2" type="Particles2D" parent="."]
+position = Vector2( 0, 15 )
+lifetime = 2.0
+one_shot = true
+explosiveness = 0.77
+draw_order = 1
+process_material = SubResource( 13 )
+texture = ExtResource( 3 )
+
+[node name="Cell" type="Sprite" parent="."]
+position = Vector2( 2, 32 )
+rotation = 0.0653788
+texture = ExtResource( 1 )
+offset = Vector2( -4, -20 )
+
+[node name="Particles2D" type="Particles2D" parent="."]
+position = Vector2( 0, 17 )
+emitting = false
+amount = 3
+lifetime = 1.5
+one_shot = true
+explosiveness = 1.0
+process_material = SubResource( 10 )
+texture = ExtResource( 4 )
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+autoplay = "m"
+anims/RESET = SubResource( 1 )
+anims/m = SubResource( 2 )

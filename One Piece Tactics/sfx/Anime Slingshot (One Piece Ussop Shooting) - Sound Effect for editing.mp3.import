@@ -1,0 +1,15 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+path="res://.import/Anime Slingshot (One Piece Ussop Shooting) - Sound Effect for editing.mp3-3d1f3e13c81f97828c7f5c6ef862e971.mp3str"
+
+[deps]
+
+source_file="res://sfx/Anime Slingshot (One Piece Ussop Shooting) - Sound Effect for editing.mp3"
+dest_files=[ "res://.import/Anime Slingshot (One Piece Ussop Shooting) - Sound Effect for editing.mp3-3d1f3e13c81f97828c7f5c6ef862e971.mp3str" ]
+
+[params]
+
+loop=false
+loop_offset=0

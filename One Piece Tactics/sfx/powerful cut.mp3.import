@@ -1,0 +1,15 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+path="res://.import/powerful cut.mp3-bcc3c6529506be1017e402d05b31bfcd.mp3str"
+
+[deps]
+
+source_file="res://sfx/powerful cut.mp3"
+dest_files=[ "res://.import/powerful cut.mp3-bcc3c6529506be1017e402d05b31bfcd.mp3str" ]
+
+[params]
+
+loop=false
+loop_offset=0

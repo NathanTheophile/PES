@@ -1,0 +1,48 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://skills/SkillScript.gd" type="Script" id=1]
+[ext_resource path="res://states/(Player) - Tenebrus/004 - Fúria de Barbaro/(State) Fúria de Bárbaro.tscn" type="PackedScene" id=2]
+[ext_resource path="res://states/(Player) - Tenebrus/004 - Fúria de Barbaro/Buff.tscn" type="PackedScene" id=3]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Node
+
+# targetArray = Array contendo as posições que esse feitiço atingiu
+#               A célula central será contida em um Array sozinha, para fácil identificação
+var skill
+func effects(targetArray):
+	skill = get_parent()
+	
+	BattleMechanics.playAnimEntity(skill.caster, \"Urro\")
+	
+	var lvl = max(100 - ceil(100 / (skill.caster.hp / (skill.caster.hp - skill.caster.hp_loss))),1)
+
+	BattleMechanics.addState(skill.states[0], skill.caster, skill.caster, lvl)
+	BattleMechanics.playAnim(skill.visuals[0], skill.caster.posit)
+	
+	
+	yield(get_tree().create_timer(1),\"timeout\")
+	
+	
+	
+	
+	
+	
+"
+
+[node name="Skill" type="Node2D"]
+script = ExtResource( 1 )
+skillName = "Fúria"
+description = "Por 1 turno:
+- Dobra todos os danos recebidos.
+- Ganha [b]+1% de danos causados[/b] por cada 1% de PV faltando ao usar essa habilidade."
+rangeMin = 0
+rangeMax = 0
+linear = true
+sight = true
+cooldown = 3
+visuals = [ ExtResource( 3 ) ]
+effects = SubResource( 1 )
+states = [ ExtResource( 2 ) ]
+
+[node name="Effects" type="Node" parent="."]
