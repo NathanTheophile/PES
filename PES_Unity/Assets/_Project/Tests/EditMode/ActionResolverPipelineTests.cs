@@ -67,6 +67,7 @@ namespace PES.Tests.EditMode
             Assert.That(result.Success, Is.False);
             Assert.That(result.Code, Is.EqualTo(ActionResolutionCode.Rejected));
             Assert.That(result.Description, Does.Contain("MoveActionRejected"));
+            Assert.That(result.Description, Does.Contain("VerticalStepTooHigh"));
             Assert.That(state.Tick, Is.EqualTo(1));
             Assert.That(state.EventLog.Count, Is.EqualTo(1));
             Assert.That(state.StructuredEventLog.Count, Is.EqualTo(1));
@@ -77,6 +78,27 @@ namespace PES.Tests.EditMode
             Assert.That(position.X, Is.EqualTo(0));
             Assert.That(position.Y, Is.EqualTo(0));
             Assert.That(position.Z, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void Resolve_MoveAction_WithInvalidOrigin_ReturnsStructuredFailureReason()
+        {
+            // Arrange : l'acteur est à (0,0,0) mais l'origine déclarée est incorrecte.
+            var state = new BattleState();
+            var actor = new EntityId(9);
+            state.SetEntityPosition(actor, new Position3(0, 0, 0));
+
+            var resolver = new ActionResolver(new SeededRngService(42));
+            var action = new MoveAction(actor, new GridCoord3(1, 0, 0), new GridCoord3(2, 0, 0));
+
+            // Act.
+            var result = resolver.Resolve(state, action);
+
+            // Assert : rejet lisible + raison stable pour exploitation outillage/replay.
+            Assert.That(result.Success, Is.False);
+            Assert.That(result.Code, Is.EqualTo(ActionResolutionCode.Rejected));
+            Assert.That(result.Description, Does.Contain("invalid origin"));
+            Assert.That(result.Description, Does.Contain("InvalidOrigin"));
         }
 
         [Test]
