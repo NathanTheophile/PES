@@ -20,6 +20,9 @@ namespace PES.Core.Simulation
         // Cellules bloquées de la grille (murs, obstacles statiques) côté simulation.
         private readonly HashSet<Position3> _blockedPositions = new();
 
+        // Coûts de terrain par cellule (1 par défaut si non configuré).
+        private readonly Dictionary<Position3, int> _positionMovementCosts = new();
+
         // Journal ordonné (append-only) des événements textuels produits par les actions résolues.
         private readonly List<string> _eventLog = new();
 
@@ -176,6 +179,22 @@ namespace PES.Core.Simulation
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Définit le coût de mouvement d'une cellule (minimum 1).
+        /// </summary>
+        public void SetMovementCost(Position3 position, int movementCost)
+        {
+            _positionMovementCosts[position] = movementCost < 1 ? 1 : movementCost;
+        }
+
+        /// <summary>
+        /// Retourne le coût de mouvement d'une cellule (1 si non spécifié).
+        /// </summary>
+        public int GetMovementCost(Position3 position)
+        {
+            return _positionMovementCosts.TryGetValue(position, out var movementCost) ? movementCost : 1;
         }
 
         /// <summary>

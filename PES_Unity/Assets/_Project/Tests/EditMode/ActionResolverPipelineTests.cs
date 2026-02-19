@@ -155,6 +155,56 @@ namespace PES.Tests.EditMode
         }
 
         [Test]
+        public void Resolve_MoveAction_WithHighTerrainCost_IsRejectedAndStateUnchanged()
+        {
+            // Arrange : coût terrain élevé sur la case d'arrivée -> budget dépassé.
+            var state = new BattleState();
+            var actor = new EntityId(7);
+            state.SetEntityPosition(actor, new Position3(0, 0, 0));
+            state.SetMovementCost(new Position3(1, 0, 0), 5);
+
+            var resolver = new ActionResolver(new SeededRngService(42));
+            var action = new MoveAction(actor, new GridCoord3(0, 0, 0), new GridCoord3(1, 0, 0));
+
+            // Act.
+            var result = resolver.Resolve(state, action);
+
+            // Assert : rejet par coût de mouvement.
+            Assert.That(result.Success, Is.False);
+            Assert.That(result.Code, Is.EqualTo(ActionResolutionCode.Rejected));
+            Assert.That(result.Description, Does.Contain("movement cost exceeded"));
+            Assert.That(state.TryGetEntityPosition(actor, out var actorPosition), Is.True);
+            Assert.That(actorPosition.X, Is.EqualTo(0));
+            Assert.That(actorPosition.Y, Is.EqualTo(0));
+            Assert.That(actorPosition.Z, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void Resolve_MoveAction_WithConfiguredTerrainCostWithinBudget_Succeeds()
+        {
+            // Arrange : coût terrain custom dans le budget global.
+            var state = new BattleState();
+            var actor = new EntityId(8);
+            state.SetEntityPosition(actor, new Position3(0, 0, 0));
+            state.SetMovementCost(new Position3(1, 0, 0), 2);
+
+            var resolver = new ActionResolver(new SeededRngService(42));
+            var action = new MoveAction(actor, new GridCoord3(0, 0, 0), new GridCoord3(1, 0, 0));
+
+            // Act.
+            var result = resolver.Resolve(state, action);
+
+            // Assert : action acceptée et position mise à jour.
+            Assert.That(result.Success, Is.True);
+            Assert.That(result.Code, Is.EqualTo(ActionResolutionCode.Succeeded));
+            Assert.That(result.Description, Does.Contain("cost:2"));
+            Assert.That(state.TryGetEntityPosition(actor, out var actorPosition), Is.True);
+            Assert.That(actorPosition.X, Is.EqualTo(1));
+            Assert.That(actorPosition.Y, Is.EqualTo(0));
+            Assert.That(actorPosition.Z, Is.EqualTo(0));
+        }
+
+        [Test]
         public void Resolve_BasicAttackAction_InRangeWithLineOfSight_AppliesDamage()
         {
             // Arrange : attaquant/cible valides, en portée et avec HP configurés.

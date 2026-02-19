@@ -73,7 +73,7 @@ namespace PES.Combat.Actions
             }
 
             // Validation du coût de mouvement + contraintes de dénivelé par pas.
-            var movementCost = ComputeMovementCost(path);
+            var movementCost = ComputeMovementCost(state, path);
             if (movementCost > MaxMovementCostPerAction)
             {
                 return new ActionResolution(false, ActionResolutionCode.Rejected, $"MoveActionRejected: movement cost exceeded for {ActorId} ({movementCost}/{MaxMovementCostPerAction})");
@@ -84,7 +84,7 @@ namespace PES.Combat.Actions
             return new ActionResolution(true, ActionResolutionCode.Succeeded, $"MoveActionResolved: {ActorId} {Origin} -> {Destination} [cost:{movementCost}]");
         }
 
-        private static int ComputeMovementCost(IReadOnlyList<GridCoord3> path)
+        private static int ComputeMovementCost(BattleState state, IReadOnlyList<GridCoord3> path)
         {
             var totalCost = 0;
             for (var i = 1; i < path.Count; i++)
@@ -98,7 +98,8 @@ namespace PES.Combat.Actions
                     return int.MaxValue;
                 }
 
-                var stepCost = 1 + verticalStep;
+                var cellCost = state.GetMovementCost(ToPosition(current));
+                var stepCost = cellCost + verticalStep;
                 totalCost += stepCost;
             }
 
