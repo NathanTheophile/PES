@@ -49,6 +49,28 @@ namespace PES.Core.Simulation
     }
 
     /// <summary>
+    /// Raisons normalisées pour outillage/test/replay sans dépendre des messages texte.
+    /// </summary>
+    public enum ActionFailureReason
+    {
+        None = 0,
+        InvalidOrigin = 1,
+        DestinationBlocked = 2,
+        DestinationOccupied = 3,
+        BlockedPath = 4,
+        VerticalStepTooHigh = 5,
+        MovementBudgetExceeded = 6,
+        StateMutationFailed = 7,
+        MissingPositions = 8,
+        OutOfRange = 9,
+        LineOfSightBlocked = 10,
+        MissingHitPoints = 11,
+        DamageApplicationFailed = 12,
+        HitRollMissed = 13,
+        InvalidTargeting = 14,
+    }
+
+    /// <summary>
     /// DTO standard décrivant le résultat d'une résolution de commande.
     /// </summary>
     public readonly struct ActionResolution
@@ -56,11 +78,12 @@ namespace PES.Core.Simulation
         /// <summary>
         /// Construit un nouvel objet résultat d'action.
         /// </summary>
-        public ActionResolution(bool success, ActionResolutionCode code, string description)
+        public ActionResolution(bool success, ActionResolutionCode code, string description, ActionFailureReason failureReason = ActionFailureReason.None)
         {
             Success = success;
             Code = code;
             Description = description;
+            FailureReason = failureReason;
         }
 
         /// <summary>
@@ -72,6 +95,11 @@ namespace PES.Core.Simulation
         /// Code structuré exploitable par les tests, UI et logs analytiques.
         /// </summary>
         public ActionResolutionCode Code { get; }
+
+        /// <summary>
+        /// Raison normalisée de l'échec (None si succès).
+        /// </summary>
+        public ActionFailureReason FailureReason { get; }
 
         /// <summary>
         /// Résumé textuel pour logs/debug et futur flux d'événements.
