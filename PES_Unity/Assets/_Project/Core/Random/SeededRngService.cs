@@ -9,7 +9,7 @@ namespace PES.Core.Random
     public sealed class SeededRngService : IRngService
     {
         // PRNG interne : même seed => même séquence pseudo-aléatoire.
-        private readonly Random _random;
+        private readonly System.Random _random;
 
         /// <summary>
         /// Construit un RNG déterministe avec une seed donnée.
@@ -17,7 +17,7 @@ namespace PES.Core.Random
         public SeededRngService(int seed)
         {
             Seed = seed;
-            _random = new Random(seed);
+            _random = new System.Random(seed);
         }
 
         /// <summary>
