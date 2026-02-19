@@ -313,6 +313,49 @@ namespace PES.Tests.EditMode
             Assert.That(remainingHp, Is.EqualTo(30));
         }
 
+        [Test]
+        public void Replay_WithFixedSeedAndActionSequence_ProducesExpectedSnapshot()
+        {
+            // Arrange : seed fixe + séquence d'actions stable pour valider un résultat replayable.
+            const int seed = 3;
+            var actor = new EntityId(80);
+            var target = new EntityId(81);
+
+            var state = new BattleState();
+            state.SetEntityPosition(actor, new Position3(0, 0, 1));
+            state.SetEntityPosition(target, new Position3(1, 0, 0));
+            state.SetEntityHitPoints(target, 30);
+
+            var resolver = new ActionResolver(new SeededRngService(seed));
+
+            // Act : move valide puis basic attack (la seed fixe garantit le même roll/variance).
+            var moveResult = resolver.Resolve(state, new MoveAction(actor, new GridCoord3(0, 0, 1), new GridCoord3(1, 0, 1)));
+            var attackResult = resolver.Resolve(state, new BasicAttackAction(actor, target));
+            var snapshot = state.CreateSnapshot();
+
+            // Assert : statut des actions.
+            Assert.That(moveResult.Code, Is.EqualTo(ActionResolutionCode.Succeeded));
+            Assert.That(attackResult.Code, Is.EqualTo(ActionResolutionCode.Succeeded));
+
+            // Assert : snapshot attendu pour ce scénario déterministe.
+            Assert.That(snapshot.Tick, Is.EqualTo(2));
+            Assert.That(snapshot.EntityPositions.Count, Is.EqualTo(2));
+            Assert.That(snapshot.EntityHitPoints.Count, Is.EqualTo(1));
+
+            Assert.That(state.TryGetEntityPosition(actor, out var actorPosition), Is.True);
+            Assert.That(actorPosition.X, Is.EqualTo(1));
+            Assert.That(actorPosition.Y, Is.EqualTo(0));
+            Assert.That(actorPosition.Z, Is.EqualTo(1));
+
+            Assert.That(state.TryGetEntityPosition(target, out var targetPosition), Is.True);
+            Assert.That(targetPosition.X, Is.EqualTo(1));
+            Assert.That(targetPosition.Y, Is.EqualTo(0));
+            Assert.That(targetPosition.Z, Is.EqualTo(0));
+
+            Assert.That(state.TryGetEntityHitPoints(target, out var targetHp), Is.True);
+            Assert.That(targetHp, Is.EqualTo(15));
+        }
+
         // Utilité : faux RNG de test pour forcer des séquences déterministes contrôlées.
         private sealed class SequenceRngService : IRngService
         {

@@ -209,12 +209,12 @@ Design the architecture so multiplayer can be added later with lower rewrite cos
 ## Validation Status
 - [x] Vertical slice scene (`VerticalSlice_BattleLoop`) validated manually on the current branch.
 - [x] Unity Test Runner suite executed successfully on the current branch.
-- [ ] Add a short regression checklist (move, attack, LOS blocked, height bonus, turn advance) to standardize future validation sessions.
+- [x] Add a short regression checklist (move, attack, LOS blocked, height bonus, turn advance) to standardize future validation sessions.
 
 ## Next Iteration Focus
-1. Write and version the regression checklist used after each gameplay/system change.
-2. Extend test coverage on edge cases (blocked LOS + elevation delta + out-of-range targeting).
-3. Add one deterministic replay-oriented test (fixed seed + action sequence + expected state snapshot).
+1. Extend test coverage on edge cases (blocked LOS + elevation delta + out-of-range targeting).
+2. Expand deterministic replay coverage (multiple seeds/scenarios + expected state snapshots).
+3. Add one PlayMode smoke validation aligned with the regression checklist.
 
 ## Working Notes
 - Initial code quality impression of the original project is “spaghetti / inconsistent architecture.”
