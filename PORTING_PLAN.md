@@ -43,6 +43,10 @@ This enables side-by-side checks for:
 
 > Note: if current branch folders are named differently (e.g. `One Piece Tactics/` and `PES_Unity/`), keep an explicit mapping in docs/scripts to avoid confusion.
 
+Current repository mapping used by this branch:
+- `One Piece Tactics/` ➜ **Godot reference project** (equivalent to `godot/` in this document)
+- `PES_Unity/` ➜ **Unity target project** (equivalent to `unity/` in this document)
+
 ---
 
 ## Technical Principles for the Unity Port
