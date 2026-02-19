@@ -39,6 +39,16 @@ namespace PES.Core.Simulation
     }
 
     /// <summary>
+    /// Codes standards pour classifier les résultats d'action sans parser du texte.
+    /// </summary>
+    public enum ActionResolutionCode
+    {
+        Succeeded = 0,
+        Rejected = 1,
+        Missed = 2,
+    }
+
+    /// <summary>
     /// DTO standard décrivant le résultat d'une résolution de commande.
     /// </summary>
     public readonly struct ActionResolution
@@ -46,9 +56,10 @@ namespace PES.Core.Simulation
         /// <summary>
         /// Construit un nouvel objet résultat d'action.
         /// </summary>
-        public ActionResolution(bool success, string description)
+        public ActionResolution(bool success, ActionResolutionCode code, string description)
         {
             Success = success;
+            Code = code;
             Description = description;
         }
 
@@ -56,6 +67,11 @@ namespace PES.Core.Simulation
         /// True si l'action est acceptée/réussie par les règles métier.
         /// </summary>
         public bool Success { get; }
+
+        /// <summary>
+        /// Code structuré exploitable par les tests, UI et logs analytiques.
+        /// </summary>
+        public ActionResolutionCode Code { get; }
 
         /// <summary>
         /// Résumé textuel pour logs/debug et futur flux d'événements.

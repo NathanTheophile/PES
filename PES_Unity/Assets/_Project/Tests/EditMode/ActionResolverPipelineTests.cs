@@ -31,6 +31,7 @@ namespace PES.Tests.EditMode
 
             // Assert : résultat de l'action + effets de pipeline.
             Assert.That(result.Success, Is.True);
+            Assert.That(result.Code, Is.EqualTo(ActionResolutionCode.Succeeded));
             Assert.That(result.Description, Does.Contain("MoveActionResolved"));
             Assert.That(state.Tick, Is.EqualTo(1));
             Assert.That(state.EventLog.Count, Is.EqualTo(1));
@@ -61,6 +62,7 @@ namespace PES.Tests.EditMode
 
             // Assert : rejet, mais le resolver journalise quand même et incrémente le tick.
             Assert.That(result.Success, Is.False);
+            Assert.That(result.Code, Is.EqualTo(ActionResolutionCode.Rejected));
             Assert.That(result.Description, Does.Contain("MoveActionRejected"));
             Assert.That(state.Tick, Is.EqualTo(1));
             Assert.That(state.EventLog.Count, Is.EqualTo(1));
@@ -90,6 +92,7 @@ namespace PES.Tests.EditMode
 
             // Assert : rejet et rollback position.
             Assert.That(result.Success, Is.False);
+            Assert.That(result.Code, Is.EqualTo(ActionResolutionCode.Rejected));
             Assert.That(result.Description, Does.Contain("MoveActionRejected"));
             Assert.That(state.TryGetEntityPosition(actor, out var position), Is.True);
             Assert.That(position.X, Is.EqualTo(0));
@@ -116,6 +119,7 @@ namespace PES.Tests.EditMode
 
             // Assert : succès, dégâts appliqués et pipeline actif.
             Assert.That(result.Success, Is.True);
+            Assert.That(result.Code, Is.EqualTo(ActionResolutionCode.Succeeded));
             Assert.That(result.Description, Does.Contain("BasicAttackResolved"));
             Assert.That(state.Tick, Is.EqualTo(1));
             Assert.That(state.EventLog.Count, Is.EqualTo(1));
@@ -143,6 +147,7 @@ namespace PES.Tests.EditMode
 
             // Assert : rejet propre, HP inchangés mais tick/log avancent via resolver.
             Assert.That(result.Success, Is.False);
+            Assert.That(result.Code, Is.EqualTo(ActionResolutionCode.Rejected));
             Assert.That(result.Description, Does.Contain("out of range"));
             Assert.That(state.Tick, Is.EqualTo(1));
             Assert.That(state.EventLog.Count, Is.EqualTo(1));
@@ -170,6 +175,7 @@ namespace PES.Tests.EditMode
 
             // Assert : rejet LOS et HP inchangés.
             Assert.That(result.Success, Is.False);
+            Assert.That(result.Code, Is.EqualTo(ActionResolutionCode.Rejected));
             Assert.That(result.Description, Does.Contain("line of sight blocked"));
             Assert.That(state.TryGetEntityHitPoints(target, out var remainingHp), Is.True);
             Assert.That(remainingHp, Is.EqualTo(30));

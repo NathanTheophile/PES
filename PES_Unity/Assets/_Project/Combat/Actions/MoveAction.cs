@@ -46,7 +46,7 @@ namespace PES.Combat.Actions
             // Garde 1 : l'entité doit exister et être exactement à l'origine annoncée.
             if (!state.TryMoveEntity(ActorId, ToPosition(Origin), ToPosition(Destination)))
             {
-                return new ActionResolution(false, $"MoveActionRejected: invalid origin for {ActorId} ({Origin} -> {Destination})");
+                return new ActionResolution(false, ActionResolutionCode.Rejected, $"MoveActionRejected: invalid origin for {ActorId} ({Origin} -> {Destination})");
             }
 
             // Génère un chemin discret pour mesurer le coût réel du déplacement en nombre de pas.
@@ -61,11 +61,11 @@ namespace PES.Combat.Actions
             if (stepCost > MaxDistancePerAction || verticalDelta > MaxVerticalStep)
             {
                 state.SetEntityPosition(ActorId, ToPosition(Origin));
-                return new ActionResolution(false, $"MoveActionRejected: out of bounds for {ActorId} ({Origin} -> {Destination})");
+                return new ActionResolution(false, ActionResolutionCode.Rejected, $"MoveActionRejected: out of bounds for {ActorId} ({Origin} -> {Destination})");
             }
 
             // Action acceptée.
-            return new ActionResolution(true, $"MoveActionResolved: {ActorId} {Origin} -> {Destination} [steps:{stepCost}]");
+            return new ActionResolution(true, ActionResolutionCode.Succeeded, $"MoveActionResolved: {ActorId} {Origin} -> {Destination} [steps:{stepCost}]");
         }
 
         // Aide de conversion entre type coordonnée de grille et type stockage d'état.
