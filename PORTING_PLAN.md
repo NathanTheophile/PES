@@ -198,6 +198,14 @@ Design the architecture so multiplayer can be added later with lower rewrite cos
 
 ---
 
+
+## Progress Tracking (Current Branch)
+- [x] 1) `_Project` folder structure + asmdefs created.
+- [x] 2) 10 starter files added with compile-safe stubs/evolutions.
+- [x] 3) `MoveAction` validation + resolution implemented with EditMode tests.
+- [x] 4) `BasicAttackAction` range/LOS/height modifier implemented with EditMode tests.
+- [x] 5) First minimal vertical slice bootstrap added (2 units + stepped map + move/attack loop).
+
 ## Working Notes
 - Initial code quality impression of the original project is “spaghetti / inconsistent architecture.”
 - Treat this as a reason to verify behavior, not to copy implementation.
