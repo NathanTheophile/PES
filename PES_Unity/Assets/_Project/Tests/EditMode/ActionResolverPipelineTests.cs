@@ -79,8 +79,6 @@ namespace PES.Tests.EditMode
             Assert.That(position.Z, Is.EqualTo(0));
         }
 
-
-
         [Test]
         public void Resolve_MoveAction_WithTooManySteps_IsRejectedAndStateUnchanged()
         {
@@ -196,6 +194,39 @@ namespace PES.Tests.EditMode
         }
 
         [Test]
+        public void Resolve_TwoActions_StoresOrderedStructuredTicksAndDescriptions()
+        {
+            // Arrange : deux acteurs pour enchaîner un déplacement puis une attaque réussie.
+            var state = new BattleState();
+            var mover = new EntityId(50);
+            var attacker = new EntityId(51);
+            var target = new EntityId(52);
+
+            state.SetEntityPosition(mover, new Position3(0, 0, 0));
+            state.SetEntityPosition(attacker, new Position3(0, 0, 1));
+            state.SetEntityPosition(target, new Position3(1, 0, 0));
+            state.SetEntityHitPoints(target, 30);
+
+            var resolver = new ActionResolver(new SeededRngService(3));
+
+            // Act : 1) move valide 2) basic attack qui touche avec la seed choisie.
+            var moveResult = resolver.Resolve(state, new MoveAction(mover, new GridCoord3(0, 0, 0), new GridCoord3(1, 0, 0)));
+            var attackResult = resolver.Resolve(state, new BasicAttackAction(attacker, target));
+
+            // Assert : les résultats sont correctement ordonnés et journalisés.
+            Assert.That(moveResult.Code, Is.EqualTo(ActionResolutionCode.Succeeded));
+            Assert.That(attackResult.Code, Is.EqualTo(ActionResolutionCode.Succeeded));
+
+            Assert.That(state.Tick, Is.EqualTo(2));
+            Assert.That(state.StructuredEventLog.Count, Is.EqualTo(2));
+
+            Assert.That(state.StructuredEventLog[0].Tick, Is.EqualTo(0));
+            Assert.That(state.StructuredEventLog[0].Description, Does.Contain("MoveActionResolved"));
+            Assert.That(state.StructuredEventLog[1].Tick, Is.EqualTo(1));
+            Assert.That(state.StructuredEventLog[1].Description, Does.Contain("BasicAttackResolved"));
+        }
+
+        [Test]
         public void Resolve_BasicAttackAction_WithHugeVerticalDelta_IsRejectedByLineOfSight()
         {
             // Arrange : cible en portée XY mais avec différence de hauteur trop importante.
@@ -219,7 +250,6 @@ namespace PES.Tests.EditMode
             Assert.That(state.TryGetEntityHitPoints(target, out var remainingHp), Is.True);
             Assert.That(remainingHp, Is.EqualTo(30));
         }
-
 
         // Utilité : faux RNG de test pour forcer des séquences déterministes contrôlées.
         private sealed class SequenceRngService : IRngService
