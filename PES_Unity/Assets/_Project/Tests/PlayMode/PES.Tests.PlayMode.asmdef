@@ -1,0 +1,25 @@
+{
+  "name": "PES.Tests.PlayMode",
+  "references": [
+    "PES.Core",
+    "PES.Grid",
+    "PES.Combat",
+    "PES.Units",
+    "PES.AI",
+    "PES.Infrastructure",
+    "PES.Presentation",
+    "UnityEngine.TestRunner"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false,
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ]
+}

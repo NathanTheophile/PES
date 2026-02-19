@@ -1,0 +1,28 @@
+{
+  "name": "PES.Tests.EditMode",
+  "references": [
+    "PES.Core",
+    "PES.Grid",
+    "PES.Combat",
+    "PES.Units",
+    "PES.AI",
+    "PES.Infrastructure",
+    "PES.Presentation",
+    "UnityEngine.TestRunner",
+    "UnityEditor.TestRunner"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false,
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ]
+}
