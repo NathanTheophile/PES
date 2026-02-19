@@ -39,5 +39,22 @@ namespace PES.Tests.EditMode
             Assert.That(unitA.X, Is.EqualTo(1));
             Assert.That(unitA.Z, Is.EqualTo(1));
         }
+
+        [Test]
+        public void ExecuteNextStep_WhenLoopRepeats_MoveUsesCurrentPositionAsOrigin()
+        {
+            var loop = new VerticalSliceBattleLoop(seed: 3);
+
+            loop.ExecuteNextStep();
+            loop.ExecuteNextStep();
+            loop.ExecuteNextStep();
+            var secondMove = loop.ExecuteNextStep();
+
+            Assert.That(secondMove.Success, Is.True);
+            Assert.That(secondMove.Description, Does.Contain("MoveActionResolved"));
+            Assert.That(loop.State.TryGetEntityPosition(VerticalSliceBattleLoop.UnitA, out var unitA), Is.True);
+            Assert.That(unitA.X, Is.EqualTo(0));
+            Assert.That(unitA.Z, Is.EqualTo(0));
+        }
     }
 }
