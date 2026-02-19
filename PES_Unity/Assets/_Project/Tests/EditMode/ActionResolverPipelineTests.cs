@@ -311,8 +311,8 @@ namespace PES.Tests.EditMode
 
             var resolver = new ActionResolver(new SeededRngService(3));
 
-            // Act : 1) move valide 2) basic attack qui touche avec la seed choisie.
-            var moveResult = resolver.Resolve(state, new MoveAction(mover, new GridCoord3(0, 0, 0), new GridCoord3(1, 0, 1)));
+            // Act : 1) move valide (sans traverser la case occupée en X->Y->Z) 2) basic attack qui touche avec la seed choisie.
+            var moveResult = resolver.Resolve(state, new MoveAction(mover, new GridCoord3(0, 0, 0), new GridCoord3(0, 1, 0)));
             var attackResult = resolver.Resolve(state, new BasicAttackAction(attacker, target));
 
             // Assert : les résultats sont correctement ordonnés et journalisés.
