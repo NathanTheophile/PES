@@ -1,0 +1,75 @@
+// Utilité : ce script valide que les actions passent par le pipeline métier de résolution
+// et que les mutations de BattleState/journalisation se comportent comme attendu.
+using NUnit.Framework;
+using PES.Combat.Actions;
+using PES.Core.Random;
+using PES.Core.Simulation;
+using PES.Grid.Grid3D;
+
+namespace PES.Tests.EditMode
+{
+    /// <summary>
+    /// Tests EditMode du pipeline orienté commandes via ActionResolver.
+    /// </summary>
+    public class ActionResolverPipelineTests
+    {
+        [Test]
+        public void Resolve_MoveAction_GoesThroughPipelineAndUpdatesState()
+        {
+            // Arrange : état initial avec un acteur placé à l'origine.
+            var state = new BattleState();
+            var actor = new EntityId(1);
+            state.SetEntityPosition(actor, new Position3(0, 0, 0));
+
+            // RNG seedée pour conserver un comportement reproductible de test.
+            var rng = new SeededRngService(42);
+            var resolver = new ActionResolver(rng);
+            var action = new MoveAction(actor, new GridCoord3(0, 0, 0), new GridCoord3(1, 0, 1));
+
+            // Act : toujours passer par le resolver (pas d'appel direct hors pipeline).
+            var result = resolver.Resolve(state, action);
+
+            // Assert : résultat de l'action + effets de pipeline.
+            Assert.That(result.Success, Is.True);
+            Assert.That(result.Description, Does.Contain("MoveActionResolved"));
+            Assert.That(state.Tick, Is.EqualTo(1));
+            Assert.That(state.EventLog.Count, Is.EqualTo(1));
+
+            // Assert : position effectivement mise à jour dans l'état métier.
+            Assert.That(state.TryGetEntityPosition(actor, out var position), Is.True);
+            Assert.That(position.X, Is.EqualTo(1));
+            Assert.That(position.Y, Is.EqualTo(0));
+            Assert.That(position.Z, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void Resolve_MoveAction_WithTooHighVerticalStep_IsRejectedAndStateUnchanged()
+        {
+            // Arrange : acteur avec position initiale connue.
+            var state = new BattleState();
+            var actor = new EntityId(2);
+            state.SetEntityPosition(actor, new Position3(0, 0, 0));
+
+            var rng = new SeededRngService(42);
+            var resolver = new ActionResolver(rng);
+
+            // Action invalide qui viole MaxVerticalStep.
+            var action = new MoveAction(actor, new GridCoord3(0, 0, 0), new GridCoord3(0, 0, 3));
+
+            // Act : résolution via le même pipeline.
+            var result = resolver.Resolve(state, action);
+
+            // Assert : rejet, mais le resolver journalise quand même et incrémente le tick.
+            Assert.That(result.Success, Is.False);
+            Assert.That(result.Description, Does.Contain("MoveActionRejected"));
+            Assert.That(state.Tick, Is.EqualTo(1));
+            Assert.That(state.EventLog.Count, Is.EqualTo(1));
+
+            // Assert : rollback / état inchangé.
+            Assert.That(state.TryGetEntityPosition(actor, out var position), Is.True);
+            Assert.That(position.X, Is.EqualTo(0));
+            Assert.That(position.Y, Is.EqualTo(0));
+            Assert.That(position.Z, Is.EqualTo(0));
+        }
+    }
+}
