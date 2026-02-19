@@ -71,5 +71,60 @@ namespace PES.Tests.EditMode
             Assert.That(position.Y, Is.EqualTo(0));
             Assert.That(position.Z, Is.EqualTo(0));
         }
+
+        [Test]
+        public void Resolve_BasicAttackAction_InRangeWithLineOfSight_AppliesDamage()
+        {
+            // Arrange : attaquant/cible valides, en portée et avec HP configurés.
+            var state = new BattleState();
+            var attacker = new EntityId(10);
+            var target = new EntityId(11);
+            state.SetEntityPosition(attacker, new Position3(0, 0, 1));
+            state.SetEntityPosition(target, new Position3(1, 0, 0));
+            state.SetEntityHitPoints(target, 30);
+
+            // Seed choisie pour obtenir un jet qui touche.
+            var resolver = new ActionResolver(new SeededRngService(3));
+            var action = new BasicAttackAction(attacker, target);
+
+            // Act.
+            var result = resolver.Resolve(state, action);
+
+            // Assert : succès, dégâts appliqués et pipeline actif.
+            Assert.That(result.Success, Is.True);
+            Assert.That(result.Description, Does.Contain("BasicAttackResolved"));
+            Assert.That(state.Tick, Is.EqualTo(1));
+            Assert.That(state.EventLog.Count, Is.EqualTo(1));
+
+            Assert.That(state.TryGetEntityHitPoints(target, out var remainingHp), Is.True);
+            Assert.That(remainingHp, Is.LessThan(30));
+        }
+
+        [Test]
+        public void Resolve_BasicAttackAction_OutOfRange_IsRejectedWithoutDamage()
+        {
+            // Arrange : cible trop éloignée sur XY.
+            var state = new BattleState();
+            var attacker = new EntityId(20);
+            var target = new EntityId(21);
+            state.SetEntityPosition(attacker, new Position3(0, 0, 0));
+            state.SetEntityPosition(target, new Position3(5, 0, 0));
+            state.SetEntityHitPoints(target, 30);
+
+            var resolver = new ActionResolver(new SeededRngService(42));
+            var action = new BasicAttackAction(attacker, target);
+
+            // Act.
+            var result = resolver.Resolve(state, action);
+
+            // Assert : rejet propre, HP inchangés mais tick/log avancent via resolver.
+            Assert.That(result.Success, Is.False);
+            Assert.That(result.Description, Does.Contain("out of range"));
+            Assert.That(state.Tick, Is.EqualTo(1));
+            Assert.That(state.EventLog.Count, Is.EqualTo(1));
+
+            Assert.That(state.TryGetEntityHitPoints(target, out var remainingHp), Is.True);
+            Assert.That(remainingHp, Is.EqualTo(30));
+        }
     }
 }

@@ -1,5 +1,5 @@
 // Utilité : ce script contient l'état mémoire du combat utilisé par le pipeline de résolution.
-// Il centralise les mutations déterministes (positions, ticks, journal d'événements).
+// Il centralise les mutations déterministes (positions, points de vie, ticks, journal d'événements).
 using System.Collections.Generic;
 
 namespace PES.Core.Simulation
@@ -13,6 +13,9 @@ namespace PES.Core.Simulation
         // Position actuelle de chaque entité connue.
         // Un dictionnaire offre un accès/mise à jour en O(1) dans la majorité des cas.
         private readonly Dictionary<EntityId, Position3> _entityPositions = new();
+
+        // Points de vie courants par entité.
+        private readonly Dictionary<EntityId, int> _entityHitPoints = new();
 
         // Journal ordonné (append-only) des événements textuels produits par les actions résolues.
         private readonly List<string> _eventLog = new();
@@ -59,6 +62,39 @@ namespace PES.Core.Simulation
         public bool TryGetEntityPosition(EntityId entityId, out Position3 position)
         {
             return _entityPositions.TryGetValue(entityId, out position);
+        }
+
+        /// <summary>
+        /// Définit ou remplace les points de vie d'une entité.
+        /// </summary>
+        public void SetEntityHitPoints(EntityId entityId, int hitPoints)
+        {
+            _entityHitPoints[entityId] = hitPoints;
+        }
+
+        /// <summary>
+        /// Tente de lire les points de vie courants d'une entité.
+        /// </summary>
+        public bool TryGetEntityHitPoints(EntityId entityId, out int hitPoints)
+        {
+            return _entityHitPoints.TryGetValue(entityId, out hitPoints);
+        }
+
+        /// <summary>
+        /// Applique des dégâts à une entité si elle existe dans la table HP.
+        /// Les HP sont plafonnés à minimum 0.
+        /// </summary>
+        public bool TryApplyDamage(EntityId entityId, int damage)
+        {
+            if (!_entityHitPoints.TryGetValue(entityId, out var hp))
+            {
+                return false;
+            }
+
+            var safeDamage = damage < 0 ? 0 : damage;
+            var next = hp - safeDamage;
+            _entityHitPoints[entityId] = next < 0 ? 0 : next;
+            return true;
         }
 
         /// <summary>
