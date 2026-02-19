@@ -1,7 +1,7 @@
 // Utilité : ce script implémente une première version d'attaque de base avec validations
 // de portée, ligne de vue simplifiée, bonus de hauteur et dégâts déterministes via RNG.
-using System;
 using PES.Core.Random;
+using PES.Combat.Targeting;
 using PES.Core.Simulation;
 
 namespace PES.Combat.Actions
@@ -41,26 +41,25 @@ namespace PES.Combat.Actions
         /// </summary>
         public ActionResolution Resolve(BattleState state, IRngService rngService)
         {
-            // On doit connaître les positions des deux entités pour valider portée et hauteur.
-            if (!state.TryGetEntityPosition(AttackerId, out var attackerPosition) ||
-                !state.TryGetEntityPosition(TargetId, out var targetPosition))
+            var targetingService = new BasicAttackTargetingService();
+            var targeting = targetingService.Evaluate(state, AttackerId, TargetId, MaxRange, MaxLineOfSightDelta);
+            if (!targeting.Success)
             {
-                return new ActionResolution(false, ActionResolutionCode.Rejected, $"BasicAttackRejected: missing positions ({AttackerId} -> {TargetId})");
+                return targeting.Failure switch
+                {
+                    BasicAttackTargetingFailure.MissingPositions =>
+                        new ActionResolution(false, ActionResolutionCode.Rejected, $"BasicAttackRejected: missing positions ({AttackerId} -> {TargetId})"),
+                    BasicAttackTargetingFailure.OutOfRange =>
+                        new ActionResolution(false, ActionResolutionCode.Rejected, $"BasicAttackRejected: out of range ({AttackerId} -> {TargetId}, range:{targeting.HorizontalDistance})"),
+                    BasicAttackTargetingFailure.LineOfSightBlocked =>
+                        new ActionResolution(false, ActionResolutionCode.Rejected, $"BasicAttackRejected: line of sight blocked ({AttackerId} -> {TargetId}, z:{targeting.VerticalDelta})"),
+                    _ =>
+                        new ActionResolution(false, ActionResolutionCode.Rejected, $"BasicAttackRejected: invalid targeting ({AttackerId} -> {TargetId})"),
+                };
             }
 
-            // Vérification de portée en distance Manhattan sur le plan XY.
-            var horizontalDistance = Math.Abs(targetPosition.X - attackerPosition.X) + Math.Abs(targetPosition.Y - attackerPosition.Y);
-            if (horizontalDistance > MaxRange)
-            {
-                return new ActionResolution(false, ActionResolutionCode.Rejected, $"BasicAttackRejected: out of range ({AttackerId} -> {TargetId}, range:{horizontalDistance})");
-            }
-
-            // Vérification de ligne de vue simplifiée via un seuil de différence verticale.
-            var verticalDelta = Math.Abs(targetPosition.Z - attackerPosition.Z);
-            if (verticalDelta > MaxLineOfSightDelta)
-            {
-                return new ActionResolution(false, ActionResolutionCode.Rejected, $"BasicAttackRejected: line of sight blocked ({AttackerId} -> {TargetId}, z:{verticalDelta})");
-            }
+            var attackerPosition = targeting.AttackerPosition;
+            var targetPosition = targeting.TargetPosition;
 
             // Vérifie que la cible possède des points de vie (sinon combat state incomplet).
             if (!state.TryGetEntityHitPoints(TargetId, out _))

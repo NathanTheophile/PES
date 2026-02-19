@@ -17,6 +17,12 @@ namespace PES.Core.Simulation
         // Points de vie courants par entité.
         private readonly Dictionary<EntityId, int> _entityHitPoints = new();
 
+        // Cellules bloquées de la grille (murs, obstacles statiques) côté simulation.
+        private readonly HashSet<Position3> _blockedPositions = new();
+
+        // Coûts de terrain par cellule (1 par défaut si non configuré).
+        private readonly Dictionary<Position3, int> _positionMovementCosts = new();
+
         // Journal ordonné (append-only) des événements textuels produits par les actions résolues.
         private readonly List<string> _eventLog = new();
 
@@ -129,6 +135,82 @@ namespace PES.Core.Simulation
             // Application du déplacement une fois la précondition validée.
             _entityPositions[entityId] = destination;
             return true;
+        }
+
+
+        /// <summary>
+        /// Marque (ou démarque) une cellule comme bloquée pour le pathfinding métier.
+        /// </summary>
+        public void SetBlockedPosition(Position3 position, bool blocked = true)
+        {
+            if (blocked)
+            {
+                _blockedPositions.Add(position);
+                return;
+            }
+
+            _blockedPositions.Remove(position);
+        }
+
+        /// <summary>
+        /// Retourne true si une cellule est bloquée par le terrain/obstacle.
+        /// </summary>
+        public bool IsPositionBlocked(Position3 position)
+        {
+            return _blockedPositions.Contains(position);
+        }
+
+        /// <summary>
+        /// Retourne true si la cellule est occupée par une entité (optionnellement hors une entité ignorée).
+        /// </summary>
+        public bool IsPositionOccupied(Position3 position, EntityId? ignoredEntityId = null)
+        {
+            foreach (var pair in _entityPositions)
+            {
+                if (ignoredEntityId.HasValue && pair.Key.Equals(ignoredEntityId.Value))
+                {
+                    continue;
+                }
+
+                if (pair.Value.Equals(position))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Définit le coût de mouvement d'une cellule (minimum 1).
+        /// </summary>
+        public void SetMovementCost(Position3 position, int movementCost)
+        {
+            _positionMovementCosts[position] = movementCost < 1 ? 1 : movementCost;
+        }
+
+        /// <summary>
+        /// Retourne le coût de mouvement d'une cellule (1 si non spécifié).
+        /// </summary>
+        public int GetMovementCost(Position3 position)
+        {
+            return _positionMovementCosts.TryGetValue(position, out var movementCost) ? movementCost : 1;
+        }
+
+        /// <summary>
+        /// Retourne la collection des cellules explicitement bloquées par le terrain.
+        /// </summary>
+        public IEnumerable<Position3> GetBlockedPositions()
+        {
+            return _blockedPositions;
+        }
+
+        /// <summary>
+        /// Retourne les couples (entité, position) courants de la simulation.
+        /// </summary>
+        public IEnumerable<KeyValuePair<EntityId, Position3>> GetEntityPositions()
+        {
+            return _entityPositions;
         }
 
         /// <summary>
