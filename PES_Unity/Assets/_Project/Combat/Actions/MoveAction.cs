@@ -1,9 +1,10 @@
 // Utilité : ce script implémente la première commande métier de déplacement
-// avec validation minimale d'origine, de distance et de dénivelé.
+// avec validation d'origine, budget de chemin et contraintes de dénivelé.
 using System;
 using PES.Core.Random;
 using PES.Core.Simulation;
 using PES.Grid.Grid3D;
+using PES.Grid.Pathfinding;
 
 namespace PES.Combat.Actions
 {
@@ -12,7 +13,7 @@ namespace PES.Combat.Actions
     /// </summary>
     public readonly struct MoveAction : IActionCommand
     {
-        // Budget de déplacement horizontal (distance Manhattan XY) pour ce premier slice.
+        // Budget de déplacement total (nombre maximal de pas grille) pour ce premier slice.
         private const int MaxDistancePerAction = 3;
 
         // Budget de variation verticale autorisée sur une action.
@@ -48,19 +49,23 @@ namespace PES.Combat.Actions
                 return new ActionResolution(false, $"MoveActionRejected: invalid origin for {ActorId} ({Origin} -> {Destination})");
             }
 
-            // Calcul des coûts horizontal et vertical en espace grille.
-            var horizontalDistance = Math.Abs(Destination.X - Origin.X) + Math.Abs(Destination.Y - Origin.Y);
+            // Génère un chemin discret pour mesurer le coût réel du déplacement en nombre de pas.
+            var pathService = new PathfindingService();
+            var path = pathService.ComputePath(Origin, Destination);
+            var stepCost = path.Count - 1;
+
+            // Validation explicite du dénivelé total autorisé pour cette action.
             var verticalDelta = Math.Abs(Destination.Z - Origin.Z);
 
             // Rejet si le budget est dépassé + rollback de la mutation temporaire.
-            if (horizontalDistance > MaxDistancePerAction || verticalDelta > MaxVerticalStep)
+            if (stepCost > MaxDistancePerAction || verticalDelta > MaxVerticalStep)
             {
                 state.SetEntityPosition(ActorId, ToPosition(Origin));
                 return new ActionResolution(false, $"MoveActionRejected: out of bounds for {ActorId} ({Origin} -> {Destination})");
             }
 
             // Action acceptée.
-            return new ActionResolution(true, $"MoveActionResolved: {ActorId} {Origin} -> {Destination}");
+            return new ActionResolution(true, $"MoveActionResolved: {ActorId} {Origin} -> {Destination} [steps:{stepCost}]");
         }
 
         // Aide de conversion entre type coordonnée de grille et type stockage d'état.

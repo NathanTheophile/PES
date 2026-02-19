@@ -72,6 +72,30 @@ namespace PES.Tests.EditMode
             Assert.That(position.Z, Is.EqualTo(0));
         }
 
+
+
+        [Test]
+        public void Resolve_MoveAction_WithTooManySteps_IsRejectedAndStateUnchanged()
+        {
+            // Arrange : destination nécessitant plus de pas que le budget autorisé.
+            var state = new BattleState();
+            var actor = new EntityId(3);
+            state.SetEntityPosition(actor, new Position3(0, 0, 0));
+
+            var resolver = new ActionResolver(new SeededRngService(42));
+            var action = new MoveAction(actor, new GridCoord3(0, 0, 0), new GridCoord3(4, 0, 0));
+
+            // Act.
+            var result = resolver.Resolve(state, action);
+
+            // Assert : rejet et rollback position.
+            Assert.That(result.Success, Is.False);
+            Assert.That(result.Description, Does.Contain("MoveActionRejected"));
+            Assert.That(state.TryGetEntityPosition(actor, out var position), Is.True);
+            Assert.That(position.X, Is.EqualTo(0));
+            Assert.That(position.Y, Is.EqualTo(0));
+            Assert.That(position.Z, Is.EqualTo(0));
+        }
         [Test]
         public void Resolve_BasicAttackAction_InRangeWithLineOfSight_AppliesDamage()
         {
@@ -126,5 +150,30 @@ namespace PES.Tests.EditMode
             Assert.That(state.TryGetEntityHitPoints(target, out var remainingHp), Is.True);
             Assert.That(remainingHp, Is.EqualTo(30));
         }
+
+        [Test]
+        public void Resolve_BasicAttackAction_WithHugeVerticalDelta_IsRejectedByLineOfSight()
+        {
+            // Arrange : cible en portée XY mais avec différence de hauteur trop importante.
+            var state = new BattleState();
+            var attacker = new EntityId(30);
+            var target = new EntityId(31);
+            state.SetEntityPosition(attacker, new Position3(0, 0, 0));
+            state.SetEntityPosition(target, new Position3(1, 0, 4));
+            state.SetEntityHitPoints(target, 30);
+
+            var resolver = new ActionResolver(new SeededRngService(42));
+            var action = new BasicAttackAction(attacker, target);
+
+            // Act.
+            var result = resolver.Resolve(state, action);
+
+            // Assert : rejet LOS et HP inchangés.
+            Assert.That(result.Success, Is.False);
+            Assert.That(result.Description, Does.Contain("line of sight blocked"));
+            Assert.That(state.TryGetEntityHitPoints(target, out var remainingHp), Is.True);
+            Assert.That(remainingHp, Is.EqualTo(30));
+        }
+
     }
 }
