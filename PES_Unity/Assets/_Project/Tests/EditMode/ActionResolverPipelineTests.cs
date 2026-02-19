@@ -256,6 +256,38 @@ namespace PES.Tests.EditMode
             Assert.That(snapshot.EntityHitPoints[0].HitPoints, Is.EqualTo(42));
         }
 
+
+        [Test]
+        public void ApplySnapshot_RestoresPreviousCombatState()
+        {
+            // Arrange : état de départ et snapshot de référence.
+            var state = new BattleState();
+            var entity = new EntityId(70);
+            state.SetEntityPosition(entity, new Position3(1, 2, 3));
+            state.SetEntityHitPoints(entity, 50);
+            state.AdvanceTick();
+
+            var snapshot = state.CreateSnapshot();
+
+            // Mutilations postérieures pour simuler une divergence locale.
+            state.SetEntityPosition(entity, new Position3(9, 9, 9));
+            state.TryApplyDamage(entity, 20);
+            state.AdvanceTick();
+
+            // Act : restauration depuis le snapshot.
+            state.ApplySnapshot(snapshot);
+
+            // Assert : tick, position et HP reviennent exactement à l'instant capturé.
+            Assert.That(state.Tick, Is.EqualTo(1));
+            Assert.That(state.TryGetEntityPosition(entity, out var restoredPosition), Is.True);
+            Assert.That(restoredPosition.X, Is.EqualTo(1));
+            Assert.That(restoredPosition.Y, Is.EqualTo(2));
+            Assert.That(restoredPosition.Z, Is.EqualTo(3));
+
+            Assert.That(state.TryGetEntityHitPoints(entity, out var restoredHp), Is.True);
+            Assert.That(restoredHp, Is.EqualTo(50));
+        }
+
         [Test]
         public void Resolve_BasicAttackAction_WithHugeVerticalDelta_IsRejectedByLineOfSight()
         {

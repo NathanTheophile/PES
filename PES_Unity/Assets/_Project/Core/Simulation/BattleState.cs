@@ -152,6 +152,26 @@ namespace PES.Core.Simulation
 
             return new BattleStateSnapshot(Tick, positions, hitPoints);
         }
+
+        /// <summary>
+        /// Restaure complètement l'état depuis un snapshot (utile pour rollback/reprise/replay).
+        /// </summary>
+        public void ApplySnapshot(BattleStateSnapshot snapshot)
+        {
+            _entityPositions.Clear();
+            foreach (var row in snapshot.EntityPositions)
+            {
+                _entityPositions[row.EntityId] = row.Position;
+            }
+
+            _entityHitPoints.Clear();
+            foreach (var row in snapshot.EntityHitPoints)
+            {
+                _entityHitPoints[row.EntityId] = row.HitPoints;
+            }
+
+            Tick = snapshot.Tick;
+        }
     }
 
     /// <summary>
