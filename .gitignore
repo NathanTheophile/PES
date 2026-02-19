@@ -7,6 +7,7 @@
 export.cfg
 export_credentials.cfg
 *.tmp
+export_presets.cfg
 
 # Imported translations (automatically generated from CSV files)
 *.translation
@@ -15,3 +16,19 @@ export_credentials.cfg
 .mono/
 data_*/
 mono_crash.*.json
+mono_crash.*.json
+
+# System/tool-specific ignores
+.directory
+*~
+
+# Project-specific ignores
+ref/
+tutorial/
+bad/
+logs/
+
+assets/icon/
+*.psd
+
+.vscode/
