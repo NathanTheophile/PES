@@ -130,6 +130,95 @@ namespace PES.Core.Simulation
             _entityPositions[entityId] = destination;
             return true;
         }
+
+        /// <summary>
+        /// Crée un snapshot immuable de l'état courant pour sauvegarde/replay/debug.
+        /// </summary>
+        public BattleStateSnapshot CreateSnapshot()
+        {
+            var positions = new EntityPositionSnapshot[_entityPositions.Count];
+            var index = 0;
+            foreach (var pair in _entityPositions)
+            {
+                positions[index++] = new EntityPositionSnapshot(pair.Key, pair.Value);
+            }
+
+            var hitPoints = new EntityHitPointSnapshot[_entityHitPoints.Count];
+            index = 0;
+            foreach (var pair in _entityHitPoints)
+            {
+                hitPoints[index++] = new EntityHitPointSnapshot(pair.Key, pair.Value);
+            }
+
+            return new BattleStateSnapshot(Tick, positions, hitPoints);
+        }
+    }
+
+    /// <summary>
+    /// Snapshot immuable et sérialisable de l'état d'un combat à un tick donné.
+    /// </summary>
+    public readonly struct BattleStateSnapshot
+    {
+        /// <summary>
+        /// Construit un snapshot complet de combat.
+        /// </summary>
+        public BattleStateSnapshot(int tick, EntityPositionSnapshot[] entityPositions, EntityHitPointSnapshot[] entityHitPoints)
+        {
+            Tick = tick;
+            EntityPositions = entityPositions;
+            EntityHitPoints = entityHitPoints;
+        }
+
+        /// <summary>Tick capturé.</summary>
+        public int Tick { get; }
+
+        /// <summary>Table immuable des positions au moment du snapshot.</summary>
+        public IReadOnlyList<EntityPositionSnapshot> EntityPositions { get; }
+
+        /// <summary>Table immuable des points de vie au moment du snapshot.</summary>
+        public IReadOnlyList<EntityHitPointSnapshot> EntityHitPoints { get; }
+    }
+
+    /// <summary>
+    /// Ligne de snapshot position (entité + coordonnée).
+    /// </summary>
+    public readonly struct EntityPositionSnapshot
+    {
+        /// <summary>
+        /// Construit une ligne de position snapshot.
+        /// </summary>
+        public EntityPositionSnapshot(EntityId entityId, Position3 position)
+        {
+            EntityId = entityId;
+            Position = position;
+        }
+
+        /// <summary>ID entité concernée.</summary>
+        public EntityId EntityId { get; }
+
+        /// <summary>Position capturée.</summary>
+        public Position3 Position { get; }
+    }
+
+    /// <summary>
+    /// Ligne de snapshot points de vie (entité + HP).
+    /// </summary>
+    public readonly struct EntityHitPointSnapshot
+    {
+        /// <summary>
+        /// Construit une ligne de HP snapshot.
+        /// </summary>
+        public EntityHitPointSnapshot(EntityId entityId, int hitPoints)
+        {
+            EntityId = entityId;
+            HitPoints = hitPoints;
+        }
+
+        /// <summary>ID entité concernée.</summary>
+        public EntityId EntityId { get; }
+
+        /// <summary>HP capturés.</summary>
+        public int HitPoints { get; }
     }
 
     /// <summary>

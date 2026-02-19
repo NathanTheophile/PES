@@ -226,6 +226,36 @@ namespace PES.Tests.EditMode
             Assert.That(state.StructuredEventLog[1].Description, Does.Contain("BasicAttackResolved"));
         }
 
+
+        [Test]
+        public void CreateSnapshot_CapturesStateAndRemainsStableAfterFurtherMutations()
+        {
+            // Arrange : état initial avec une entité positionnée et des HP.
+            var state = new BattleState();
+            var entity = new EntityId(60);
+            state.SetEntityPosition(entity, new Position3(2, 3, 1));
+            state.SetEntityHitPoints(entity, 42);
+
+            // Act : on capture un snapshot puis on mutile l'état live.
+            var snapshot = state.CreateSnapshot();
+            state.SetEntityPosition(entity, new Position3(9, 9, 9));
+            state.TryApplyDamage(entity, 10);
+            state.AdvanceTick();
+
+            // Assert : le snapshot reste inchangé et reflète bien l'état au moment de capture.
+            Assert.That(snapshot.Tick, Is.EqualTo(0));
+            Assert.That(snapshot.EntityPositions.Count, Is.EqualTo(1));
+            Assert.That(snapshot.EntityHitPoints.Count, Is.EqualTo(1));
+
+            Assert.That(snapshot.EntityPositions[0].EntityId, Is.EqualTo(entity));
+            Assert.That(snapshot.EntityPositions[0].Position.X, Is.EqualTo(2));
+            Assert.That(snapshot.EntityPositions[0].Position.Y, Is.EqualTo(3));
+            Assert.That(snapshot.EntityPositions[0].Position.Z, Is.EqualTo(1));
+
+            Assert.That(snapshot.EntityHitPoints[0].EntityId, Is.EqualTo(entity));
+            Assert.That(snapshot.EntityHitPoints[0].HitPoints, Is.EqualTo(42));
+        }
+
         [Test]
         public void Resolve_BasicAttackAction_WithHugeVerticalDelta_IsRejectedByLineOfSight()
         {
