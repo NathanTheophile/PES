@@ -1,6 +1,10 @@
 # Godot 4+ specific ignores
 .godot/
 .nomedia
+*.png
+*.png.import    
+*/sfx/
+sfx/
 
 # Godot-specific ignores
 .import/
