@@ -166,6 +166,36 @@ namespace PES.Tests.EditMode
         }
 
         [Test]
+        public void Resolve_BasicAttackAction_WhenHitRollFails_ReturnsMissedWithoutDamage()
+        {
+            // Arrange : attaquant/cible valides ; RNG forcée pour rater le jet de précision.
+            var state = new BattleState();
+            var attacker = new EntityId(40);
+            var target = new EntityId(41);
+            state.SetEntityPosition(attacker, new Position3(0, 0, 0));
+            state.SetEntityPosition(target, new Position3(1, 0, 0));
+            state.SetEntityHitPoints(target, 30);
+
+            // Premier tirage = 95 (miss), le second n'est pas consommé dans ce scénario.
+            var resolver = new ActionResolver(new SequenceRngService(95, 0));
+            var action = new BasicAttackAction(attacker, target);
+
+            // Act.
+            var result = resolver.Resolve(state, action);
+
+            // Assert : issue "missed", aucun dégât, mais pipeline/log actifs.
+            Assert.That(result.Success, Is.False);
+            Assert.That(result.Code, Is.EqualTo(ActionResolutionCode.Missed));
+            Assert.That(result.Description, Does.Contain("BasicAttackMissed"));
+            Assert.That(state.Tick, Is.EqualTo(1));
+            Assert.That(state.StructuredEventLog.Count, Is.EqualTo(1));
+            Assert.That(state.StructuredEventLog[0].Code, Is.EqualTo(ActionResolutionCode.Missed));
+
+            Assert.That(state.TryGetEntityHitPoints(target, out var remainingHp), Is.True);
+            Assert.That(remainingHp, Is.EqualTo(30));
+        }
+
+        [Test]
         public void Resolve_BasicAttackAction_WithHugeVerticalDelta_IsRejectedByLineOfSight()
         {
             // Arrange : cible en portée XY mais avec différence de hauteur trop importante.
@@ -190,5 +220,25 @@ namespace PES.Tests.EditMode
             Assert.That(remainingHp, Is.EqualTo(30));
         }
 
+
+        // Utilité : faux RNG de test pour forcer des séquences déterministes contrôlées.
+        private sealed class SequenceRngService : IRngService
+        {
+            private readonly int[] _values;
+            private int _index;
+
+            public SequenceRngService(params int[] values)
+            {
+                _values = values;
+                _index = 0;
+            }
+
+            public int NextInt(int minInclusive, int maxExclusive)
+            {
+                var value = _values[_index < _values.Length ? _index : _values.Length - 1];
+                _index++;
+                return value;
+            }
+        }
     }
 }
