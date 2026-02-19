@@ -1,0 +1,1987 @@
+[gd_scene load_steps=56 format=2]
+
+[ext_resource path="res://skills/DMGPopUp.tscn" type="PackedScene" id=1]
+[ext_resource path="res://skills/RemovalPopUp.tscn" type="PackedScene" id=2]
+[ext_resource path="res://areas/02 - Cap Morgan/Morgan/(Enemy) Captain Morgan.tscn" type="PackedScene" id=3]
+[ext_resource path="res://skills/HealPopUp.tscn" type="PackedScene" id=4]
+[ext_resource path="res://areas/PlayerCell.tscn" type="PackedScene" id=5]
+[ext_resource path="res://skills/skillCell.tscn" type="PackedScene" id=6]
+[ext_resource path="res://areas/EnemySpawn.tscn" type="PackedScene" id=7]
+[ext_resource path="res://areas/SelecAnim.tscn" type="PackedScene" id=8]
+[ext_resource path="res://Area.gd" type="Script" id=9]
+[ext_resource path="res://characters/002 - Zoro/(Player) Zoro.tscn" type="PackedScene" id=10]
+[ext_resource path="res://areas/01 - Alvida/smallgrasspatchw.png" type="Texture" id=11]
+[ext_resource path="res://areas/Tileset.tres" type="TileSet" id=12]
+[ext_resource path="res://characters/001 - Luffy/(Player) Luffy.tscn" type="PackedScene" id=13]
+[ext_resource path="res://areas/02 - Cap Morgan/dirt2.png" type="Texture" id=14]
+[ext_resource path="res://skills/Recursos Comuns/glow.png" type="Texture" id=15]
+[ext_resource path="res://areas/ReDirection.tscn" type="PackedScene" id=16]
+[ext_resource path="res://skills/SkillButton.tscn" type="PackedScene" id=17]
+[ext_resource path="res://areas/UI.tscn" type="PackedScene" id=18]
+[ext_resource path="res://areas/gradient2.png" type="Texture" id=19]
+[ext_resource path="res://areas/Shadow.tres" type="TileSet" id=20]
+[ext_resource path="res://areas/ui/gradient.png" type="Texture" id=21]
+[ext_resource path="res://areas/02 - Cap Morgan/marinebase.png" type="Texture" id=22]
+[ext_resource path="res://areas/02 - Cap Morgan/dirt1.png" type="Texture" id=23]
+[ext_resource path="res://areas/02 - Cap Morgan/dirt3.png" type="Texture" id=24]
+[ext_resource path="res://areas/02 - Cap Morgan/cross.png" type="Texture" id=25]
+[ext_resource path="res://areas/02 - Cap Morgan/stone.png" type="Texture" id=26]
+[ext_resource path="res://areas/01 - Alvida/grass.png" type="Texture" id=27]
+[ext_resource path="res://areas/01 - Alvida/barrel.png" type="Texture" id=28]
+[ext_resource path="res://areas/01 - Alvida/rock.png" type="Texture" id=29]
+[ext_resource path="res://areas/02 - Cap Morgan/wall.png" type="Texture" id=30]
+[ext_resource path="res://areas/02 - Cap Morgan/fence.png" type="Texture" id=31]
+[ext_resource path="res://areas/01 - Alvida/patch.png" type="Texture" id=32]
+[ext_resource path="res://areas/01 - Alvida/leaf.png" type="Texture" id=33]
+[ext_resource path="res://areas/01 - Alvida/trunk.png" type="Texture" id=34]
+[ext_resource path="res://areas/01 - Alvida/coco.png" type="Texture" id=35]
+[ext_resource path="res://areas/02 - Cap Morgan/Marines/(Enemy) Sword Marine.tscn" type="PackedScene" id=36]
+[ext_resource path="res://areas/01 - Alvida/godray.png" type="Texture" id=37]
+[ext_resource path="res://areas/02 - Cap Morgan/Marines/(Enemy) Musket Marine.tscn" type="PackedScene" id=38]
+[ext_resource path="res://Roboto-Bold.ttf" type="DynamicFontData" id=39]
+[ext_resource path="res://Roboto-Regular.ttf" type="DynamicFontData" id=40]
+
+[sub_resource type="GDScript" id=18]
+script/source = "extends Node
+
+export (Array, PackedScene) var enemies
+
+func _ready():
+	yield(get_parent(),\"ready\")
+	BattleMechanics.summonMonster(enemies[0], Vector2(8,0))
+"
+
+[sub_resource type="GDScript" id=30]
+script/source = "extends Node
+
+export(Array,String,MULTILINE) var text
+func _ready():
+	BattleMechanics.connect(\"battleStart\",self,\"setup\")
+func setup():
+	BattleMechanics.area.ui.crowns.setup(get_parent().trophies,text)
+	for i in BattleMechanics.area.entities.get_children():
+		if i.ent_name == \"Captain Morgan\":
+			i.connect(\"killed\",self,\"end\")
+		elif i.player:
+			i.connect(\"killed\",self,\"trophy3\")
+
+func end(_a):
+	if BattleMechanics.currentRound > 7:
+		trophy2()
+	for i in BattleMechanics.area.entities.get_children():
+		if not i.player and not i.ent_name == \"Captain Morgan\":
+			trophy1()
+			continue
+		if i.player and float(i.hp - i.hp_loss)/i.hp < 0.8:
+			trophy3()
+	
+
+func trophy1():
+	BattleMechanics.area.trophies[0] = false
+	BattleMechanics.area.ui.crowns.fail(0)
+
+func trophy2():
+	BattleMechanics.area.trophies[1] = false
+	BattleMechanics.area.ui.crowns.fail(1)
+
+func trophy3():
+	BattleMechanics.area.trophies[2] = false
+	BattleMechanics.area.ui.crowns.fail(2)
+"
+
+[sub_resource type="Animation" id=1]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/path = NodePath(".:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ Vector2( 0, 0 ) ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath(".:rotation_degrees")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ 0.0 ]
+}
+
+[sub_resource type="Animation" id=2]
+resource_name = "shake"
+tracks/0/type = "value"
+tracks/0/path = NodePath(".:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1 ),
+"transitions": PoolRealArray( 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ),
+"update": 0,
+"values": [ Vector2( 5, 0 ), Vector2( -5, 0 ), Vector2( 5, 0 ), Vector2( -3, 0 ), Vector2( 3, 0 ), Vector2( -2, 0 ), Vector2( 2, 0 ), Vector2( -1, 0 ), Vector2( 1, 0 ), Vector2( -1, 0 ), Vector2( 0, 0 ) ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath(".:rotation_degrees")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0, 0.5, 1 ),
+"transitions": PoolRealArray( 1, 1, 1 ),
+"update": 0,
+"values": [ 0.0, 0.0, 0.0 ]
+}
+
+[sub_resource type="Gradient" id=25]
+offsets = PoolRealArray( 0, 0.483871, 1 )
+colors = PoolColorArray( 1, 1, 1, 0, 1, 1, 1, 0.533333, 1, 1, 1, 0 )
+
+[sub_resource type="GradientTexture" id=26]
+gradient = SubResource( 25 )
+
+[sub_resource type="Curve" id=27]
+_data = [ Vector2( 0, 0.845455 ), 0.0, 0.11033, 0, 0, Vector2( 1, 1 ), 0.0, 0.0, 0, 0 ]
+
+[sub_resource type="CurveTexture" id=28]
+curve = SubResource( 27 )
+
+[sub_resource type="ParticlesMaterial" id=29]
+lifetime_randomness = 0.75
+emission_shape = 1
+emission_sphere_radius = 128.0
+flag_disable_z = true
+spread = 0.0
+gravity = Vector3( 0, 0, 0 )
+initial_velocity = 50.0
+initial_velocity_random = 1.0
+orbit_velocity = 0.0
+orbit_velocity_random = 0.0
+scale = 2.0
+scale_random = 1.0
+scale_curve = SubResource( 28 )
+color_ramp = SubResource( 26 )
+
+[sub_resource type="GDScript" id=31]
+script/source = "extends Node2D
+
+func _ready():
+	BattleMechanics.connect(\"battleStart\",self,\"tut\")
+	BattleMechanics.connect(\"endPlayersTurn\",self,\"out\")
+
+func tut():
+	$\"Tutorial\".visible = true
+func out():
+	$\"Tutorial\".visible = false
+"
+
+[sub_resource type="StyleBoxFlat" id=32]
+content_margin_left = 5.0
+content_margin_right = 5.0
+content_margin_top = 5.0
+content_margin_bottom = 5.0
+bg_color = Color( 0.14902, 0.14902, 0.14902, 0.843137 )
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="DynamicFont" id=33]
+size = 12
+outline_color = Color( 0.145098, 0.145098, 0.12549, 1 )
+font_data = ExtResource( 39 )
+
+[sub_resource type="GDScript" id=34]
+script/source = "extends Button
+
+
+
+func _on_PanelContainer_button_down():
+	get_parent().get_parent().get_parent().visible=false
+"
+
+[sub_resource type="DynamicFont" id=35]
+size = 10
+font_data = ExtResource( 39 )
+
+[sub_resource type="DynamicFont" id=36]
+size = 10
+font_data = ExtResource( 40 )
+
+[node name="Area" type="Node2D"]
+script = ExtResource( 9 )
+lvl = 2
+playerCell = ExtResource( 5 )
+enemySpawn = ExtResource( 7 )
+visualSelec = ExtResource( 8 )
+reDirect = ExtResource( 16 )
+skillBtn = ExtResource( 17 )
+skillCell = ExtResource( 6 )
+dmgBubble = ExtResource( 1 )
+remBubble = ExtResource( 2 )
+healBubble = ExtResource( 4 )
+enemies = [ ExtResource( 36 ), ExtResource( 38 ) ]
+players = [ ExtResource( 13 ), ExtResource( 10 ) ]
+enemyWeight = [ 1 ]
+pirateColor = Color( 0.803922, 0.282353, 0.415686, 1 )
+enemyAmount = 4
+
+[node name="Waves" type="Node" parent="."]
+script = SubResource( 18 )
+enemies = [ ExtResource( 3 ) ]
+
+[node name="Trophies" type="Node" parent="."]
+script = SubResource( 30 )
+text = [ "Morgan should be defeated only when he's the last enemy remaining", "Morgan should be defeated before round 8.", "Luffy and Zoro must both be above 80% HP when the fight ends." ]
+
+[node name="Panel" type="ColorRect" parent="."]
+margin_left = -3.0
+margin_top = -4.0
+margin_right = 1027.0
+margin_bottom = 605.0
+mouse_filter = 2
+color = Color( 0.901961, 0.776471, 0.47451, 1 )
+__meta__ = {
+"_edit_lock_": true,
+"_edit_use_anchors_": false
+}
+
+[node name="flair" type="Node2D" parent="."]
+
+[node name="Node2D" type="Node2D" parent="flair"]
+modulate = Color( 1, 1, 1, 0.572549 )
+
+[node name="Dirt1" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 248, 435 )
+texture = ExtResource( 23 )
+
+[node name="Dirt59" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 597, 608 )
+texture = ExtResource( 23 )
+
+[node name="Dirt60" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 652, 111 )
+texture = ExtResource( 23 )
+
+[node name="Dirt61" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 970, 140 )
+rotation = 0.440955
+texture = ExtResource( 23 )
+
+[node name="Dirt62" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 1040, 177 )
+rotation = 0.440955
+texture = ExtResource( 23 )
+flip_h = true
+
+[node name="Dirt63" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 797, 42 )
+rotation = 0.440955
+texture = ExtResource( 23 )
+flip_h = true
+
+[node name="Dirt54" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 263, 576 )
+texture = ExtResource( 23 )
+
+[node name="Dirt55" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 69, 481 )
+texture = ExtResource( 23 )
+
+[node name="Dirt43" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 39, 544 )
+texture = ExtResource( 23 )
+
+[node name="Dirt6" type="Sprite" parent="flair/Node2D"]
+modulate = Color( 1, 1, 1, 0.533333 )
+position = Vector2( 635, 13 )
+texture = ExtResource( 23 )
+
+[node name="Dirt42" type="Sprite" parent="flair/Node2D"]
+modulate = Color( 1, 1, 1, 0.533333 )
+position = Vector2( 23, 56 )
+texture = ExtResource( 23 )
+
+[node name="Dirt8" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 1013, 84 )
+texture = ExtResource( 23 )
+flip_h = true
+
+[node name="Dirt9" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 886, 4 )
+texture = ExtResource( 23 )
+flip_h = true
+
+[node name="Dirt7" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 69, 245 )
+texture = ExtResource( 23 )
+
+[node name="Dirt2" type="Sprite" parent="flair/Node2D"]
+modulate = Color( 1, 1, 1, 0.639216 )
+position = Vector2( 503, 304 )
+texture = ExtResource( 23 )
+
+[node name="Dirt51" type="Sprite" parent="flair/Node2D"]
+modulate = Color( 1, 1, 1, 0.639216 )
+position = Vector2( 91, 345 )
+texture = ExtResource( 23 )
+
+[node name="Dirt52" type="Sprite" parent="flair/Node2D"]
+modulate = Color( 1, 1, 1, 0.639216 )
+position = Vector2( 1, 388 )
+texture = ExtResource( 23 )
+
+[node name="Dirt44" type="Sprite" parent="flair/Node2D"]
+modulate = Color( 1, 1, 1, 0.639216 )
+position = Vector2( 961, 527 )
+texture = ExtResource( 23 )
+
+[node name="Dirt3" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 695, 256 )
+texture = ExtResource( 23 )
+flip_h = true
+
+[node name="Dirt4" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 882, 489 )
+texture = ExtResource( 23 )
+flip_h = true
+
+[node name="Dirt5" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 745, 594 )
+texture = ExtResource( 23 )
+flip_h = true
+
+[node name="Dirt10" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 417, 401 )
+texture = ExtResource( 14 )
+
+[node name="Dirt11" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 519, 273 )
+texture = ExtResource( 14 )
+
+[node name="Dirt12" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 671, 288 )
+texture = ExtResource( 14 )
+
+[node name="Dirt13" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 740, 237 )
+texture = ExtResource( 14 )
+
+[node name="Dirt45" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 560, 31.5 )
+texture = ExtResource( 23 )
+flip_h = true
+
+[node name="Dirt46" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 536, 63.5 )
+texture = ExtResource( 14 )
+
+[node name="Dirt47" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 605, 12.5 )
+texture = ExtResource( 14 )
+
+[node name="Dirt48" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 386, 33.5 )
+texture = ExtResource( 23 )
+flip_h = true
+
+[node name="Dirt49" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 362, 65.5 )
+texture = ExtResource( 14 )
+
+[node name="Dirt50" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 431, 14.5 )
+texture = ExtResource( 14 )
+
+[node name="Dirt14" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 835, 257 )
+texture = ExtResource( 14 )
+
+[node name="Dirt15" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 1022, 289 )
+texture = ExtResource( 14 )
+
+[node name="Dirt16" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 1018, 145 )
+texture = ExtResource( 14 )
+flip_h = true
+
+[node name="Dirt17" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 732, 97 )
+texture = ExtResource( 14 )
+flip_h = true
+
+[node name="Dirt18" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 411, 154 )
+texture = ExtResource( 14 )
+flip_h = true
+
+[node name="Dirt19" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 156, 138 )
+texture = ExtResource( 14 )
+flip_h = true
+
+[node name="Dirt20" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 268, 297 )
+texture = ExtResource( 14 )
+flip_h = true
+
+[node name="Dirt53" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 113, 159 )
+texture = ExtResource( 14 )
+flip_h = true
+
+[node name="Dirt21" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 877, 364 )
+texture = ExtResource( 14 )
+flip_h = true
+
+[node name="Dirt22" type="Sprite" parent="flair/Node2D"]
+modulate = Color( 1, 1, 1, 0.580392 )
+position = Vector2( 792, 140 )
+texture = ExtResource( 14 )
+flip_h = true
+flip_v = true
+
+[node name="Dirt23" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 345, 465 )
+texture = ExtResource( 14 )
+flip_h = true
+flip_v = true
+
+[node name="Dirt56" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 129, 500 )
+texture = ExtResource( 14 )
+flip_h = true
+flip_v = true
+
+[node name="Dirt57" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 235, 560 )
+texture = ExtResource( 14 )
+flip_h = true
+flip_v = true
+
+[node name="Dirt58" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 316, 593 )
+texture = ExtResource( 14 )
+flip_h = true
+flip_v = true
+
+[node name="Dirt24" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 193, 568 )
+texture = ExtResource( 14 )
+flip_h = true
+flip_v = true
+
+[node name="Dirt25" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 525, 515 )
+texture = ExtResource( 14 )
+flip_h = true
+flip_v = true
+
+[node name="Dirt26" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 817, 502 )
+texture = ExtResource( 14 )
+flip_h = true
+flip_v = true
+
+[node name="Dirt27" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 922, 470 )
+texture = ExtResource( 14 )
+flip_v = true
+
+[node name="Dirt28" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 1022, 489 )
+texture = ExtResource( 14 )
+flip_v = true
+
+[node name="Dirt29" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 817, 599 )
+texture = ExtResource( 14 )
+flip_v = true
+
+[node name="Dirt30" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 962, 265 )
+texture = ExtResource( 14 )
+flip_v = true
+
+[node name="Dirt31" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 1019, 206 )
+texture = ExtResource( 14 )
+flip_v = true
+
+[node name="Dirt32" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 588, 504 )
+texture = ExtResource( 24 )
+
+[node name="Dirt33" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 875, 348 )
+texture = ExtResource( 24 )
+
+[node name="Dirt34" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 959, 395 )
+texture = ExtResource( 24 )
+
+[node name="Dirt35" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 606, 314 )
+texture = ExtResource( 24 )
+
+[node name="Dirt36" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 803, 125 )
+texture = ExtResource( 24 )
+
+[node name="Dirt37" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 488, 132 )
+texture = ExtResource( 24 )
+
+[node name="Dirt38" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 987, 133 )
+texture = ExtResource( 24 )
+
+[node name="Dirt39" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 983, 319 )
+texture = ExtResource( 24 )
+
+[node name="Dirt40" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 488, 323 )
+texture = ExtResource( 24 )
+
+[node name="Dirt41" type="Sprite" parent="flair/Node2D"]
+position = Vector2( 228, 254 )
+texture = ExtResource( 24 )
+
+[node name="grass" type="Node2D" parent="flair"]
+modulate = Color( 0.670588, 0.654902, 0.384314, 1 )
+position = Vector2( 2, 2 )
+
+[node name="Smallgrasspatchw84" type="Sprite" parent="flair/grass"]
+position = Vector2( 488, 500 )
+rotation = -0.194813
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw85" type="Sprite" parent="flair/grass"]
+position = Vector2( 512, 488 )
+rotation = -0.416347
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw104" type="Sprite" parent="flair/grass"]
+position = Vector2( 245, 276 )
+rotation = -0.416347
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw105" type="Sprite" parent="flair/grass"]
+position = Vector2( 222, 291 )
+rotation = -0.416347
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw106" type="Sprite" parent="flair/grass"]
+position = Vector2( 209, 132 )
+rotation = -0.416347
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw107" type="Sprite" parent="flair/grass"]
+position = Vector2( 230, 116 )
+rotation = -0.416347
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw108" type="Sprite" parent="flair/grass"]
+position = Vector2( 233, 129 )
+rotation = 0.0663492
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw109" type="Sprite" parent="flair/grass"]
+position = Vector2( 188, 133 )
+rotation = 0.0663492
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw110" type="Sprite" parent="flair/grass"]
+position = Vector2( 457, 137 )
+rotation = 0.0663492
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw111" type="Sprite" parent="flair/grass"]
+position = Vector2( 441, 152 )
+rotation = 1.12054
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw112" type="Sprite" parent="flair/grass"]
+position = Vector2( 475, 153 )
+rotation = 1.01202
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw97" type="Sprite" parent="flair/grass"]
+position = Vector2( 144, 600 )
+rotation = -0.416347
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw98" type="Sprite" parent="flair/grass"]
+position = Vector2( 141, 582 )
+rotation = -0.416347
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw99" type="Sprite" parent="flair/grass"]
+position = Vector2( 168, 590 )
+rotation = -0.416347
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw100" type="Sprite" parent="flair/grass"]
+position = Vector2( 126, 595 )
+rotation = -0.416347
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw101" type="Sprite" parent="flair/grass"]
+position = Vector2( 17, 434 )
+rotation = -0.416347
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw102" type="Sprite" parent="flair/grass"]
+position = Vector2( 17, 434 )
+rotation = -0.416347
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw86" type="Sprite" parent="flair/grass"]
+position = Vector2( 491, 489 )
+rotation = -1.047
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw103" type="Sprite" parent="flair/grass"]
+position = Vector2( 218, 280 )
+rotation = -1.047
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw87" type="Sprite" parent="flair/grass"]
+position = Vector2( 843, 217 )
+rotation = -0.228019
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw116" type="Sprite" parent="flair/grass"]
+position = Vector2( 545, 318 )
+rotation = -0.228019
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw117" type="Sprite" parent="flair/grass"]
+position = Vector2( 571, 307 )
+rotation = -0.228019
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw118" type="Sprite" parent="flair/grass"]
+position = Vector2( 411, 231 )
+rotation = -0.228019
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw88" type="Sprite" parent="flair/grass"]
+position = Vector2( 845, 235 )
+rotation = -0.228019
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw96" type="Sprite" parent="flair/grass"]
+position = Vector2( 1016, 315 )
+rotation = -0.228019
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw89" type="Sprite" parent="flair/grass"]
+position = Vector2( 820, 224 )
+rotation = -0.228019
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw90" type="Sprite" parent="flair/grass"]
+position = Vector2( 473, 163 )
+rotation = -0.228019
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw91" type="Sprite" parent="flair/grass"]
+position = Vector2( 460, 168 )
+rotation = -0.228019
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw92" type="Sprite" parent="flair/grass"]
+position = Vector2( 760, 118 )
+rotation = -0.228019
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw93" type="Sprite" parent="flair/grass"]
+position = Vector2( 777, 113 )
+rotation = -0.228019
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw113" type="Sprite" parent="flair/grass"]
+position = Vector2( 728, 2 )
+rotation = -0.228019
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw114" type="Sprite" parent="flair/grass"]
+position = Vector2( 745, 16 )
+rotation = -0.228019
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw115" type="Sprite" parent="flair/grass"]
+position = Vector2( 745, 2.99999 )
+rotation = -0.228019
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw94" type="Sprite" parent="flair/grass"]
+position = Vector2( 1024, 113 )
+rotation = -0.228019
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw95" type="Sprite" parent="flair/grass"]
+position = Vector2( 1006, 116 )
+rotation = -0.228019
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw119" type="Sprite" parent="flair/grass"]
+position = Vector2( 94.9998, 284 )
+rotation = -0.228019
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw120" type="Sprite" parent="flair/grass"]
+position = Vector2( 114, 272 )
+rotation = -0.228019
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw121" type="Sprite" parent="flair/grass"]
+position = Vector2( 113, 288 )
+rotation = -0.228019
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw122" type="Sprite" parent="flair/grass"]
+position = Vector2( 12, 325 )
+rotation = -0.228019
+scale = Vector2( 2.69824, 2.69824 )
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw123" type="Sprite" parent="flair/grass"]
+position = Vector2( 65, 295 )
+rotation = -0.228019
+scale = Vector2( 2.69824, 2.69824 )
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw124" type="Sprite" parent="flair/grass"]
+position = Vector2( 1053, 454 )
+rotation = -0.228019
+scale = Vector2( 2.69824, 2.69824 )
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw125" type="Sprite" parent="flair/grass"]
+position = Vector2( 1018, 463 )
+rotation = -0.228019
+scale = Vector2( 2.69824, 2.69824 )
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="grass2" type="Node2D" parent="flair"]
+modulate = Color( 0.643137, 0.803922, 0.411765, 1 )
+
+[node name="Smallgrasspatchw84" type="Sprite" parent="flair/grass2"]
+position = Vector2( 488, 500 )
+rotation = -0.194813
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw85" type="Sprite" parent="flair/grass2"]
+position = Vector2( 512, 488 )
+rotation = -0.416347
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw104" type="Sprite" parent="flair/grass2"]
+position = Vector2( 245, 276 )
+rotation = -0.416347
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw105" type="Sprite" parent="flair/grass2"]
+position = Vector2( 222, 291 )
+rotation = -0.416347
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw106" type="Sprite" parent="flair/grass2"]
+position = Vector2( 209, 132 )
+rotation = -0.416347
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw107" type="Sprite" parent="flair/grass2"]
+position = Vector2( 230, 116 )
+rotation = -0.416347
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw108" type="Sprite" parent="flair/grass2"]
+position = Vector2( 233, 129 )
+rotation = 0.0663492
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw109" type="Sprite" parent="flair/grass2"]
+position = Vector2( 188, 133 )
+rotation = 0.0663492
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw110" type="Sprite" parent="flair/grass2"]
+position = Vector2( 457, 137 )
+rotation = 0.0663492
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw111" type="Sprite" parent="flair/grass2"]
+position = Vector2( 441, 152 )
+rotation = 1.12054
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw112" type="Sprite" parent="flair/grass2"]
+position = Vector2( 475, 153 )
+rotation = 1.01202
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw97" type="Sprite" parent="flair/grass2"]
+position = Vector2( 144, 600 )
+rotation = -0.416347
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw98" type="Sprite" parent="flair/grass2"]
+position = Vector2( 141, 582 )
+rotation = -0.416347
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw99" type="Sprite" parent="flair/grass2"]
+position = Vector2( 168, 590 )
+rotation = -0.416347
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw100" type="Sprite" parent="flair/grass2"]
+position = Vector2( 126, 595 )
+rotation = -0.416347
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw101" type="Sprite" parent="flair/grass2"]
+position = Vector2( 17, 434 )
+rotation = -0.416347
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw102" type="Sprite" parent="flair/grass2"]
+position = Vector2( 17, 434 )
+rotation = -0.416347
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw86" type="Sprite" parent="flair/grass2"]
+position = Vector2( 491, 489 )
+rotation = -1.047
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw103" type="Sprite" parent="flair/grass2"]
+position = Vector2( 218, 280 )
+rotation = -1.047
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw87" type="Sprite" parent="flair/grass2"]
+position = Vector2( 843, 217 )
+rotation = -0.228019
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw116" type="Sprite" parent="flair/grass2"]
+position = Vector2( 545, 318 )
+rotation = -0.228019
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw117" type="Sprite" parent="flair/grass2"]
+position = Vector2( 571, 307 )
+rotation = -0.228019
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw118" type="Sprite" parent="flair/grass2"]
+position = Vector2( 411, 231 )
+rotation = -0.228019
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw88" type="Sprite" parent="flair/grass2"]
+position = Vector2( 845, 235 )
+rotation = -0.228019
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw96" type="Sprite" parent="flair/grass2"]
+position = Vector2( 1016, 315 )
+rotation = -0.228019
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw89" type="Sprite" parent="flair/grass2"]
+position = Vector2( 820, 224 )
+rotation = -0.228019
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw90" type="Sprite" parent="flair/grass2"]
+position = Vector2( 473, 163 )
+rotation = -0.228019
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw91" type="Sprite" parent="flair/grass2"]
+position = Vector2( 460, 168 )
+rotation = -0.228019
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw92" type="Sprite" parent="flair/grass2"]
+position = Vector2( 760, 118 )
+rotation = -0.228019
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw93" type="Sprite" parent="flair/grass2"]
+position = Vector2( 777, 113 )
+rotation = -0.228019
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw113" type="Sprite" parent="flair/grass2"]
+position = Vector2( 728, 2 )
+rotation = -0.228019
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw114" type="Sprite" parent="flair/grass2"]
+position = Vector2( 745, 16 )
+rotation = -0.228019
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw115" type="Sprite" parent="flair/grass2"]
+position = Vector2( 745, 2.99999 )
+rotation = -0.228019
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw94" type="Sprite" parent="flair/grass2"]
+position = Vector2( 1024, 113 )
+rotation = -0.228019
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw95" type="Sprite" parent="flair/grass2"]
+position = Vector2( 1006, 116 )
+rotation = -0.228019
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Node2D" type="Node2D" parent="flair/grass2"]
+
+[node name="Smallgrasspatchw119" type="Sprite" parent="flair/grass2/Node2D"]
+position = Vector2( 94.9998, 284 )
+rotation = -0.228019
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw120" type="Sprite" parent="flair/grass2/Node2D"]
+position = Vector2( 114, 272 )
+rotation = -0.228019
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw121" type="Sprite" parent="flair/grass2/Node2D"]
+position = Vector2( 113, 288 )
+rotation = -0.228019
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw122" type="Sprite" parent="flair/grass2/Node2D"]
+position = Vector2( 12, 325 )
+rotation = -0.228019
+scale = Vector2( 2.69824, 2.69824 )
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw123" type="Sprite" parent="flair/grass2/Node2D"]
+position = Vector2( 65, 295 )
+rotation = -0.228019
+scale = Vector2( 2.69824, 2.69824 )
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw124" type="Sprite" parent="flair/grass2/Node2D"]
+position = Vector2( 1053, 454 )
+rotation = -0.228019
+scale = Vector2( 2.69824, 2.69824 )
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Smallgrasspatchw125" type="Sprite" parent="flair/grass2/Node2D"]
+position = Vector2( 1018, 463 )
+rotation = -0.228019
+scale = Vector2( 2.69824, 2.69824 )
+texture = ExtResource( 11 )
+flip_h = true
+
+[node name="Node2D2" type="Node2D" parent="flair"]
+modulate = Color( 1, 1, 1, 0.682353 )
+
+[node name="Glow2" type="Sprite" parent="flair/Node2D2"]
+modulate = Color( 0.0784314, 0.0745098, 0.0745098, 0.498039 )
+show_behind_parent = true
+position = Vector2( 109, 127 )
+rotation = -0.136348
+scale = Vector2( 13.3343, 4.99066 )
+texture = ExtResource( 15 )
+
+[node name="Glow3" type="Sprite" parent="flair/Node2D2"]
+modulate = Color( 0.0784314, 0.0745098, 0.0745098, 0.498039 )
+show_behind_parent = true
+position = Vector2( 352, 35 )
+rotation = -0.136348
+scale = Vector2( 13.3343, 4.99066 )
+texture = ExtResource( 15 )
+
+[node name="Glow4" type="Sprite" parent="flair/Node2D2"]
+modulate = Color( 0.0784314, 0.0745098, 0.0745098, 0.498039 )
+show_behind_parent = true
+position = Vector2( 993, 598 )
+rotation = -0.136348
+scale = Vector2( 4.66521, 2.71517 )
+texture = ExtResource( 15 )
+
+[node name="Glow5" type="Sprite" parent="flair/Node2D2"]
+modulate = Color( 0.0784314, 0.0745098, 0.0745098, 0.498039 )
+show_behind_parent = true
+position = Vector2( 958, 550 )
+rotation = -0.136348
+scale = Vector2( 4.66521, 2.71517 )
+texture = ExtResource( 15 )
+
+[node name="Glow9" type="Sprite" parent="flair/Node2D2"]
+modulate = Color( 0.0784314, 0.0745098, 0.0745098, 0.498039 )
+show_behind_parent = true
+position = Vector2( 900, 52 )
+rotation = 0.443026
+scale = Vector2( 10.4814, 3.36896 )
+texture = ExtResource( 15 )
+
+[node name="Glow11" type="Sprite" parent="flair/Node2D2"]
+modulate = Color( 0.0784314, 0.0745098, 0.0745098, 0.498039 )
+show_behind_parent = true
+position = Vector2( 161, 617 )
+rotation = 0.443026
+scale = Vector2( 10.4814, 3.36896 )
+texture = ExtResource( 15 )
+
+[node name="Glow6" type="Sprite" parent="flair/Node2D2"]
+modulate = Color( 0.0784314, 0.0745098, 0.0745098, 0.498039 )
+show_behind_parent = true
+position = Vector2( 1042, 401 )
+rotation = -0.136348
+scale = Vector2( 4.66521, 2.71517 )
+texture = ExtResource( 15 )
+
+[node name="Glow7" type="Sprite" parent="flair/Node2D2"]
+modulate = Color( 0.0784314, 0.0745098, 0.0745098, 0.498039 )
+show_behind_parent = true
+position = Vector2( 892, 133 )
+rotation = -0.136348
+scale = Vector2( 4.66521, 2.71517 )
+texture = ExtResource( 15 )
+
+[node name="Glow8" type="Sprite" parent="flair/Node2D2"]
+modulate = Color( 0.0784314, 0.0745098, 0.0745098, 0.498039 )
+show_behind_parent = true
+position = Vector2( 930, 48 )
+rotation = -0.136348
+scale = Vector2( 3.15985, 1.74491 )
+texture = ExtResource( 15 )
+
+[node name="Glow10" type="Sprite" parent="flair/Node2D2"]
+modulate = Color( 0.0784314, 0.0745098, 0.0745098, 0.498039 )
+show_behind_parent = true
+position = Vector2( 25.0001, 544 )
+rotation = -0.0479476
+scale = Vector2( 4.51247, 2.51373 )
+texture = ExtResource( 15 )
+
+[node name="Glow2" type="Sprite" parent="flair"]
+modulate = Color( 0.741176, 0.537255, 0.321569, 0.552941 )
+position = Vector2( 548.002, 312.725 )
+rotation = -0.136348
+scale = Vector2( 15.9664, 10.6255 )
+texture = ExtResource( 15 )
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="Stone" type="Sprite" parent="flair"]
+position = Vector2( 221, 479 )
+texture = ExtResource( 26 )
+offset = Vector2( 1, -6 )
+
+[node name="Stone11" type="Sprite" parent="flair"]
+position = Vector2( 383, 593 )
+texture = ExtResource( 26 )
+offset = Vector2( 1, -6 )
+
+[node name="Grass9" type="Sprite" parent="flair"]
+modulate = Color( 0.643137, 0.803922, 0.411765, 1 )
+position = Vector2( 1019, 117 )
+texture = ExtResource( 27 )
+offset = Vector2( 0, -5 )
+flip_h = true
+
+[node name="Grass12" type="Sprite" parent="flair"]
+modulate = Color( 0.643137, 0.803922, 0.411765, 1 )
+position = Vector2( 909, 40 )
+texture = ExtResource( 27 )
+offset = Vector2( 0, -5 )
+flip_h = true
+
+[node name="Stone9" type="Sprite" parent="flair"]
+position = Vector2( 942, 45 )
+texture = ExtResource( 26 )
+offset = Vector2( 1, -6 )
+flip_h = true
+
+[node name="Stone5" type="Sprite" parent="flair"]
+position = Vector2( 806, 7 )
+texture = ExtResource( 26 )
+offset = Vector2( 1, -6 )
+
+[node name="Stone10" type="Sprite" parent="flair"]
+position = Vector2( 1027, 46 )
+texture = ExtResource( 26 )
+offset = Vector2( 1, -6 )
+flip_h = true
+
+[node name="YSort2" type="YSort" parent="flair"]
+position = Vector2( 806, 7 )
+
+[node name="Trunk10" type="Sprite" parent="flair/YSort2"]
+position = Vector2( 234, 120 )
+texture = ExtResource( 34 )
+offset = Vector2( 0, -40 )
+
+[node name="Leaf" type="Sprite" parent="flair/YSort2/Trunk10"]
+position = Vector2( 0, -34 )
+scale = Vector2( 1.13441, 1.13441 )
+texture = ExtResource( 33 )
+offset = Vector2( -3, -39 )
+
+[node name="Trunk11" type="Sprite" parent="flair/YSort2"]
+position = Vector2( 73, 36 )
+texture = ExtResource( 34 )
+offset = Vector2( 0, -40 )
+
+[node name="Leaf" type="Sprite" parent="flair/YSort2/Trunk11"]
+position = Vector2( 0, -34 )
+scale = Vector2( 1.13441, 1.13441 )
+texture = ExtResource( 33 )
+offset = Vector2( -3, -39 )
+
+[node name="Trunk12" type="Sprite" parent="flair/YSort2"]
+position = Vector2( 165, 89 )
+texture = ExtResource( 34 )
+offset = Vector2( 0, -40 )
+
+[node name="Leaf" type="Sprite" parent="flair/YSort2/Trunk12"]
+position = Vector2( 0, -34 )
+scale = Vector2( 1.13441, 1.13441 )
+texture = ExtResource( 33 )
+offset = Vector2( -3, -39 )
+
+[node name="Trunk13" type="Sprite" parent="flair/YSort2"]
+position = Vector2( 223, 46 )
+texture = ExtResource( 34 )
+offset = Vector2( 0, -40 )
+
+[node name="Leaf" type="Sprite" parent="flair/YSort2/Trunk13"]
+position = Vector2( 0, -34 )
+scale = Vector2( 1.13441, 1.13441 )
+texture = ExtResource( 33 )
+offset = Vector2( -3, -39 )
+
+[node name="Trunk14" type="Sprite" parent="flair/YSort2"]
+position = Vector2( -35, -4 )
+texture = ExtResource( 34 )
+offset = Vector2( 0, -40 )
+
+[node name="Leaf" type="Sprite" parent="flair/YSort2/Trunk14"]
+position = Vector2( 0, -34 )
+scale = Vector2( 1.13441, 1.13441 )
+texture = ExtResource( 33 )
+offset = Vector2( -3, -39 )
+
+[node name="Barrel9" type="Sprite" parent="flair/YSort2"]
+position = Vector2( 192, 116 )
+rotation = 0.0324683
+texture = ExtResource( 28 )
+offset = Vector2( 1.83606, -23.4649 )
+
+[node name="Barrel10" type="Sprite" parent="flair/YSort2"]
+position = Vector2( 225, 143 )
+rotation = 0.0324683
+texture = ExtResource( 28 )
+offset = Vector2( 1.83606, -23.4649 )
+
+[node name="Barrel11" type="Sprite" parent="flair/YSort2"]
+position = Vector2( 7, 21 )
+rotation = 0.0324683
+texture = ExtResource( 28 )
+offset = Vector2( 1.83606, -23.4649 )
+
+[node name="Node2D3" type="Node2D" parent="flair"]
+modulate = Color( 1, 1, 1, 0.772549 )
+rotation = -0.125064
+scale = Vector2( 0.5, 1 )
+
+[node name="Fence" type="Sprite" parent="flair/Node2D3"]
+position = Vector2( 46.1839, 413.543 )
+rotation = 0.354653
+scale = Vector2( 1, 0.784684 )
+texture = ExtResource( 31 )
+
+[node name="Fence2" type="Sprite" parent="flair/Node2D3"]
+position = Vector2( 328.257, 517.113 )
+rotation = 0.354653
+scale = Vector2( 1, 0.770607 )
+texture = ExtResource( 31 )
+
+[node name="Fence3" type="Sprite" parent="flair/Node2D3"]
+position = Vector2( 611.882, 622.03 )
+rotation = 0.354653
+scale = Vector2( 1, 0.767021 )
+texture = ExtResource( 31 )
+
+[node name="Fence4" type="Sprite" parent="flair/Node2D3"]
+position = Vector2( 893.327, 728.354 )
+rotation = 0.354653
+scale = Vector2( 1, 0.767021 )
+texture = ExtResource( 31 )
+
+[node name="Node2D4" type="Node2D" parent="flair"]
+modulate = Color( 1, 1, 1, 0.772549 )
+position = Vector2( 624, -472 )
+rotation = -0.125064
+scale = Vector2( 0.5, 1 )
+
+[node name="Fence" type="Sprite" parent="flair/Node2D4"]
+position = Vector2( 46.1839, 413.543 )
+rotation = 0.354653
+scale = Vector2( 1, 0.784684 )
+texture = ExtResource( 31 )
+
+[node name="Fence2" type="Sprite" parent="flair/Node2D4"]
+position = Vector2( 328.257, 517.113 )
+rotation = 0.354653
+scale = Vector2( 1, 0.770607 )
+texture = ExtResource( 31 )
+
+[node name="Fence3" type="Sprite" parent="flair/Node2D4"]
+position = Vector2( 611.882, 622.03 )
+rotation = 0.354653
+scale = Vector2( 1, 0.767021 )
+texture = ExtResource( 31 )
+
+[node name="Fence4" type="Sprite" parent="flair/Node2D4"]
+position = Vector2( 893.327, 728.354 )
+rotation = 0.354653
+scale = Vector2( 1, 0.767021 )
+texture = ExtResource( 31 )
+
+[node name="YSort" type="YSort" parent="flair"]
+
+[node name="Cross" type="Sprite" parent="flair/YSort"]
+position = Vector2( 828, 168 )
+texture = ExtResource( 25 )
+offset = Vector2( -1, -69 )
+
+[node name="Glow" type="Sprite" parent="flair/YSort/Cross"]
+modulate = Color( 0.0784314, 0.0745098, 0.0745098, 0.498039 )
+show_behind_parent = true
+position = Vector2( -1, -47 )
+rotation = 0.516761
+scale = Vector2( 3.43866, 2.87487 )
+texture = ExtResource( 15 )
+
+[node name="YSort" type="YSort" parent="flair/YSort"]
+modulate = Color( 0.643137, 0.803922, 0.411765, 1 )
+
+[node name="Grass" type="Sprite" parent="flair/YSort/YSort"]
+position = Vector2( 231, 276 )
+texture = ExtResource( 27 )
+offset = Vector2( -1, -6 )
+
+[node name="Grass2" type="Sprite" parent="flair/YSort/YSort"]
+position = Vector2( 477, 167 )
+texture = ExtResource( 27 )
+offset = Vector2( 0, -5 )
+flip_h = true
+
+[node name="Grass10" type="Sprite" parent="flair/YSort/YSort"]
+position = Vector2( 837, 223 )
+texture = ExtResource( 27 )
+offset = Vector2( 0, -5 )
+flip_h = true
+
+[node name="Grass11" type="Sprite" parent="flair/YSort/YSort"]
+position = Vector2( 749, 20 )
+texture = ExtResource( 27 )
+offset = Vector2( 0, -5 )
+flip_h = true
+
+[node name="Grass3" type="Sprite" parent="flair/YSort/YSort"]
+position = Vector2( 782, 117 )
+texture = ExtResource( 27 )
+offset = Vector2( 0, -5 )
+flip_h = true
+
+[node name="Grass4" type="Sprite" parent="flair/YSort/YSort"]
+position = Vector2( 1024, 207 )
+texture = ExtResource( 27 )
+offset = Vector2( 0, -5 )
+flip_h = true
+
+[node name="Grass5" type="Sprite" parent="flair/YSort/YSort"]
+position = Vector2( 263, 102 )
+texture = ExtResource( 27 )
+offset = Vector2( 0, -5 )
+flip_h = true
+
+[node name="Grass8" type="Sprite" parent="flair/YSort/YSort"]
+position = Vector2( 61, 143 )
+texture = ExtResource( 27 )
+offset = Vector2( 0, -5 )
+flip_h = true
+
+[node name="Grass6" type="Sprite" parent="flair/YSort/YSort"]
+position = Vector2( 315, 439 )
+texture = ExtResource( 27 )
+offset = Vector2( 0, -5 )
+
+[node name="Grass7" type="Sprite" parent="flair/YSort/YSort"]
+position = Vector2( 160, 596 )
+texture = ExtResource( 27 )
+offset = Vector2( 0, -5 )
+
+[node name="Grass13" type="Sprite" parent="flair/YSort/YSort"]
+position = Vector2( 4, 485 )
+texture = ExtResource( 27 )
+offset = Vector2( 0, -5 )
+
+[node name="Marinebase" type="Sprite" parent="flair/YSort"]
+position = Vector2( 69, 87 )
+rotation = 0.0324683
+texture = ExtResource( 22 )
+offset = Vector2( 82, -51 )
+
+[node name="Stone4" type="Sprite" parent="flair/YSort/Marinebase"]
+position = Vector2( 219.079, -1.11247 )
+rotation = -0.0324683
+texture = ExtResource( 26 )
+offset = Vector2( 1, -6 )
+
+[node name="Stone6" type="Sprite" parent="flair/YSort/Marinebase"]
+position = Vector2( 311.53, -81.1559 )
+rotation = -0.607181
+texture = ExtResource( 26 )
+offset = Vector2( 1, -6 )
+
+[node name="Stone5" type="Sprite" parent="flair/YSort/Marinebase"]
+position = Vector2( 32.6393, 49.9668 )
+rotation = -0.0324683
+texture = ExtResource( 26 )
+offset = Vector2( 1, -6 )
+flip_h = true
+
+[node name="Barrel" type="Sprite" parent="flair/YSort/Marinebase"]
+position = Vector2( 127.265, 36.8881 )
+texture = ExtResource( 28 )
+offset = Vector2( 1.83606, -23.4649 )
+
+[node name="Barrel2" type="Sprite" parent="flair/YSort/Marinebase"]
+position = Vector2( 90.6412, 49.0834 )
+texture = ExtResource( 28 )
+offset = Vector2( 1.83606, -23.4649 )
+
+[node name="Barrel3" type="Sprite" parent="flair/YSort/Marinebase"]
+position = Vector2( 105.977, -2.44157 )
+texture = ExtResource( 28 )
+offset = Vector2( 1.83606, -23.4649 )
+
+[node name="Barrel4" type="Sprite" parent="flair/YSort"]
+position = Vector2( 807, 143 )
+rotation = 0.0324683
+texture = ExtResource( 28 )
+offset = Vector2( 1.83606, -23.4649 )
+
+[node name="Barrel5" type="Sprite" parent="flair/YSort"]
+position = Vector2( 834, 118 )
+rotation = 0.0324683
+texture = ExtResource( 28 )
+offset = Vector2( 1.83606, -23.4649 )
+
+[node name="Barrel6" type="Sprite" parent="flair/YSort"]
+position = Vector2( 857, 96 )
+rotation = 0.0324683
+texture = ExtResource( 28 )
+offset = Vector2( 1.83606, -23.4649 )
+
+[node name="Barrel7" type="Sprite" parent="flair/YSort"]
+position = Vector2( 877, 127 )
+rotation = 0.0324683
+texture = ExtResource( 28 )
+offset = Vector2( 1.83606, -23.4649 )
+
+[node name="Barrel9" type="Sprite" parent="flair/YSort"]
+position = Vector2( 1029, 355 )
+rotation = 0.0324683
+texture = ExtResource( 28 )
+offset = Vector2( 1.83606, -23.4649 )
+
+[node name="Barrel16" type="Sprite" parent="flair/YSort"]
+position = Vector2( 43, 506 )
+rotation = 0.0324683
+texture = ExtResource( 28 )
+offset = Vector2( 1.83606, -23.4649 )
+
+[node name="Barrel17" type="Sprite" parent="flair/YSort"]
+position = Vector2( 935, 534 )
+rotation = 0.0324683
+texture = ExtResource( 28 )
+offset = Vector2( 1.83606, -23.4649 )
+
+[node name="Barrel18" type="Sprite" parent="flair/YSort"]
+position = Vector2( 961, 558 )
+rotation = 0.0324683
+texture = ExtResource( 28 )
+offset = Vector2( 1.83606, -23.4649 )
+
+[node name="Rock" type="Sprite" parent="flair/YSort"]
+position = Vector2( 2.38419e-06, 614 )
+rotation = 0.0324683
+texture = ExtResource( 29 )
+offset = Vector2( 4.46212, -29.5458 )
+
+[node name="Barrel22" type="Sprite" parent="flair/YSort"]
+position = Vector2( 130, 532 )
+rotation = 0.0324683
+texture = ExtResource( 28 )
+offset = Vector2( 1.83606, -23.4649 )
+
+[node name="Barrel23" type="Sprite" parent="flair/YSort/Barrel22"]
+position = Vector2( 1.50512, -46.0732 )
+texture = ExtResource( 28 )
+offset = Vector2( 1.83606, -23.4649 )
+
+[node name="Barrel23" type="Sprite" parent="flair/YSort"]
+position = Vector2( 302, 627 )
+rotation = 0.0324683
+texture = ExtResource( 28 )
+offset = Vector2( 1.83606, -23.4649 )
+
+[node name="Barrel23" type="Sprite" parent="flair/YSort/Barrel23"]
+position = Vector2( 1.50512, -46.0732 )
+texture = ExtResource( 28 )
+offset = Vector2( 1.83606, -23.4649 )
+
+[node name="Barrel20" type="Sprite" parent="flair/YSort"]
+position = Vector2( 902, 623 )
+rotation = 0.0324683
+texture = ExtResource( 28 )
+offset = Vector2( 1.83606, -23.4649 )
+
+[node name="Barrel21" type="Sprite" parent="flair/YSort"]
+position = Vector2( 1026, 582 )
+rotation = 0.0324683
+texture = ExtResource( 28 )
+offset = Vector2( 1.83606, -23.4649 )
+
+[node name="Barrel19" type="Sprite" parent="flair/YSort"]
+position = Vector2( 978, 519 )
+rotation = 0.0324683
+texture = ExtResource( 28 )
+offset = Vector2( 1.83606, -23.4649 )
+
+[node name="Stone2" type="Sprite" parent="flair/YSort"]
+position = Vector2( 196, 212 )
+texture = ExtResource( 26 )
+offset = Vector2( 1, -6 )
+
+[node name="Stone3" type="Sprite" parent="flair/YSort"]
+position = Vector2( 840, 186 )
+texture = ExtResource( 26 )
+offset = Vector2( 1, -6 )
+
+[node name="Stone8" type="Sprite" parent="flair/YSort"]
+position = Vector2( 684, 11 )
+texture = ExtResource( 26 )
+offset = Vector2( 1, -6 )
+
+[node name="Stone4" type="Sprite" parent="flair/YSort"]
+position = Vector2( 1028, 264 )
+texture = ExtResource( 26 )
+offset = Vector2( 1, -6 )
+
+[node name="Stone6" type="Sprite" parent="flair/YSort"]
+position = Vector2( 1017, 441 )
+texture = ExtResource( 26 )
+offset = Vector2( 1, -6 )
+flip_h = true
+
+[node name="Stone7" type="Sprite" parent="flair/YSort"]
+position = Vector2( 844, 569 )
+texture = ExtResource( 26 )
+offset = Vector2( 1, -6 )
+flip_h = true
+
+[node name="Coco4" type="Sprite" parent="flair/YSort"]
+position = Vector2( 67, 686 )
+texture = ExtResource( 35 )
+offset = Vector2( 4, -109 )
+flip_h = true
+
+[node name="Trunk" type="Sprite" parent="flair/YSort"]
+position = Vector2( 58, 519 )
+texture = ExtResource( 34 )
+offset = Vector2( 0, -40 )
+
+[node name="Leaf" type="Sprite" parent="flair/YSort/Trunk"]
+position = Vector2( 0, -34 )
+scale = Vector2( 1.13441, 1.13441 )
+texture = ExtResource( 33 )
+offset = Vector2( -3, -39 )
+
+[node name="Trunk2" type="Sprite" parent="flair/YSort"]
+position = Vector2( 114, 564 )
+texture = ExtResource( 34 )
+offset = Vector2( 0, -40 )
+
+[node name="Leaf" type="Sprite" parent="flair/YSort/Trunk2"]
+position = Vector2( 0, -34 )
+scale = Vector2( 1.13441, 1.13441 )
+texture = ExtResource( 33 )
+offset = Vector2( -3, -39 )
+
+[node name="Trunk3" type="Sprite" parent="flair/YSort"]
+position = Vector2( 187, 607 )
+texture = ExtResource( 34 )
+offset = Vector2( 0, -40 )
+
+[node name="Leaf" type="Sprite" parent="flair/YSort/Trunk3"]
+position = Vector2( 0.999999, -55.9999 )
+scale = Vector2( 1.13441, 1.13441 )
+texture = ExtResource( 33 )
+offset = Vector2( -3.88152, -19.6067 )
+
+[node name="Trunk4" type="Sprite" parent="flair/YSort"]
+position = Vector2( 261, 652 )
+texture = ExtResource( 34 )
+offset = Vector2( 0, -40 )
+
+[node name="Leaf" type="Sprite" parent="flair/YSort/Trunk4"]
+position = Vector2( 0, -34 )
+scale = Vector2( 1.13441, 1.13441 )
+texture = ExtResource( 33 )
+offset = Vector2( -3, -39 )
+
+[node name="Trunk5" type="Sprite" parent="flair/YSort"]
+position = Vector2( 341, 699 )
+texture = ExtResource( 34 )
+offset = Vector2( 0, -40 )
+
+[node name="Leaf" type="Sprite" parent="flair/YSort/Trunk5"]
+position = Vector2( 0, -34 )
+scale = Vector2( 1.13441, 1.13441 )
+texture = ExtResource( 33 )
+offset = Vector2( -3, -39 )
+
+[node name="Trunk6" type="Sprite" parent="flair/YSort"]
+position = Vector2( -23, 469 )
+texture = ExtResource( 34 )
+offset = Vector2( 0, -40 )
+
+[node name="Leaf" type="Sprite" parent="flair/YSort/Trunk6"]
+position = Vector2( 0, -34 )
+scale = Vector2( 1.13441, 1.13441 )
+texture = ExtResource( 33 )
+offset = Vector2( -3, -39 )
+
+[node name="Trunk7" type="Sprite" parent="flair/YSort"]
+position = Vector2( 102, 630 )
+texture = ExtResource( 34 )
+offset = Vector2( 0, -40 )
+
+[node name="Leaf" type="Sprite" parent="flair/YSort/Trunk7"]
+position = Vector2( 0, -34 )
+scale = Vector2( 1.13441, 1.13441 )
+texture = ExtResource( 33 )
+offset = Vector2( -3, -39 )
+
+[node name="Trunk8" type="Sprite" parent="flair/YSort"]
+position = Vector2( -10, 566 )
+texture = ExtResource( 34 )
+offset = Vector2( 0, -40 )
+
+[node name="Leaf" type="Sprite" parent="flair/YSort/Trunk8"]
+position = Vector2( 0, -34 )
+scale = Vector2( 1.13441, 1.13441 )
+texture = ExtResource( 33 )
+offset = Vector2( -3, -39 )
+
+[node name="Trunk9" type="Sprite" parent="flair/YSort"]
+position = Vector2( 190, 691 )
+texture = ExtResource( 34 )
+offset = Vector2( 0, -40 )
+
+[node name="Leaf" type="Sprite" parent="flair/YSort/Trunk9"]
+position = Vector2( 0, -34 )
+scale = Vector2( 1.13441, 1.13441 )
+texture = ExtResource( 33 )
+offset = Vector2( -3, -39 )
+
+[node name="Glow11" type="Sprite" parent="flair"]
+modulate = Color( 0.0784314, 0.0745098, 0.0745098, 0.498039 )
+position = Vector2( 66.9044, 77.8856 )
+rotation = -0.0479476
+scale = Vector2( 11.4044, 9.84772 )
+texture = ExtResource( 15 )
+
+[node name="Patch14" type="Sprite" parent="flair"]
+position = Vector2( 172, 567 )
+rotation = 0.18031
+scale = Vector2( 1.27324, 1.50973 )
+texture = ExtResource( 32 )
+
+[node name="Patch15" type="Sprite" parent="flair"]
+position = Vector2( 305, 616 )
+rotation = 0.18031
+scale = Vector2( 1.27324, 1.50973 )
+texture = ExtResource( 32 )
+
+[node name="Patch16" type="Sprite" parent="flair"]
+position = Vector2( 42, 458 )
+rotation = 0.18031
+scale = Vector2( 1.57485, 1.20908 )
+texture = ExtResource( 32 )
+
+[node name="Wall" type="Sprite" parent="flair"]
+modulate = Color( 0.670588, 0.615686, 0.615686, 1 )
+position = Vector2( 967, 635 )
+rotation = -0.542448
+scale = Vector2( 1.55531, 1 )
+texture = ExtResource( 30 )
+
+[node name="Wall2" type="Sprite" parent="flair"]
+modulate = Color( 0.360784, 0.321569, 0.321569, 0.572549 )
+position = Vector2( 977, 643 )
+rotation = -0.542448
+scale = Vector2( 1.55531, 1 )
+texture = ExtResource( 30 )
+
+[node name="Cells" type="Node2D" parent="."]
+
+[node name="TextureRect" type="TextureRect" parent="."]
+margin_left = -116.0
+margin_top = -127.0
+margin_right = 235.0
+margin_bottom = 639.0
+mouse_filter = 2
+texture = ExtResource( 21 )
+expand = true
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="Gradient2" type="Sprite" parent="."]
+modulate = Color( 1, 1, 1, 0.572549 )
+position = Vector2( 538, 287 )
+scale = Vector2( 1.4, 1.4 )
+texture = ExtResource( 19 )
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="TileMap" type="TileMap" parent="."]
+mode = 1
+tile_set = ExtResource( 12 )
+cell_size = Vector2( 76, 42 )
+format = 1
+tile_data = PoolIntArray( -393207, 0, 0, -393206, 0, 0, -393205, 0, 0, -393204, 0, 0, -393203, 0, 0, -393202, 0, 0, -393201, 0, 0, -393200, 0, 0, -393199, 0, 0, -393198, 0, 0, -393197, 0, 0, -327672, 0, 0, -327671, 0, 0, -327670, 0, 0, -327669, 0, 0, -327668, 0, 0, -327667, 0, 0, -327666, 0, 0, -327665, 0, 0, -327664, 0, 0, -327663, 0, 0, -327662, 0, 0, -327661, 0, 0, -327660, 0, 0, -262136, 0, 0, -262135, 0, 0, -262134, 0, 0, -262133, 0, 0, -262132, 0, 0, -262131, 0, 0, -262130, 0, 0, -262129, 0, 0, -262128, 0, 0, -262127, 0, 0, -262126, 0, 0, -262125, 0, 0, -262124, 0, 0, -262123, 0, 0, -196601, 0, 0, -196600, 0, 0, -196599, 0, 0, -196598, 0, 0, -196597, 0, 0, -196596, 0, 0, -196595, 0, 0, -196594, 0, 0, -196593, 0, 0, -196592, 0, 0, -196591, 0, 0, -196590, 0, 0, -196589, 0, 0, -196588, 0, 0, -196587, 0, 0, -196586, 0, 0, -131065, 0, 0, -131064, 0, 0, -131063, 0, 0, -131062, 0, 0, -131061, 0, 0, -131060, 0, 0, -131059, 0, 0, -131058, 0, 0, -131057, 0, 0, -131056, 0, 0, -131055, 0, 0, -131054, 0, 0, -131053, 0, 0, -131052, 0, 0, -131051, 0, 0, -131050, 0, 0, -65529, 0, 0, -65528, 0, 0, -65527, 0, 0, -65526, 0, 0, -65525, 0, 0, -65524, 0, 0, -65523, 0, 0, -65522, 0, 0, -65521, 0, 0, -65520, 0, 0, -65519, 0, 0, -65518, 0, 0, -65517, 0, 0, -65516, 0, 0, -65515, 0, 0, -65514, 0, 0, 7, 0, 0, 8, 0, 0, 9, 0, 0, 10, 0, 0, 11, 0, 0, 12, 0, 0, 13, 0, 0, 14, 0, 0, 15, 0, 0, 16, 0, 0, 17, 0, 0, 18, 0, 0, 19, 0, 0, 20, 0, 0, 21, 0, 0, 22, 0, 0, 65543, 0, 0, 65544, 0, 0, 65545, 0, 0, 65546, 0, 0, 65547, 0, 0, 65548, 0, 0, 65549, 0, 0, 65550, 0, 0, 65551, 0, 0, 65552, 0, 0, 65553, 0, 0, 65554, 0, 0, 65555, 0, 0, 65556, 0, 0, 65557, 0, 0, 65558, 0, 0, 131080, 0, 0, 131081, 0, 0, 131082, 0, 0, 131083, 0, 0, 131084, 0, 0, 131085, 0, 0, 131086, 0, 0, 131087, 0, 0, 131088, 0, 0, 131089, 0, 0, 131090, 0, 0, 131091, 0, 0, 131092, 0, 0, 131093, 0, 0, 131094, 0, 0, 196617, 0, 0, 196618, 0, 0, 196619, 0, 0, 196620, 0, 0, 196621, 0, 0, 196622, 0, 0, 196623, 0, 0, 196624, 0, 0, 196625, 0, 0, 196626, 0, 0, 196627, 0, 0, 196628, 0, 0, 196629, 0, 0, 196630, 0, 0, 262154, 0, 0, 262155, 0, 0, 262156, 0, 0, 262157, 0, 0, 262158, 0, 0, 262159, 0, 0, 262160, 0, 0, 262161, 0, 0, 262162, 0, 0, 262163, 0, 0, 262164, 0, 0, 262165, 0, 0, 262166, 0, 0, 327691, 0, 0, 327692, 0, 0, 327693, 0, 0, 327694, 0, 0, 327695, 0, 0, 327696, 0, 0, 327697, 0, 0, 327698, 0, 0, 327699, 0, 0, 327700, 0, 0, 327701, 0, 0, 393228, 0, 0, 393229, 0, 0, 393230, 0, 0, 393231, 0, 0, 393232, 0, 0, 393233, 0, 0, 393234, 0, 0, 393235, 0, 0, 393236, 0, 0 )
+
+[node name="TileMap2" type="TileMap" parent="."]
+mode = 1
+tile_set = ExtResource( 20 )
+cell_size = Vector2( 76, 42 )
+format = 1
+tile_data = PoolIntArray( -983029, 0, 0, -983028, 0, 0, -983027, 0, 0, -983026, 0, 0, -983025, 0, 0, -917494, 0, 0, -917493, 0, 0, -917492, 0, 0, -917491, 0, 0, -917490, 0, 0, -917489, 0, 0, -917488, 0, 0, -851959, 0, 0, -851958, 0, 0, -851957, 0, 0, -851956, 0, 0, -851955, 0, 0, -851954, 0, 0, -851953, 0, 0, -851952, 0, 0, -851951, 0, 0, -851950, 0, 0, -786424, 0, 0, -786423, 0, 0, -786422, 0, 0, -786421, 0, 0, -786420, 0, 0, -786419, 0, 0, -786418, 0, 0, -786417, 0, 0, -786416, 0, 0, -786415, 0, 0, -786414, 0, 0, -786413, 0, 0, -720888, 0, 0, -720887, 0, 0, -720886, 0, 0, -720885, 0, 0, -720884, 0, 0, -720883, 0, 0, -720882, 0, 0, -720881, 0, 0, -720880, 0, 0, -720879, 0, 0, -720878, 0, 0, -720877, 0, 0, -720876, 0, 0, -655353, 0, 0, -655352, 0, 0, -655351, 0, 0, -655350, 0, 0, -655349, 0, 0, -655348, 0, 0, -655347, 0, 0, -655346, 0, 0, -655345, 0, 0, -655344, 0, 0, -655343, 0, 0, -655342, 0, 0, -655341, 0, 0, -655340, 0, 0, -655339, 0, 0, -589818, 0, 0, -589817, 0, 0, -589816, 0, 0, -589815, 0, 0, -589814, 0, 0, -589813, 0, 0, -589812, 0, 0, -589811, 0, 0, -589810, 0, 0, -589809, 0, 0, -589808, 0, 0, -589807, 0, 0, -589806, 0, 0, -589805, 0, 0, -589804, 0, 0, -589803, 0, 0, -589802, 0, 0, -589801, 0, 0, -589800, 0, 0, -524282, 0, 0, -524281, 0, 0, -524280, 0, 0, -524279, 0, 0, -524278, 0, 0, -524277, 0, 0, -524276, 0, 0, -524275, 0, 0, -524274, 0, 0, -524273, 0, 0, -524272, 0, 0, -524271, 0, 0, -524270, 0, 0, -524269, 0, 0, -524268, 0, 0, -524267, 0, 0, -524266, 0, 0, -524265, 0, 0, -524264, 0, 0, -458747, 0, 0, -458746, 0, 0, -458745, 0, 0, -458744, 0, 0, -458743, 0, 0, -458742, 0, 0, -458741, 0, 0, -458740, 0, 0, -458739, 0, 0, -458738, 0, 0, -458737, 0, 0, -458736, 0, 0, -458735, 0, 0, -458734, 0, 0, -458733, 0, 0, -458732, 0, 0, -458731, 0, 0, -458730, 0, 0, -458729, 0, 0, -458728, 0, 0, -458727, 0, 0, -393211, 0, 0, -393210, 0, 0, -393209, 0, 0, -393208, 0, 0, -393196, 0, 0, -393195, 0, 0, -393194, 0, 0, -393193, 0, 0, -393192, 0, 0, -393191, 0, 0, -393190, 0, 0, -327679, 0, 0, -327678, 0, 0, -327677, 0, 0, -327676, 0, 0, -327675, 0, 0, -327674, 0, 0, -327673, 0, 0, -327659, 0, 0, -327658, 0, 0, -327657, 0, 0, -327656, 0, 0, -327655, 0, 0, -327654, 0, 0, -327653, 0, 0, -262144, 0, 0, -262143, 0, 0, -262142, 0, 0, -262141, 0, 0, -262140, 0, 0, -262139, 0, 0, -262138, 0, 0, -262137, 0, 0, -262122, 0, 0, -262121, 0, 0, -262120, 0, 0, -262119, 0, 0, -262118, 0, 0, -262117, 0, 0, -262116, 0, 0, -131074, 0, 0, -131073, 0, 0, -196608, 0, 0, -196607, 0, 0, -196606, 0, 0, -196605, 0, 0, -196604, 0, 0, -196603, 0, 0, -196602, 0, 0, -196585, 0, 0, -196584, 0, 0, -196583, 0, 0, -196582, 0, 0, -196581, 0, 0, -196580, 0, 0, -65539, 0, 0, -65538, 0, 0, -65537, 0, 0, -131072, 0, 0, -131071, 0, 0, -131070, 0, 0, -131069, 0, 0, -131068, 0, 0, -131067, 0, 0, -131066, 0, 0, -131049, 0, 0, -131048, 0, 0, -131047, 0, 0, -131046, 0, 0, -131045, 0, 0, -131044, 0, 0, -131043, 0, 0, -3, 0, 0, -2, 0, 0, -1, 0, 0, -65536, 0, 0, -65535, 0, 0, -65534, 0, 0, -65533, 0, 0, -65532, 0, 0, -65531, 0, 0, -65530, 0, 0, -65513, 0, 0, -65512, 0, 0, -65511, 0, 0, -65510, 0, 0, -65509, 0, 0, -65508, 0, 0, -65507, 0, 0, 65533, 0, 0, 65534, 0, 0, 65535, 0, 0, 0, 0, 0, 1, 0, 0, 2, 0, 0, 3, 0, 0, 4, 0, 0, 5, 0, 0, 6, 0, 0, 23, 0, 0, 24, 0, 0, 25, 0, 0, 26, 0, 0, 27, 0, 0, 28, 0, 0, 29, 0, 0, 131069, 0, 0, 131070, 0, 0, 131071, 0, 0, 65536, 0, 0, 65537, 0, 0, 65538, 0, 0, 65539, 0, 0, 65540, 0, 0, 65541, 0, 0, 65542, 0, 0, 65559, 0, 0, 65560, 0, 0, 65561, 0, 0, 65562, 0, 0, 65563, 0, 0, 65564, 0, 0, 65565, 0, 0, 196605, 0, 0, 196606, 0, 0, 196607, 0, 0, 131072, 0, 0, 131073, 0, 0, 131074, 0, 0, 131075, 0, 0, 131076, 0, 0, 131077, 0, 0, 131078, 0, 0, 131079, 0, 0, 131095, 0, 0, 131096, 0, 0, 131097, 0, 0, 131098, 0, 0, 131099, 0, 0, 131100, 0, 0, 131101, 0, 0, 262142, 0, 0, 262143, 0, 0, 196608, 0, 0, 196609, 0, 0, 196610, 0, 0, 196611, 0, 0, 196612, 0, 0, 196613, 0, 0, 196614, 0, 0, 196615, 0, 0, 196616, 0, 0, 196631, 0, 0, 196632, 0, 0, 196633, 0, 0, 196634, 0, 0, 196635, 0, 0, 196636, 0, 0, 196637, 0, 0, 262144, 0, 0, 262145, 0, 0, 262146, 0, 0, 262147, 0, 0, 262148, 0, 0, 262149, 0, 0, 262150, 0, 0, 262151, 0, 0, 262152, 0, 0, 262153, 0, 0, 262167, 0, 0, 262168, 0, 0, 262169, 0, 0, 262170, 0, 0, 262171, 0, 0, 262172, 0, 0, 327681, 0, 0, 327682, 0, 0, 327683, 0, 0, 327684, 0, 0, 327685, 0, 0, 327686, 0, 0, 327687, 0, 0, 327688, 0, 0, 327689, 0, 0, 327690, 0, 0, 327702, 0, 0, 327703, 0, 0, 327704, 0, 0, 327705, 0, 0, 327706, 0, 0, 327707, 0, 0, 393219, 0, 0, 393220, 0, 0, 393221, 0, 0, 393222, 0, 0, 393223, 0, 0, 393224, 0, 0, 393225, 0, 0, 393226, 0, 0, 393227, 0, 0, 393237, 0, 0, 393238, 0, 0, 393239, 0, 0, 393240, 0, 0, 393241, 0, 0, 393242, 0, 0, 458758, 0, 0, 458759, 0, 0, 458760, 0, 0, 458761, 0, 0, 458762, 0, 0, 458763, 0, 0, 458764, 0, 0, 458765, 0, 0, 458766, 0, 0, 458767, 0, 0, 458768, 0, 0, 458769, 0, 0, 458770, 0, 0, 458771, 0, 0, 458772, 0, 0, 458773, 0, 0, 458774, 0, 0, 458775, 0, 0, 458776, 0, 0, 524294, 0, 0, 524295, 0, 0, 524296, 0, 0, 524297, 0, 0, 524298, 0, 0, 524299, 0, 0, 524300, 0, 0, 524301, 0, 0, 524302, 0, 0, 524303, 0, 0, 524304, 0, 0, 524305, 0, 0, 524306, 0, 0, 524307, 0, 0, 524308, 0, 0, 524309, 0, 0, 524310, 0, 0, 524311, 0, 0, 524312, 0, 0, 589830, 0, 0, 589831, 0, 0, 589832, 0, 0, 589833, 0, 0, 589834, 0, 0, 589835, 0, 0, 589836, 0, 0, 589837, 0, 0, 589838, 0, 0, 589839, 0, 0, 589840, 0, 0, 589841, 0, 0, 589842, 0, 0, 589843, 0, 0, 589844, 0, 0, 589845, 0, 0, 589846, 0, 0, 589847, 0, 0, 589848, 0, 0, 655368, 0, 0, 655369, 0, 0, 655370, 0, 0, 655371, 0, 0, 655372, 0, 0, 655373, 0, 0, 655374, 0, 0, 655375, 0, 0, 655376, 0, 0, 655377, 0, 0, 655378, 0, 0, 655379, 0, 0, 655380, 0, 0, 720905, 0, 0, 720906, 0, 0, 720907, 0, 0, 720908, 0, 0, 720909, 0, 0, 720910, 0, 0, 720911, 0, 0, 720912, 0, 0, 720913, 0, 0, 720914, 0, 0, 720915, 0, 0, 720916, 0, 0, 786441, 0, 0, 786442, 0, 0, 786443, 0, 0, 786444, 0, 0, 786445, 0, 0, 786446, 0, 0, 786447, 0, 0, 786448, 0, 0, 786449, 0, 0, 786450, 0, 0, 786451, 0, 0, 786452, 0, 0, 851978, 0, 0, 851979, 0, 0, 851980, 0, 0, 851981, 0, 0, 851982, 0, 0, 851983, 0, 0, 851984, 0, 0, 851985, 0, 0, 851986, 0, 0, 851987, 0, 0, 917515, 0, 0, 917516, 0, 0, 917517, 0, 0, 917518, 0, 0, 917519, 0, 0, 917520, 0, 0, 917521, 0, 0, 917522, 0, 0, 983052, 0, 0, 983053, 0, 0, 983054, 0, 0, 983055, 0, 0, 983056, 0, 0 )
+
+[node name="Line2D" type="Line2D" parent="."]
+position = Vector2( 0, 21 )
+default_color = Color( 0.258824, 0.545098, 0.266667, 1 )
+joint_mode = 2
+begin_cap_mode = 2
+end_cap_mode = 2
+antialiased = true
+
+[node name="Glyphs" type="Node2D" parent="."]
+
+[node name="SkillVisualsUnder" type="Node2D" parent="."]
+
+[node name="GeneralYsort" type="YSort" parent="."]
+
+[node name="Characters" type="YSort" parent="GeneralYsort"]
+
+[node name="NextWave" type="YSort" parent="GeneralYsort"]
+
+[node name="SkillVisuals" type="YSort" parent="GeneralYsort"]
+
+[node name="Visuals" type="YSort" parent="GeneralYsort"]
+rotation = -0.00192113
+
+[node name="SkillVisualsOver" type="Node2D" parent="."]
+
+[node name="UI" parent="." instance=ExtResource( 18 )]
+__meta__ = {
+"_edit_group_": true,
+"_edit_lock_": true
+}
+
+[node name="HBoxContainer" parent="UI" index="3"]
+margin_left = 7.0
+margin_right = 134.0
+
+[node name="StartingPositions" type="Node2D" parent="."]
+
+[node name="Node2D" type="Node2D" parent="StartingPositions"]
+position = Vector2( 498, 459 )
+
+[node name="Node2D2" type="Node2D" parent="StartingPositions"]
+position = Vector2( 573, 412 )
+
+[node name="Node2D3" type="Node2D" parent="StartingPositions"]
+position = Vector2( 570, 460 )
+
+[node name="Node2D4" type="Node2D" parent="StartingPositions"]
+position = Vector2( 720, 335 )
+
+[node name="Node2D5" type="Node2D" parent="StartingPositions"]
+position = Vector2( 797, 335 )
+
+[node name="Node2D6" type="Node2D" parent="StartingPositions"]
+position = Vector2( 795, 293 )
+
+[node name="Node2D7" type="Node2D" parent="StartingPositions"]
+position = Vector2( 795, 375 )
+
+[node name="Node2D8" type="Node2D" parent="StartingPositions"]
+position = Vector2( 649, 460 )
+
+[node name="Node2D9" type="Node2D" parent="StartingPositions"]
+position = Vector2( 495, 506 )
+
+[node name="Node2D10" type="Node2D" parent="StartingPositions"]
+position = Vector2( 868, 291 )
+
+[node name="Node2D11" type="Node2D" parent="StartingPositions"]
+position = Vector2( 418, 458 )
+
+[node name="Node2D12" type="Node2D" parent="StartingPositions"]
+position = Vector2( 789, 252 )
+
+[node name="EnemySpawn" type="Node2D" parent="."]
+
+[node name="Node2D8" type="Node2D" parent="EnemySpawn"]
+position = Vector2( 454, 269 )
+
+[node name="Node2D9" type="Node2D" parent="EnemySpawn"]
+position = Vector2( 379, 313 )
+
+[node name="Node2D20" type="Node2D" parent="EnemySpawn"]
+position = Vector2( 382, 274 )
+
+[node name="Node2D21" type="Node2D" parent="EnemySpawn"]
+position = Vector2( 455, 229 )
+
+[node name="Node2D11" type="Node2D" parent="EnemySpawn"]
+position = Vector2( 306, 356 )
+
+[node name="Node2D10" type="Node2D" parent="EnemySpawn"]
+position = Vector2( 454, 315 )
+
+[node name="Node2D12" type="Node2D" parent="EnemySpawn"]
+position = Vector2( 534, 270 )
+
+[node name="Node2D13" type="Node2D" parent="EnemySpawn"]
+position = Vector2( 530, 229 )
+
+[node name="Node2D14" type="Node2D" parent="EnemySpawn"]
+position = Vector2( 311, 315 )
+
+[node name="Node2D17" type="Node2D" parent="EnemySpawn"]
+position = Vector2( 533, 186 )
+
+[node name="Node2D15" type="Node2D" parent="EnemySpawn"]
+position = Vector2( 605, 231 )
+
+[node name="Node2D18" type="Node2D" parent="EnemySpawn"]
+position = Vector2( 605, 188 )
+
+[node name="Node2D19" type="Node2D" parent="EnemySpawn"]
+position = Vector2( 379, 352 )
+
+[node name="Shake" type="AnimationPlayer" parent="."]
+anims/RESET = SubResource( 1 )
+anims/shake = SubResource( 2 )
+
+[node name="Particles2D" type="Particles2D" parent="."]
+modulate = Color( 1, 1, 1, 0.478431 )
+position = Vector2( 606, 148 )
+amount = 5
+lifetime = 5.0
+process_material = SubResource( 29 )
+texture = ExtResource( 37 )
+
+[node name="Tutorial" type="Node2D" parent="."]
+script = SubResource( 31 )
+
+[node name="Tutorial" type="PanelContainer" parent="Tutorial"]
+visible = false
+margin_left = 633.0
+margin_top = 49.0
+margin_right = 1020.0
+margin_bottom = 162.0
+mouse_filter = 2
+custom_styles/panel = SubResource( 32 )
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Tutorial/Tutorial"]
+margin_left = 5.0
+margin_top = 5.0
+margin_right = 382.0
+margin_bottom = 108.0
+mouse_filter = 2
+size_flags_horizontal = 13
+size_flags_vertical = 13
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Tutorial/Tutorial/VBoxContainer"]
+margin_right = 377.0
+margin_bottom = 21.0
+
+[node name="SpellName" type="RichTextLabel" parent="Tutorial/Tutorial/VBoxContainer/HBoxContainer"]
+margin_top = 3.0
+margin_right = 353.0
+margin_bottom = 18.0
+rect_min_size = Vector2( 160, 15 )
+rect_clip_content = false
+mouse_filter = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+custom_fonts/normal_font = SubResource( 33 )
+text = "Tutorial - Battle with multiple characters"
+scroll_active = false
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="PanelContainer" type="Button" parent="Tutorial/Tutorial/VBoxContainer/HBoxContainer"]
+margin_left = 357.0
+margin_right = 377.0
+margin_bottom = 21.0
+custom_fonts/font = SubResource( 33 )
+text = "X"
+script = SubResource( 34 )
+
+[node name="HSeparator2" type="HSeparator" parent="Tutorial/Tutorial/VBoxContainer"]
+margin_top = 25.0
+margin_right = 377.0
+margin_bottom = 29.0
+mouse_filter = 2
+
+[node name="Desc" type="RichTextLabel" parent="Tutorial/Tutorial/VBoxContainer"]
+margin_top = 33.0
+margin_right = 377.0
+margin_bottom = 103.0
+rect_min_size = Vector2( 0, 15 )
+rect_clip_content = false
+mouse_filter = 2
+size_flags_horizontal = 3
+custom_fonts/bold_font = SubResource( 35 )
+custom_fonts/normal_font = SubResource( 36 )
+bbcode_enabled = true
+bbcode_text = "[fill]When on your turn, you can play with all characters you control and can choose the order of which you'll use them every turn. You choose a character by clicking it.
+
+After selecting a character, if you haven't done any action with it yet, you can deselect it with a [color=#4df82a][b]LEFT CLICK[/b][/color] or with [color=#4df82a][b]ESC[/b][/color]."
+text = "When on your turn, you can play with all characters you control and can choose the order of which you'll use them every turn. You choose a character by clicking it.
+
+After selecting a character, if you haven't done any action with it yet, you can deselect it with a LEFT CLICK or with ESC."
+fit_content_height = true
+scroll_active = false
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[connection signal="gui_input" from="UI/Tutorial/Tutorial/CloseTutorial" to="." method="closeTutorial"]
+[connection signal="button_down" from="Tutorial/Tutorial/VBoxContainer/HBoxContainer/PanelContainer" to="Tutorial/Tutorial/VBoxContainer/HBoxContainer/PanelContainer" method="_on_PanelContainer_button_down"]
+
+[editable path="UI"]

@@ -1,0 +1,80 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://skills/SkillScript.gd" type="Script" id=1]
+[ext_resource path="res://characters/002 - Zoro/skills/tatsumaki.tscn" type="PackedScene" id=2]
+[ext_resource path="res://skills/icons/aoe.png" type="Texture" id=3]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Node
+
+# targetArray = Array contendo as posições que esse feitiço atingiu
+#               A célula central será contida em um Array sozinha, para fácil identificação
+var skill
+func effects(targetArray):
+	skill = get_parent()
+	var d = skill.caster.direction
+	
+	BattleMechanics.playAnimEntity(skill.caster, \"Tatsumaki\")
+	
+	yield(get_tree().create_timer(0.6),\"timeout\")
+	BattleMechanics.playAnim(skill.visuals[0],skill.caster.posit,false,\"over\")
+	
+	for i in targetArray:
+		if not i is Array:
+			var tgt = BattleMechanics.getEntityAt(i)
+			if tgt:
+				tgt.connect(\"killed\",self,\"proc\")
+	
+	BattleMechanics.dmgAtAoe(targetArray, skill.base, skill.caster)
+	
+	AM.play(skill.caster.audioEX[2],{\"randp\": true})
+	var iD = skill.caster.direction
+	for i in 12:
+		var c = skill.caster.direction
+		var m = -1
+		if wrapi(i,0,2)==0:
+			m*=-1
+		skill.caster.turn_to(Vector2(c.y*m,c.x*m))
+		AM.play(skill.caster.audioEX[3],{\"randp\": true})
+		yield(get_tree().create_timer(0.05+(float(i)*0.005)),\"timeout\")
+	
+	for i in targetArray:
+		if not i is Array:
+			var tgt = BattleMechanics.getEntityAt(i)
+			if tgt:
+				tgt.disconnect(\"killed\",self,\"proc\")
+	skill.caster.turn_to(iD)
+	
+func proc(ent):
+	if ent and ent == skill.caster:
+		skill.caster.ap_used -= 1
+		BattleMechanics.area.updateEntityDetails(skill.caster)
+		BattleMechanics.removalVisual(skill.caster.position+Vector2(0,-25)+Vector2(wrapi(randi(), -10, 10), wrapi(randi(), -10, 10)), \"ap\", -1, wrapf(randi()+randf(), 0, 2))
+	
+"
+
+[node name="Skill" type="Node2D"]
+script = ExtResource( 1 )
+skillName = "Tatsu Maki"
+description = "[b]{b}[/b] [img]res://skills/sword.png[/img].
+
+If Zoro's HP <= 50%:
+- Area of effect grows by 1.
+
+For each enemy defeated by this skill:
+- Zoro gains [b]+1 AP[/b] [img]res://areas/ui/apIconSmall.png[/img] this turn."
+icon1 = ExtResource( 3 )
+base = 40
+apCost = 2
+element = 1
+rangeMin = 0
+rangeMax = 0
+linear = true
+sight = true
+aoeShape = 1
+aoeSize = 2
+cooldown = 2
+visuals = [ ExtResource( 2 ) ]
+effects = SubResource( 1 )
+
+[node name="Effects" type="Node" parent="."]

@@ -1,0 +1,55 @@
+[gd_scene load_steps=8 format=2]
+
+[ext_resource path="res://skills/SkillScript.gd" type="Script" id=1]
+[ext_resource path="res://characters/001 - Luffy/hit.tscn" type="PackedScene" id=2]
+[ext_resource path="res://skills/HelperWindows/Push.tscn" type="PackedScene" id=3]
+[ext_resource path="res://characters/001 - Luffy/hit2.tscn" type="PackedScene" id=4]
+[ext_resource path="res://skills/icons/atk.png" type="Texture" id=5]
+[ext_resource path="res://skills/icons/move.png" type="Texture" id=6]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Node
+
+# targetArray = Array contendo as posições que esse feitiço atingiu
+#               A célula central será contida em um Array sozinha, para fácil identificação
+var skill
+func effects(targetArray):
+	skill = get_parent()
+	var d = skill.caster.direction
+	
+	AM.play(skill.caster.audioEX[0], {\"randp\": true})
+	BattleMechanics.playAnimEntity(skill.caster, \"Pistol\")
+	
+	yield(get_tree().create_timer(0.6),\"timeout\")
+	BattleMechanics.playAnim(skill.visuals[0 if d in [Vector2(1,0),Vector2(0,1)] else 1],targetArray[0], false if abs(d.x)>abs(d.y) else true)
+	var tgt = BattleMechanics.getEntityAt(targetArray[0])
+	if tgt:
+		BattleMechanics.dealDmg([skill.base,\"n\"],tgt,skill.caster)
+		AM.play(skill.caster.audioEX[3], {\"randp\": true})
+		#yield(get_tree().create_timer(0.5),\"timeout\")
+		BattleMechanics.push(tgt,skill.caster,2,skill.caster.direction,[5,\"n\"])
+	AM.play(skill.caster.audioEX[1], {\"randp\": true})
+	yield(get_tree().create_timer(1),\"timeout\")
+	AM.play(skill.caster.audioEX[2], {\"randp\": true})
+	
+	
+	
+"
+
+[node name="Skill" type="Node2D"]
+script = ExtResource( 1 )
+skillName = "Gomu no Pistol"
+description = "[b]{b}[/b] [img]res://skills/sword.png[/img] and [b]Push 2[/b]."
+icon1 = ExtResource( 5 )
+icon2 = ExtResource( 6 )
+base = 15
+apCost = 1
+element = 1
+rangeMax = 3
+linear = true
+sight = true
+visuals = [ ExtResource( 2 ), ExtResource( 4 ) ]
+effects = SubResource( 1 )
+helpertext = [ ExtResource( 3 ) ]
+
+[node name="Effects" type="Node" parent="."]

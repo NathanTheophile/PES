@@ -1,0 +1,15 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+path="res://.import/silly.mp3-630dd3ad66ef4a2e2eb852ccb25fa5fd.mp3str"
+
+[deps]
+
+source_file="res://sfx/silly.mp3"
+dest_files=[ "res://.import/silly.mp3-630dd3ad66ef4a2e2eb852ccb25fa5fd.mp3str" ]
+
+[params]
+
+loop=false
+loop_offset=0

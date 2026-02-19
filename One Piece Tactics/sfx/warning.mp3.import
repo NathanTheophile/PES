@@ -1,0 +1,15 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+path="res://.import/warning.mp3-21f47566b136f3593d4081f304b8f83a.mp3str"
+
+[deps]
+
+source_file="res://sfx/warning.mp3"
+dest_files=[ "res://.import/warning.mp3-21f47566b136f3593d4081f304b8f83a.mp3str" ]
+
+[params]
+
+loop=false
+loop_offset=0

@@ -1,0 +1,83 @@
+[gd_scene load_steps=8 format=2]
+
+[ext_resource path="res://skills/SkillScript.gd" type="Script" id=1]
+[ext_resource path="res://skills/(Player) - Jansen/Wall.tscn" type="PackedScene" id=2]
+[ext_resource path="res://skills/(Player) - Jansen/Wall2.tscn" type="PackedScene" id=3]
+[ext_resource path="res://skills/(Player) - Jansen/Self.tscn" type="PackedScene" id=4]
+[ext_resource path="res://states/Estados Globais/008 - Armadura/(State) Armor.tscn" type="PackedScene" id=5]
+[ext_resource path="res://skills/(Player) - Jansen/Shield.tscn" type="PackedScene" id=6]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Node
+
+# targetArray = Array contendo as posições que esse feitiço atingiu
+#               A célula central será contida em um Array sozinha, para fácil identificação
+var skill
+func effects(targetArray):
+	skill = get_parent()
+	
+	var dire = skill.caster.direction
+	BattleMechanics.playAnimEntity(skill.caster, \"Tocar\")
+	BattleMechanics.playAnim(skill.visuals[0],skill.caster.posit)
+	
+	
+	
+	var tgt = BattleMechanics.getEntityAt(targetArray[0])
+	if not tgt or (tgt and not tgt.player):
+		BattleMechanics.playAnim(skill.visuals[1],targetArray[0], true if abs(dire.x) > abs(dire.y) else false)
+		yield(get_tree().create_timer(2.6),\"timeout\")
+		var dir = Vector2(abs(skill.caster.direction.y),abs(skill.caster.direction.x))
+		
+		var aoe = []
+		if tgt:
+			BattleMechanics.dealDmg([40,\"f\"],tgt,skill.caster,false,Vector2.ZERO, true)
+			if not tgt in aoe:
+				BattleMechanics.removal(\"mp\",1,skill.caster,tgt)
+				aoe.append(tgt)
+		var cells = {0: targetArray[0]}
+		for i in 2:
+			cells[i+1]=[targetArray[0]+(dir*(i+1)), targetArray[0]-(dir*(i+1))]
+		
+		var keys = cells.keys()
+		
+		for j in keys:
+			for i in cells[j]:
+				BattleMechanics.playAnim(skill.visuals[2],i, true if abs(dire.x) > abs(dire.y) else false)
+				tgt = BattleMechanics.getEntityAt(i)
+				if tgt:
+					BattleMechanics.dealDmg([40,\"f\"],tgt,skill.caster,false,Vector2.ZERO, true)
+					if not tgt in aoe:
+						BattleMechanics.removal(\"mp\",1,skill.caster,tgt)
+						aoe.append(tgt)
+			yield(get_tree().create_timer(0.1),\"timeout\")
+	else:
+		BattleMechanics.playAnim(skill.visuals[3],targetArray[0])
+		yield(get_tree().create_timer(2.8),\"timeout\")
+		BattleMechanics.addState(skill.states[0],tgt,skill.caster,100)
+	
+	
+	
+	
+"
+
+[node name="Skill" type="Node2D"]
+script = ExtResource( 1 )
+skillName = "Muro de Fogo"
+description = "[b]Célula vazia ou alvo inimigo:[/b] 
+Causa [b][color=#fe4014]40 de dano de fogo[/color][/b] e remove [b]1 PM[/b] de todos em uma área de linha horizontal de 5 células.
+
+[b]Alvo aliado:[/b]
+Aplica [b]100 de Armadura[/b] no alvo aliado."
+apCost = 1
+element = 1
+rangeMax = 6
+linear = true
+sight = true
+usePerTgt = 1
+usePerTurn = 2
+tgtTypeEntity = true
+visuals = [ ExtResource( 4 ), ExtResource( 2 ), ExtResource( 3 ), ExtResource( 6 ) ]
+effects = SubResource( 1 )
+states = [ ExtResource( 5 ) ]
+
+[node name="Effects" type="Node" parent="."]

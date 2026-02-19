@@ -1,0 +1,15 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+path="res://.import/twinkle.mp3-0ae91b93dafd1a1cbb93d06164caeca1.mp3str"
+
+[deps]
+
+source_file="res://sfx/twinkle.mp3"
+dest_files=[ "res://.import/twinkle.mp3-0ae91b93dafd1a1cbb93d06164caeca1.mp3str" ]
+
+[params]
+
+loop=false
+loop_offset=0

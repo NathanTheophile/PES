@@ -1,0 +1,43 @@
+[gd_scene load_steps=8 format=2]
+
+[ext_resource path="res://skills/SkillScript.gd" type="Script" id=1]
+[ext_resource path="res://skills/Recursos Comuns/Hit.tscn" type="PackedScene" id=2]
+[ext_resource path="res://skills/icons/gear.png" type="Texture" id=3]
+[ext_resource path="res://characters/002 - Zoro/skills/tripleslash.tscn" type="PackedScene" id=4]
+[ext_resource path="res://skills/HelperWindows/Duel.tscn" type="PackedScene" id=5]
+[ext_resource path="res://characters/002 - Zoro/skills/(State) Duel Against Zoro.tscn" type="PackedScene" id=6]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Node
+
+# targetArray = Array contendo as posições que esse feitiço atingiu
+#               A célula central será contida em um Array sozinha, para fácil identificação
+var skill
+func effects(targetArray):
+	skill = get_parent()
+	var d = skill.caster.direction
+	
+	BattleMechanics.playAnimEntity(skill.caster, \"Point\")
+	
+	yield(get_tree().create_timer(0.6),\"timeout\")
+	var tgt = BattleMechanics.getEntityAt(targetArray[0])
+	if tgt and not BattleMechanics.hasState(tgt,\"Duel Against Zoro\"):
+		BattleMechanics.addState(skill.states[0],tgt,skill.caster)
+"
+
+[node name="Skill" type="Node2D"]
+script = ExtResource( 1 )
+skillName = "Mark of a Duel"
+description = "Starts a [b]Duel[/b] with the target. The longer the Duel lasts without being broken, the more powerful Zoro gets."
+icon1 = ExtResource( 3 )
+apCost = 1
+element = 2
+rangeMax = 6
+sight = true
+cooldown = 2
+visuals = [ ExtResource( 4 ), ExtResource( 2 ) ]
+effects = SubResource( 1 )
+states = [ ExtResource( 6 ) ]
+helpertext = [ ExtResource( 5 ) ]
+
+[node name="Effects" type="Node" parent="."]

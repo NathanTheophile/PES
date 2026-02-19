@@ -1,0 +1,84 @@
+[gd_scene load_steps=4 format=2]
+
+[ext_resource path="res://skills/SkillScript.gd" type="Script" id=1]
+[ext_resource path="res://skills/old/039 - Crystal Leap/Crystal2.tscn" type="PackedScene" id=2]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Node
+
+# targetArray = Array contendo as posições que esse feitiço atingiu
+#               A célula central será contida em um Array sozinha, para fácil identificação
+var skill
+func effects(targetArray):
+	skill = get_parent()
+	
+	BattleMechanics.playAnimEntity(skill.caster, \"Attack\")
+	yield(get_tree().create_timer(1.2),\"timeout\")
+	#BattleMechanics.playAnim(skill.visuals[1],targetArray[0],false,\"over\")
+	#yield(get_tree().create_timer(0.5),\"timeout\")
+	for z in 4:
+		var stateName = \"Corpo de \"
+		var end = \"\"
+		match z:
+			0:
+				end = \"Rubi\"
+			1:
+				end = \"Safira\"
+			2:
+				end = \"Ametista\"
+			3:
+				end = \"Esmeralda\"
+		stateName += end
+		if BattleMechanics.hasState(skill.caster, stateName):
+			match z:
+				0: #Fogo
+					var tgt = BattleMechanics.getEntityAt(targetArray[0])
+					if tgt and tgt.player:
+						BattleMechanics.playAnim(skill.visuals[0],tgt.posit)
+						if tgt:
+							BattleMechanics.dealDmg([60,\"f\"],tgt,skill.caster)
+				1: #Água
+					var tgt = BattleMechanics.getEntityAt(targetArray[0])
+					if tgt and tgt.player:
+						BattleMechanics.playAnim(skill.visuals[0],tgt.posit)
+						if tgt:
+							BattleMechanics.dealDmg([60,\"w\"],tgt,skill.caster)
+							BattleMechanics.push(tgt,skill.caster,BattleMechanics.distanceTo(tgt.posit,skill.caster.posit)-2,skill.caster.direction*-1)
+				2: #Ar
+					var tgt = BattleMechanics.getEntityAt(targetArray[0])
+					if tgt and tgt.player:
+						BattleMechanics.playAnim(skill.visuals[0],tgt.posit)
+						if tgt:
+							BattleMechanics.dealDmg([60,\"a\"],tgt,skill.caster)
+							BattleMechanics.push(tgt,skill.caster,4,skill.caster.direction,[25,\"n\"])
+				3: #Terra
+					var tgt = BattleMechanics.getEntityAt(targetArray[0])
+					if tgt and tgt.player:
+						BattleMechanics.playAnim(skill.visuals[0],tgt.posit)
+						if tgt:
+							BattleMechanics.dealDmg([60,\"e\"],tgt,skill.caster)
+							BattleMechanics.heal(BattleMechanics.dmgHolder[tgt.name][0],skill.caster,skill.caster)
+	
+
+	
+	
+
+
+	
+	
+"
+
+[node name="Skill" type="Node2D"]
+script = ExtResource( 1 )
+skillName = "Disparo de Gemas"
+description = "Deals [color=#f09ee5]5 air damage[/color]. "
+apCost = 1
+rangeMin = 4
+rangeMax = 6
+sight = true
+usePerTgt = 1
+tgtTypeEntity = true
+visuals = [ ExtResource( 2 ) ]
+effects = SubResource( 1 )
+
+[node name="Effects" type="Node" parent="."]

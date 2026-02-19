@@ -1,0 +1,80 @@
+[gd_scene load_steps=12 format=2]
+
+[ext_resource path="res://skills/SkillScript.gd" type="Script" id=1]
+[ext_resource path="res://skills/(Player) - Tenebrus/Golpe Armado/Martelo.tscn" type="PackedScene" id=2]
+[ext_resource path="res://skills/(Player) - Tenebrus/Golpe Armado/Martelo2.tscn" type="PackedScene" id=3]
+[ext_resource path="res://skills/(Player) - Tenebrus/Golpe Armado/Espada.tscn" type="PackedScene" id=4]
+[ext_resource path="res://skills/(Player) - Tenebrus/Golpe Armado/Martelo3.tscn" type="PackedScene" id=5]
+[ext_resource path="res://skills/(Player) - Tenebrus/Golpe Armado/Machado.tscn" type="PackedScene" id=6]
+[ext_resource path="res://skills/(Player) - Tenebrus/Golpe Armado/Espada2.tscn" type="PackedScene" id=7]
+[ext_resource path="res://skills/(Player) - Tenebrus/Golpe Armado/Espada3.tscn" type="PackedScene" id=8]
+[ext_resource path="res://skills/(Player) - Tenebrus/Golpe Armado/Espada4.tscn" type="PackedScene" id=9]
+[ext_resource path="res://skills/(Player) - Tenebrus/Golpe Armado/Machado2.tscn" type="PackedScene" id=10]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Node
+
+# targetArray = Array contendo as posições que esse feitiço atingiu
+#               A célula central será contida em um Array sozinha, para fácil identificação
+var skill
+func effects(targetArray):
+	skill = get_parent()
+	
+	BattleMechanics.playAnimEntity(skill.caster, \"Ataque\")
+	yield(get_tree().create_timer(0.6),\"timeout\")
+	
+	var d = skill.caster.direction
+	if skill.aoeShape == 0:
+		BattleMechanics.playAnim(skill.visuals[6 if d.x+d.y>0 else 8],skill.caster.posit,false if abs(d.x)>abs(d.y) else true,\"over\")
+		var tgt=BattleMechanics.getEntityAt(targetArray[0])
+		if tgt:
+			BattleMechanics.dealDmg([60,\"e\"], tgt, skill.caster)
+	#yield(get_tree().create_timer(0.1),\"timeout\")
+	if skill.aoeShape == 3:
+		var center
+		for i in targetArray:
+			if i is Array:
+				center = i[0]
+				break
+		BattleMechanics.playAnim(skill.visuals[0],center)
+		BattleMechanics.playAnim(skill.visuals[1],center,false,\"under\")
+		for i in targetArray:
+			var tgt
+			if i is Array:
+				tgt = BattleMechanics.getEntityAt(i[0])
+			else:
+				tgt = BattleMechanics.getEntityAt(i)
+			if tgt and tgt!=skill.caster:
+				BattleMechanics.dealDmg([40,\"e\"], tgt, skill.caster, false, Vector2(0,0),true)
+			BattleMechanics.playAnim(skill.visuals[5],i if not i is Array else i[0])
+	elif skill.aoeShape == 5:
+		var order = BattleMechanics.orderAoE(targetArray)
+		var k = order.keys()
+		k.sort()
+		for i in k:
+			for j in order[i]:
+				var tgt = BattleMechanics.getEntityAt(j)
+				if tgt:
+					BattleMechanics.dealDmg([40,\"e\"], tgt, skill.caster, false, Vector2(0,0),true)
+				if i==0:
+					BattleMechanics.playAnim(skill.visuals[4 if d.x+d.y>0 else 7], j, false if abs(d.x)>abs(d.y) else true)
+				
+				BattleMechanics.playAnim(skill.visuals[2], j, false if abs(d.x)>abs(d.y) else true)
+				BattleMechanics.playAnim(skill.visuals[3], j, false if abs(d.x)>abs(d.y) else true, \"under\")
+				yield(get_tree().create_timer(0.05),\"timeout\")
+"
+
+[node name="Skill" type="Node2D"]
+script = ExtResource( 1 )
+skillName = "Golpe Armado"
+description = "Causa [b][color=#5ea60f]40 de dano de terra[/color][/b] numa área baseada em sua arma atual."
+apCost = 1
+element = 4
+linear = true
+sight = true
+aoeShape = 2
+aoeSize = 4
+visuals = [ ExtResource( 2 ), ExtResource( 3 ), ExtResource( 4 ), ExtResource( 7 ), ExtResource( 8 ), ExtResource( 5 ), ExtResource( 6 ), ExtResource( 9 ), ExtResource( 10 ) ]
+effects = SubResource( 1 )
+
+[node name="Effects" type="Node" parent="."]

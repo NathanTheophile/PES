@@ -1,0 +1,61 @@
+[gd_scene load_steps=8 format=2]
+
+[ext_resource path="res://skills/SkillScript.gd" type="Script" id=1]
+[ext_resource path="res://skills/Recursos Comuns/Hit.tscn" type="PackedScene" id=2]
+[ext_resource path="res://skills/icons/move.png" type="Texture" id=3]
+[ext_resource path="res://skills/HelperWindows/Push.tscn" type="PackedScene" id=4]
+[ext_resource path="res://skills/icons/atk.png" type="Texture" id=5]
+[ext_resource path="res://characters/003 - Usopp/skill/Shine.tscn" type="PackedScene" id=7]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Node
+
+# targetArray = Array contendo as posições que esse feitiço atingiu
+#               A célula central será contida em um Array sozinha, para fácil identificação
+var skill
+func effects(targetArray):
+	skill = get_parent()
+	var d = skill.caster.direction
+	
+	AM.play(skill.caster.audioEX[2],{\"randp\": true})
+	BattleMechanics.playAnim(skill.visuals[1],skill.caster.posit)
+	BattleMechanics.playAnimEntity(skill.caster, \"Hammer\")
+	
+	yield(get_tree().create_timer(1.1),\"timeout\")
+	
+	AM.play(skill.caster.audioEX[5],{\"randp\": true})
+	BattleMechanics.bounceTgt(skill.caster)
+	BattleMechanics.playAnim(skill.visuals[0],targetArray[0])
+	
+	var tgt = BattleMechanics.getEntityAt(targetArray[0])
+	if tgt:
+		BattleMechanics.dealDmg(int(skill.base * dmgMod(tgt)), tgt,skill.caster)
+		BattleMechanics.push(tgt, skill.caster, 2*dmgMod(tgt), skill.caster.direction)
+		
+	yield(get_tree().create_timer(0.5),\"timeout\")
+	BattleMechanics.playAnimEntity(skill.caster, \"Sling Back\")
+	yield(get_tree().create_timer(0.3),\"timeout\")
+	
+
+func dmgMod(target=false):
+	var p =  BattleMechanics.currentPlaying
+	return 2.0 if BattleMechanics.getDirectionalDmg(p,target) == 1.25 else 1.0
+"
+
+[node name="Skill" type="Node2D"]
+script = ExtResource( 1 )
+skillName = "Usopp Hammer"
+description = "[b]{b}[/b] [img]res://skills/sword.png[/img] and [b]Push 2[/b] without collision damage.
+
+[b]Backstab:[/b] Doubles damage dealt and cells pushed."
+icon1 = ExtResource( 5 )
+icon2 = ExtResource( 3 )
+base = 15
+apCost = 1
+element = 1
+sight = true
+visuals = [ ExtResource( 2 ), ExtResource( 7 ) ]
+effects = SubResource( 1 )
+helpertext = [ ExtResource( 4 ) ]
+
+[node name="Effects" type="Node" parent="."]

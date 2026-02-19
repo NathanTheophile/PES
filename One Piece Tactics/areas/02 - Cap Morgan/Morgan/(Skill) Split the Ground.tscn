@@ -1,0 +1,84 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://skills/SkillScript.gd" type="Script" id=1]
+[ext_resource path="res://areas/02 - Cap Morgan/Morgan/crack1.tscn" type="PackedScene" id=2]
+[ext_resource path="res://skills/HelperWindows/Push.tscn" type="PackedScene" id=3]
+[ext_resource path="res://characters/001 - Luffy/skills/AoE.tscn" type="PackedScene" id=4]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Node
+
+# targetArray = Array contendo as posições que esse feitiço atingiu
+#               A célula central será contida em um Array sozinha, para fácil identificação
+var skill
+func effects(targetArray):
+	skill = get_parent()
+
+	
+	BattleMechanics.playAnimEntity(skill.caster, \"Axe\")
+	
+	var aoe = BattleMechanics.orderAoE(targetArray)
+	var keys = aoe.keys()
+	keys.sort()
+	for j in keys:
+		for i in aoe[j]:
+			var tgt = BattleMechanics.getEntityAt(i)
+			if tgt and not tgt.player:
+				jumpAway(tgt,j)
+				
+	yield(get_tree().create_timer(0.9),\"timeout\")
+	BattleMechanics.shake()
+	for j in keys:
+		for i in aoe[j]:
+			var tgt = BattleMechanics.getEntityAt(i)
+			BattleMechanics.playAnim(skill.visuals[0], i)
+			BattleMechanics.playAnim(skill.visuals[1], i, false if skill.caster.direction in [Vector2(1,0),Vector2(-1,0)] else true)
+			if tgt:
+				BattleMechanics.dealDmg([80,\"n\"],tgt,skill.caster)
+		yield(get_tree().create_timer(0.05),\"timeout\")
+	
+func jumpAway(tgt,index):
+	yield(get_tree().create_timer(0.05*index),\"timeout\")
+	var d = tgt.direction
+	tgt.turn_to(BattleMechanics.directionTo(tgt.posit,skill.caster.posit))
+	var D = tgt.direction
+	BattleMechanics.bounceTgt(tgt)
+	yield(get_tree().create_timer(0.7),\"timeout\")
+	var newPosits = [ 
+		Vector2(D.y,D.x),
+		Vector2(-1*D.y,-1*D.x),
+		Vector2(D.y,D.x)+D,
+		Vector2(D.y,D.x)-D,
+		Vector2(-1*D.y,-1*D.x)+D,
+		Vector2(-1*D.y,-1*D.x)-D,
+	 ]
+	var newP
+	for i in newPosits:
+		if BattleMechanics.area.tilemap.get_cellv(tgt.posit+i)==0:
+			newP = tgt.posit+i
+			break
+	
+	yield(get_tree().create_timer(0.1),\"timeout\")
+	tgt.turn_to(BattleMechanics.directionTo(tgt.posit,newP))
+	BattleMechanics.bounceTgt(tgt)
+	BattleMechanics.teleport(tgt,newP,tgt)
+	yield(get_tree().create_timer(0.3),\"timeout\")
+	tgt.turn_to(d)
+		
+	
+	
+"
+
+[node name="Skill" type="Node2D"]
+script = ExtResource( 1 )
+skillName = "Split the Ground"
+linear = true
+sight = true
+aoeShape = 5
+aoeSize = 8
+usePerTurn = 1
+visuals = [ ExtResource( 4 ), ExtResource( 2 ) ]
+effects = SubResource( 1 )
+helpertext = [ ExtResource( 3 ) ]
+
+[node name="Effects" type="Node" parent="."]

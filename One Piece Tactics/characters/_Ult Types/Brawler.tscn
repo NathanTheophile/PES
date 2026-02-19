@@ -1,0 +1,69 @@
+[gd_scene load_steps=7 format=2]
+
+[ext_resource path="res://Roboto-Bold.ttf" type="DynamicFontData" id=1]
+[ext_resource path="res://states/StatePreview.tscn" type="PackedScene" id=2]
+[ext_resource path="res://states/StateScript.gd" type="Script" id=3]
+[ext_resource path="res://characters/001 - Luffy/skills/ap buff.png" type="Texture" id=4]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Node
+
+var state
+var last
+func stateSetup():
+	state = get_parent()
+	state.caster.connect(\"dmg_taken\", self, \"activate\")
+
+func activate(_dmg, caster, before):
+	if not before:
+		#BattleMechanics.dmgHolder[state.caster.name][0] > 0 and 
+		if caster:
+			var wr = weakref(caster)
+			if (wr.get_ref()):
+				if not caster.player:
+					BattleMechanics.ultProc(state.caster)
+"
+
+[sub_resource type="DynamicFont" id=2]
+outline_size = 3
+outline_color = Color( 0.215686, 0.215686, 0.215686, 1 )
+font_data = ExtResource( 1 )
+
+[node name="State" type="Node2D"]
+z_as_relative = false
+script = ExtResource( 3 )
+stateName = "Brawler"
+type = 3
+effects = SubResource( 1 )
+
+[node name="Effects" type="Node" parent="."]
+
+[node name="Icon" type="TextureRect" parent="."]
+visible = false
+margin_right = 32.0
+margin_bottom = 32.0
+mouse_filter = 0
+texture = ExtResource( 4 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="LVl" type="Label" parent="Icon"]
+margin_left = 21.0
+margin_top = 17.0
+margin_right = 30.0
+margin_bottom = 36.0
+custom_fonts/font = SubResource( 2 )
+text = "1"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Window" type="Node2D" parent="Icon"]
+
+[node name="Panel" parent="Icon/Window" instance=ExtResource( 2 )]
+visible = false
+margin_left = 32.0
+margin_top = -60.0
+margin_right = 238.0
+margin_bottom = -7.0

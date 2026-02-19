@@ -1,0 +1,15 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+path="res://.import/Big Anime Character Walking (One Piece Kuma) - Sound Effect for editing.mp3-aa71a21582bb91e7d6650ecbc3011c58.mp3str"
+
+[deps]
+
+source_file="res://sfx/Big Anime Character Walking (One Piece Kuma) - Sound Effect for editing.mp3"
+dest_files=[ "res://.import/Big Anime Character Walking (One Piece Kuma) - Sound Effect for editing.mp3-aa71a21582bb91e7d6650ecbc3011c58.mp3str" ]
+
+[params]
+
+loop=false
+loop_offset=0

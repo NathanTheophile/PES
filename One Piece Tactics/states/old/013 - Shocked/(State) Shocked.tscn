@@ -1,0 +1,121 @@
+[gd_scene load_steps=15 format=2]
+
+[ext_resource path="res://states/StateScript.gd" type="Script" id=1]
+[ext_resource path="res://Roboto-Bold.ttf" type="DynamicFontData" id=2]
+[ext_resource path="res://states/old/013 - Shocked/icon.png" type="Texture" id=3]
+[ext_resource path="res://states/StatePreview.tscn" type="PackedScene" id=4]
+[ext_resource path="res://skills/028 - Lightning Bullet/AnimParalisis.tscn" type="PackedScene" id=5]
+[ext_resource path="res://skills/Recursos Comuns/shockPtcl.png" type="Texture" id=8]
+[ext_resource path="res://skills/Recursos Comuns/shockPtcl2.png" type="Texture" id=9]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Node
+
+var state
+var porter
+func stateSetup():
+	state = get_parent()
+	porter = state.get_node(\"../..\")
+	porter.connect(\"walked\",self,\"shock\")
+	porter.connect(\"turn_end\",self,\"end\")
+
+var dmg = 0
+func shock(_posit, _newPosit):
+	dmg += state.lvl
+
+func end():
+	yield(get_tree(),\"idle_frame\")
+	BattleMechanics.playAnim(state.visuals[0],porter.posit, false, \"ysort\")
+	BattleMechanics.dealDmg([dmg, \"n\"], porter, state.caster)
+	BattleMechanics.removeState(state)
+"
+
+[sub_resource type="DynamicFont" id=2]
+outline_size = 3
+outline_color = Color( 0.215686, 0.215686, 0.215686, 1 )
+font_data = ExtResource( 2 )
+
+[sub_resource type="Gradient" id=20]
+colors = PoolColorArray( 1, 1, 1, 1, 0.741176, 0.427451, 0.803922, 1 )
+
+[sub_resource type="GradientTexture" id=17]
+gradient = SubResource( 20 )
+
+[sub_resource type="Curve" id=21]
+_data = [ Vector2( 0, 0.896591 ), 0.0, 0.0590349, 0, 0, Vector2( 1, 1 ), 0.0, 0.0, 0, 0 ]
+
+[sub_resource type="CurveTexture" id=19]
+curve = SubResource( 21 )
+
+[sub_resource type="ParticlesMaterial" id=22]
+lifetime_randomness = 1.0
+emission_shape = 1
+emission_sphere_radius = 23.44
+flag_disable_z = true
+spread = 180.0
+gravity = Vector3( 0, 0, 0 )
+initial_velocity = 5.0
+orbit_velocity = 0.0
+orbit_velocity_random = 0.0
+angle = 360.0
+angle_random = 1.0
+scale_curve = SubResource( 19 )
+color_ramp = SubResource( 17 )
+
+[node name="State" type="Node2D"]
+z_as_relative = false
+script = ExtResource( 1 )
+stateName = "Shocked"
+id = 13
+description = "At the end of the porter's turn:
+- Takes [b]{lvl} damage[/b] for each cell walked during the turn."
+type = 2
+effects = SubResource( 1 )
+visuals = [ ExtResource( 5 ) ]
+appearOver = true
+stacks = true
+modularDesc = true
+
+[node name="Effects" type="Node" parent="."]
+
+[node name="Icon" type="TextureRect" parent="."]
+visible = false
+margin_right = 32.0
+margin_bottom = 32.0
+mouse_filter = 0
+texture = ExtResource( 3 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="LVl" type="Label" parent="Icon"]
+margin_left = 21.0
+margin_top = 17.0
+margin_right = 30.0
+margin_bottom = 36.0
+custom_fonts/font = SubResource( 2 )
+text = "1"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Window" type="Node2D" parent="Icon"]
+
+[node name="Panel" parent="Icon/Window" instance=ExtResource( 4 )]
+visible = false
+margin_left = 32.0
+margin_top = -60.0
+margin_right = 238.0
+margin_bottom = -7.0
+
+[node name="Particles2D" type="Particles2D" parent="."]
+amount = 1
+lifetime = 0.5
+process_material = SubResource( 22 )
+texture = ExtResource( 9 )
+
+[node name="Particles2D2" type="Particles2D" parent="."]
+amount = 1
+lifetime = 0.5
+process_material = SubResource( 22 )
+texture = ExtResource( 8 )

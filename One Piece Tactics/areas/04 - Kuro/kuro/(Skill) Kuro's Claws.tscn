@@ -1,0 +1,52 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://skills/SkillScript.gd" type="Script" id=1]
+[ext_resource path="res://characters/002 - Zoro/skills/toragari.tscn" type="PackedScene" id=2]
+[ext_resource path="res://skills/HelperWindows/Push.tscn" type="PackedScene" id=3]
+[ext_resource path="res://areas/04 - Kuro/kuro/(State) Lacerations.tscn" type="PackedScene" id=4]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Node
+
+# targetArray = Array contendo as posições que esse feitiço atingiu
+#               A célula central será contida em um Array sozinha, para fácil identificação
+var skill
+func effects(targetArray):
+	skill = get_parent()
+
+	
+	BattleMechanics.playAnimEntity(skill.caster, \"Atk\")
+	yield(get_tree().create_timer(0.6),\"timeout\")
+	
+	for i in targetArray:
+		var tgt = BattleMechanics.getEntityAt(i if ! i is Array else i[0])
+		if tgt and tgt.player:
+			BattleMechanics.dealDmg(skill.base, tgt, skill.caster)
+			BattleMechanics.addState(skill.states[0], tgt, skill.caster, BattleMechanics.getState(skill.caster, \"Phases\").lvl)
+		if i is Array:
+			BattleMechanics.playAnim(skill.visuals[0],i[0], false if skill.caster.direction in [Vector2(1,0),Vector2(-1,0)] else true)
+	
+	yield(get_tree().create_timer(1),\"timeout\")
+	
+			
+	
+	
+	
+"
+
+[node name="Skill" type="Node2D"]
+script = ExtResource( 1 )
+skillName = "Kuro's Claws"
+base = 30
+apCost = 1
+rangeMax = 2
+linear = true
+sight = true
+aoeShape = 6
+usePerTgt = 1
+visuals = [ ExtResource( 2 ) ]
+effects = SubResource( 1 )
+states = [ ExtResource( 4 ) ]
+helpertext = [ ExtResource( 3 ) ]
+
+[node name="Effects" type="Node" parent="."]
