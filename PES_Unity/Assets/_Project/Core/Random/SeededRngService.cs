@@ -1,18 +1,18 @@
-// Utility: this script provides a seed-based RNG implementation used to keep simulations reproducible.
+// Utilité : ce script fournit une implémentation RNG à seed fixe pour des simulations reproductibles.
 using System;
 
 namespace PES.Core.Random
 {
     /// <summary>
-    /// Deterministic RNG adapter backed by System.Random with explicit seed storage.
+    /// Adaptateur RNG déterministe basé sur System.Random avec seed explicite.
     /// </summary>
     public sealed class SeededRngService : IRngService
     {
-        // Internal PRNG instance. Same seed -> same random sequence.
+        // PRNG interne : même seed => même séquence pseudo-aléatoire.
         private readonly Random _random;
 
         /// <summary>
-        /// Creates a deterministic RNG with a fixed seed.
+        /// Construit un RNG déterministe avec une seed donnée.
         /// </summary>
         public SeededRngService(int seed)
         {
@@ -21,12 +21,12 @@ namespace PES.Core.Random
         }
 
         /// <summary>
-        /// Seed used to initialize this RNG instance.
+        /// Seed utilisée pour initialiser l'instance.
         /// </summary>
         public int Seed { get; }
 
         /// <summary>
-        /// Returns the next pseudo-random integer in the requested range.
+        /// Retourne la prochaine valeur pseudo-aléatoire dans l'intervalle demandé.
         /// </summary>
         public int NextInt(int minInclusive, int maxExclusive)
         {

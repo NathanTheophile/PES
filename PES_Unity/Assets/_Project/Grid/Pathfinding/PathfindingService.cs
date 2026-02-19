@@ -1,22 +1,22 @@
-// Utility: this script provides a placeholder pathfinding service API for future grid navigation rules.
+// Utilité : ce script fournit l'API de pathfinding placeholder pour les futures règles de navigation.
 using System.Collections.Generic;
 using PES.Grid.Grid3D;
 
 namespace PES.Grid.Pathfinding
 {
     /// <summary>
-    /// Temporary pathfinding stub.
-    /// Later iterations will replace this with obstacle-aware, height-aware search.
+    /// Stub temporaire de pathfinding.
+    /// Il sera remplacé par une recherche tenant compte des obstacles et de la hauteur.
     /// </summary>
     public sealed class PathfindingService
     {
         /// <summary>
-        /// Computes a path between two coordinates.
-        /// Current bootstrap behavior returns a minimal 2-node path [from, to].
+        /// Calcule un chemin entre deux coordonnées.
+        /// Comportement bootstrap actuel : retourne un chemin minimal à 2 nœuds [from, to].
         /// </summary>
         public IReadOnlyList<GridCoord3> ComputePath(GridCoord3 from, GridCoord3 to)
         {
-            // This is intentionally simple for bootstrap compile safety.
+            // Intentionnellement simple pour garantir une base compilable au bootstrap.
             return new[] { from, to };
         }
     }

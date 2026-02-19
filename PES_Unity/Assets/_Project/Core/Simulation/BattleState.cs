@@ -1,34 +1,34 @@
-// Utility: this script contains the in-memory combat state used by the resolver pipeline.
-// It centralizes deterministic data mutation (positions, ticks, and event log entries).
+// Utilité : ce script contient l'état mémoire du combat utilisé par le pipeline de résolution.
+// Il centralise les mutations déterministes (positions, ticks, journal d'événements).
 using System.Collections.Generic;
 
 namespace PES.Core.Simulation
 {
     /// <summary>
-    /// Domain state container for the tactical battle simulation.
-    /// This class intentionally contains no Unity-specific API so it remains testable and portable.
+    /// Conteneur d'état métier pour la simulation tactique.
+    /// Cette classe n'utilise volontairement aucune API Unity afin de rester testable et portable.
     /// </summary>
     public sealed class BattleState
     {
-        // Current positions of each known entity.
-        // Dictionary gives O(1) lookup/update for most simulation operations.
+        // Position actuelle de chaque entité connue.
+        // Un dictionnaire offre un accès/mise à jour en O(1) dans la majorité des cas.
         private readonly Dictionary<EntityId, Position3> _entityPositions = new();
 
-        // Ordered, append-only list of text events produced by resolved actions.
+        // Journal ordonné (append-only) des événements textuels produits par les actions résolues.
         private readonly List<string> _eventLog = new();
 
         /// <summary>
-        /// Read-only view over the event log so external code can inspect but not mutate directly.
+        /// Vue en lecture seule du journal d'événements (inspection externe sans mutation directe).
         /// </summary>
         public IReadOnlyList<string> EventLog => _eventLog;
 
         /// <summary>
-        /// Monotonic simulation counter incremented once per resolved action.
+        /// Compteur monotone de simulation, incrémenté après chaque action résolue.
         /// </summary>
         public int Tick { get; private set; }
 
         /// <summary>
-        /// Advances simulation time by one tick.
+        /// Avance la simulation d'un tick.
         /// </summary>
         public void AdvanceTick()
         {
@@ -36,7 +36,7 @@ namespace PES.Core.Simulation
         }
 
         /// <summary>
-        /// Appends a new textual event to the domain event log.
+        /// Ajoute un événement textuel au journal métier.
         /// </summary>
         public void AddEvent(string evt)
         {
@@ -44,8 +44,8 @@ namespace PES.Core.Simulation
         }
 
         /// <summary>
-        /// Sets or replaces the position of an entity.
-        /// Used for setup/bootstrap or explicit domain updates.
+        /// Définit ou remplace la position d'une entité.
+        /// Utile pour l'initialisation et certaines mutations métier explicites.
         /// </summary>
         public void SetEntityPosition(EntityId entityId, Position3 position)
         {
@@ -53,8 +53,8 @@ namespace PES.Core.Simulation
         }
 
         /// <summary>
-        /// Tries to read an entity position.
-        /// Returns false when the entity has no known position in current state.
+        /// Tente de lire la position d'une entité.
+        /// Retourne false si l'entité n'a pas de position connue dans l'état courant.
         /// </summary>
         public bool TryGetEntityPosition(EntityId entityId, out Position3 position)
         {
@@ -62,30 +62,30 @@ namespace PES.Core.Simulation
         }
 
         /// <summary>
-        /// Atomically moves an entity only if its current position matches the expected origin.
-        /// This protects the simulation against stale commands and race-like ordering issues.
+        /// Déplace une entité uniquement si sa position courante correspond à l'origine attendue.
+        /// Cela protège contre des commandes obsolètes ou mal ordonnées.
         /// </summary>
         public bool TryMoveEntity(EntityId entityId, Position3 expectedOrigin, Position3 destination)
         {
-            // Reject when entity is missing OR when command origin is stale/invalid.
+            // Rejet si l'entité n'existe pas OU si l'origine de la commande ne correspond pas.
             if (!_entityPositions.TryGetValue(entityId, out var current) || !current.Equals(expectedOrigin))
             {
                 return false;
             }
 
-            // Apply movement once precondition passes.
+            // Application du déplacement une fois la précondition validée.
             _entityPositions[entityId] = destination;
             return true;
         }
     }
 
     /// <summary>
-    /// Immutable 3D integer position used in battle state storage.
+    /// Position 3D entière immuable utilisée pour le stockage dans BattleState.
     /// </summary>
     public readonly struct Position3
     {
         /// <summary>
-        /// Creates a new 3D position value.
+        /// Construit une nouvelle position 3D.
         /// </summary>
         public Position3(int x, int y, int z)
         {
@@ -94,17 +94,17 @@ namespace PES.Core.Simulation
             Z = z;
         }
 
-        /// <summary>Horizontal X axis component.</summary>
+        /// <summary>Composante horizontale X.</summary>
         public int X { get; }
 
-        /// <summary>Horizontal Y axis component.</summary>
+        /// <summary>Composante horizontale Y.</summary>
         public int Y { get; }
 
-        /// <summary>Vertical Z axis component.</summary>
+        /// <summary>Composante verticale Z.</summary>
         public int Z { get; }
 
         /// <summary>
-        /// Human-readable coordinate format for logs/debugging.
+        /// Format lisible de coordonnées pour logs et débogage.
         /// </summary>
         public override string ToString()
         {

@@ -1,20 +1,20 @@
-// Utility: this script orchestrates the deterministic action pipeline:
-// command execution, event recording, and tick progression.
+// Utilité : ce script orchestre le pipeline d'action déterministe :
+// exécution de commande, journalisation d'événement, progression du tick.
 using PES.Core.Random;
 
 namespace PES.Core.Simulation
 {
     /// <summary>
-    /// Central domain service responsible for resolving action commands.
-    /// It enforces a single flow: resolve command -> log event -> advance simulation tick.
+    /// Service métier central chargé de résoudre les commandes d'action.
+    /// Il impose un flux unique : résolution -> log événement -> incrément du tick.
     /// </summary>
     public sealed class ActionResolver
     {
-        // Centralized RNG instance injected once, enabling reproducible seeded simulations.
+        // Instance RNG injectée une fois, pour garantir des simulations reproductibles.
         private readonly IRngService _rngService;
 
         /// <summary>
-        /// Creates a resolver bound to a specific RNG service.
+        /// Construit un resolver lié à un service RNG donné.
         /// </summary>
         public ActionResolver(IRngService rngService)
         {
@@ -22,29 +22,29 @@ namespace PES.Core.Simulation
         }
 
         /// <summary>
-        /// Executes one action command and applies standard pipeline post-processing.
+        /// Exécute une commande d'action et applique le post-traitement standard du pipeline.
         /// </summary>
         public ActionResolution Resolve(BattleState state, IActionCommand command)
         {
-            // 1) Let the action validate itself and mutate state as needed.
+            // 1) L'action se valide et mutile l'état si nécessaire.
             var result = command.Resolve(state, _rngService);
 
-            // 2) Persist a human-readable event for replay/debug traces.
+            // 2) On persiste un événement lisible pour replay/debug.
             state.AddEvent(result.Description);
 
-            // 3) Advance deterministic timeline after each resolved command.
+            // 3) On avance la timeline déterministe.
             state.AdvanceTick();
             return result;
         }
     }
 
     /// <summary>
-    /// Standard output DTO describing the result of command resolution.
+    /// DTO standard décrivant le résultat d'une résolution de commande.
     /// </summary>
     public readonly struct ActionResolution
     {
         /// <summary>
-        /// Creates a new action result object.
+        /// Construit un nouvel objet résultat d'action.
         /// </summary>
         public ActionResolution(bool success, string description)
         {
@@ -53,12 +53,12 @@ namespace PES.Core.Simulation
         }
 
         /// <summary>
-        /// True when the action succeeded and produced an accepted gameplay result.
+        /// True si l'action est acceptée/réussie par les règles métier.
         /// </summary>
         public bool Success { get; }
 
         /// <summary>
-        /// Text summary intended for logs/debug and eventual telemetry/event stream.
+        /// Résumé textuel pour logs/debug et futur flux d'événements.
         /// </summary>
         public string Description { get; }
     }

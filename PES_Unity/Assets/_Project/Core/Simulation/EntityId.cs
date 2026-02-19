@@ -1,29 +1,29 @@
-// Utility: this script defines a lightweight domain identifier used to reference entities
-// (units, actors, targets) in a deterministic and serializable way throughout the simulation.
+// Utilité : ce script définit un identifiant métier léger pour référencer les entités
+// (unités, acteurs, cibles) de manière déterministe et sérialisable.
 namespace PES.Core.Simulation
 {
     /// <summary>
-    /// Immutable value object representing a stable entity identifier inside the battle simulation.
-    /// Keeping IDs as plain integers makes save/load, event logs, and multiplayer replication easier.
+    /// Objet valeur immuable représentant un identifiant stable d'entité dans la simulation de combat.
+    /// Conserver un ID en entier facilite sauvegarde/chargement, logs d'événements et réplication réseau.
     /// </summary>
     public readonly struct EntityId
     {
         /// <summary>
-        /// Creates an entity identifier from a raw integer value.
+        /// Construit un identifiant d'entité à partir d'une valeur entière brute.
         /// </summary>
         public EntityId(int value)
         {
-            // We store the value once at construction time because this struct is immutable.
+            // La valeur est affectée une seule fois à la construction car la struct est immuable.
             Value = value;
         }
 
         /// <summary>
-        /// Raw numeric value of the identifier.
+        /// Valeur numérique brute de l'identifiant.
         /// </summary>
         public int Value { get; }
 
         /// <summary>
-        /// Human-readable format useful for debugging and logs.
+        /// Format lisible utile pour le débogage et les logs.
         /// </summary>
         public override string ToString()
         {

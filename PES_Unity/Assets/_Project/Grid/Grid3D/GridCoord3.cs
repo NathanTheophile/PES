@@ -1,13 +1,13 @@
-// Utility: this script defines a grid-space coordinate value object used by tactical actions.
+// Utilité : ce script définit une coordonnée de grille utilisée par les actions tactiques.
 namespace PES.Grid.Grid3D
 {
     /// <summary>
-    /// Immutable integer 3D grid coordinate (X, Y, Z) for map cells and movement targets.
+    /// Coordonnée 3D entière immuable (X, Y, Z) pour les cellules de map et cibles de déplacement.
     /// </summary>
     public readonly struct GridCoord3
     {
         /// <summary>
-        /// Creates a coordinate from explicit components.
+        /// Construit une coordonnée à partir de composantes explicites.
         /// </summary>
         public GridCoord3(int x, int y, int z)
         {
@@ -16,17 +16,17 @@ namespace PES.Grid.Grid3D
             Z = z;
         }
 
-        /// <summary>Horizontal X component.</summary>
+        /// <summary>Composante horizontale X.</summary>
         public int X { get; }
 
-        /// <summary>Horizontal Y component.</summary>
+        /// <summary>Composante horizontale Y.</summary>
         public int Y { get; }
 
-        /// <summary>Vertical Z component.</summary>
+        /// <summary>Composante verticale Z.</summary>
         public int Z { get; }
 
         /// <summary>
-        /// Human-readable coordinate format for debugging and logs.
+        /// Format de coordonnées lisible pour debug et logs.
         /// </summary>
         public override string ToString()
         {
