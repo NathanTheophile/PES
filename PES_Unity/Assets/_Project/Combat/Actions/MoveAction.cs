@@ -1,6 +1,7 @@
 // Utilité : ce script implémente la première commande métier de déplacement
-// avec validation d'origine, budget de chemin et contraintes de dénivelé.
+// avec validation d'origine, trajectoire, occupation, obstacles et coût de mouvement.
 using System;
+using System.Collections.Generic;
 using PES.Core.Random;
 using PES.Core.Simulation;
 using PES.Grid.Grid3D;
@@ -13,11 +14,11 @@ namespace PES.Combat.Actions
     /// </summary>
     public readonly struct MoveAction : IActionCommand
     {
-        // Budget de déplacement total (nombre maximal de pas grille) pour ce premier slice.
-        private const int MaxDistancePerAction = 3;
+        // Budget maximal de coût de mouvement pour une action.
+        private const int MaxMovementCostPerAction = 3;
 
-        // Budget de variation verticale autorisée sur une action.
-        private const int MaxVerticalStep = 1;
+        // Budget de variation verticale autorisée entre deux cases consécutives.
+        private const int MaxVerticalStepPerTile = 1;
 
         /// <summary>
         /// Construit une commande de déplacement pour un acteur donné.
@@ -43,29 +44,93 @@ namespace PES.Combat.Actions
         /// </summary>
         public ActionResolution Resolve(BattleState state, IRngService rngService)
         {
-            // Garde 1 : l'entité doit exister et être exactement à l'origine annoncée.
-            if (!state.TryMoveEntity(ActorId, ToPosition(Origin), ToPosition(Destination)))
+            var originPosition = ToPosition(Origin);
+            var destinationPosition = ToPosition(Destination);
+
+            // Garde 1 : l'acteur doit exister à l'origine annoncée.
+            if (!state.TryGetEntityPosition(ActorId, out var actorCurrentPosition) || !actorCurrentPosition.Equals(originPosition))
             {
                 return new ActionResolution(false, ActionResolutionCode.Rejected, $"MoveActionRejected: invalid origin for {ActorId} ({Origin} -> {Destination})");
             }
 
-            // Génère un chemin discret pour mesurer le coût réel du déplacement en nombre de pas.
-            var pathService = new PathfindingService();
-            var path = pathService.ComputePath(Origin, Destination);
-            var stepCost = path.Count - 1;
-
-            // Validation explicite du dénivelé total autorisé pour cette action.
-            var verticalDelta = Math.Abs(Destination.Z - Origin.Z);
-
-            // Rejet si le budget est dépassé + rollback de la mutation temporaire.
-            if (stepCost > MaxDistancePerAction || verticalDelta > MaxVerticalStep)
+            // Garde 2 : la destination ne doit pas être bloquée ni occupée par une autre entité.
+            if (state.IsPositionBlocked(destinationPosition))
             {
-                state.SetEntityPosition(ActorId, ToPosition(Origin));
-                return new ActionResolution(false, ActionResolutionCode.Rejected, $"MoveActionRejected: out of bounds for {ActorId} ({Origin} -> {Destination})");
+                return new ActionResolution(false, ActionResolutionCode.Rejected, $"MoveActionRejected: destination blocked for {ActorId} ({Destination})");
             }
 
-            // Action acceptée.
-            return new ActionResolution(true, ActionResolutionCode.Succeeded, $"MoveActionResolved: {ActorId} {Origin} -> {Destination} [steps:{stepCost}]");
+            if (state.IsPositionOccupied(destinationPosition, ActorId))
+            {
+                return new ActionResolution(false, ActionResolutionCode.Rejected, $"MoveActionRejected: destination occupied for {ActorId} ({Destination})");
+            }
+
+            // Construction de la carte des cellules bloquées terrain.
+            var blockedCells = BuildBlockedCellSet(state, ActorId, originPosition, destinationPosition);
+            var pathService = new PathfindingService();
+            if (!pathService.TryComputePath(Origin, Destination, blockedCells, out var path))
+            {
+                return new ActionResolution(false, ActionResolutionCode.Rejected, $"MoveActionRejected: blocked path for {ActorId} ({Origin} -> {Destination})");
+            }
+
+            // Validation du coût de mouvement + contraintes de dénivelé par pas.
+            var movementCost = ComputeMovementCost(path);
+            if (movementCost > MaxMovementCostPerAction)
+            {
+                return new ActionResolution(false, ActionResolutionCode.Rejected, $"MoveActionRejected: movement cost exceeded for {ActorId} ({movementCost}/{MaxMovementCostPerAction})");
+            }
+
+            // Mutation d'état uniquement après validation complète.
+            state.SetEntityPosition(ActorId, destinationPosition);
+            return new ActionResolution(true, ActionResolutionCode.Succeeded, $"MoveActionResolved: {ActorId} {Origin} -> {Destination} [cost:{movementCost}]");
+        }
+
+        private static int ComputeMovementCost(IReadOnlyList<GridCoord3> path)
+        {
+            var totalCost = 0;
+            for (var i = 1; i < path.Count; i++)
+            {
+                var previous = path[i - 1];
+                var current = path[i];
+
+                var verticalStep = Math.Abs(current.Z - previous.Z);
+                if (verticalStep > MaxVerticalStepPerTile)
+                {
+                    return int.MaxValue;
+                }
+
+                var stepCost = 1 + verticalStep;
+                totalCost += stepCost;
+            }
+
+            return totalCost;
+        }
+
+        private static HashSet<GridCoord3> BuildBlockedCellSet(BattleState state, EntityId actorId, Position3 origin, Position3 destination)
+        {
+            var blocked = new HashSet<GridCoord3>();
+
+            foreach (var blockedPosition in state.GetBlockedPositions())
+            {
+                blocked.Add(new GridCoord3(blockedPosition.X, blockedPosition.Y, blockedPosition.Z));
+            }
+
+            foreach (var pair in state.GetEntityPositions())
+            {
+                if (pair.Key.Equals(actorId))
+                {
+                    continue;
+                }
+
+                var position = pair.Value;
+                if (position.Equals(origin) || position.Equals(destination))
+                {
+                    continue;
+                }
+
+                blocked.Add(new GridCoord3(position.X, position.Y, position.Z));
+            }
+
+            return blocked;
         }
 
         // Aide de conversion entre type coordonnée de grille et type stockage d'état.
