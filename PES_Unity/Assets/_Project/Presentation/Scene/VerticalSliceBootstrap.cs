@@ -34,10 +34,15 @@ namespace PES.Presentation.Scene
 
         private void BuildSteppedMap()
         {
-            CreateTile(new Vector3(0f, 0f, 0f), new Color(0.25f, 0.25f, 0.25f));
-            CreateTile(new Vector3(1f, 0f, 0.5f), new Color(0.35f, 0.35f, 0.35f));
-            CreateTile(new Vector3(2f, 0f, 0.5f), new Color(0.45f, 0.45f, 0.45f));
-            CreateTile(new Vector3(2f, 1f, 1f), new Color(0.55f, 0.55f, 0.55f));
+            CreateTileFromGrid(0, 0, 0, new Color(0.25f, 0.25f, 0.25f));
+            CreateTileFromGrid(1, 0, 0, new Color(0.35f, 0.35f, 0.35f));
+            CreateTileFromGrid(1, 0, 1, new Color(0.45f, 0.45f, 0.45f));
+            CreateTileFromGrid(2, 0, 1, new Color(0.55f, 0.55f, 0.55f));
+        }
+
+        private static GameObject CreateTileFromGrid(int x, int y, int z, Color color)
+        {
+            return CreateTile(new Vector3(x, z, y), color);
         }
 
         private static GameObject CreateTile(Vector3 center, Color color)
@@ -77,7 +82,7 @@ namespace PES.Presentation.Scene
 
         private static Vector3 ToWorld(Core.Simulation.Position3 position)
         {
-            return new Vector3(position.X, position.Z + 0.5f, position.Y);
+            return new Vector3(position.X, position.Z + 1.5f, position.Y);
         }
     }
 }
