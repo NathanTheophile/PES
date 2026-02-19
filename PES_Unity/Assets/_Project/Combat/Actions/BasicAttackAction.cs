@@ -48,13 +48,13 @@ namespace PES.Combat.Actions
                 return targeting.Failure switch
                 {
                     BasicAttackTargetingFailure.MissingPositions =>
-                        new ActionResolution(false, ActionResolutionCode.Rejected, $"BasicAttackRejected: missing positions ({AttackerId} -> {TargetId})"),
+                        new ActionResolution(false, ActionResolutionCode.Rejected, $"BasicAttackRejected: missing positions ({AttackerId} -> {TargetId})", ActionFailureReason.MissingPositions),
                     BasicAttackTargetingFailure.OutOfRange =>
-                        new ActionResolution(false, ActionResolutionCode.Rejected, $"BasicAttackRejected: out of range ({AttackerId} -> {TargetId}, range:{targeting.HorizontalDistance})"),
+                        new ActionResolution(false, ActionResolutionCode.Rejected, $"BasicAttackRejected: out of range ({AttackerId} -> {TargetId}, range:{targeting.HorizontalDistance})", ActionFailureReason.OutOfRange),
                     BasicAttackTargetingFailure.LineOfSightBlocked =>
-                        new ActionResolution(false, ActionResolutionCode.Rejected, $"BasicAttackRejected: line of sight blocked ({AttackerId} -> {TargetId}, z:{targeting.VerticalDelta})"),
+                        new ActionResolution(false, ActionResolutionCode.Rejected, $"BasicAttackRejected: line of sight blocked ({AttackerId} -> {TargetId}, z:{targeting.VerticalDelta})", ActionFailureReason.LineOfSightBlocked),
                     _ =>
-                        new ActionResolution(false, ActionResolutionCode.Rejected, $"BasicAttackRejected: invalid targeting ({AttackerId} -> {TargetId})"),
+                        new ActionResolution(false, ActionResolutionCode.Rejected, $"BasicAttackRejected: invalid targeting ({AttackerId} -> {TargetId})", ActionFailureReason.InvalidTargeting),
                 };
             }
 
@@ -64,7 +64,7 @@ namespace PES.Combat.Actions
             // Vérifie que la cible possède des points de vie (sinon combat state incomplet).
             if (!state.TryGetEntityHitPoints(TargetId, out _))
             {
-                return new ActionResolution(false, ActionResolutionCode.Rejected, $"BasicAttackRejected: missing hit points for {TargetId}");
+                return new ActionResolution(false, ActionResolutionCode.Rejected, $"BasicAttackRejected: missing hit points for {TargetId}", ActionFailureReason.MissingHitPoints);
             }
 
             // Tirage déterministe de précision : hit sur 80% des cas.
@@ -72,7 +72,7 @@ namespace PES.Combat.Actions
             var hit = roll < 80;
             if (!hit)
             {
-                return new ActionResolution(false, ActionResolutionCode.Missed, $"BasicAttackMissed: {AttackerId} -> {TargetId} [roll:{roll}]");
+                return new ActionResolution(false, ActionResolutionCode.Missed, $"BasicAttackMissed: {AttackerId} -> {TargetId} [roll:{roll}]", ActionFailureReason.HitRollMissed);
             }
 
             // Bonus de hauteur : l'attaquant gagne +2 dégâts s'il est plus haut que la cible.
@@ -86,7 +86,7 @@ namespace PES.Combat.Actions
             var damageApplied = state.TryApplyDamage(TargetId, finalDamage);
             if (!damageApplied)
             {
-                return new ActionResolution(false, ActionResolutionCode.Rejected, $"BasicAttackRejected: failed to apply damage to {TargetId}");
+                return new ActionResolution(false, ActionResolutionCode.Rejected, $"BasicAttackRejected: failed to apply damage to {TargetId}", ActionFailureReason.DamageApplicationFailed);
             }
 
             return new ActionResolution(

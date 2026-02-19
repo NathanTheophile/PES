@@ -45,26 +45,26 @@ namespace PES.Combat.Actions
                 return validation.Failure switch
                 {
                     MoveValidationFailure.InvalidOrigin =>
-                        new ActionResolution(false, ActionResolutionCode.Rejected, $"MoveActionRejected: invalid origin for {ActorId} ({Origin} -> {Destination}) [reason:{MoveValidationFailure.InvalidOrigin}]"),
+                        new ActionResolution(false, ActionResolutionCode.Rejected, $"MoveActionRejected: invalid origin for {ActorId} ({Origin} -> {Destination})", ActionFailureReason.InvalidOrigin),
                     MoveValidationFailure.DestinationBlocked =>
-                        new ActionResolution(false, ActionResolutionCode.Rejected, $"MoveActionRejected: destination blocked for {ActorId} ({Destination}) [reason:{MoveValidationFailure.DestinationBlocked}]"),
+                        new ActionResolution(false, ActionResolutionCode.Rejected, $"MoveActionRejected: destination blocked for {ActorId} ({Destination})", ActionFailureReason.DestinationBlocked),
                     MoveValidationFailure.DestinationOccupied =>
-                        new ActionResolution(false, ActionResolutionCode.Rejected, $"MoveActionRejected: destination occupied for {ActorId} ({Destination}) [reason:{MoveValidationFailure.DestinationOccupied}]"),
+                        new ActionResolution(false, ActionResolutionCode.Rejected, $"MoveActionRejected: destination occupied for {ActorId} ({Destination})", ActionFailureReason.DestinationOccupied),
                     MoveValidationFailure.BlockedPath =>
-                        new ActionResolution(false, ActionResolutionCode.Rejected, $"MoveActionRejected: blocked path for {ActorId} ({Origin} -> {Destination}) [reason:{MoveValidationFailure.BlockedPath}]"),
+                        new ActionResolution(false, ActionResolutionCode.Rejected, $"MoveActionRejected: blocked path for {ActorId} ({Origin} -> {Destination})", ActionFailureReason.BlockedPath),
                     MoveValidationFailure.VerticalStepTooHigh =>
-                        new ActionResolution(false, ActionResolutionCode.Rejected, $"MoveActionRejected: vertical step too high for {ActorId} ({Origin} -> {Destination}) [reason:{MoveValidationFailure.VerticalStepTooHigh}]"),
+                        new ActionResolution(false, ActionResolutionCode.Rejected, $"MoveActionRejected: vertical step too high for {ActorId} ({Origin} -> {Destination})", ActionFailureReason.VerticalStepTooHigh),
                     MoveValidationFailure.MovementBudgetExceeded =>
-                        new ActionResolution(false, ActionResolutionCode.Rejected, $"MoveActionRejected: movement cost exceeded for {ActorId} ({validation.MovementCost}/{DefaultPolicy.MaxMovementCostPerAction}) [reason:{MoveValidationFailure.MovementBudgetExceeded}]"),
+                        new ActionResolution(false, ActionResolutionCode.Rejected, $"MoveActionRejected: movement cost exceeded for {ActorId} ({validation.MovementCost}/{DefaultPolicy.MaxMovementCostPerAction})", ActionFailureReason.MovementBudgetExceeded),
                     _ =>
-                        new ActionResolution(false, ActionResolutionCode.Rejected, $"MoveActionRejected: validation failed for {ActorId} ({Origin} -> {Destination}) [reason:{validation.Failure}]"),
+                        new ActionResolution(false, ActionResolutionCode.Rejected, $"MoveActionRejected: validation failed for {ActorId} ({Origin} -> {Destination})", ActionFailureReason.InvalidTargeting),
                 };
             }
 
             var moved = state.TryMoveEntity(ActorId, new Position3(Origin.X, Origin.Y, Origin.Z), new Position3(Destination.X, Destination.Y, Destination.Z));
             if (!moved)
             {
-                return new ActionResolution(false, ActionResolutionCode.Rejected, $"MoveActionRejected: state mutation failed for {ActorId} ({Origin} -> {Destination}) [reason:{MoveValidationFailure.StateMutationFailed}]");
+                return new ActionResolution(false, ActionResolutionCode.Rejected, $"MoveActionRejected: state mutation failed for {ActorId} ({Origin} -> {Destination})", ActionFailureReason.StateMutationFailed);
             }
 
             return new ActionResolution(true, ActionResolutionCode.Succeeded, $"MoveActionResolved: {ActorId} {Origin} -> {Destination} [cost:{validation.MovementCost}]");
