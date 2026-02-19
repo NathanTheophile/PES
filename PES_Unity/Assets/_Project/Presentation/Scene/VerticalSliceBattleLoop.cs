@@ -40,9 +40,15 @@ namespace PES.Presentation.Scene
             switch (_loopStep)
             {
                 case 0:
+                    State.TryGetEntityPosition(UnitA, out var unitAPosition);
+                    var moveOrigin = new GridCoord3(unitAPosition.X, unitAPosition.Y, unitAPosition.Z);
+                    var moveDestination = moveOrigin.X == 0
+                        ? new GridCoord3(1, 0, 1)
+                        : new GridCoord3(0, 0, 0);
+
                     result = _resolver.Resolve(
                         State,
-                        new MoveAction(UnitA, new GridCoord3(0, 0, 0), new GridCoord3(1, 0, 1)));
+                        new MoveAction(UnitA, moveOrigin, moveDestination));
                     break;
 
                 case 1:
