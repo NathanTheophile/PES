@@ -29,8 +29,8 @@ namespace PES.Core.Simulation
             // 1) L'action se valide et mutile l'état si nécessaire.
             var result = command.Resolve(state, _rngService);
 
-            // 2) On persiste un événement lisible pour replay/debug.
-            state.AddEvent(result.Description);
+            // 2) On persiste un événement structuré + lisible pour replay/debug.
+            state.AddEvent(new CombatEventRecord(state.Tick, result.Code, result.Description));
 
             // 3) On avance la timeline déterministe.
             state.AdvanceTick();

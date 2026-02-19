@@ -20,10 +20,18 @@ namespace PES.Core.Simulation
         // Journal ordonné (append-only) des événements textuels produits par les actions résolues.
         private readonly List<string> _eventLog = new();
 
+        // Journal structuré pour le futur replay/réseau/UI sans parsing de texte.
+        private readonly CombatEventLog _combatEventLog = new();
+
         /// <summary>
-        /// Vue en lecture seule du journal d'événements (inspection externe sans mutation directe).
+        /// Vue en lecture seule du journal d'événements textuels (inspection externe sans mutation directe).
         /// </summary>
         public IReadOnlyList<string> EventLog => _eventLog;
+
+        /// <summary>
+        /// Vue en lecture seule du journal structuré (tick + code + description).
+        /// </summary>
+        public IReadOnlyList<CombatEventRecord> StructuredEventLog => _combatEventLog.Entries;
 
         /// <summary>
         /// Compteur monotone de simulation, incrémenté après chaque action résolue.
@@ -44,6 +52,15 @@ namespace PES.Core.Simulation
         public void AddEvent(string evt)
         {
             _eventLog.Add(evt);
+        }
+
+        /// <summary>
+        /// Ajoute un événement structuré au journal métier pour consommation machine.
+        /// </summary>
+        public void AddEvent(CombatEventRecord record)
+        {
+            _combatEventLog.Add(record);
+            _eventLog.Add(record.Description);
         }
 
         /// <summary>

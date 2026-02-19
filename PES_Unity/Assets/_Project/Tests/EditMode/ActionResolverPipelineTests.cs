@@ -35,6 +35,9 @@ namespace PES.Tests.EditMode
             Assert.That(result.Description, Does.Contain("MoveActionResolved"));
             Assert.That(state.Tick, Is.EqualTo(1));
             Assert.That(state.EventLog.Count, Is.EqualTo(1));
+            Assert.That(state.StructuredEventLog.Count, Is.EqualTo(1));
+            Assert.That(state.StructuredEventLog[0].Code, Is.EqualTo(result.Code));
+            Assert.That(state.StructuredEventLog[0].Tick, Is.EqualTo(0));
 
             // Assert : position effectivement mise à jour dans l'état métier.
             Assert.That(state.TryGetEntityPosition(actor, out var position), Is.True);
@@ -66,6 +69,8 @@ namespace PES.Tests.EditMode
             Assert.That(result.Description, Does.Contain("MoveActionRejected"));
             Assert.That(state.Tick, Is.EqualTo(1));
             Assert.That(state.EventLog.Count, Is.EqualTo(1));
+            Assert.That(state.StructuredEventLog.Count, Is.EqualTo(1));
+            Assert.That(state.StructuredEventLog[0].Code, Is.EqualTo(result.Code));
 
             // Assert : rollback / état inchangé.
             Assert.That(state.TryGetEntityPosition(actor, out var position), Is.True);
@@ -123,6 +128,8 @@ namespace PES.Tests.EditMode
             Assert.That(result.Description, Does.Contain("BasicAttackResolved"));
             Assert.That(state.Tick, Is.EqualTo(1));
             Assert.That(state.EventLog.Count, Is.EqualTo(1));
+            Assert.That(state.StructuredEventLog.Count, Is.EqualTo(1));
+            Assert.That(state.StructuredEventLog[0].Code, Is.EqualTo(result.Code));
 
             Assert.That(state.TryGetEntityHitPoints(target, out var remainingHp), Is.True);
             Assert.That(remainingHp, Is.LessThan(30));
@@ -151,6 +158,8 @@ namespace PES.Tests.EditMode
             Assert.That(result.Description, Does.Contain("out of range"));
             Assert.That(state.Tick, Is.EqualTo(1));
             Assert.That(state.EventLog.Count, Is.EqualTo(1));
+            Assert.That(state.StructuredEventLog.Count, Is.EqualTo(1));
+            Assert.That(state.StructuredEventLog[0].Code, Is.EqualTo(result.Code));
 
             Assert.That(state.TryGetEntityHitPoints(target, out var remainingHp), Is.True);
             Assert.That(remainingHp, Is.EqualTo(30));
