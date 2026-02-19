@@ -41,6 +41,8 @@ This enables side-by-side checks for:
 - gameplay behavior parity
 - data and naming conventions
 
+> Note: if current branch folders are named differently (e.g. `One Piece Tactics/` and `PES_Unity/`), keep an explicit mapping in docs/scripts to avoid confusion.
+
 ---
 
 ## Technical Principles for the Unity Port
@@ -70,6 +72,101 @@ Keep domain logic testable and portable.
 
 ---
 
+## Recommended Unity Folder Architecture (Best-of-Both)
+
+> Goal: use a standard Unity folder layout while preserving clean architecture constraints.
+
+Inside `PES_Unity/Assets/`:
+
+```txt
+_Project/
+  Core/
+    Simulation/
+    TurnSystem/
+    Random/
+  Grid/
+    Grid3D/
+    Pathfinding/
+    Visibility/
+  Combat/
+    Actions/
+    Targeting/
+    Resolution/
+  Units/
+    Domain/
+    Authoring/
+  AI/
+    Decision/
+  Infrastructure/
+    Serialization/
+    Eventing/
+  Presentation/
+    Scene/
+    View/
+    UI/
+    VFX/
+    Adapters/
+  Tests/
+    EditMode/
+    PlayMode/
+```
+
+### Dependency Rules (must keep)
+- `Presentation` can depend on domain modules (`Core`, `Grid`, `Combat`, `Units`).
+- Domain modules must **never** depend on `Presentation`.
+- `Infrastructure` may adapt persistence/logging concerns without polluting gameplay rules.
+
+---
+
+## Concrete Bootstrap (Asmdefs + Namespaces + Starter Files)
+
+### Asmdef names
+Create these assembly definitions under `Assets/_Project/`:
+- `PES.Core`
+- `PES.Grid`
+- `PES.Combat`
+- `PES.Units`
+- `PES.AI`
+- `PES.Infrastructure`
+- `PES.Presentation`
+- `PES.Tests.EditMode`
+- `PES.Tests.PlayMode`
+
+### Asmdef dependency direction
+- `PES.Core`: no dependency on presentation.
+- `PES.Grid`: depends on `PES.Core`.
+- `PES.Units`: depends on `PES.Core`.
+- `PES.Combat`: depends on `PES.Core`, `PES.Grid`, `PES.Units`.
+- `PES.AI`: depends on `PES.Core`, `PES.Combat`, `PES.Grid`, `PES.Units`.
+- `PES.Infrastructure`: depends on `PES.Core` (and optionally others for serialization adapters).
+- `PES.Presentation`: depends on all gameplay/domain assemblies as needed.
+- Test assemblies depend on the assemblies they validate.
+
+### Namespace convention
+- `PES.Core.*`
+- `PES.Grid.*`
+- `PES.Combat.*`
+- `PES.Units.*`
+- `PES.AI.*`
+- `PES.Infrastructure.*`
+- `PES.Presentation.*`
+
+### 10 starter files (minimum skeleton)
+1. `Assets/_Project/Core/Simulation/BattleState.cs`
+2. `Assets/_Project/Core/Simulation/EntityId.cs`
+3. `Assets/_Project/Core/Simulation/IActionCommand.cs`
+4. `Assets/_Project/Core/Simulation/ActionResolver.cs`
+5. `Assets/_Project/Core/Random/IRngService.cs`
+6. `Assets/_Project/Core/Random/SeededRngService.cs`
+7. `Assets/_Project/Grid/Grid3D/GridCoord3.cs`
+8. `Assets/_Project/Grid/Pathfinding/PathfindingService.cs`
+9. `Assets/_Project/Combat/Actions/MoveAction.cs`
+10. `Assets/_Project/Combat/Actions/BasicAttackAction.cs`
+
+> Optional right after bootstrap: add `CombatEventLog.cs` and one EditMode test per action to validate deterministic behavior.
+
+---
+
 ## Long-Term Multiplayer/MMO Direction
 
 ### Decision
@@ -93,10 +190,11 @@ Design the architecture so multiplayer can be added later with lower rewrite cos
 ---
 
 ## Immediate Next Steps
-1. Audit existing Godot systems and list gameplay mechanics to preserve.
-2. Define Unity domain model for `Grid3D`, turns, units, abilities, LOS, and reach.
-3. Implement a small vertical slice (movement + one attack + height effect).
-4. Validate parity with intended original behavior, then iterate.
+1. Create `_Project` folder structure + asmdefs.
+2. Add the 10 starter files above with compile-safe stubs.
+3. Implement `MoveAction` validation + resolution and test it in EditMode.
+4. Implement `BasicAttackAction` with LOS/range/height modifier + tests.
+5. Build one minimal vertical slice scene (2 units + stepped map + move/attack loop).
 
 ---
 
