@@ -1,5 +1,5 @@
 // Utilité : ce script fournit une première implémentation de pathfinding de grille.
-// Il génère un chemin discret simple (sans obstacles) pour alimenter la validation de déplacement.
+// Il génère un chemin discret simple avec validation d'obstacles sur la trajectoire.
 using System.Collections.Generic;
 using PES.Grid.Grid3D;
 
@@ -7,44 +7,72 @@ namespace PES.Grid.Pathfinding
 {
     /// <summary>
     /// Service de cheminement minimal orienté grille.
-    /// Cette version bootstrap ne gère pas encore les obstacles ni les coûts terrain.
+    /// Cette version conserve une trajectoire déterministe X -> Y -> Z.
     /// </summary>
     public sealed class PathfindingService
     {
         /// <summary>
-        /// Calcule un chemin discret entre deux coordonnées.
-        /// Le chemin avance pas à pas sur X puis Y puis Z, avec des incréments unitaires.
+        /// Calcule un chemin discret entre deux coordonnées sans contrainte de blocage.
         /// </summary>
         public IReadOnlyList<GridCoord3> ComputePath(GridCoord3 from, GridCoord3 to)
         {
-            var path = new List<GridCoord3> { from };
+            TryComputePath(from, to, new HashSet<GridCoord3>(), out var path);
+            return path;
+        }
+
+        /// <summary>
+        /// Tente de calculer un chemin discret entre deux coordonnées en rejetant les cellules bloquées.
+        /// Retourne false si la trajectoire déterministe rencontre un blocage.
+        /// </summary>
+        public bool TryComputePath(GridCoord3 from, GridCoord3 to, ISet<GridCoord3> blockedCells, out IReadOnlyList<GridCoord3> path)
+        {
+            var steps = new List<GridCoord3> { from };
 
             var currentX = from.X;
             var currentY = from.Y;
             var currentZ = from.Z;
 
-            // Déplacement horizontal sur X.
             while (currentX != to.X)
             {
                 currentX += currentX < to.X ? 1 : -1;
-                path.Add(new GridCoord3(currentX, currentY, currentZ));
+                var next = new GridCoord3(currentX, currentY, currentZ);
+                if (blockedCells.Contains(next))
+                {
+                    path = steps;
+                    return false;
+                }
+
+                steps.Add(next);
             }
 
-            // Déplacement horizontal sur Y.
             while (currentY != to.Y)
             {
                 currentY += currentY < to.Y ? 1 : -1;
-                path.Add(new GridCoord3(currentX, currentY, currentZ));
+                var next = new GridCoord3(currentX, currentY, currentZ);
+                if (blockedCells.Contains(next))
+                {
+                    path = steps;
+                    return false;
+                }
+
+                steps.Add(next);
             }
 
-            // Déplacement vertical sur Z.
             while (currentZ != to.Z)
             {
                 currentZ += currentZ < to.Z ? 1 : -1;
-                path.Add(new GridCoord3(currentX, currentY, currentZ));
+                var next = new GridCoord3(currentX, currentY, currentZ);
+                if (blockedCells.Contains(next))
+                {
+                    path = steps;
+                    return false;
+                }
+
+                steps.Add(next);
             }
 
-            return path;
+            path = steps;
+            return true;
         }
     }
 }

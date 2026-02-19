@@ -102,6 +102,58 @@ namespace PES.Tests.EditMode
             Assert.That(position.Y, Is.EqualTo(0));
             Assert.That(position.Z, Is.EqualTo(0));
         }
+
+        [Test]
+        public void Resolve_MoveAction_WhenPathCellIsBlocked_IsRejectedAndStateUnchanged()
+        {
+            // Arrange : obstacle terrain directement sur la trajectoire X.
+            var state = new BattleState();
+            var actor = new EntityId(4);
+            state.SetEntityPosition(actor, new Position3(0, 0, 0));
+            state.SetBlockedPosition(new Position3(1, 0, 0));
+
+            var resolver = new ActionResolver(new SeededRngService(42));
+            var action = new MoveAction(actor, new GridCoord3(0, 0, 0), new GridCoord3(2, 0, 0));
+
+            // Act.
+            var result = resolver.Resolve(state, action);
+
+            // Assert : rejet "blocked path" et aucune mutation de position.
+            Assert.That(result.Success, Is.False);
+            Assert.That(result.Code, Is.EqualTo(ActionResolutionCode.Rejected));
+            Assert.That(result.Description, Does.Contain("blocked path"));
+            Assert.That(state.TryGetEntityPosition(actor, out var position), Is.True);
+            Assert.That(position.X, Is.EqualTo(0));
+            Assert.That(position.Y, Is.EqualTo(0));
+            Assert.That(position.Z, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void Resolve_MoveAction_WhenDestinationOccupied_IsRejectedAndStateUnchanged()
+        {
+            // Arrange : la case d'arrivée est occupée par une autre entité.
+            var state = new BattleState();
+            var actor = new EntityId(5);
+            var blocker = new EntityId(6);
+            state.SetEntityPosition(actor, new Position3(0, 0, 0));
+            state.SetEntityPosition(blocker, new Position3(1, 0, 0));
+
+            var resolver = new ActionResolver(new SeededRngService(42));
+            var action = new MoveAction(actor, new GridCoord3(0, 0, 0), new GridCoord3(1, 0, 0));
+
+            // Act.
+            var result = resolver.Resolve(state, action);
+
+            // Assert : rejet "destination occupied".
+            Assert.That(result.Success, Is.False);
+            Assert.That(result.Code, Is.EqualTo(ActionResolutionCode.Rejected));
+            Assert.That(result.Description, Does.Contain("destination occupied"));
+            Assert.That(state.TryGetEntityPosition(actor, out var actorPosition), Is.True);
+            Assert.That(actorPosition.X, Is.EqualTo(0));
+            Assert.That(actorPosition.Y, Is.EqualTo(0));
+            Assert.That(actorPosition.Z, Is.EqualTo(0));
+        }
+
         [Test]
         public void Resolve_BasicAttackAction_InRangeWithLineOfSight_AppliesDamage()
         {
