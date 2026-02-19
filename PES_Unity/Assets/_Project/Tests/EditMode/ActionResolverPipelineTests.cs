@@ -415,6 +415,32 @@ namespace PES.Tests.EditMode
             Assert.That(remainingHp, Is.EqualTo(30));
         }
 
+        [Test]
+        public void Resolve_BasicAttackAction_WithTerrainObstacle_IsRejectedByLineOfSight()
+        {
+            // Arrange : obstacle terrain placé entre l'attaquant et la cible.
+            var state = new BattleState();
+            var attacker = new EntityId(32);
+            var target = new EntityId(33);
+            state.SetEntityPosition(attacker, new Position3(0, 0, 0));
+            state.SetEntityPosition(target, new Position3(2, 0, 0));
+            state.SetEntityHitPoints(target, 30);
+            state.SetBlockedPosition(new Position3(1, 0, 0));
+
+            var resolver = new ActionResolver(new SeededRngService(42));
+            var action = new BasicAttackAction(attacker, target);
+
+            // Act.
+            var result = resolver.Resolve(state, action);
+
+            // Assert : rejet LOS sur obstacle intermédiaire, HP inchangés.
+            Assert.That(result.Success, Is.False);
+            Assert.That(result.Code, Is.EqualTo(ActionResolutionCode.Rejected));
+            Assert.That(result.Description, Does.Contain("line of sight blocked"));
+            Assert.That(state.TryGetEntityHitPoints(target, out var remainingHp), Is.True);
+            Assert.That(remainingHp, Is.EqualTo(30));
+        }
+
         // Utilité : faux RNG de test pour forcer des séquences déterministes contrôlées.
         private sealed class SequenceRngService : IRngService
         {
