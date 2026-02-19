@@ -206,6 +206,16 @@ Design the architecture so multiplayer can be added later with lower rewrite cos
 - [x] 4) `BasicAttackAction` range/LOS/height modifier implemented with EditMode tests.
 - [x] 5) First minimal vertical slice bootstrap added (2 units + stepped map + move/attack loop).
 
+## Validation Status
+- [x] Vertical slice scene (`VerticalSlice_BattleLoop`) validated manually on the current branch.
+- [x] Unity Test Runner suite executed successfully on the current branch.
+- [ ] Add a short regression checklist (move, attack, LOS blocked, height bonus, turn advance) to standardize future validation sessions.
+
+## Next Iteration Focus
+1. Write and version the regression checklist used after each gameplay/system change.
+2. Extend test coverage on edge cases (blocked LOS + elevation delta + out-of-range targeting).
+3. Add one deterministic replay-oriented test (fixed seed + action sequence + expected state snapshot).
+
 ## Working Notes
 - Initial code quality impression of the original project is “spaghetti / inconsistent architecture.”
 - Treat this as a reason to verify behavior, not to copy implementation.
