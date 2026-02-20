@@ -2,6 +2,7 @@
 // et que les mutations de BattleState/journalisation se comportent comme attendu.
 using NUnit.Framework;
 using PES.Combat.Actions;
+using PES.Combat.Resolution;
 using PES.Core.Random;
 using PES.Core.Simulation;
 using PES.Grid.Grid3D;
@@ -231,6 +232,30 @@ namespace PES.Tests.EditMode
             Assert.That(actorPosition.Z, Is.EqualTo(0));
         }
 
+
+        [Test]
+        public void Resolve_MoveAction_WithPolicyOverride_AllowsLongerMoveBudget()
+        {
+            // Arrange : destination normalement refusée avec budget par défaut (coût 4), acceptée avec budget override.
+            var state = new BattleState();
+            var actor = new EntityId(90);
+            state.SetEntityPosition(actor, new Position3(0, 0, 0));
+
+            var resolver = new ActionResolver(new SeededRngService(42));
+            var customPolicy = new MoveActionPolicy(maxMovementCostPerAction: 4, maxVerticalStepPerTile: 1);
+            var action = new MoveAction(actor, new GridCoord3(0, 0, 0), new GridCoord3(4, 0, 0), customPolicy);
+
+            // Act.
+            var result = resolver.Resolve(state, action);
+
+            // Assert : l'override data-driven permet la réussite du déplacement.
+            Assert.That(result.Success, Is.True);
+            Assert.That(result.Code, Is.EqualTo(ActionResolutionCode.Succeeded));
+            Assert.That(result.FailureReason, Is.EqualTo(ActionFailureReason.None));
+            Assert.That(state.TryGetEntityPosition(actor, out var actorPosition), Is.True);
+            Assert.That(actorPosition.X, Is.EqualTo(4));
+        }
+
         [Test]
         public void Resolve_BasicAttackAction_InRangeWithLineOfSight_AppliesDamage()
         {
@@ -323,6 +348,63 @@ namespace PES.Tests.EditMode
 
             Assert.That(state.TryGetEntityHitPoints(target, out var remainingHp), Is.True);
             Assert.That(remainingHp, Is.EqualTo(30));
+        }
+
+
+        [Test]
+        public void Resolve_BasicAttackAction_WithPolicyOverride_RejectsWhenTargetOutOfCustomRange()
+        {
+            // Arrange : cible à distance 2, acceptable par défaut mais hors portée avec maxRange override=1.
+            var state = new BattleState();
+            var attacker = new EntityId(91);
+            var target = new EntityId(92);
+            state.SetEntityPosition(attacker, new Position3(0, 0, 0));
+            state.SetEntityPosition(target, new Position3(2, 0, 0));
+            state.SetEntityHitPoints(target, 30);
+
+            var resolver = new ActionResolver(new SeededRngService(42));
+            var customPolicy = new BasicAttackActionPolicy(
+                minRange: 1,
+                maxRange: 1,
+                maxLineOfSightDelta: 2,
+                resolutionPolicy: new BasicAttackResolutionPolicy(baseDamage: 12, baseHitChance: 80));
+
+            // Act.
+            var result = resolver.Resolve(state, new BasicAttackAction(attacker, target, customPolicy));
+
+            // Assert : rejet piloté par la config de portée.
+            Assert.That(result.Success, Is.False);
+            Assert.That(result.Code, Is.EqualTo(ActionResolutionCode.Rejected));
+            Assert.That(result.FailureReason, Is.EqualTo(ActionFailureReason.OutOfRange));
+        }
+
+        [Test]
+        public void Resolve_BasicAttackAction_WithPolicyOverride_AppliesCustomDamageProfile()
+        {
+            // Arrange : même action avec profil de dégâts custom (baseDamage=20, hitChance=95).
+            var state = new BattleState();
+            var attacker = new EntityId(93);
+            var target = new EntityId(94);
+            state.SetEntityPosition(attacker, new Position3(0, 0, 0));
+            state.SetEntityPosition(target, new Position3(1, 0, 0));
+            state.SetEntityHitPoints(target, 40);
+
+            var resolver = new ActionResolver(new SequenceRngService(0, 0));
+            var customPolicy = new BasicAttackActionPolicy(
+                minRange: 1,
+                maxRange: 2,
+                maxLineOfSightDelta: 2,
+                resolutionPolicy: new BasicAttackResolutionPolicy(baseDamage: 20, baseHitChance: 95));
+
+            // Act.
+            var result = resolver.Resolve(state, new BasicAttackAction(attacker, target, customPolicy));
+
+            // Assert : hit garanti + dégâts déterministes custom (20 + variance 0).
+            Assert.That(result.Success, Is.True);
+            Assert.That(result.Code, Is.EqualTo(ActionResolutionCode.Succeeded));
+            Assert.That(result.FailureReason, Is.EqualTo(ActionFailureReason.None));
+            Assert.That(state.TryGetEntityHitPoints(target, out var remainingHp), Is.True);
+            Assert.That(remainingHp, Is.EqualTo(20));
         }
 
         [Test]

@@ -14,14 +14,25 @@ namespace PES.Combat.Actions
         // Politique par défaut du sprint : 1 action = 3 points de coût max, 1 niveau de hauteur max par pas.
         private static readonly MoveActionPolicy DefaultPolicy = new(maxMovementCostPerAction: 3, maxVerticalStepPerTile: 1);
 
+        private readonly MoveActionPolicy? _policyOverride;
+
         /// <summary>
         /// Construit une commande de déplacement pour un acteur donné.
         /// </summary>
         public MoveAction(EntityId actorId, GridCoord3 origin, GridCoord3 destination)
+            : this(actorId, origin, destination, null)
+        {
+        }
+
+        /// <summary>
+        /// Construit une commande de déplacement avec politique data-driven explicite.
+        /// </summary>
+        public MoveAction(EntityId actorId, GridCoord3 origin, GridCoord3 destination, MoveActionPolicy? policyOverride)
         {
             ActorId = actorId;
             Origin = origin;
             Destination = destination;
+            _policyOverride = policyOverride;
         }
 
         /// <summary>Entité qui tente de se déplacer.</summary>
@@ -38,8 +49,10 @@ namespace PES.Combat.Actions
         /// </summary>
         public ActionResolution Resolve(BattleState state, IRngService rngService)
         {
+            var policy = _policyOverride ?? DefaultPolicy;
+
             var validationService = new MoveValidationService();
-            var validation = validationService.Validate(state, ActorId, Origin, Destination, DefaultPolicy);
+            var validation = validationService.Validate(state, ActorId, Origin, Destination, policy);
             if (!validation.Success)
             {
                 return validation.Failure switch
@@ -55,7 +68,7 @@ namespace PES.Combat.Actions
                     MoveValidationFailure.VerticalStepTooHigh =>
                         new ActionResolution(false, ActionResolutionCode.Rejected, $"MoveActionRejected: vertical step too high for {ActorId} ({Origin} -> {Destination})", ActionFailureReason.VerticalStepTooHigh),
                     MoveValidationFailure.MovementBudgetExceeded =>
-                        new ActionResolution(false, ActionResolutionCode.Rejected, $"MoveActionRejected: movement cost exceeded for {ActorId} ({validation.MovementCost}/{DefaultPolicy.MaxMovementCostPerAction})", ActionFailureReason.MovementBudgetExceeded),
+                        new ActionResolution(false, ActionResolutionCode.Rejected, $"MoveActionRejected: movement cost exceeded for {ActorId} ({validation.MovementCost}/{policy.MaxMovementCostPerAction})", ActionFailureReason.MovementBudgetExceeded),
                     _ =>
                         new ActionResolution(false, ActionResolutionCode.Rejected, $"MoveActionRejected: validation failed for {ActorId} ({Origin} -> {Destination})", ActionFailureReason.InvalidTargeting),
                 };

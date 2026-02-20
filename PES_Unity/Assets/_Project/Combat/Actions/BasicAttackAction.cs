@@ -9,16 +9,27 @@ namespace PES.Combat.Actions
 {
     public readonly struct BasicAttackAction : IActionCommand
     {
-        private const int MinRange = 1;
-        private const int MaxRange = 2;
-        private const int MaxLineOfSightDelta = 2;
+        private static readonly BasicAttackActionPolicy DefaultPolicy = new(
+            minRange: 1,
+            maxRange: 2,
+            maxLineOfSightDelta: 2,
+            resolutionPolicy: new BasicAttackResolutionPolicy(baseDamage: 12, baseHitChance: 80));
 
-        private static readonly BasicAttackResolutionPolicy DefaultPolicy = new(baseDamage: 12, baseHitChance: 80);
+        private readonly BasicAttackActionPolicy? _policyOverride;
 
         public BasicAttackAction(EntityId attackerId, EntityId targetId)
+            : this(attackerId, targetId, null)
+        {
+        }
+
+        /// <summary>
+        /// Construit une attaque basique avec politique data-driven explicite.
+        /// </summary>
+        public BasicAttackAction(EntityId attackerId, EntityId targetId, BasicAttackActionPolicy? policyOverride)
         {
             AttackerId = attackerId;
             TargetId = targetId;
+            _policyOverride = policyOverride;
         }
 
         public EntityId AttackerId { get; }
@@ -26,8 +37,10 @@ namespace PES.Combat.Actions
 
         public ActionResolution Resolve(BattleState state, IRngService rngService)
         {
+            var policy = _policyOverride ?? DefaultPolicy;
+
             var targetingService = new BasicAttackTargetingService();
-            var targeting = targetingService.Evaluate(state, AttackerId, TargetId, MinRange, MaxRange, MaxLineOfSightDelta);
+            var targeting = targetingService.Evaluate(state, AttackerId, TargetId, policy.MinRange, policy.MaxRange, policy.MaxLineOfSightDelta);
             if (!targeting.Success)
             {
                 return targeting.Failure switch
@@ -51,7 +64,7 @@ namespace PES.Combat.Actions
             }
 
             var resolutionService = new BasicAttackResolutionService();
-            var resolution = resolutionService.Resolve(rngService, -targeting.VerticalDelta, DefaultPolicy);
+            var resolution = resolutionService.Resolve(rngService, -targeting.VerticalDelta, policy.ResolutionPolicy);
             if (!resolution.Hit)
             {
                 return new ActionResolution(
