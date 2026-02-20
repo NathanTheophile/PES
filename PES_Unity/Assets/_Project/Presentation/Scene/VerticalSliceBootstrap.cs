@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using PES.Combat.Actions;
 using PES.Core.Simulation;
 using PES.Grid.Grid3D;
+using PES.Grid.Pathfinding;
 using PES.Presentation.Adapters;
 using PES.Presentation.Configuration;
 using UnityEngine;
@@ -30,12 +31,27 @@ namespace PES.Presentation.Scene
         private const int MapWidth = 12;
         private const int MapDepth = 12;
 
+        private readonly HashSet<Position3> _mapTiles = new();
+        private readonly List<GameObject> _reachableOverlayTiles = new();
+        private readonly HashSet<Position3> _currentReachableTiles = new();
+
+        private MoveActionPolicy _effectiveMovePolicy;
+        private Material _reachableTileMaterial;
+        private LineRenderer _pathLineRenderer;
+
+        private EntityId _lastPreviewActor;
+        private int _lastPreviewMovementPoints = int.MinValue;
+        private bool _lastPreviewMoveMode;
+        private bool _lastPreviewHasSelection;
+
         private ActionResolution _lastResult;
         private MouseIntentMode _mouseIntentMode = MouseIntentMode.Move;
 
         private void Start()
         {
             var runtimePolicies = CombatRuntimePolicyProvider.FromAsset(_runtimeConfig);
+            _effectiveMovePolicy = runtimePolicies.MovePolicyOverride ?? new MoveActionPolicy(maxMovementCostPerAction: 3, maxVerticalStepPerTile: 1);
+
             _battleLoop = new VerticalSliceBattleLoop(
                 movePolicyOverride: runtimePolicies.MovePolicyOverride,
                 basicAttackPolicyOverride: runtimePolicies.BasicAttackPolicyOverride);
@@ -47,9 +63,12 @@ namespace PES.Presentation.Scene
 
             BuildSteppedMap();
             EnsureAnkamaLikeCamera();
+            SetupMovementPreviewVisuals();
+
             _unitAView = CreateUnitVisual("UnitA", Color.cyan);
             _unitBView = CreateUnitVisual("UnitB", Color.red);
             SyncUnitViews();
+
             _lastResult = new ActionResolution(true, ActionResolutionCode.Succeeded, "VerticalSlice ready");
         }
 
@@ -70,6 +89,7 @@ namespace PES.Presentation.Scene
             ProcessSelectionInputs();
             ProcessPlanningInputs();
             ProcessMouseInputs();
+            UpdateMovementPreviewVisuals();
 
             if (Input.GetKeyDown(KeyCode.Space))
             {
@@ -80,7 +100,6 @@ namespace PES.Presentation.Scene
                 }
                 else
                 {
-                    // Fallback : conserver la démo auto si aucune commande n'est planifiée.
                     _lastResult = _battleLoop.ExecuteNextStep();
                 }
 
@@ -102,14 +121,14 @@ namespace PES.Presentation.Scene
             var selected = _planner.HasActorSelection ? _planner.SelectedActorId.ToString() : "None";
             var planned = _planner.PlannedLabel;
 
-            var panel = new Rect(12f, 12f, 700f, 244f);
+            var panel = new Rect(12f, 12f, 760f, 250f);
             GUI.Box(panel, "Vertical Slice");
-            GUI.Label(new Rect(24f, 38f, 680f, 20f), $"Tick: {_battleLoop.State.Tick} | Round: {_battleLoop.CurrentRound}");
-            GUI.Label(new Rect(24f, 58f, 680f, 20f), $"Actor: {_battleLoop.PeekCurrentActorLabel()} | Next: {_battleLoop.PeekNextStepLabel()} | AP:{_battleLoop.RemainingActions} | PM:{_battleLoop.CurrentActorMovementPoints} | Timer:{_battleLoop.RemainingTurnSeconds:0.0}s");
-            GUI.Label(new Rect(24f, 78f, 680f, 20f), $"HP UnitA: {hpA} | HP UnitB: {hpB}");
-            GUI.Label(new Rect(24f, 98f, 680f, 20f), $"Selected: {selected} | Planned: {planned} | MouseMode: {_mouseIntentMode}");
-            GUI.Label(new Rect(24f, 118f, 680f, 20f), $"Last: {_lastResult.Code} / {_lastResult.FailureReason}");
-            GUI.Label(new Rect(24f, 138f, 680f, 20f), _battleLoop.IsBattleOver ? $"Winner Team: {_battleLoop.WinnerTeamId}" : "Mouse: left click world/unit. Keys: 1/2 select, M/A/S mode, P pass, SPACE execute.");
+            GUI.Label(new Rect(24f, 38f, 740f, 20f), $"Tick: {_battleLoop.State.Tick} | Round: {_battleLoop.CurrentRound}");
+            GUI.Label(new Rect(24f, 58f, 740f, 20f), $"Actor: {_battleLoop.PeekCurrentActorLabel()} | Next: {_battleLoop.PeekNextStepLabel()} | AP:{_battleLoop.RemainingActions} | PM:{_battleLoop.CurrentActorMovementPoints} | Timer:{_battleLoop.RemainingTurnSeconds:0.0}s");
+            GUI.Label(new Rect(24f, 78f, 740f, 20f), $"HP UnitA: {hpA} | HP UnitB: {hpB}");
+            GUI.Label(new Rect(24f, 98f, 740f, 20f), $"Selected: {selected} | Planned: {planned} | MouseMode: {_mouseIntentMode}");
+            GUI.Label(new Rect(24f, 118f, 740f, 20f), $"Last: {_lastResult.Code} / {_lastResult.FailureReason}");
+            GUI.Label(new Rect(24f, 138f, 740f, 20f), _battleLoop.IsBattleOver ? $"Winner Team: {_battleLoop.WinnerTeamId}" : "Mouse: left click world/unit. Keys: 1/2 select, M/A/S mode, P pass, SPACE execute.");
 
             if (GUI.Button(new Rect(24f, 166f, 90f, 28f), "Select A"))
             {
@@ -146,7 +165,7 @@ namespace PES.Presentation.Scene
                 TryPassTurn();
             }
 
-            GUI.Label(new Rect(24f, 204f, 680f, 30f), "Flow souris: Select A/B -> choisir mode (Move/Attack/MonoSpell) -> clic sur map/cible -> Execute (ou auto-exec sur clic). ");
+            GUI.Label(new Rect(24f, 204f, 740f, 30f), "Bleu = déplacements possibles. Survol d'une case bleue en mode Move => aperçu du chemin blanc.");
         }
 
         private void ProcessSelectionInputs()
@@ -164,7 +183,6 @@ namespace PES.Presentation.Scene
 
         private void ProcessPlanningInputs()
         {
-            // IMPORTANT: aucune API GUI ici (OnGUI uniquement).
             if (!_planner.HasActorSelection)
             {
                 return;
@@ -229,6 +247,12 @@ namespace PES.Presentation.Scene
                     return;
                 }
 
+                if (!_currentReachableTiles.Contains(destinationPosition))
+                {
+                    _lastResult = new ActionResolution(false, ActionResolutionCode.Rejected, $"MoveActionRejected: destination unreachable ({destination})", ActionFailureReason.MovementBudgetExceeded);
+                    return;
+                }
+
                 _planner.PlanMove(destination);
                 TryExecutePlanned();
                 return;
@@ -256,7 +280,6 @@ namespace PES.Presentation.Scene
                 TryExecutePlanned();
             }
         }
-
 
         private void TryPassTurn()
         {
@@ -287,6 +310,227 @@ namespace PES.Presentation.Scene
             }
         }
 
+        private void SetupMovementPreviewVisuals()
+        {
+            _reachableTileMaterial = new Material(Shader.Find("Unlit/Color"))
+            {
+                color = new Color(0.18f, 0.62f, 1f, 0.35f)
+            };
+
+            var pathObject = new GameObject("Preview_PathLine");
+            _pathLineRenderer = pathObject.AddComponent<LineRenderer>();
+            _pathLineRenderer.material = new Material(Shader.Find("Unlit/Color")) { color = Color.white };
+            _pathLineRenderer.widthMultiplier = 0.08f;
+            _pathLineRenderer.positionCount = 0;
+            _pathLineRenderer.useWorldSpace = true;
+            _pathLineRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            _pathLineRenderer.receiveShadows = false;
+            _pathLineRenderer.alignment = LineAlignment.View;
+            _pathLineRenderer.numCapVertices = 4;
+        }
+
+        private void UpdateMovementPreviewVisuals()
+        {
+            if (_battleLoop == null || !_planner.HasActorSelection)
+            {
+                ClearMovementPreviewTiles();
+                HidePathPreview();
+                return;
+            }
+
+            var previewActor = _battleLoop.CurrentActorId;
+            var inMoveMode = _mouseIntentMode == MouseIntentMode.Move;
+            var hasSelection = _planner.HasActorSelection;
+            var currentPm = _battleLoop.CurrentActorMovementPoints;
+
+            if (!previewActor.Equals(_lastPreviewActor) ||
+                currentPm != _lastPreviewMovementPoints ||
+                inMoveMode != _lastPreviewMoveMode ||
+                hasSelection != _lastPreviewHasSelection)
+            {
+                RebuildReachableTiles(previewActor);
+                _lastPreviewActor = previewActor;
+                _lastPreviewMovementPoints = currentPm;
+                _lastPreviewMoveMode = inMoveMode;
+                _lastPreviewHasSelection = hasSelection;
+            }
+
+            if (inMoveMode)
+            {
+                UpdateHoveredPathPreview(previewActor);
+            }
+            else
+            {
+                HidePathPreview();
+            }
+        }
+
+        private void RebuildReachableTiles(EntityId actorId)
+        {
+            ClearMovementPreviewTiles();
+            _currentReachableTiles.Clear();
+
+            if (!_battleLoop.State.TryGetEntityPosition(actorId, out var originPosition))
+            {
+                return;
+            }
+
+            var currentPm = _battleLoop.State.TryGetEntityMovementPoints(actorId, out var movementPoints)
+                ? movementPoints
+                : _effectiveMovePolicy.MaxMovementCostPerAction;
+
+            var validator = new MoveValidationService();
+            var origin = new GridCoord3(originPosition.X, originPosition.Y, originPosition.Z);
+
+            foreach (var tile in _mapTiles)
+            {
+                var destination = new GridCoord3(tile.X, tile.Y, tile.Z);
+                if (destination.Equals(origin))
+                {
+                    continue;
+                }
+
+                var validation = validator.Validate(_battleLoop.State, actorId, origin, destination, _effectiveMovePolicy);
+                if (!validation.Success)
+                {
+                    continue;
+                }
+
+                if (validation.MovementCost > currentPm)
+                {
+                    continue;
+                }
+
+                AddReachableOverlayTile(tile);
+            }
+
+            // On affiche aussi la case courante de l'acteur.
+            AddReachableOverlayTile(originPosition);
+        }
+
+        private void AddReachableOverlayTile(Position3 tile)
+        {
+            if (!_currentReachableTiles.Add(tile))
+            {
+                return;
+            }
+
+            var overlay = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            overlay.name = $"MovePreview_{tile.X}_{tile.Y}_{tile.Z}";
+            overlay.transform.position = new Vector3(tile.X, tile.Z + 0.51f, tile.Y);
+            overlay.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+            overlay.transform.localScale = new Vector3(0.95f, 0.95f, 0.95f);
+
+            var renderer = overlay.GetComponent<Renderer>();
+            renderer.material = _reachableTileMaterial;
+            renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            renderer.receiveShadows = false;
+
+            var collider = overlay.GetComponent<Collider>();
+            if (collider != null)
+            {
+                Destroy(collider);
+            }
+
+            _reachableOverlayTiles.Add(overlay);
+        }
+
+        private void ClearMovementPreviewTiles()
+        {
+            for (var i = 0; i < _reachableOverlayTiles.Count; i++)
+            {
+                if (_reachableOverlayTiles[i] != null)
+                {
+                    Destroy(_reachableOverlayTiles[i]);
+                }
+            }
+
+            _reachableOverlayTiles.Clear();
+            _currentReachableTiles.Clear();
+        }
+
+        private void UpdateHoveredPathPreview(EntityId actorId)
+        {
+            if (!_battleLoop.State.TryGetEntityPosition(actorId, out var originPosition))
+            {
+                HidePathPreview();
+                return;
+            }
+
+            if (Camera.main == null)
+            {
+                HidePathPreview();
+                return;
+            }
+
+            var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            if (!Physics.Raycast(ray, out var hit, 250f))
+            {
+                HidePathPreview();
+                return;
+            }
+
+            var destination = ToGrid(hit.point);
+            var destinationPosition = new Position3(destination.X, destination.Y, destination.Z);
+            if (!_currentReachableTiles.Contains(destinationPosition) || destinationPosition.Equals(originPosition))
+            {
+                HidePathPreview();
+                return;
+            }
+
+            var blocked = BuildBlockedCellsForPathPreview(actorId, originPosition, destinationPosition);
+            var pathService = new PathfindingService();
+            if (!pathService.TryComputePath(
+                    new GridCoord3(originPosition.X, originPosition.Y, originPosition.Z),
+                    destination,
+                    blocked,
+                    out var path))
+            {
+                HidePathPreview();
+                return;
+            }
+
+            _pathLineRenderer.positionCount = path.Count;
+            for (var i = 0; i < path.Count; i++)
+            {
+                _pathLineRenderer.SetPosition(i, new Vector3(path[i].X, path[i].Z + 0.62f, path[i].Y));
+            }
+        }
+
+        private HashSet<GridCoord3> BuildBlockedCellsForPathPreview(EntityId actorId, Position3 origin, Position3 destination)
+        {
+            var blocked = new HashSet<GridCoord3>();
+            foreach (var blockedPosition in _battleLoop.State.GetBlockedPositions())
+            {
+                blocked.Add(new GridCoord3(blockedPosition.X, blockedPosition.Y, blockedPosition.Z));
+            }
+
+            foreach (var pair in _battleLoop.State.GetEntityPositions())
+            {
+                if (pair.Key.Equals(actorId))
+                {
+                    continue;
+                }
+
+                if (pair.Value.Equals(origin) || pair.Value.Equals(destination))
+                {
+                    continue;
+                }
+
+                blocked.Add(new GridCoord3(pair.Value.X, pair.Value.Y, pair.Value.Z));
+            }
+
+            return blocked;
+        }
+
+        private void HidePathPreview()
+        {
+            if (_pathLineRenderer != null)
+            {
+                _pathLineRenderer.positionCount = 0;
+            }
+        }
+
         private static bool TryResolveActorFromHit(GameObject hitObject, out EntityId actorId)
         {
             actorId = default;
@@ -306,7 +550,7 @@ namespace PES.Presentation.Scene
             return false;
         }
 
-        private bool TryFindAdjacentMoveDestination(Core.Simulation.EntityId actorId, out GridCoord3 destination)
+        private bool TryFindAdjacentMoveDestination(EntityId actorId, out GridCoord3 destination)
         {
             destination = default;
 
@@ -348,7 +592,6 @@ namespace PES.Presentation.Scene
 
         private void BuildSteppedMap()
         {
-            // Sol principal : grande zone jouable pour tests manuels in-engine.
             for (var x = 0; x < MapWidth; x++)
             {
                 for (var y = 0; y < MapDepth; y++)
@@ -358,27 +601,25 @@ namespace PES.Presentation.Scene
                         ? new Color(0.27f, 0.27f, 0.27f)
                         : new Color(0.33f, 0.33f, 0.33f);
                     CreateTileFromGrid(x, y, 0, color);
+                    _mapTiles.Add(new Position3(x, y, 0));
                 }
             }
 
-            // Plateforme surélevée de test (élévation skills/LOS).
             for (var x = 4; x <= 7; x++)
             {
                 for (var y = 4; y <= 7; y++)
                 {
                     CreateTileFromGrid(x, y, 1, new Color(0.42f, 0.42f, 0.42f));
+                    _mapTiles.Add(new Position3(x, y, 1));
                 }
             }
 
-            // Quelques obstacles de ligne de vue au centre.
             AddBlockingColumn(6, 2, 1, new Color(0.2f, 0.2f, 0.2f));
             AddBlockingColumn(6, 3, 1, new Color(0.2f, 0.2f, 0.2f));
             AddBlockingColumn(6, 4, 1, new Color(0.2f, 0.2f, 0.2f));
             AddBlockingColumn(5, 6, 2, new Color(0.18f, 0.18f, 0.18f));
             AddBlockingColumn(7, 6, 2, new Color(0.18f, 0.18f, 0.18f));
         }
-
-
 
         private void EnsureAnkamaLikeCamera()
         {
@@ -409,11 +650,7 @@ namespace PES.Presentation.Scene
             mainCamera.nearClipPlane = 0.1f;
             mainCamera.farClipPlane = 250f;
 
-            if (mainCamera.TryGetComponent<AudioListener>(out _))
-            {
-                // no-op: déjà présent
-            }
-            else
+            if (!mainCamera.TryGetComponent<AudioListener>(out _))
             {
                 mainCamera.gameObject.AddComponent<AudioListener>();
             }

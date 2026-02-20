@@ -124,3 +124,5 @@ En pratique, il faut démarrer par les features `Skills`/`States`/`Flow` déjà 
 - En input souris, un move vers une case occupée est rejeté immédiatement avant planification/exécution.
 
 - Ajout d'un setup caméra isométrique "ankama-like" automatique dans le vertical slice (angle/offset configurables depuis l'inspector).
+
+- Ajout d'un overlay de déplacements possibles (bleu) + prévisualisation du path survolé (ligne blanche) pour l'acteur courant en mode Move.
