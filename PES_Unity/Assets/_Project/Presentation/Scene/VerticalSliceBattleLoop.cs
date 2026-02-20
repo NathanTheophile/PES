@@ -54,6 +54,7 @@ namespace PES.Presentation.Scene
                 _teamByActor[actor.ActorId] = actor.TeamId;
                 State.SetEntityPosition(actor.ActorId, actor.StartPosition);
                 State.SetEntityHitPoints(actor.ActorId, actor.StartHitPoints);
+                State.SetEntityMovementPoints(actor.ActorId, actor.StartMovementPoints);
             }
 
             _turnController = new RoundRobinTurnController(turnOrder, actionsPerTurn);
@@ -76,6 +77,14 @@ namespace PES.Presentation.Scene
         public float RemainingTurnSeconds { get; private set; }
 
         public EntityId CurrentActorId => _turnController.CurrentActorId;
+
+        public int CurrentActorMovementPoints
+        {
+            get
+            {
+                return State.TryGetEntityMovementPoints(CurrentActorId, out var value) ? value : -1;
+            }
+        }
 
 
         public bool TryAdvanceTurnTimer(float deltaTime, out ActionResolution timeoutResult)
@@ -197,7 +206,14 @@ namespace PES.Presentation.Scene
         private void EndCurrentTurn()
         {
             _turnController.EndTurn();
+            ResetCurrentActorMovementPoints();
             RemainingTurnSeconds = TurnDurationSeconds;
+        }
+
+
+        private void ResetCurrentActorMovementPoints()
+        {
+            State.ResetMovementPoints(CurrentActorId);
         }
 
         private void EvaluateVictory()

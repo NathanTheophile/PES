@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using PES.Combat.Actions;
 using PES.Core.Simulation;
 using PES.Grid.Grid3D;
 using PES.Presentation.Adapters;
@@ -9,7 +10,7 @@ namespace PES.Presentation.Scene
 {
     /// <summary>
     /// Bootstrap MonoBehaviour pour visualiser une mini boucle tactique 3D.
-    /// Appuyer sur Espace pour exécuter l'action suivante.
+    /// Jouable clavier + souris avec UI mono-spell.
     /// </summary>
     public sealed class VerticalSliceBootstrap : MonoBehaviour
     {
@@ -20,6 +21,7 @@ namespace PES.Presentation.Scene
         [SerializeField] private CombatRuntimeConfigAsset _runtimeConfig;
 
         private ActionResolution _lastResult;
+        private MouseIntentMode _mouseIntentMode = MouseIntentMode.Move;
 
         private void Start()
         {
@@ -30,7 +32,8 @@ namespace PES.Presentation.Scene
             _planner = new VerticalSliceCommandPlanner(
                 _battleLoop.State,
                 runtimePolicies.MovePolicyOverride,
-                runtimePolicies.BasicAttackPolicyOverride);
+                runtimePolicies.BasicAttackPolicyOverride,
+                runtimePolicies.SkillPolicyOverride);
 
             BuildSteppedMap();
             _unitAView = CreateUnitVisual("UnitA", Color.cyan);
@@ -55,6 +58,7 @@ namespace PES.Presentation.Scene
 
             ProcessSelectionInputs();
             ProcessPlanningInputs();
+            ProcessMouseInputs();
 
             if (Input.GetKeyDown(KeyCode.Space))
             {
@@ -87,14 +91,46 @@ namespace PES.Presentation.Scene
             var selected = _planner.HasActorSelection ? _planner.SelectedActorId.ToString() : "None";
             var planned = _planner.PlannedLabel;
 
-            var panel = new Rect(12f, 12f, 560f, 156f);
+            var panel = new Rect(12f, 12f, 700f, 244f);
             GUI.Box(panel, "Vertical Slice");
-            GUI.Label(new Rect(24f, 38f, 540f, 20f), $"Tick: {_battleLoop.State.Tick} | Round: {_battleLoop.CurrentRound}");
-            GUI.Label(new Rect(24f, 58f, 540f, 20f), $"Actor: {_battleLoop.PeekCurrentActorLabel()} | Next: {_battleLoop.PeekNextStepLabel()} | AP:{_battleLoop.RemainingActions} | Timer:{_battleLoop.RemainingTurnSeconds:0.0}s");
-            GUI.Label(new Rect(24f, 78f, 540f, 20f), $"HP UnitA: {hpA} | HP UnitB: {hpB}");
-            GUI.Label(new Rect(24f, 98f, 540f, 20f), $"Selected: {selected} | Planned: {planned}");
-            GUI.Label(new Rect(24f, 118f, 540f, 20f), $"Last: {_lastResult.Code} / {_lastResult.FailureReason}");
-            GUI.Label(new Rect(24f, 138f, 540f, 20f), _battleLoop.IsBattleOver ? $"Winner Team: {_battleLoop.WinnerTeamId}" : "Keys: 1/2 select actor, M move, A attack, SPACE execute.");
+            GUI.Label(new Rect(24f, 38f, 680f, 20f), $"Tick: {_battleLoop.State.Tick} | Round: {_battleLoop.CurrentRound}");
+            GUI.Label(new Rect(24f, 58f, 680f, 20f), $"Actor: {_battleLoop.PeekCurrentActorLabel()} | Next: {_battleLoop.PeekNextStepLabel()} | AP:{_battleLoop.RemainingActions} | PM:{_battleLoop.CurrentActorMovementPoints} | Timer:{_battleLoop.RemainingTurnSeconds:0.0}s");
+            GUI.Label(new Rect(24f, 78f, 680f, 20f), $"HP UnitA: {hpA} | HP UnitB: {hpB}");
+            GUI.Label(new Rect(24f, 98f, 680f, 20f), $"Selected: {selected} | Planned: {planned} | MouseMode: {_mouseIntentMode}");
+            GUI.Label(new Rect(24f, 118f, 680f, 20f), $"Last: {_lastResult.Code} / {_lastResult.FailureReason}");
+            GUI.Label(new Rect(24f, 138f, 680f, 20f), _battleLoop.IsBattleOver ? $"Winner Team: {_battleLoop.WinnerTeamId}" : "Mouse: left click world/unit. Keys: 1/2 select, M/A/S mode, SPACE execute.");
+
+            if (GUI.Button(new Rect(24f, 166f, 90f, 28f), "Select A"))
+            {
+                _planner.SelectActor(VerticalSliceBattleLoop.UnitA);
+            }
+
+            if (GUI.Button(new Rect(120f, 166f, 90f, 28f), "Select B"))
+            {
+                _planner.SelectActor(VerticalSliceBattleLoop.UnitB);
+            }
+
+            if (GUI.Button(new Rect(230f, 166f, 90f, 28f), "Move"))
+            {
+                _mouseIntentMode = MouseIntentMode.Move;
+            }
+
+            if (GUI.Button(new Rect(326f, 166f, 90f, 28f), "Attack"))
+            {
+                _mouseIntentMode = MouseIntentMode.Attack;
+            }
+
+            if (GUI.Button(new Rect(422f, 166f, 90f, 28f), "MonoSpell"))
+            {
+                _mouseIntentMode = MouseIntentMode.Skill;
+            }
+
+            if (GUI.Button(new Rect(518f, 166f, 90f, 28f), "Execute"))
+            {
+                TryExecutePlanned();
+            }
+
+            GUI.Label(new Rect(24f, 204f, 680f, 30f), "Flow souris: Select A/B -> choisir mode (Move/Attack/MonoSpell) -> clic sur map/cible -> Execute (ou auto-exec sur clic). ");
         }
 
         private void ProcessSelectionInputs()
@@ -120,6 +156,7 @@ namespace PES.Presentation.Scene
 
             if (Input.GetKeyDown(KeyCode.M))
             {
+                _mouseIntentMode = MouseIntentMode.Move;
                 if (TryFindAdjacentMoveDestination(_planner.SelectedActorId, out var destination))
                 {
                     _planner.PlanMove(destination);
@@ -128,13 +165,104 @@ namespace PES.Presentation.Scene
 
             if (Input.GetKeyDown(KeyCode.A))
             {
+                _mouseIntentMode = MouseIntentMode.Attack;
                 var target = _planner.SelectedActorId.Equals(VerticalSliceBattleLoop.UnitA)
                     ? VerticalSliceBattleLoop.UnitB
                     : VerticalSliceBattleLoop.UnitA;
                 _planner.PlanAttack(target);
             }
+
+            if (Input.GetKeyDown(KeyCode.S))
+            {
+                _mouseIntentMode = MouseIntentMode.Skill;
+                var target = _planner.SelectedActorId.Equals(VerticalSliceBattleLoop.UnitA)
+                    ? VerticalSliceBattleLoop.UnitB
+                    : VerticalSliceBattleLoop.UnitA;
+                _planner.PlanSkill(target);
+            }
         }
 
+        private void ProcessMouseInputs()
+        {
+            if (!_planner.HasActorSelection || !Input.GetMouseButtonDown(0))
+            {
+                return;
+            }
+
+            var ray = Camera.main != null
+                ? Camera.main.ScreenPointToRay(Input.mousePosition)
+                : new Ray();
+
+            if (Camera.main == null || !Physics.Raycast(ray, out var hit, 250f))
+            {
+                return;
+            }
+
+            if (_mouseIntentMode == MouseIntentMode.Move)
+            {
+                var destination = ToGrid(hit.point);
+                _planner.PlanMove(destination);
+                TryExecutePlanned();
+                return;
+            }
+
+            if (!TryResolveActorFromHit(hit.collider.gameObject, out var clickedActor))
+            {
+                return;
+            }
+
+            var selectedActor = _planner.SelectedActorId;
+            if (clickedActor.Equals(selectedActor))
+            {
+                return;
+            }
+
+            if (_mouseIntentMode == MouseIntentMode.Attack)
+            {
+                _planner.PlanAttack(clickedActor);
+                TryExecutePlanned();
+            }
+            else if (_mouseIntentMode == MouseIntentMode.Skill)
+            {
+                _planner.PlanSkill(clickedActor);
+                TryExecutePlanned();
+            }
+        }
+
+        private void TryExecutePlanned()
+        {
+            if (_battleLoop.IsBattleOver)
+            {
+                return;
+            }
+
+            if (_planner.TryBuildCommand(out var actorId, out var command))
+            {
+                _battleLoop.TryExecutePlannedCommand(actorId, command, out _lastResult);
+                _planner.ClearPlannedAction();
+                SyncUnitViews();
+                Debug.Log($"[VerticalSlice] {_lastResult.Description}");
+            }
+        }
+
+        private static bool TryResolveActorFromHit(GameObject hitObject, out EntityId actorId)
+        {
+            actorId = default;
+
+            if (hitObject.name == "UnitA")
+            {
+                actorId = VerticalSliceBattleLoop.UnitA;
+                return true;
+            }
+
+            if (hitObject.name == "UnitB")
+            {
+                actorId = VerticalSliceBattleLoop.UnitB;
+                return true;
+            }
+
+            return false;
+        }
 
         private bool TryFindAdjacentMoveDestination(Core.Simulation.EntityId actorId, out GridCoord3 destination)
         {
@@ -178,10 +306,52 @@ namespace PES.Presentation.Scene
 
         private void BuildSteppedMap()
         {
-            CreateTileFromGrid(0, 0, 0, new Color(0.25f, 0.25f, 0.25f));
-            CreateTileFromGrid(1, 0, 0, new Color(0.35f, 0.35f, 0.35f));
-            CreateTileFromGrid(1, 0, 1, new Color(0.45f, 0.45f, 0.45f));
-            CreateTileFromGrid(2, 0, 1, new Color(0.55f, 0.55f, 0.55f));
+            const int width = 12;
+            const int depth = 12;
+
+            // Sol principal : grande zone jouable pour tests manuels in-engine.
+            for (var x = 0; x < width; x++)
+            {
+                for (var y = 0; y < depth; y++)
+                {
+                    var checker = (x + y) % 2 == 0;
+                    var color = checker
+                        ? new Color(0.27f, 0.27f, 0.27f)
+                        : new Color(0.33f, 0.33f, 0.33f);
+                    CreateTileFromGrid(x, y, 0, color);
+                }
+            }
+
+            // Plateforme surélevée de test (élévation skills/LOS).
+            for (var x = 4; x <= 7; x++)
+            {
+                for (var y = 4; y <= 7; y++)
+                {
+                    CreateTileFromGrid(x, y, 1, new Color(0.42f, 0.42f, 0.42f));
+                }
+            }
+
+            // Quelques obstacles de ligne de vue au centre.
+            AddBlockingColumn(6, 2, 1, new Color(0.2f, 0.2f, 0.2f));
+            AddBlockingColumn(6, 3, 1, new Color(0.2f, 0.2f, 0.2f));
+            AddBlockingColumn(6, 4, 1, new Color(0.2f, 0.2f, 0.2f));
+            AddBlockingColumn(5, 6, 2, new Color(0.18f, 0.18f, 0.18f));
+            AddBlockingColumn(7, 6, 2, new Color(0.18f, 0.18f, 0.18f));
+        }
+
+
+        private void AddBlockingColumn(int x, int y, int height, Color color)
+        {
+            if (height < 1)
+            {
+                height = 1;
+            }
+
+            for (var z = 1; z <= height; z++)
+            {
+                CreateTileFromGrid(x, y, z, color);
+                _battleLoop.State.SetBlockedPosition(new Position3(x, y, z), blocked: true);
+            }
         }
 
         private static GameObject CreateTileFromGrid(int x, int y, int z, Color color)
@@ -227,6 +397,21 @@ namespace PES.Presentation.Scene
         private static Vector3 ToWorld(Position3 position)
         {
             return new Vector3(position.X, position.Z + 1.5f, position.Y);
+        }
+
+        private static GridCoord3 ToGrid(Vector3 world)
+        {
+            var x = Mathf.RoundToInt(world.x);
+            var y = Mathf.RoundToInt(world.z);
+            var z = Mathf.RoundToInt(world.y);
+            return new GridCoord3(x, y, z);
+        }
+
+        private enum MouseIntentMode
+        {
+            Move = 0,
+            Attack = 1,
+            Skill = 2,
         }
     }
 }
