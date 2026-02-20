@@ -39,5 +39,21 @@ namespace PES.Tests.EditMode
             Assert.That(actorId, Is.EqualTo(VerticalSliceBattleLoop.UnitB));
             Assert.That(command, Is.TypeOf<BasicAttackAction>());
         }
+
+
+        [Test]
+        public void TryBuildCommand_WithSkillPlan_ProducesCastSkillAction()
+        {
+            var state = new BattleState();
+            var planner = new VerticalSliceCommandPlanner(state);
+            planner.SelectActor(VerticalSliceBattleLoop.UnitA);
+            planner.PlanSkill(VerticalSliceBattleLoop.UnitB);
+
+            var built = planner.TryBuildCommand(out var actorId, out var command);
+
+            Assert.That(built, Is.True);
+            Assert.That(actorId, Is.EqualTo(VerticalSliceBattleLoop.UnitA));
+            Assert.That(command, Is.TypeOf<CastSkillAction>());
+        }
     }
 }
