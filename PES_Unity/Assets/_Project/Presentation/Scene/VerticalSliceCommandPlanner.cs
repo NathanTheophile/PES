@@ -12,6 +12,7 @@ namespace PES.Presentation.Scene
         private readonly BattleState _state;
         private readonly MoveActionPolicy? _movePolicyOverride;
         private readonly BasicAttackActionPolicy? _basicAttackPolicyOverride;
+        private readonly SkillActionPolicy? _skillPolicyOverride;
         private EntityId _selectedActor;
         private bool _hasSelection;
         private PlannedActionKind _plannedKind;
@@ -21,11 +22,13 @@ namespace PES.Presentation.Scene
         public VerticalSliceCommandPlanner(
             BattleState state,
             MoveActionPolicy? movePolicyOverride = null,
-            BasicAttackActionPolicy? basicAttackPolicyOverride = null)
+            BasicAttackActionPolicy? basicAttackPolicyOverride = null,
+            SkillActionPolicy? skillPolicyOverride = null)
         {
             _state = state;
             _movePolicyOverride = movePolicyOverride;
             _basicAttackPolicyOverride = basicAttackPolicyOverride;
+            _skillPolicyOverride = skillPolicyOverride;
             _plannedKind = PlannedActionKind.None;
         }
 
@@ -37,6 +40,7 @@ namespace PES.Presentation.Scene
         {
             PlannedActionKind.Move => $"Move to {_plannedDestination}",
             PlannedActionKind.Attack => $"Attack {_plannedTarget}",
+            PlannedActionKind.Skill => $"Skill {_plannedTarget}",
             _ => "None",
         };
 
@@ -55,6 +59,12 @@ namespace PES.Presentation.Scene
         public void PlanAttack(EntityId targetId)
         {
             _plannedKind = PlannedActionKind.Attack;
+            _plannedTarget = targetId;
+        }
+
+        public void PlanSkill(EntityId targetId)
+        {
+            _plannedKind = PlannedActionKind.Skill;
             _plannedTarget = targetId;
         }
 
@@ -86,6 +96,10 @@ namespace PES.Presentation.Scene
                     command = new BasicAttackAction(_selectedActor, _plannedTarget, _basicAttackPolicyOverride);
                     return true;
 
+                case PlannedActionKind.Skill:
+                    command = new CastSkillAction(_selectedActor, _plannedTarget, _skillPolicyOverride);
+                    return true;
+
                 default:
                     return false;
             }
@@ -101,6 +115,7 @@ namespace PES.Presentation.Scene
             None = 0,
             Move = 1,
             Attack = 2,
+            Skill = 3,
         }
     }
 }
