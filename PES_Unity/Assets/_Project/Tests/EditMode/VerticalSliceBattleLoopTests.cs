@@ -24,6 +24,31 @@ namespace PES.Tests.EditMode
         }
 
 
+
+        [Test]
+        public void Constructor_WhenNoDurationProvided_UsesThirtySecondsDefault()
+        {
+            var loop = new VerticalSliceBattleLoop(seed: 3);
+
+            Assert.That(loop.TurnDurationSeconds, Is.EqualTo(30f));
+            Assert.That(loop.RemainingTurnSeconds, Is.EqualTo(30f));
+        }
+
+        [Test]
+        public void TryPassTurn_WithCurrentActor_SwitchesTurnAndAdvancesTick()
+        {
+            var loop = new VerticalSliceBattleLoop(seed: 3);
+
+            var accepted = loop.TryPassTurn(VerticalSliceBattleLoop.UnitA, out var result);
+
+            Assert.That(accepted, Is.True);
+            Assert.That(result.Success, Is.True);
+            Assert.That(loop.PeekCurrentActorLabel(), Is.EqualTo("UnitB"));
+            Assert.That(loop.State.Tick, Is.EqualTo(1));
+            Assert.That(loop.State.StructuredEventLog.Count, Is.EqualTo(1));
+            Assert.That(loop.State.StructuredEventLog[0].Description, Does.Contain("TurnPassed"));
+        }
+
         [Test]
         public void TryAdvanceTurnTimer_WhenDurationNotReached_DoesNotSwitchActor()
         {
@@ -173,5 +198,29 @@ namespace PES.Tests.EditMode
             Assert.That(afterEnd.Success, Is.False);
             Assert.That(afterEnd.Description, Does.Contain("BattleFinished"));
         }
+
+        [Test]
+        public void TryExecutePlannedCommand_WhenTurnEnds_ResetsNextActorMovementPoints()
+        {
+            var definitions = new[]
+            {
+                new BattleActorDefinition(VerticalSliceBattleLoop.UnitA, 1, new Position3(0, 0, 0), 40, startMovementPoints: 6),
+                new BattleActorDefinition(VerticalSliceBattleLoop.UnitB, 2, new Position3(2, 0, 1), 40, startMovementPoints: 6),
+            };
+
+            var loop = new VerticalSliceBattleLoop(seed: 3, actorDefinitions: definitions);
+
+            var accepted = loop.TryExecutePlannedCommand(
+                VerticalSliceBattleLoop.UnitA,
+                new MoveAction(VerticalSliceBattleLoop.UnitA, new GridCoord3(0, 0, 0), new GridCoord3(1, 0, 1)),
+                out var result);
+
+            Assert.That(accepted, Is.True);
+            Assert.That(result.Success, Is.True);
+            Assert.That(loop.PeekCurrentActorLabel(), Is.EqualTo("UnitB"));
+            Assert.That(loop.State.TryGetEntityMovementPoints(VerticalSliceBattleLoop.UnitB, out var unitBMovement), Is.True);
+            Assert.That(unitBMovement, Is.EqualTo(6));
+        }
+
     }
 }
