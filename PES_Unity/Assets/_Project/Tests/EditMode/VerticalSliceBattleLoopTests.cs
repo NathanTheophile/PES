@@ -1,6 +1,7 @@
 using NUnit.Framework;
 using PES.Combat.Actions;
 using PES.Core.Simulation;
+using PES.Core.TurnSystem;
 using PES.Grid.Grid3D;
 using PES.Presentation.Scene;
 
@@ -115,6 +116,42 @@ namespace PES.Tests.EditMode
             Assert.That(loop.PeekCurrentActorLabel(), Is.EqualTo("UnitA"));
             Assert.That(loop.CurrentRound, Is.EqualTo(1));
             Assert.That(loop.RemainingActions, Is.EqualTo(1));
+        }
+
+
+        [Test]
+        public void TryExecutePlannedCommand_WithTwoActionsPerTurn_DoesNotSwitchActorAfterFirstAction()
+        {
+            var loop = new VerticalSliceBattleLoop(seed: 3, actionsPerTurn: 2);
+
+            var accepted = loop.TryExecutePlannedCommand(
+                VerticalSliceBattleLoop.UnitA,
+                new MoveAction(VerticalSliceBattleLoop.UnitA, new GridCoord3(0, 0, 0), new GridCoord3(1, 0, 1)),
+                out var result);
+
+            Assert.That(accepted, Is.True);
+            Assert.That(result.Success, Is.True);
+            Assert.That(loop.PeekCurrentActorLabel(), Is.EqualTo("UnitA"));
+            Assert.That(loop.RemainingActions, Is.EqualTo(1));
+        }
+
+
+        [Test]
+        public void ExecuteNextStep_WithControlPointObjective_EndsBattleBeforeElimination()
+        {
+            var objective = new IBattleObjective[]
+            {
+                new ControlPointObjective(new Position3(1, 0, 1)),
+            };
+
+            var loop = new VerticalSliceBattleLoop(seed: 3, objectives: objective);
+
+            var first = loop.ExecuteNextStep();
+
+            Assert.That(first.Success, Is.True);
+            Assert.That(loop.IsBattleOver, Is.True);
+            Assert.That(loop.WinnerTeamId, Is.EqualTo(1));
+            Assert.That(loop.PeekNextStepLabel(), Is.EqualTo("BattleFinished"));
         }
 
         [Test]
