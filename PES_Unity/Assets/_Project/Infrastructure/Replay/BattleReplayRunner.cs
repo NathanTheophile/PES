@@ -36,6 +36,7 @@ namespace PES.Infrastructure.Replay
             {
                 RecordedActionType.Move => new MoveAction(action.ActorId, action.Origin, action.Destination),
                 RecordedActionType.BasicAttack => new BasicAttackAction(action.ActorId, action.TargetId),
+                RecordedActionType.CastSkill => new CastSkillAction(action.ActorId, action.TargetId, action.SkillPolicy),
                 _ => new BasicAttackAction(action.ActorId, action.TargetId),
             };
         }

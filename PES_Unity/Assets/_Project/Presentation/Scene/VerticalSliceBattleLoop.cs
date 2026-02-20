@@ -30,7 +30,7 @@ namespace PES.Presentation.Scene
 
         public VerticalSliceBattleLoop(
             int seed = 7,
-            float turnDurationSeconds = 10f,
+            float turnDurationSeconds = 30f,
             MoveActionPolicy? movePolicyOverride = null,
             BasicAttackActionPolicy? basicAttackPolicyOverride = null,
             int actionsPerTurn = 1,
@@ -54,10 +54,11 @@ namespace PES.Presentation.Scene
                 _teamByActor[actor.ActorId] = actor.TeamId;
                 State.SetEntityPosition(actor.ActorId, actor.StartPosition);
                 State.SetEntityHitPoints(actor.ActorId, actor.StartHitPoints);
+                State.SetEntityMovementPoints(actor.ActorId, actor.StartMovementPoints);
             }
 
             _turnController = new RoundRobinTurnController(turnOrder, actionsPerTurn);
-            TurnDurationSeconds = turnDurationSeconds > 0f ? turnDurationSeconds : 10f;
+            TurnDurationSeconds = turnDurationSeconds > 0f ? turnDurationSeconds : 30f;
             RemainingTurnSeconds = TurnDurationSeconds;
         }
 
@@ -77,6 +78,14 @@ namespace PES.Presentation.Scene
 
         public EntityId CurrentActorId => _turnController.CurrentActorId;
 
+        public int CurrentActorMovementPoints
+        {
+            get
+            {
+                return State.TryGetEntityMovementPoints(CurrentActorId, out var value) ? value : -1;
+            }
+        }
+
 
         public bool TryAdvanceTurnTimer(float deltaTime, out ActionResolution timeoutResult)
         {
@@ -95,6 +104,29 @@ namespace PES.Presentation.Scene
 
             EndCurrentTurn();
             timeoutResult = new ActionResolution(false, ActionResolutionCode.Rejected, "TurnTimedOut: next actor", ActionFailureReason.TurnTimedOut);
+            return true;
+        }
+
+
+        public bool TryPassTurn(EntityId actorId, out ActionResolution result)
+        {
+            if (IsBattleOver)
+            {
+                result = new ActionResolution(false, ActionResolutionCode.Rejected, "BattleFinished: no further actions", ActionFailureReason.InvalidTargeting);
+                return false;
+            }
+
+            if (!actorId.Equals(CurrentActorId))
+            {
+                result = new ActionResolution(false, ActionResolutionCode.Rejected, $"TurnRejected: it's {PeekCurrentActorLabel()} turn", ActionFailureReason.InvalidOrigin);
+                return false;
+            }
+
+            var previousActor = CurrentActorId;
+            EndCurrentTurn();
+            result = new ActionResolution(true, ActionResolutionCode.Succeeded, $"TurnPassed: {previousActor} -> {CurrentActorId}");
+            State.AddEvent(new CombatEventRecord(State.Tick, result.Code, result.FailureReason, result.Description, result.Payload));
+            State.AdvanceTick();
             return true;
         }
 
@@ -147,10 +179,6 @@ namespace PES.Presentation.Scene
             if (result.Code != ActionResolutionCode.Rejected)
             {
                 _turnController.TryConsumeAction(actorId);
-                if (_turnController.RemainingActions <= 0)
-                {
-                    EndCurrentTurn();
-                }
             }
 
             SyncAliveActorsWithHitPoints();
@@ -190,6 +218,14 @@ namespace PES.Presentation.Scene
             }
 
             TryExecutePlannedCommand(actor, command, out var result);
+
+            // En mode scripté, on force la progression de tour dès que l'acteur n'a plus d'actions,
+            // même si la commande courante a été rejetée (ex: AP déjà à 0 suite à une action précédente).
+            if (_turnController.RemainingActions <= 0)
+            {
+                TryPassTurn(actor, out _);
+            }
+
             return result;
         }
 
@@ -197,7 +233,14 @@ namespace PES.Presentation.Scene
         private void EndCurrentTurn()
         {
             _turnController.EndTurn();
+            ResetCurrentActorMovementPoints();
             RemainingTurnSeconds = TurnDurationSeconds;
+        }
+
+
+        private void ResetCurrentActorMovementPoints()
+        {
+            State.ResetMovementPoints(CurrentActorId);
         }
 
         private void EvaluateVictory()
