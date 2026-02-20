@@ -64,5 +64,22 @@ namespace PES.Tests.EditMode
             Assert.That(afterEnd.Success, Is.False);
             Assert.That(afterEnd.Description, Does.Contain("BattleFinished"));
         }
+
+        [Test]
+        public void ExecuteNextStep_FullThreeActionCycle_ProducesExpectedActionKinds()
+        {
+            var loop = new VerticalSliceBattleLoop(seed: 3);
+
+            var move = loop.ExecuteNextStep();
+            var attackA = loop.ExecuteNextStep();
+            var attackB = loop.ExecuteNextStep();
+
+            Assert.That(move.Description, Does.Contain("MoveActionResolved"));
+            Assert.That(attackA.Description, Does.Contain("BasicAttack"));
+            Assert.That(attackB.Description, Does.Contain("BasicAttack"));
+            Assert.That(loop.State.Tick, Is.EqualTo(3));
+            Assert.That(loop.State.StructuredEventLog.Count, Is.EqualTo(3));
+            Assert.That(loop.PeekNextStepLabel(), Is.EqualTo("Move(UnitA)"));
+        }
     }
 }
