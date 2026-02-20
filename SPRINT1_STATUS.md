@@ -126,3 +126,18 @@ En pratique, il faut démarrer par les features `Skills`/`States`/`Flow` déjà 
 - Ajout d'un setup caméra isométrique "ankama-like" automatique dans le vertical slice (angle/offset configurables depuis l'inspector).
 
 - Ajout d'un overlay de déplacements possibles (bleu) + prévisualisation du path survolé (ligne blanche) pour l'acteur courant en mode Move.
+
+## Synthèse opérationnelle (assistant)
+
+### Statut global
+- Le portage a dépassé le bootstrap: les fondations domain-first sont en place et le gate vers un portage gameplay complet est validé dans la matrice.
+- Le risque principal n'est plus de "démarrer", mais de garder la discipline replay/déterminisme pendant l'ajout des features restantes.
+
+### Priorités recommandées (court terme)
+1. Fermer les gaps **High risk** déjà identifiés sur `Move` / `BasicAttack` (LOS exact Godot, coûts terrain avancés, collisions dynamiques, PM complets).
+2. Industrialiser le contrat d'action commun (payload versionné + invariants snapshot/replay sur chaque nouvelle feature).
+3. Accélérer le portage des **Skills** en vertical slice complet (coûts, cooldowns, AOE, effets), puis enchaîner sur `States`.
+
+### Recommandation stratégique
+- **Continuer le portage du gameplay Godot**, mais de façon incrémentale et pilotée par parité + checklist replay.
+- Éviter d'ouvrir trop de fronts UI/meta tant que les briques gameplay cœur (`Skills`, `States`) ne sont pas verrouillées côté domaine et tests déterministes.
