@@ -62,12 +62,13 @@ namespace PES.Core.Simulation
         MovementBudgetExceeded = 6,
         StateMutationFailed = 7,
         MissingPositions = 8,
-        OutOfRange = 9,
-        LineOfSightBlocked = 10,
-        MissingHitPoints = 11,
-        DamageApplicationFailed = 12,
-        HitRollMissed = 13,
-        InvalidTargeting = 14,
+        TooClose = 9,
+        OutOfRange = 10,
+        LineOfSightBlocked = 11,
+        MissingHitPoints = 12,
+        DamageApplicationFailed = 13,
+        HitRollMissed = 14,
+        InvalidTargeting = 15,
     }
 
     /// <summary>

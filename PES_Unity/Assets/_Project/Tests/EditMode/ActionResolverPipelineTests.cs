@@ -441,6 +441,7 @@ namespace PES.Tests.EditMode
             Assert.That(result.Success, Is.False);
             Assert.That(result.Code, Is.EqualTo(ActionResolutionCode.Rejected));
             Assert.That(result.Description, Does.Contain("line of sight blocked"));
+            Assert.That(result.FailureReason, Is.EqualTo(ActionFailureReason.LineOfSightBlocked));
             Assert.That(state.TryGetEntityHitPoints(target, out var remainingHp), Is.True);
             Assert.That(remainingHp, Is.EqualTo(30));
         }
@@ -467,6 +468,7 @@ namespace PES.Tests.EditMode
             Assert.That(result.Success, Is.False);
             Assert.That(result.Code, Is.EqualTo(ActionResolutionCode.Rejected));
             Assert.That(result.Description, Does.Contain("line of sight blocked"));
+            Assert.That(result.FailureReason, Is.EqualTo(ActionFailureReason.LineOfSightBlocked));
             Assert.That(state.TryGetEntityHitPoints(target, out var remainingHp), Is.True);
             Assert.That(remainingHp, Is.EqualTo(30));
         }
@@ -534,6 +536,67 @@ namespace PES.Tests.EditMode
             Assert.That(result.Code, Is.EqualTo(ActionResolutionCode.Rejected));
             Assert.That(result.FailureReason, Is.EqualTo(ActionFailureReason.MissingHitPoints));
             Assert.That(result.Description, Does.Contain("missing hit points"));
+        }
+
+
+        [Test]
+        public void Resolve_BasicAttackAction_WhenTargetTooClose_IsRejectedWithTooCloseReason()
+        {
+            // Arrange : cible sur la même case XY que l'attaquant (distance 0).
+            var state = new BattleState();
+            var attacker = new EntityId(84);
+            var target = new EntityId(85);
+            state.SetEntityPosition(attacker, new Position3(0, 0, 0));
+            state.SetEntityPosition(target, new Position3(0, 0, 0));
+            state.SetEntityHitPoints(target, 30);
+
+            var resolver = new ActionResolver(new SeededRngService(42));
+
+            // Act.
+            var result = resolver.Resolve(state, new BasicAttackAction(attacker, target));
+
+            // Assert : rejet structuré "too close".
+            Assert.That(result.Success, Is.False);
+            Assert.That(result.Code, Is.EqualTo(ActionResolutionCode.Rejected));
+            Assert.That(result.FailureReason, Is.EqualTo(ActionFailureReason.TooClose));
+            Assert.That(result.Description, Does.Contain("target too close"));
+        }
+
+        [Test]
+        public void Resolve_BasicAttackAction_HighGroundDealsMoreDamageThanLowGround_WithSameRngSequence()
+        {
+            // Arrange : même RNG sur deux simulations, seule la hauteur relative change.
+            var attacker = new EntityId(86);
+            var target = new EntityId(87);
+
+            var highGroundState = new BattleState();
+            highGroundState.SetEntityPosition(attacker, new Position3(0, 0, 2));
+            highGroundState.SetEntityPosition(target, new Position3(1, 0, 0));
+            highGroundState.SetEntityHitPoints(target, 40);
+
+            var lowGroundState = new BattleState();
+            lowGroundState.SetEntityPosition(attacker, new Position3(0, 0, 0));
+            lowGroundState.SetEntityPosition(target, new Position3(1, 0, 2));
+            lowGroundState.SetEntityHitPoints(target, 40);
+
+            // 60 => touche dans les deux cas ; 1 => même variance dégâts.
+            var highResolver = new ActionResolver(new SequenceRngService(60, 1));
+            var lowResolver = new ActionResolver(new SequenceRngService(60, 1));
+
+            // Act.
+            var highResult = highResolver.Resolve(highGroundState, new BasicAttackAction(attacker, target));
+            var lowResult = lowResolver.Resolve(lowGroundState, new BasicAttackAction(attacker, target));
+
+            // Assert : les deux touchent mais le bonus de hauteur augmente les dégâts.
+            Assert.That(highResult.Code, Is.EqualTo(ActionResolutionCode.Succeeded));
+            Assert.That(lowResult.Code, Is.EqualTo(ActionResolutionCode.Succeeded));
+
+            Assert.That(highGroundState.TryGetEntityHitPoints(target, out var highHp), Is.True);
+            Assert.That(lowGroundState.TryGetEntityHitPoints(target, out var lowHp), Is.True);
+            Assert.That(highHp, Is.LessThan(lowHp));
+
+            Assert.That(highResult.Description, Does.Contain("hBonus:4"));
+            Assert.That(lowResult.Description, Does.Contain("hBonus:-4"));
         }
 
         // Utilité : faux RNG de test pour forcer des séquences déterministes contrôlées.
