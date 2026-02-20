@@ -55,6 +55,9 @@ namespace PES.Core.TurnSystem
                 return false;
             }
 
+            var hadAnyActiveActor = HasAnyActiveActor();
+            var previousCurrentActor = CurrentActorId;
+
             if (isActive)
             {
                 _inactiveActors.Remove(actorId);
@@ -69,7 +72,7 @@ namespace PES.Core.TurnSystem
             {
                 RemainingActions = 0;
             }
-            else if (RemainingActions <= 0)
+            else if (!hadAnyActiveActor || !previousCurrentActor.Equals(CurrentActorId))
             {
                 RemainingActions = _actionsPerTurn;
             }
