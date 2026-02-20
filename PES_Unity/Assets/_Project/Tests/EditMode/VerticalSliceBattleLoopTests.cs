@@ -110,7 +110,7 @@ namespace PES.Tests.EditMode
         }
 
         [Test]
-        public void ExecuteNextStep_ConsumesActionAndSwitchesTurn()
+        public void ExecuteNextStep_ConsumesActionAndAutoPassesTurnInScriptedMode()
         {
             var loop = new VerticalSliceBattleLoop(seed: 3);
 
@@ -174,6 +174,43 @@ namespace PES.Tests.EditMode
             Assert.That(loop.RemainingActions, Is.EqualTo(1));
         }
 
+        [Test]
+        public void TryExecutePlannedCommand_WhenActionSucceeds_DoesNotAutoEndTurn()
+        {
+            var loop = new VerticalSliceBattleLoop(seed: 3);
+
+            var accepted = loop.TryExecutePlannedCommand(
+                VerticalSliceBattleLoop.UnitA,
+                new MoveAction(VerticalSliceBattleLoop.UnitA, new GridCoord3(0, 0, 0), new GridCoord3(1, 0, 1)),
+                out var result);
+
+            Assert.That(accepted, Is.True);
+            Assert.That(result.Success, Is.True);
+            Assert.That(loop.PeekCurrentActorLabel(), Is.EqualTo("UnitA"));
+            Assert.That(loop.CurrentRound, Is.EqualTo(1));
+            Assert.That(loop.RemainingActions, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void TryExecutePlannedCommand_WhenNoActionsRemaining_IsRejectedUntilPassTurn()
+        {
+            var loop = new VerticalSliceBattleLoop(seed: 3);
+
+            loop.TryExecutePlannedCommand(
+                VerticalSliceBattleLoop.UnitA,
+                new MoveAction(VerticalSliceBattleLoop.UnitA, new GridCoord3(0, 0, 0), new GridCoord3(1, 0, 1)),
+                out _);
+
+            var accepted = loop.TryExecutePlannedCommand(
+                VerticalSliceBattleLoop.UnitA,
+                new BasicAttackAction(VerticalSliceBattleLoop.UnitA, VerticalSliceBattleLoop.UnitB),
+                out var result);
+
+            Assert.That(accepted, Is.False);
+            Assert.That(result.Success, Is.False);
+            Assert.That(result.Description, Does.Contain("no action points remaining"));
+            Assert.That(loop.PeekCurrentActorLabel(), Is.EqualTo("UnitA"));
+        }
 
         [Test]
         public void TryExecutePlannedCommand_WithTwoActionsPerTurn_DoesNotSwitchActorAfterFirstAction()
@@ -231,7 +268,7 @@ namespace PES.Tests.EditMode
         }
 
         [Test]
-        public void TryExecutePlannedCommand_WhenTurnEnds_ResetsNextActorMovementPoints()
+        public void TryPassTurn_WhenTurnEnds_ResetsNextActorMovementPoints()
         {
             var definitions = new[]
             {
@@ -241,13 +278,19 @@ namespace PES.Tests.EditMode
 
             var loop = new VerticalSliceBattleLoop(seed: 3, actorDefinitions: definitions);
 
-            var accepted = loop.TryExecutePlannedCommand(
+            var acceptedMove = loop.TryExecutePlannedCommand(
                 VerticalSliceBattleLoop.UnitA,
                 new MoveAction(VerticalSliceBattleLoop.UnitA, new GridCoord3(0, 0, 0), new GridCoord3(1, 0, 1)),
-                out var result);
+                out var moveResult);
 
-            Assert.That(accepted, Is.True);
-            Assert.That(result.Success, Is.True);
+            Assert.That(acceptedMove, Is.True);
+            Assert.That(moveResult.Success, Is.True);
+            Assert.That(loop.PeekCurrentActorLabel(), Is.EqualTo("UnitA"));
+
+            var acceptedPass = loop.TryPassTurn(VerticalSliceBattleLoop.UnitA, out var passResult);
+
+            Assert.That(acceptedPass, Is.True);
+            Assert.That(passResult.Success, Is.True);
             Assert.That(loop.PeekCurrentActorLabel(), Is.EqualTo("UnitB"));
             Assert.That(loop.State.TryGetEntityMovementPoints(VerticalSliceBattleLoop.UnitB, out var unitBMovement), Is.True);
             Assert.That(unitBMovement, Is.EqualTo(6));

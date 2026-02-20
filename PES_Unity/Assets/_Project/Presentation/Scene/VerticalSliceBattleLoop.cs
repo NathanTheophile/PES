@@ -179,10 +179,6 @@ namespace PES.Presentation.Scene
             if (result.Code != ActionResolutionCode.Rejected)
             {
                 _turnController.TryConsumeAction(actorId);
-                if (_turnController.RemainingActions <= 0)
-                {
-                    EndCurrentTurn();
-                }
             }
 
             SyncAliveActorsWithHitPoints();
@@ -222,6 +218,12 @@ namespace PES.Presentation.Scene
             }
 
             TryExecutePlannedCommand(actor, command, out var result);
+
+            if (result.Success && _turnController.RemainingActions <= 0)
+            {
+                TryPassTurn(actor, out _);
+            }
+
             return result;
         }
 
