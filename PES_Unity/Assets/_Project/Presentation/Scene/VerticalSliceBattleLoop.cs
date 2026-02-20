@@ -45,10 +45,11 @@ namespace PES.Presentation.Scene
 
         public int? WinnerTeamId => _winnerTeamId;
 
+        public EntityId CurrentActorId => _turnController.CurrentActorId;
+
         public string PeekCurrentActorLabel()
         {
-            var actor = _turnController.CurrentActorId;
-            return actor.Equals(UnitA) ? "UnitA" : "UnitB";
+            return CurrentActorId.Equals(UnitA) ? "UnitA" : "UnitB";
         }
 
         public string PeekNextStepLabel()
@@ -58,7 +59,7 @@ namespace PES.Presentation.Scene
                 return "BattleFinished";
             }
 
-            var actor = _turnController.CurrentActorId;
+            var actor = CurrentActorId;
             if (actor.Equals(UnitA))
             {
                 return _unitAHasMovedOnce ? "Attack(UnitA->UnitB)" : "Move(UnitA)";
@@ -68,17 +69,45 @@ namespace PES.Presentation.Scene
         }
 
         /// <summary>
-        /// Exécute l'action de l'acteur courant puis consomme l'action et termine le tour.
+        /// Exécute une commande explicite venant de la couche input/presentation.
         /// </summary>
-        public ActionResolution ExecuteNextStep()
+        public bool TryExecutePlannedCommand(EntityId actorId, IActionCommand command, out ActionResolution result)
         {
             if (IsBattleOver)
             {
-                return new ActionResolution(false, ActionResolutionCode.Rejected, "BattleFinished: no further actions", ActionFailureReason.InvalidTargeting);
+                result = new ActionResolution(false, ActionResolutionCode.Rejected, "BattleFinished: no further actions", ActionFailureReason.InvalidTargeting);
+                return false;
             }
 
-            var actor = _turnController.CurrentActorId;
-            ActionResolution result;
+            if (!actorId.Equals(CurrentActorId))
+            {
+                result = new ActionResolution(false, ActionResolutionCode.Rejected, $"TurnRejected: it's {PeekCurrentActorLabel()} turn", ActionFailureReason.InvalidOrigin);
+                return false;
+            }
+
+            if (!_turnController.TryConsumeAction(actorId))
+            {
+                result = new ActionResolution(false, ActionResolutionCode.Rejected, "TurnRejected: no action points remaining", ActionFailureReason.InvalidOrigin);
+                return false;
+            }
+
+            result = _resolver.Resolve(State, command);
+            if (_turnController.RemainingActions <= 0)
+            {
+                _turnController.EndTurn();
+            }
+
+            EvaluateVictory();
+            return true;
+        }
+
+        /// <summary>
+        /// Exécute l'action scriptée de démo pour conserver le vertical slice pilotable au clavier.
+        /// </summary>
+        public ActionResolution ExecuteNextStep()
+        {
+            var actor = CurrentActorId;
+            IActionCommand command;
 
             if (actor.Equals(UnitA))
             {
@@ -90,30 +119,46 @@ namespace PES.Presentation.Scene
                         ? new GridCoord3(1, 0, 1)
                         : new GridCoord3(0, 0, 0);
 
-                    result = _resolver.Resolve(State, new MoveAction(UnitA, moveOrigin, moveDestination));
-                    if (result.Success)
-                    {
-                        _unitAHasMovedOnce = true;
-                    }
+                    command = new MoveAction(UnitA, moveOrigin, moveDestination);
+                    _unitAHasMovedOnce = true;
                 }
                 else
                 {
-                    result = _resolver.Resolve(State, new BasicAttackAction(UnitA, UnitB));
+                    command = new BasicAttackAction(UnitA, UnitB);
                 }
             }
             else
             {
-                result = _resolver.Resolve(State, new BasicAttackAction(UnitB, UnitA));
+                command = new BasicAttackAction(UnitB, UnitA);
             }
 
-            _turnController.TryConsumeAction(actor);
-            if (_turnController.RemainingActions <= 0)
-            {
-                _turnController.EndTurn();
-            }
-
-            EvaluateVictory();
+            TryExecutePlannedCommand(actor, command, out var result);
             return result;
+        }
+
+        private void EvaluateVictory()
+        {
+            if (!State.TryGetEntityHitPoints(UnitA, out var hpA) || !State.TryGetEntityHitPoints(UnitB, out var hpB))
+            {
+                return;
+            }
+
+            if (hpA <= 0 && hpB <= 0)
+            {
+                _winnerTeamId = 0;
+                return;
+            }
+
+            if (hpA <= 0)
+            {
+                _winnerTeamId = TeamB;
+                return;
+            }
+
+            if (hpB <= 0)
+            {
+                _winnerTeamId = TeamA;
+            }
         }
 
         private void EvaluateVictory()

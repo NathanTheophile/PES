@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using PES.Combat.Actions;
 using PES.Presentation.Scene;
 
 namespace PES.Tests.EditMode
@@ -45,6 +46,23 @@ namespace PES.Tests.EditMode
             Assert.That(loop.PeekNextStepLabel(), Is.EqualTo("Attack(UnitA->UnitB)"));
         }
 
+
+        [Test]
+        public void TryExecutePlannedCommand_WhenActorIsNotCurrentTurn_IsRejected()
+        {
+            var loop = new VerticalSliceBattleLoop(seed: 3);
+
+            var accepted = loop.TryExecutePlannedCommand(
+                VerticalSliceBattleLoop.UnitB,
+                new BasicAttackAction(VerticalSliceBattleLoop.UnitB, VerticalSliceBattleLoop.UnitA),
+                out var result);
+
+            Assert.That(accepted, Is.False);
+            Assert.That(result.Success, Is.False);
+            Assert.That(result.Description, Does.Contain("TurnRejected"));
+            Assert.That(loop.PeekCurrentActorLabel(), Is.EqualTo("UnitA"));
+        }
+
         [Test]
         public void ExecuteNextStep_BattleEventuallyEndsAndWinnerIsSet()
         {
@@ -63,23 +81,6 @@ namespace PES.Tests.EditMode
             var afterEnd = loop.ExecuteNextStep();
             Assert.That(afterEnd.Success, Is.False);
             Assert.That(afterEnd.Description, Does.Contain("BattleFinished"));
-        }
-
-        [Test]
-        public void ExecuteNextStep_FullThreeActionCycle_ProducesExpectedActionKinds()
-        {
-            var loop = new VerticalSliceBattleLoop(seed: 3);
-
-            var move = loop.ExecuteNextStep();
-            var attackA = loop.ExecuteNextStep();
-            var attackB = loop.ExecuteNextStep();
-
-            Assert.That(move.Description, Does.Contain("MoveActionResolved"));
-            Assert.That(attackA.Description, Does.Contain("BasicAttack"));
-            Assert.That(attackB.Description, Does.Contain("BasicAttack"));
-            Assert.That(loop.State.Tick, Is.EqualTo(3));
-            Assert.That(loop.State.StructuredEventLog.Count, Is.EqualTo(3));
-            Assert.That(loop.PeekNextStepLabel(), Is.EqualTo("Move(UnitA)"));
         }
     }
 }

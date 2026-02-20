@@ -1,4 +1,5 @@
 using PES.Core.Simulation;
+using PES.Grid.Grid3D;
 using UnityEngine;
 
 namespace PES.Presentation.Scene
@@ -10,6 +11,7 @@ namespace PES.Presentation.Scene
     public sealed class VerticalSliceBootstrap : MonoBehaviour
     {
         private VerticalSliceBattleLoop _battleLoop;
+        private VerticalSliceCommandPlanner _planner;
         private GameObject _unitAView;
         private GameObject _unitBView;
         private ActionResolution _lastResult;
@@ -17,6 +19,7 @@ namespace PES.Presentation.Scene
         private void Start()
         {
             _battleLoop = new VerticalSliceBattleLoop();
+            _planner = new VerticalSliceCommandPlanner(_battleLoop.State);
 
             BuildSteppedMap();
             _unitAView = CreateUnitVisual("UnitA", Color.cyan);
@@ -27,11 +30,93 @@ namespace PES.Presentation.Scene
 
         private void Update()
         {
+            if (_battleLoop == null)
+            {
+                return;
+            }
+
+            HandleSelectionInputs();
+            HandlePlanningInputs();
+
             if (Input.GetKeyDown(KeyCode.Space))
             {
-                _lastResult = _battleLoop.ExecuteNextStep();
+                if (_planner.TryBuildCommand(out var actorId, out var command))
+                {
+                    _battleLoop.TryExecutePlannedCommand(actorId, command, out _lastResult);
+                    _planner.ClearPlannedAction();
+                }
+                else
+                {
+                    // Fallback : conserver la démo auto si aucune commande n'est planifiée.
+                    _lastResult = _battleLoop.ExecuteNextStep();
+                }
+
                 SyncUnitViews();
                 Debug.Log($"[VerticalSlice] {_lastResult.Description}");
+            }
+        }
+
+        private void OnGUI()
+        {
+            if (_battleLoop == null)
+            {
+                return;
+            }
+
+            var hpA = _battleLoop.State.TryGetEntityHitPoints(VerticalSliceBattleLoop.UnitA, out var valueA) ? valueA : -1;
+            var hpB = _battleLoop.State.TryGetEntityHitPoints(VerticalSliceBattleLoop.UnitB, out var valueB) ? valueB : -1;
+
+            var selected = _planner.HasActorSelection ? _planner.SelectedActorId.ToString() : "None";
+            var planned = _planner.PlannedLabel;
+
+            var panel = new Rect(12f, 12f, 560f, 156f);
+            GUI.Box(panel, "Vertical Slice");
+            GUI.Label(new Rect(24f, 38f, 540f, 20f), $"Tick: {_battleLoop.State.Tick} | Round: {_battleLoop.CurrentRound}");
+            GUI.Label(new Rect(24f, 58f, 540f, 20f), $"Actor: {_battleLoop.PeekCurrentActorLabel()} | Next: {_battleLoop.PeekNextStepLabel()} | AP:{_battleLoop.RemainingActions}");
+            GUI.Label(new Rect(24f, 78f, 540f, 20f), $"HP UnitA: {hpA} | HP UnitB: {hpB}");
+            GUI.Label(new Rect(24f, 98f, 540f, 20f), $"Selected: {selected} | Planned: {planned}");
+            GUI.Label(new Rect(24f, 118f, 540f, 20f), $"Last: {_lastResult.Code} / {_lastResult.FailureReason}");
+            GUI.Label(new Rect(24f, 138f, 540f, 20f), _battleLoop.IsBattleOver ? $"Winner Team: {_battleLoop.WinnerTeamId}" : "Keys: 1/2 select actor, M move, A attack, SPACE execute.");
+        }
+
+        private void HandleSelectionInputs()
+        {
+            if (Input.GetKeyDown(KeyCode.Alpha1))
+            {
+                _planner.SelectActor(VerticalSliceBattleLoop.UnitA);
+            }
+
+            if (Input.GetKeyDown(KeyCode.Alpha2))
+            {
+                _planner.SelectActor(VerticalSliceBattleLoop.UnitB);
+            }
+        }
+
+        private void HandlePlanningInputs()
+        {
+            if (!_planner.HasActorSelection)
+            {
+                return;
+            }
+
+            if (Input.GetKeyDown(KeyCode.M))
+            {
+                if (_planner.SelectedActorId.Equals(VerticalSliceBattleLoop.UnitA))
+                {
+                    _planner.PlanMove(new GridCoord3(1, 0, 1));
+                }
+                else
+                {
+                    _planner.PlanMove(new GridCoord3(2, 0, 1));
+                }
+            }
+
+            if (Input.GetKeyDown(KeyCode.A))
+            {
+                var target = _planner.SelectedActorId.Equals(VerticalSliceBattleLoop.UnitA)
+                    ? VerticalSliceBattleLoop.UnitB
+                    : VerticalSliceBattleLoop.UnitA;
+                _planner.PlanAttack(target);
             }
         }
 

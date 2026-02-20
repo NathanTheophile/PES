@@ -13,8 +13,8 @@
 - [ ] Conditions de victoire/défaite minimales.
 
 ## Sprint C — Input tactique
-- [ ] Sélection unité / case / cible en scène.
-- [ ] Conversion UI/input en `IActionCommand` sans logique métier dans les MonoBehaviour.
+- [x] Sélection unité / intention (move/attack) en scène (bindings clavier de vertical slice).
+- [x] Conversion UI/input en `IActionCommand` via `VerticalSliceCommandPlanner` (sans logique métier dans MonoBehaviour).
 
 ## Sprint D — Determinism & replay
 - [ ] Persister un flux `action log` + snapshots.
