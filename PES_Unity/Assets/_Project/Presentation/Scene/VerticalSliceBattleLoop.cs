@@ -19,17 +19,25 @@ namespace PES.Presentation.Scene
 
         private readonly ActionResolver _resolver;
         private readonly RoundRobinTurnController _turnController;
+        private readonly MoveActionPolicy? _movePolicyOverride;
+        private readonly BasicAttackActionPolicy? _basicAttackPolicyOverride;
 
         private bool _unitAHasMovedOnce;
         private int? _winnerTeamId;
 
-        public VerticalSliceBattleLoop(int seed = 7, float turnDurationSeconds = 10f)
+        public VerticalSliceBattleLoop(
+            int seed = 7,
+            float turnDurationSeconds = 10f,
+            MoveActionPolicy? movePolicyOverride = null,
+            BasicAttackActionPolicy? basicAttackPolicyOverride = null)
         {
             State = new BattleState();
             _resolver = new ActionResolver(new SeededRngService(seed));
             _turnController = new RoundRobinTurnController(new[] { UnitA, UnitB }, actionsPerTurn: 1);
             TurnDurationSeconds = turnDurationSeconds > 0f ? turnDurationSeconds : 10f;
             RemainingTurnSeconds = TurnDurationSeconds;
+            _movePolicyOverride = movePolicyOverride;
+            _basicAttackPolicyOverride = basicAttackPolicyOverride;
 
             State.SetEntityPosition(UnitA, new Position3(0, 0, 0));
             State.SetEntityPosition(UnitB, new Position3(2, 0, 1));
@@ -152,17 +160,17 @@ namespace PES.Presentation.Scene
                         ? new GridCoord3(1, 0, 1)
                         : new GridCoord3(0, 0, 0);
 
-                    command = new MoveAction(UnitA, moveOrigin, moveDestination);
+                    command = new MoveAction(UnitA, moveOrigin, moveDestination, _movePolicyOverride);
                     _unitAHasMovedOnce = true;
                 }
                 else
                 {
-                    command = new BasicAttackAction(UnitA, UnitB);
+                    command = new BasicAttackAction(UnitA, UnitB, _basicAttackPolicyOverride);
                 }
             }
             else
             {
-                command = new BasicAttackAction(UnitB, UnitA);
+                command = new BasicAttackAction(UnitB, UnitA, _basicAttackPolicyOverride);
             }
 
             TryExecutePlannedCommand(actor, command, out var result);
