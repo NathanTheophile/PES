@@ -75,6 +75,7 @@ namespace PES.Core.Simulation
         InvalidPolicy = 19,
         ActorDefeated = 20,
         TargetDefeated = 21,
+        MovementPointsInsufficient = 22,
     }
 
     /// <summary>

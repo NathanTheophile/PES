@@ -88,6 +88,29 @@ namespace PES.Combat.Actions
                 };
             }
 
+
+            if (state.TryGetEntityMovementPoints(ActorId, out var currentMovementPoints))
+            {
+                if (currentMovementPoints < validation.MovementCost)
+                {
+                    return new ActionResolution(
+                        false,
+                        ActionResolutionCode.Rejected,
+                        $"MoveActionRejected: insufficient movement points for {ActorId} ({validation.MovementCost}/{currentMovementPoints})",
+                        ActionFailureReason.MovementPointsInsufficient,
+                        new ActionResultPayload("MoveRejected", validation.MovementCost, currentMovementPoints));
+                }
+
+                if (!state.TryConsumeMovementPoints(ActorId, validation.MovementCost))
+                {
+                    return new ActionResolution(
+                        false,
+                        ActionResolutionCode.Rejected,
+                        $"MoveActionRejected: movement points consumption failed for {ActorId}",
+                        ActionFailureReason.StateMutationFailed);
+                }
+            }
+
             var moved = state.TryMoveEntity(ActorId, new Position3(Origin.X, Origin.Y, Origin.Z), new Position3(Destination.X, Destination.Y, Destination.Z));
             if (!moved)
             {

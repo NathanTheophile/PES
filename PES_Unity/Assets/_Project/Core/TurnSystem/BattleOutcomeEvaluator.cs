@@ -5,12 +5,13 @@ namespace PES.Core.TurnSystem
 {
     public readonly struct BattleActorDefinition
     {
-        public BattleActorDefinition(EntityId actorId, int teamId, Position3 startPosition, int startHitPoints)
+        public BattleActorDefinition(EntityId actorId, int teamId, Position3 startPosition, int startHitPoints, int startMovementPoints = 6)
         {
             ActorId = actorId;
             TeamId = teamId;
             StartPosition = startPosition;
             StartHitPoints = startHitPoints;
+            StartMovementPoints = startMovementPoints < 0 ? 0 : startMovementPoints;
         }
 
         public EntityId ActorId { get; }
@@ -20,6 +21,8 @@ namespace PES.Core.TurnSystem
         public Position3 StartPosition { get; }
 
         public int StartHitPoints { get; }
+
+        public int StartMovementPoints { get; }
     }
 
     public readonly struct BattleOutcome
