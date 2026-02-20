@@ -138,6 +138,24 @@ namespace PES.Tests.EditMode
             Assert.That(loop.PeekNextStepLabel(), Is.EqualTo("Attack(UnitA->UnitB)"));
         }
 
+        [Test]
+        public void ExecuteNextStep_WhenNoActionsRemaining_AutoPassesToAvoidScriptedStall()
+        {
+            var loop = new VerticalSliceBattleLoop(seed: 3);
+
+            loop.TryExecutePlannedCommand(
+                VerticalSliceBattleLoop.UnitA,
+                new MoveAction(VerticalSliceBattleLoop.UnitA, new GridCoord3(0, 0, 0), new GridCoord3(1, 0, 1)),
+                out _);
+
+            var result = loop.ExecuteNextStep();
+
+            Assert.That(result.Success, Is.False);
+            Assert.That(result.Description, Does.Contain("no action points remaining"));
+            Assert.That(loop.PeekCurrentActorLabel(), Is.EqualTo("UnitB"));
+            Assert.That(loop.RemainingActions, Is.EqualTo(1));
+        }
+
 
         [Test]
         public void TryExecutePlannedCommand_WhenActorIsNotCurrentTurn_IsRejected()

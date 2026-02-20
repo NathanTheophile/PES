@@ -219,7 +219,9 @@ namespace PES.Presentation.Scene
 
             TryExecutePlannedCommand(actor, command, out var result);
 
-            if (result.Success && _turnController.RemainingActions <= 0)
+            // En mode scripté, on force la progression de tour dès que l'acteur n'a plus d'actions,
+            // même si la commande courante a été rejetée (ex: AP déjà à 0 suite à une action précédente).
+            if (_turnController.RemainingActions <= 0)
             {
                 TryPassTurn(actor, out _);
             }
