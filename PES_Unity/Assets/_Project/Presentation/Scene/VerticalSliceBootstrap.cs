@@ -136,7 +136,7 @@ namespace PES.Presentation.Scene
         }
 
 
-        private bool TryFindAdjacentMoveDestination(EntityId actorId, out GridCoord3 destination)
+        private bool TryFindAdjacentMoveDestination(Core.Simulation.EntityId actorId, out GridCoord3 destination)
         {
             destination = default;
 
