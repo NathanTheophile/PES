@@ -19,8 +19,8 @@ namespace PES.Tests.EditMode
             Assert.That(loop.PeekCurrentActorLabel(), Is.EqualTo("UnitA"));
             Assert.That(loop.PeekNextStepLabel(), Is.EqualTo("Move(UnitA)"));
             Assert.That(loop.IsBattleOver, Is.False);
-            Assert.That(loop.TurnDurationSeconds, Is.EqualTo(10f));
-            Assert.That(loop.RemainingTurnSeconds, Is.EqualTo(10f));
+            Assert.That(loop.TurnDurationSeconds, Is.EqualTo(30f));
+            Assert.That(loop.RemainingTurnSeconds, Is.EqualTo(30f));
         }
 
 
@@ -32,6 +32,18 @@ namespace PES.Tests.EditMode
 
             Assert.That(loop.TurnDurationSeconds, Is.EqualTo(30f));
             Assert.That(loop.RemainingTurnSeconds, Is.EqualTo(30f));
+        }
+
+        [Test]
+        public void Constructor_WhenDurationIsNonPositive_FallsBackToThirtySeconds()
+        {
+            var zeroLoop = new VerticalSliceBattleLoop(seed: 3, turnDurationSeconds: 0f);
+            var negativeLoop = new VerticalSliceBattleLoop(seed: 3, turnDurationSeconds: -2f);
+
+            Assert.That(zeroLoop.TurnDurationSeconds, Is.EqualTo(30f));
+            Assert.That(zeroLoop.RemainingTurnSeconds, Is.EqualTo(30f));
+            Assert.That(negativeLoop.TurnDurationSeconds, Is.EqualTo(30f));
+            Assert.That(negativeLoop.RemainingTurnSeconds, Is.EqualTo(30f));
         }
 
         [Test]
