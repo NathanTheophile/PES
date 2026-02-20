@@ -19,6 +19,7 @@ namespace PES.Tests.EditMode
             Assert.That(loop.State.TryGetEntityHitPoints(VerticalSliceBattleLoop.UnitB, out var hpB), Is.True);
             Assert.That(hpA, Is.EqualTo(40));
             Assert.That(hpB, Is.EqualTo(40));
+            Assert.That(loop.PeekNextStepLabel(), Is.EqualTo("Move(UnitA)"));
         }
 
         [Test]
@@ -34,6 +35,7 @@ namespace PES.Tests.EditMode
             Assert.That(second.Description, Does.Contain("BasicAttack"));
             Assert.That(loop.State.Tick, Is.EqualTo(2));
             Assert.That(loop.State.StructuredEventLog.Count, Is.EqualTo(2));
+            Assert.That(loop.PeekNextStepLabel(), Is.EqualTo("Attack(UnitB->UnitA)"));
 
             Assert.That(loop.State.TryGetEntityPosition(VerticalSliceBattleLoop.UnitA, out var unitA), Is.True);
             Assert.That(unitA.X, Is.EqualTo(1));
@@ -52,9 +54,27 @@ namespace PES.Tests.EditMode
 
             Assert.That(secondMove.Success, Is.True);
             Assert.That(secondMove.Description, Does.Contain("MoveActionResolved"));
+            Assert.That(loop.PeekNextStepLabel(), Is.EqualTo("Attack(UnitA->UnitB)"));
             Assert.That(loop.State.TryGetEntityPosition(VerticalSliceBattleLoop.UnitA, out var unitA), Is.True);
             Assert.That(unitA.X, Is.EqualTo(0));
             Assert.That(unitA.Z, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void ExecuteNextStep_FullThreeActionCycle_ProducesExpectedActionKinds()
+        {
+            var loop = new VerticalSliceBattleLoop(seed: 3);
+
+            var move = loop.ExecuteNextStep();
+            var attackA = loop.ExecuteNextStep();
+            var attackB = loop.ExecuteNextStep();
+
+            Assert.That(move.Description, Does.Contain("MoveActionResolved"));
+            Assert.That(attackA.Description, Does.Contain("BasicAttack"));
+            Assert.That(attackB.Description, Does.Contain("BasicAttack"));
+            Assert.That(loop.State.Tick, Is.EqualTo(3));
+            Assert.That(loop.State.StructuredEventLog.Count, Is.EqualTo(3));
+            Assert.That(loop.PeekNextStepLabel(), Is.EqualTo("Move(UnitA)"));
         }
     }
 }
