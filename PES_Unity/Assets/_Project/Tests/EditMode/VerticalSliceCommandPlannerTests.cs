@@ -41,6 +41,19 @@ namespace PES.Tests.EditMode
         }
 
 
+
+        [Test]
+        public void PlannedLabel_WithSkillPlan_DisplaysSkillTarget()
+        {
+            var state = new BattleState();
+            var planner = new VerticalSliceCommandPlanner(state);
+            planner.SelectActor(VerticalSliceBattleLoop.UnitA);
+            planner.PlanSkill(VerticalSliceBattleLoop.UnitB);
+
+            Assert.That(planner.PlannedLabel, Does.Contain("Skill"));
+            Assert.That(planner.PlannedLabel, Does.Contain("Entity(101)"));
+        }
+
         [Test]
         public void TryBuildCommand_WithSkillPlan_ProducesCastSkillAction()
         {

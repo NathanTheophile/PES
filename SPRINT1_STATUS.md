@@ -112,3 +112,5 @@ En pratique, il faut démarrer par les features `Skills`/`States`/`Flow` déjà 
 - Ajustement du vertical slice skills au design validé: ciblage en grille **x/z**, ligne de vue style raycast direct, bonus de portée par tranche d'élévation (Y).
 
 - Le command planner vertical slice sait maintenant traduire une intention **skill** en `CastSkillAction` (en plus de move/attack), ce qui prépare le chaînage input tactique ➜ commande domaine.
+
+- Vertical slice in-engine désormais jouable à la souris: mini-map générée, GUI avec mode `MonoSpell`, clic sur map/cible pour planifier puis exécuter des commandes domaine.
