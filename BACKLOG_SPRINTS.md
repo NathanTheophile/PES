@@ -4,8 +4,8 @@
 - [x] Externaliser les paramètres de `MoveAction` via `MoveActionPolicy` injecté par commande.
 - [x] Externaliser les paramètres de `BasicAttackAction` via `BasicAttackActionPolicy` injecté par commande.
 - [x] Ajouter des tests EditMode validant qu'un override de policy change effectivement le comportement.
-- [ ] Introduire une source de config runtime (ScriptableObject d'authoring + adapter vers policies domaine).
-- [ ] Ajouter un test de non-régression sur les defaults (fallback policy).
+- [x] Introduire une source de config runtime (ScriptableObject d'authoring + adapter vers policies domaine).
+- [x] Ajouter un test de non-régression sur les defaults (fallback policy).
 
 ## Sprint B — Tour de jeu minimal
 - [x] Initiative/ordre des tours.
@@ -30,3 +30,10 @@
 ## Sprint E — Pilotage portage complet
 - [x] Créer la matrice de parité Godot ➜ Unity (`PARITY_MATRIX.md`).
 - [x] Créer la checklist replay/déterminisme par feature (`REPLAY_CHECKLIST.md`).
+
+
+## Sprint F — Readiness gate avant portage gameplay complet
+- [x] Étendre la matrice de parité avec owner + target sprint + couverture skills/states/save/flow.
+- [x] Définir un gate explicite de passage vers le portage gameplay complet.
+- [ ] Faire passer `Replay-ready` à `Yes` pour Move/BasicAttack/Turn (validation CI Unity).
+- [ ] Activer template `Replay/Determinism Checklist` sur toutes les PR gameplay.
