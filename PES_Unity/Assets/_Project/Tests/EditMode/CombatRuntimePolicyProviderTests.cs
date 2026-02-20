@@ -18,6 +18,7 @@ namespace PES.Tests.EditMode
 
             Assert.That(policies.MovePolicyOverride.HasValue, Is.False);
             Assert.That(policies.BasicAttackPolicyOverride.HasValue, Is.False);
+            Assert.That(policies.SkillPolicyOverride.HasValue, Is.False);
         }
 
         [Test]
@@ -37,6 +38,15 @@ namespace PES.Tests.EditMode
             Assert.That(policies.BasicAttackPolicyOverride.Value.MaxLineOfSightDelta, Is.EqualTo(2));
             Assert.That(policies.BasicAttackPolicyOverride.Value.ResolutionPolicy.BaseDamage, Is.EqualTo(12));
             Assert.That(policies.BasicAttackPolicyOverride.Value.ResolutionPolicy.BaseHitChance, Is.EqualTo(80));
+
+            Assert.That(policies.SkillPolicyOverride.HasValue, Is.True);
+            Assert.That(policies.SkillPolicyOverride.Value.SkillId, Is.EqualTo(0));
+            Assert.That(policies.SkillPolicyOverride.Value.MinRange, Is.EqualTo(1));
+            Assert.That(policies.SkillPolicyOverride.Value.MaxRange, Is.EqualTo(3));
+            Assert.That(policies.SkillPolicyOverride.Value.BaseDamage, Is.EqualTo(8));
+            Assert.That(policies.SkillPolicyOverride.Value.BaseHitChance, Is.EqualTo(85));
+            Assert.That(policies.SkillPolicyOverride.Value.ElevationPerRangeBonus, Is.EqualTo(2));
+            Assert.That(policies.SkillPolicyOverride.Value.RangeBonusPerElevationStep, Is.EqualTo(1));
 
             Object.DestroyImmediate(asset);
         }
