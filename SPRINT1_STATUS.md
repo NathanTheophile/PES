@@ -116,3 +116,9 @@ En pratique, il faut démarrer par les features `Skills`/`States`/`Flow` déjà 
 - Vertical slice in-engine désormais jouable à la souris: mini-map générée, GUI avec mode `MonoSpell`, clic sur map/cible pour planifier puis exécuter des commandes domaine.
 
 - Système PM domaine amorcé: consommation des points de mouvement sur `MoveAction`, rejet explicite si PM insuffisants, reset des PM en début de tour via la boucle de combat.
+
+- Timer de tour vertical slice aligné à **30s** par défaut pour des sessions de test plus réalistes.
+
+- Ajout d'une action explicite **Passe tour** (bouton GUI + touche `P`) branchée sur la boucle de combat.
+
+- En input souris, un move vers une case occupée est rejeté immédiatement avant planification/exécution.

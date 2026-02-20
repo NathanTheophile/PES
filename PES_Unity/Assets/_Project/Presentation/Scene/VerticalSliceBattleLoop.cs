@@ -30,7 +30,7 @@ namespace PES.Presentation.Scene
 
         public VerticalSliceBattleLoop(
             int seed = 7,
-            float turnDurationSeconds = 10f,
+            float turnDurationSeconds = 30f,
             MoveActionPolicy? movePolicyOverride = null,
             BasicAttackActionPolicy? basicAttackPolicyOverride = null,
             int actionsPerTurn = 1,
@@ -58,7 +58,7 @@ namespace PES.Presentation.Scene
             }
 
             _turnController = new RoundRobinTurnController(turnOrder, actionsPerTurn);
-            TurnDurationSeconds = turnDurationSeconds > 0f ? turnDurationSeconds : 10f;
+            TurnDurationSeconds = turnDurationSeconds > 0f ? turnDurationSeconds : 30f;
             RemainingTurnSeconds = TurnDurationSeconds;
         }
 
@@ -104,6 +104,29 @@ namespace PES.Presentation.Scene
 
             EndCurrentTurn();
             timeoutResult = new ActionResolution(false, ActionResolutionCode.Rejected, "TurnTimedOut: next actor", ActionFailureReason.TurnTimedOut);
+            return true;
+        }
+
+
+        public bool TryPassTurn(EntityId actorId, out ActionResolution result)
+        {
+            if (IsBattleOver)
+            {
+                result = new ActionResolution(false, ActionResolutionCode.Rejected, "BattleFinished: no further actions", ActionFailureReason.InvalidTargeting);
+                return false;
+            }
+
+            if (!actorId.Equals(CurrentActorId))
+            {
+                result = new ActionResolution(false, ActionResolutionCode.Rejected, $"TurnRejected: it's {PeekCurrentActorLabel()} turn", ActionFailureReason.InvalidOrigin);
+                return false;
+            }
+
+            var previousActor = CurrentActorId;
+            EndCurrentTurn();
+            result = new ActionResolution(true, ActionResolutionCode.Succeeded, $"TurnPassed: {previousActor} -> {CurrentActorId}");
+            State.AddEvent(new CombatEventRecord(State.Tick, result.Code, result.FailureReason, result.Description, result.Payload));
+            State.AdvanceTick();
             return true;
         }
 

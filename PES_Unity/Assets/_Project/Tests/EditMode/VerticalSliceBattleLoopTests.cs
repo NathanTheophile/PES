@@ -24,6 +24,31 @@ namespace PES.Tests.EditMode
         }
 
 
+
+        [Test]
+        public void Constructor_WhenNoDurationProvided_UsesThirtySecondsDefault()
+        {
+            var loop = new VerticalSliceBattleLoop(seed: 3);
+
+            Assert.That(loop.TurnDurationSeconds, Is.EqualTo(30f));
+            Assert.That(loop.RemainingTurnSeconds, Is.EqualTo(30f));
+        }
+
+        [Test]
+        public void TryPassTurn_WithCurrentActor_SwitchesTurnAndAdvancesTick()
+        {
+            var loop = new VerticalSliceBattleLoop(seed: 3);
+
+            var accepted = loop.TryPassTurn(VerticalSliceBattleLoop.UnitA, out var result);
+
+            Assert.That(accepted, Is.True);
+            Assert.That(result.Success, Is.True);
+            Assert.That(loop.PeekCurrentActorLabel(), Is.EqualTo("UnitB"));
+            Assert.That(loop.State.Tick, Is.EqualTo(1));
+            Assert.That(loop.State.StructuredEventLog.Count, Is.EqualTo(1));
+            Assert.That(loop.State.StructuredEventLog[0].Description, Does.Contain("TurnPassed"));
+        }
+
         [Test]
         public void TryAdvanceTurnTimer_WhenDurationNotReached_DoesNotSwitchActor()
         {

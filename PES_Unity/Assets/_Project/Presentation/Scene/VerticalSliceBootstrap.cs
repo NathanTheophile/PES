@@ -98,7 +98,7 @@ namespace PES.Presentation.Scene
             GUI.Label(new Rect(24f, 78f, 680f, 20f), $"HP UnitA: {hpA} | HP UnitB: {hpB}");
             GUI.Label(new Rect(24f, 98f, 680f, 20f), $"Selected: {selected} | Planned: {planned} | MouseMode: {_mouseIntentMode}");
             GUI.Label(new Rect(24f, 118f, 680f, 20f), $"Last: {_lastResult.Code} / {_lastResult.FailureReason}");
-            GUI.Label(new Rect(24f, 138f, 680f, 20f), _battleLoop.IsBattleOver ? $"Winner Team: {_battleLoop.WinnerTeamId}" : "Mouse: left click world/unit. Keys: 1/2 select, M/A/S mode, SPACE execute.");
+            GUI.Label(new Rect(24f, 138f, 680f, 20f), _battleLoop.IsBattleOver ? $"Winner Team: {_battleLoop.WinnerTeamId}" : "Mouse: left click world/unit. Keys: 1/2 select, M/A/S mode, P pass, SPACE execute.");
 
             if (GUI.Button(new Rect(24f, 166f, 90f, 28f), "Select A"))
             {
@@ -128,6 +128,11 @@ namespace PES.Presentation.Scene
             if (GUI.Button(new Rect(518f, 166f, 90f, 28f), "Execute"))
             {
                 TryExecutePlanned();
+            }
+
+            if (GUI.Button(new Rect(614f, 166f, 90f, 28f), "Pass Turn"))
+            {
+                TryPassTurn();
             }
 
             GUI.Label(new Rect(24f, 204f, 680f, 30f), "Flow souris: Select A/B -> choisir mode (Move/Attack/MonoSpell) -> clic sur map/cible -> Execute (ou auto-exec sur clic). ");
@@ -180,6 +185,11 @@ namespace PES.Presentation.Scene
                     : VerticalSliceBattleLoop.UnitA;
                 _planner.PlanSkill(target);
             }
+
+            if (Input.GetKeyDown(KeyCode.P))
+            {
+                TryPassTurn();
+            }
         }
 
         private void ProcessMouseInputs()
@@ -201,6 +211,13 @@ namespace PES.Presentation.Scene
             if (_mouseIntentMode == MouseIntentMode.Move)
             {
                 var destination = ToGrid(hit.point);
+                var destinationPosition = new Position3(destination.X, destination.Y, destination.Z);
+                if (_battleLoop.State.IsPositionOccupied(destinationPosition, _planner.SelectedActorId))
+                {
+                    _lastResult = new ActionResolution(false, ActionResolutionCode.Rejected, $"MoveActionRejected: destination occupied ({destination})", ActionFailureReason.DestinationOccupied);
+                    return;
+                }
+
                 _planner.PlanMove(destination);
                 TryExecutePlanned();
                 return;
@@ -229,6 +246,20 @@ namespace PES.Presentation.Scene
             }
         }
 
+
+        private void TryPassTurn()
+        {
+            if (!_planner.HasActorSelection)
+            {
+                return;
+            }
+
+            _battleLoop.TryPassTurn(_planner.SelectedActorId, out _lastResult);
+            _planner.ClearPlannedAction();
+            SyncUnitViews();
+            Debug.Log($"[VerticalSlice] {_lastResult.Description}");
+        }
+
         private void TryExecutePlanned()
         {
             if (_battleLoop.IsBattleOver)
@@ -245,7 +276,7 @@ namespace PES.Presentation.Scene
             }
         }
 
-        private static bool TryResolveActorFromHit(GameObject hitObject, out Core.Simulation.EntityId actorId)
+        private static bool TryResolveActorFromHit(GameObject hitObject, out EntityId actorId)
         {
             actorId = default;
 
