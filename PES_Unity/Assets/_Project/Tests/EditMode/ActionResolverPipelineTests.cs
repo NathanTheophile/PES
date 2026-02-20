@@ -857,5 +857,43 @@ namespace PES.Tests.EditMode
                 return value;
             }
         }
+
+        [Test]
+        public void Resolve_MoveAction_WithMovementPoints_ConsumesMovementBudget()
+        {
+            var state = new BattleState();
+            var actor = new EntityId(30);
+            state.SetEntityPosition(actor, new Position3(0, 0, 0));
+            state.SetEntityMovementPoints(actor, maxMovementPoints: 6, currentMovementPoints: 4);
+
+            var resolver = new ActionResolver(new SeededRngService(42));
+            var action = new MoveAction(actor, new GridCoord3(0, 0, 0), new GridCoord3(2, 0, 0));
+
+            var result = resolver.Resolve(state, action);
+
+            Assert.That(result.Success, Is.True);
+            Assert.That(state.TryGetEntityMovementPoints(actor, out var remaining), Is.True);
+            Assert.That(remaining, Is.EqualTo(2));
+        }
+
+        [Test]
+        public void Resolve_MoveAction_WithInsufficientMovementPoints_IsRejected()
+        {
+            var state = new BattleState();
+            var actor = new EntityId(31);
+            state.SetEntityPosition(actor, new Position3(0, 0, 0));
+            state.SetEntityMovementPoints(actor, maxMovementPoints: 6, currentMovementPoints: 1);
+
+            var resolver = new ActionResolver(new SeededRngService(42));
+            var action = new MoveAction(actor, new GridCoord3(0, 0, 0), new GridCoord3(2, 0, 0));
+
+            var result = resolver.Resolve(state, action);
+
+            Assert.That(result.Success, Is.False);
+            Assert.That(result.FailureReason, Is.EqualTo(ActionFailureReason.MovementPointsInsufficient));
+            Assert.That(state.TryGetEntityMovementPoints(actor, out var remaining), Is.True);
+            Assert.That(remaining, Is.EqualTo(1));
+        }
+
     }
 }
