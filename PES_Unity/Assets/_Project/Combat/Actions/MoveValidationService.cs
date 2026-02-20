@@ -35,6 +35,7 @@ namespace PES.Combat.Actions
         VerticalStepTooHigh = 5,
         MovementBudgetExceeded = 6,
         StateMutationFailed = 7,
+        NoMovement = 8,
     }
 
     /// <summary>
@@ -79,6 +80,11 @@ namespace PES.Combat.Actions
             if (state.IsPositionOccupied(destinationPosition, actorId))
             {
                 return new MoveValidationResult(false, MoveValidationFailure.DestinationOccupied, 0);
+            }
+
+            if (origin.Equals(destination))
+            {
+                return new MoveValidationResult(false, MoveValidationFailure.NoMovement, 0);
             }
 
             // Contrainte explicite de saut vertical par action (indépendante du coût).

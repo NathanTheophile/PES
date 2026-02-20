@@ -69,6 +69,7 @@ namespace PES.Core.Simulation
         DamageApplicationFailed = 13,
         HitRollMissed = 14,
         InvalidTargeting = 15,
+        NoMovement = 16,
     }
 
     /// <summary>

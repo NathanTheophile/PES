@@ -104,6 +104,27 @@ namespace PES.Tests.EditMode
         }
 
         [Test]
+        public void Resolve_MoveAction_WhenDestinationEqualsOrigin_IsRejectedWithNoMovementReason()
+        {
+            // Arrange : destination identique à l'origine (aucun déplacement réel).
+            var state = new BattleState();
+            var actor = new EntityId(12);
+            state.SetEntityPosition(actor, new Position3(2, 0, 1));
+
+            var resolver = new ActionResolver(new SeededRngService(42));
+            var action = new MoveAction(actor, new GridCoord3(2, 0, 1), new GridCoord3(2, 0, 1));
+
+            // Act.
+            var result = resolver.Resolve(state, action);
+
+            // Assert : rejet explicite no-op.
+            Assert.That(result.Success, Is.False);
+            Assert.That(result.Code, Is.EqualTo(ActionResolutionCode.Rejected));
+            Assert.That(result.FailureReason, Is.EqualTo(ActionFailureReason.NoMovement));
+            Assert.That(result.Description, Does.Contain("origin and destination are identical"));
+        }
+
+        [Test]
         public void Resolve_MoveAction_WithTooManySteps_IsRejectedAndStateUnchanged()
         {
             // Arrange : destination nécessitant plus de pas que le budget autorisé.

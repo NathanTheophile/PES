@@ -69,6 +69,8 @@ namespace PES.Combat.Actions
                         new ActionResolution(false, ActionResolutionCode.Rejected, $"MoveActionRejected: vertical step too high for {ActorId} ({Origin} -> {Destination})", ActionFailureReason.VerticalStepTooHigh),
                     MoveValidationFailure.MovementBudgetExceeded =>
                         new ActionResolution(false, ActionResolutionCode.Rejected, $"MoveActionRejected: movement cost exceeded for {ActorId} ({validation.MovementCost}/{policy.MaxMovementCostPerAction})", ActionFailureReason.MovementBudgetExceeded),
+                    MoveValidationFailure.NoMovement =>
+                        new ActionResolution(false, ActionResolutionCode.Rejected, $"MoveActionRejected: origin and destination are identical for {ActorId} ({Origin})", ActionFailureReason.NoMovement),
                     _ =>
                         new ActionResolution(false, ActionResolutionCode.Rejected, $"MoveActionRejected: validation failed for {ActorId} ({Origin} -> {Destination})", ActionFailureReason.InvalidTargeting),
                 };
