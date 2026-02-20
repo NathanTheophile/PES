@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using PES.Core.Simulation;
+using PES.Grid.Grid3D;
 using UnityEngine;
 
 namespace PES.Presentation.Scene
@@ -9,27 +12,158 @@ namespace PES.Presentation.Scene
     public sealed class VerticalSliceBootstrap : MonoBehaviour
     {
         private VerticalSliceBattleLoop _battleLoop;
+        private VerticalSliceCommandPlanner _planner;
         private GameObject _unitAView;
         private GameObject _unitBView;
+        private ActionResolution _lastResult;
 
         private void Start()
         {
             _battleLoop = new VerticalSliceBattleLoop();
+            _planner = new VerticalSliceCommandPlanner(_battleLoop.State);
 
             BuildSteppedMap();
             _unitAView = CreateUnitVisual("UnitA", Color.cyan);
             _unitBView = CreateUnitVisual("UnitB", Color.red);
             SyncUnitViews();
+            _lastResult = new ActionResolution(true, ActionResolutionCode.Succeeded, "VerticalSlice ready");
         }
 
         private void Update()
         {
+            if (_battleLoop == null)
+            {
+                return;
+            }
+
+            if (_battleLoop.TryAdvanceTurnTimer(Time.deltaTime, out var timeoutResult))
+            {
+                _lastResult = timeoutResult;
+                _planner.ClearPlannedAction();
+                Debug.Log($"[VerticalSlice] {_lastResult.Description}");
+            }
+
+            ProcessSelectionInputs();
+            ProcessPlanningInputs();
+
             if (Input.GetKeyDown(KeyCode.Space))
             {
-                var result = _battleLoop.ExecuteNextStep();
+                if (_planner.TryBuildCommand(out var actorId, out var command))
+                {
+                    _battleLoop.TryExecutePlannedCommand(actorId, command, out _lastResult);
+                    _planner.ClearPlannedAction();
+                }
+                else
+                {
+                    // Fallback : conserver la démo auto si aucune commande n'est planifiée.
+                    _lastResult = _battleLoop.ExecuteNextStep();
+                }
+
                 SyncUnitViews();
-                Debug.Log($"[VerticalSlice] {result.Description}");
+                Debug.Log($"[VerticalSlice] {_lastResult.Description}");
             }
+        }
+
+        private void OnGUI()
+        {
+            if (_battleLoop == null)
+            {
+                return;
+            }
+
+            var hpA = _battleLoop.State.TryGetEntityHitPoints(VerticalSliceBattleLoop.UnitA, out var valueA) ? valueA : -1;
+            var hpB = _battleLoop.State.TryGetEntityHitPoints(VerticalSliceBattleLoop.UnitB, out var valueB) ? valueB : -1;
+
+            var selected = _planner.HasActorSelection ? _planner.SelectedActorId.ToString() : "None";
+            var planned = _planner.PlannedLabel;
+
+            var panel = new Rect(12f, 12f, 560f, 156f);
+            GUI.Box(panel, "Vertical Slice");
+            GUI.Label(new Rect(24f, 38f, 540f, 20f), $"Tick: {_battleLoop.State.Tick} | Round: {_battleLoop.CurrentRound}");
+            GUI.Label(new Rect(24f, 58f, 540f, 20f), $"Actor: {_battleLoop.PeekCurrentActorLabel()} | Next: {_battleLoop.PeekNextStepLabel()} | AP:{_battleLoop.RemainingActions} | Timer:{_battleLoop.RemainingTurnSeconds:0.0}s");
+            GUI.Label(new Rect(24f, 78f, 540f, 20f), $"HP UnitA: {hpA} | HP UnitB: {hpB}");
+            GUI.Label(new Rect(24f, 98f, 540f, 20f), $"Selected: {selected} | Planned: {planned}");
+            GUI.Label(new Rect(24f, 118f, 540f, 20f), $"Last: {_lastResult.Code} / {_lastResult.FailureReason}");
+            GUI.Label(new Rect(24f, 138f, 540f, 20f), _battleLoop.IsBattleOver ? $"Winner Team: {_battleLoop.WinnerTeamId}" : "Keys: 1/2 select actor, M move, A attack, SPACE execute.");
+        }
+
+        private void ProcessSelectionInputs()
+        {
+            if (Input.GetKeyDown(KeyCode.Alpha1))
+            {
+                _planner.SelectActor(VerticalSliceBattleLoop.UnitA);
+            }
+
+            if (Input.GetKeyDown(KeyCode.Alpha2))
+            {
+                _planner.SelectActor(VerticalSliceBattleLoop.UnitB);
+            }
+        }
+
+        private void ProcessPlanningInputs()
+        {
+            // IMPORTANT: aucune API GUI ici (OnGUI uniquement).
+            if (!_planner.HasActorSelection)
+            {
+                return;
+            }
+
+            if (Input.GetKeyDown(KeyCode.M))
+            {
+                if (TryFindAdjacentMoveDestination(_planner.SelectedActorId, out var destination))
+                {
+                    _planner.PlanMove(destination);
+                }
+            }
+
+            if (Input.GetKeyDown(KeyCode.A))
+            {
+                var target = _planner.SelectedActorId.Equals(VerticalSliceBattleLoop.UnitA)
+                    ? VerticalSliceBattleLoop.UnitB
+                    : VerticalSliceBattleLoop.UnitA;
+                _planner.PlanAttack(target);
+            }
+        }
+
+
+        private bool TryFindAdjacentMoveDestination(EntityId actorId, out GridCoord3 destination)
+        {
+            destination = default;
+
+            if (!_battleLoop.State.TryGetEntityPosition(actorId, out var currentPosition))
+            {
+                return false;
+            }
+
+            var origin = new GridCoord3(currentPosition.X, currentPosition.Y, currentPosition.Z);
+            var candidates = new List<GridCoord3>
+            {
+                new(origin.X + 1, origin.Y, origin.Z),
+                new(origin.X - 1, origin.Y, origin.Z),
+                new(origin.X, origin.Y + 1, origin.Z),
+                new(origin.X, origin.Y - 1, origin.Z),
+                new(origin.X, origin.Y, origin.Z + 1),
+                new(origin.X, origin.Y, origin.Z - 1),
+            };
+
+            foreach (var candidate in candidates)
+            {
+                var asPosition = new Position3(candidate.X, candidate.Y, candidate.Z);
+                if (_battleLoop.State.IsPositionBlocked(asPosition))
+                {
+                    continue;
+                }
+
+                if (_battleLoop.State.IsPositionOccupied(asPosition, actorId))
+                {
+                    continue;
+                }
+
+                destination = candidate;
+                return true;
+            }
+
+            return false;
         }
 
         private void BuildSteppedMap()
@@ -80,7 +214,7 @@ namespace PES.Presentation.Scene
             }
         }
 
-        private static Vector3 ToWorld(Core.Simulation.Position3 position)
+        private static Vector3 ToWorld(Position3 position)
         {
             return new Vector3(position.X, position.Z + 1.5f, position.Y);
         }
