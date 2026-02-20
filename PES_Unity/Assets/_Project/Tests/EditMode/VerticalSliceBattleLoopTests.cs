@@ -18,6 +18,38 @@ namespace PES.Tests.EditMode
             Assert.That(loop.PeekCurrentActorLabel(), Is.EqualTo("UnitA"));
             Assert.That(loop.PeekNextStepLabel(), Is.EqualTo("Move(UnitA)"));
             Assert.That(loop.IsBattleOver, Is.False);
+            Assert.That(loop.TurnDurationSeconds, Is.EqualTo(10f));
+            Assert.That(loop.RemainingTurnSeconds, Is.EqualTo(10f));
+        }
+
+
+        [Test]
+        public void TryAdvanceTurnTimer_WhenDurationNotReached_DoesNotSwitchActor()
+        {
+            var loop = new VerticalSliceBattleLoop(seed: 3, turnDurationSeconds: 5f);
+
+            var timedOut = loop.TryAdvanceTurnTimer(1.25f, out var timeoutResult);
+
+            Assert.That(timedOut, Is.False);
+            Assert.That(timeoutResult, Is.EqualTo(default(ActionResolution)));
+            Assert.That(loop.PeekCurrentActorLabel(), Is.EqualTo("UnitA"));
+            Assert.That(loop.CurrentRound, Is.EqualTo(1));
+            Assert.That(loop.RemainingTurnSeconds, Is.EqualTo(3.75f).Within(0.0001f));
+        }
+
+        [Test]
+        public void TryAdvanceTurnTimer_WhenDurationReached_SwitchesActorAndResetsTimer()
+        {
+            var loop = new VerticalSliceBattleLoop(seed: 3, turnDurationSeconds: 2f);
+
+            var timedOut = loop.TryAdvanceTurnTimer(2.1f, out var timeoutResult);
+
+            Assert.That(timedOut, Is.True);
+            Assert.That(timeoutResult.Code, Is.EqualTo(ActionResolutionCode.Rejected));
+            Assert.That(timeoutResult.FailureReason, Is.EqualTo(ActionFailureReason.TurnTimedOut));
+            Assert.That(loop.PeekCurrentActorLabel(), Is.EqualTo("UnitB"));
+            Assert.That(loop.CurrentRound, Is.EqualTo(1));
+            Assert.That(loop.RemainingTurnSeconds, Is.EqualTo(2f).Within(0.0001f));
         }
 
         [Test]
@@ -33,6 +65,7 @@ namespace PES.Tests.EditMode
             Assert.That(loop.CurrentRound, Is.EqualTo(1));
             Assert.That(loop.RemainingActions, Is.EqualTo(1));
             Assert.That(loop.PeekNextStepLabel(), Is.EqualTo("Attack(UnitB->UnitA)"));
+            Assert.That(loop.RemainingTurnSeconds, Is.EqualTo(loop.TurnDurationSeconds).Within(0.0001f));
         }
 
         [Test]

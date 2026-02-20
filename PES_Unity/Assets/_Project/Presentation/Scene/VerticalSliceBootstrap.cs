@@ -36,6 +36,13 @@ namespace PES.Presentation.Scene
                 return;
             }
 
+            if (_battleLoop.TryAdvanceTurnTimer(Time.deltaTime, out var timeoutResult))
+            {
+                _lastResult = timeoutResult;
+                _planner.ClearPlannedAction();
+                Debug.Log($"[VerticalSlice] {_lastResult.Description}");
+            }
+
             ProcessSelectionInputs();
             ProcessPlanningInputs();
 
@@ -73,7 +80,7 @@ namespace PES.Presentation.Scene
             var panel = new Rect(12f, 12f, 560f, 156f);
             GUI.Box(panel, "Vertical Slice");
             GUI.Label(new Rect(24f, 38f, 540f, 20f), $"Tick: {_battleLoop.State.Tick} | Round: {_battleLoop.CurrentRound}");
-            GUI.Label(new Rect(24f, 58f, 540f, 20f), $"Actor: {_battleLoop.PeekCurrentActorLabel()} | Next: {_battleLoop.PeekNextStepLabel()} | AP:{_battleLoop.RemainingActions}");
+            GUI.Label(new Rect(24f, 58f, 540f, 20f), $"Actor: {_battleLoop.PeekCurrentActorLabel()} | Next: {_battleLoop.PeekNextStepLabel()} | AP:{_battleLoop.RemainingActions} | Timer:{_battleLoop.RemainingTurnSeconds:0.0}s");
             GUI.Label(new Rect(24f, 78f, 540f, 20f), $"HP UnitA: {hpA} | HP UnitB: {hpB}");
             GUI.Label(new Rect(24f, 98f, 540f, 20f), $"Selected: {selected} | Planned: {planned}");
             GUI.Label(new Rect(24f, 118f, 540f, 20f), $"Last: {_lastResult.Code} / {_lastResult.FailureReason}");
@@ -119,7 +126,7 @@ namespace PES.Presentation.Scene
         }
 
 
-        private bool TryFindAdjacentMoveDestination(Core.Simulation.EntityId actorId, out GridCoord3 destination)
+        private bool TryFindAdjacentMoveDestination(EntityId actorId, out GridCoord3 destination)
         {
             destination = default;
 

@@ -70,6 +70,7 @@ namespace PES.Core.Simulation
         HitRollMissed = 14,
         InvalidTargeting = 15,
         NoMovement = 16,
+        TurnTimedOut = 17,
     }
 
     /// <summary>

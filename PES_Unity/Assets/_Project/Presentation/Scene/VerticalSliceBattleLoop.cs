@@ -23,11 +23,13 @@ namespace PES.Presentation.Scene
         private bool _unitAHasMovedOnce;
         private int? _winnerTeamId;
 
-        public VerticalSliceBattleLoop(int seed = 7)
+        public VerticalSliceBattleLoop(int seed = 7, float turnDurationSeconds = 10f)
         {
             State = new BattleState();
             _resolver = new ActionResolver(new SeededRngService(seed));
             _turnController = new RoundRobinTurnController(new[] { UnitA, UnitB }, actionsPerTurn: 1);
+            TurnDurationSeconds = turnDurationSeconds > 0f ? turnDurationSeconds : 10f;
+            RemainingTurnSeconds = TurnDurationSeconds;
 
             State.SetEntityPosition(UnitA, new Position3(0, 0, 0));
             State.SetEntityPosition(UnitB, new Position3(2, 0, 1));
@@ -45,7 +47,32 @@ namespace PES.Presentation.Scene
 
         public int? WinnerTeamId => _winnerTeamId;
 
+        public float TurnDurationSeconds { get; }
+
+        public float RemainingTurnSeconds { get; private set; }
+
         public EntityId CurrentActorId => _turnController.CurrentActorId;
+
+
+        public bool TryAdvanceTurnTimer(float deltaTime, out ActionResolution timeoutResult)
+        {
+            timeoutResult = default;
+
+            if (IsBattleOver || deltaTime <= 0f)
+            {
+                return false;
+            }
+
+            RemainingTurnSeconds -= deltaTime;
+            if (RemainingTurnSeconds > 0f)
+            {
+                return false;
+            }
+
+            EndCurrentTurn();
+            timeoutResult = new ActionResolution(false, ActionResolutionCode.Rejected, "TurnTimedOut: next actor", ActionFailureReason.TurnTimedOut);
+            return true;
+        }
 
         public string PeekCurrentActorLabel()
         {
@@ -99,7 +126,7 @@ namespace PES.Presentation.Scene
                 _turnController.TryConsumeAction(actorId);
                 if (_turnController.RemainingActions <= 0)
                 {
-                    _turnController.EndTurn();
+                    EndCurrentTurn();
                 }
             }
 
@@ -140,6 +167,13 @@ namespace PES.Presentation.Scene
 
             TryExecutePlannedCommand(actor, command, out var result);
             return result;
+        }
+
+
+        private void EndCurrentTurn()
+        {
+            _turnController.EndTurn();
+            RemainingTurnSeconds = TurnDurationSeconds;
         }
 
         private void EvaluateVictory()
