@@ -5,18 +5,13 @@ using PES.Core.Simulation;
 
 namespace PES.Combat.Targeting
 {
-    /// <summary>
-    /// Service de validation de ciblage pour BasicAttackAction.
-    /// </summary>
     public sealed class BasicAttackTargetingService
     {
-        /// <summary>
-        /// Évalue la validité du ciblage d'une attaque entre deux entités.
-        /// </summary>
         public BasicAttackTargetingResult Evaluate(
             BattleState state,
             EntityId attackerId,
             EntityId targetId,
+            int minRange,
             int maxRange,
             int maxLineOfSightDelta)
         {
@@ -27,13 +22,18 @@ namespace PES.Combat.Targeting
             }
 
             var horizontalDistance = Math.Abs(targetPosition.X - attackerPosition.X) + Math.Abs(targetPosition.Y - attackerPosition.Y);
+            if (horizontalDistance < minRange)
+            {
+                return BasicAttackTargetingResult.Reject(BasicAttackTargetingFailure.TooClose, attackerPosition, targetPosition, horizontalDistance, 0);
+            }
+
             if (horizontalDistance > maxRange)
             {
                 return BasicAttackTargetingResult.Reject(BasicAttackTargetingFailure.OutOfRange, attackerPosition, targetPosition, horizontalDistance, 0);
             }
 
-            var verticalDelta = Math.Abs(targetPosition.Z - attackerPosition.Z);
-            if (verticalDelta > maxLineOfSightDelta)
+            var verticalDelta = targetPosition.Z - attackerPosition.Z;
+            if (Math.Abs(verticalDelta) > maxLineOfSightDelta)
             {
                 return BasicAttackTargetingResult.Reject(BasicAttackTargetingFailure.LineOfSightBlocked, attackerPosition, targetPosition, horizontalDistance, verticalDelta);
             }
@@ -74,9 +74,6 @@ namespace PES.Combat.Targeting
         }
     }
 
-    /// <summary>
-    /// Détails de validation de ciblage d'une attaque basique.
-    /// </summary>
     public readonly struct BasicAttackTargetingResult
     {
         private BasicAttackTargetingResult(
@@ -96,15 +93,10 @@ namespace PES.Combat.Targeting
         }
 
         public bool Success { get; }
-
         public BasicAttackTargetingFailure Failure { get; }
-
         public Position3 AttackerPosition { get; }
-
         public Position3 TargetPosition { get; }
-
         public int HorizontalDistance { get; }
-
         public int VerticalDelta { get; }
 
         public static BasicAttackTargetingResult Accept(
@@ -127,14 +119,12 @@ namespace PES.Combat.Targeting
         }
     }
 
-    /// <summary>
-    /// Causes standard de rejet du ciblage basique.
-    /// </summary>
     public enum BasicAttackTargetingFailure
     {
         None = 0,
         MissingPositions = 1,
-        OutOfRange = 2,
-        LineOfSightBlocked = 3,
+        TooClose = 2,
+        OutOfRange = 3,
+        LineOfSightBlocked = 4,
     }
 }
