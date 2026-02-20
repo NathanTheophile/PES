@@ -25,3 +25,8 @@
 - [x] Ajouter un timer par tour avec bascule auto vers le prochain acteur à expiration.
 - [x] Exposer l'état du timer (`RemainingTurnSeconds`) pour la couche présentation/debug HUD.
 - [x] Ajouter des tests EditMode couvrant timeout partiel, timeout complet, et reset du timer après fin de tour.
+
+
+## Sprint E — Pilotage portage complet
+- [x] Créer la matrice de parité Godot ➜ Unity (`PARITY_MATRIX.md`).
+- [ ] Créer la checklist replay/déterminisme par feature.
