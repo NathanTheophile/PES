@@ -29,4 +29,4 @@
 
 ## Sprint E — Pilotage portage complet
 - [x] Créer la matrice de parité Godot ➜ Unity (`PARITY_MATRIX.md`).
-- [ ] Créer la checklist replay/déterminisme par feature.
+- [x] Créer la checklist replay/déterminisme par feature (`REPLAY_CHECKLIST.md`).
