@@ -37,6 +37,42 @@ namespace PES.Tests.EditMode
             Assert.That(consumed, Is.False);
         }
 
+
+        [Test]
+        public void SetActorActive_WhenCurrentActorRemainsSame_DoesNotRefillActionsAtZero()
+        {
+            var a = new EntityId(30);
+            var b = new EntityId(31);
+            var controller = new RoundRobinTurnController(new[] { a, b }, actionsPerTurn: 1);
+
+            var consumed = controller.TryConsumeAction(a);
+            Assert.That(consumed, Is.True);
+            Assert.That(controller.RemainingActions, Is.EqualTo(0));
+
+            controller.SetActorActive(a, true);
+            controller.SetActorActive(b, true);
+
+            Assert.That(controller.CurrentActorId, Is.EqualTo(a));
+            Assert.That(controller.RemainingActions, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void SetActorActive_WhenCurrentActorBecomesInactive_RefillsForNextActiveActor()
+        {
+            var a = new EntityId(40);
+            var b = new EntityId(41);
+            var controller = new RoundRobinTurnController(new[] { a, b }, actionsPerTurn: 2);
+
+            controller.TryConsumeAction(a);
+            controller.TryConsumeAction(a);
+            Assert.That(controller.RemainingActions, Is.EqualTo(0));
+
+            controller.SetActorActive(a, false);
+
+            Assert.That(controller.CurrentActorId, Is.EqualTo(b));
+            Assert.That(controller.RemainingActions, Is.EqualTo(2));
+        }
+
         [Test]
         public void EndTurn_WhenNoActiveActor_SetsZeroRemainingActions()
         {
