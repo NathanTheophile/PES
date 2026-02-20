@@ -34,11 +34,13 @@ namespace PES.Core.Simulation
         /// <summary>
         /// Construit un enregistrement d'événement complet.
         /// </summary>
-        public CombatEventRecord(int tick, ActionResolutionCode code, string description)
+        public CombatEventRecord(int tick, ActionResolutionCode code, ActionFailureReason failureReason, string description, ActionResultPayload? payload = null)
         {
             Tick = tick;
             Code = code;
+            FailureReason = failureReason;
             Description = description;
+            Payload = payload;
         }
 
         /// <summary>Tick de simulation auquel l'événement a été écrit.</summary>
@@ -47,7 +49,13 @@ namespace PES.Core.Simulation
         /// <summary>Code structuré du résultat d'action.</summary>
         public ActionResolutionCode Code { get; }
 
+        /// <summary>Raison normalisée d'échec (None si succès).</summary>
+        public ActionFailureReason FailureReason { get; }
+
         /// <summary>Message lisible (debug/log humain).</summary>
         public string Description { get; }
+
+        /// <summary>Payload structuré optionnel.</summary>
+        public ActionResultPayload? Payload { get; }
     }
 }
