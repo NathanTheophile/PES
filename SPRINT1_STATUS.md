@@ -122,3 +122,5 @@ En pratique, il faut démarrer par les features `Skills`/`States`/`Flow` déjà 
 - Ajout d'une action explicite **Passe tour** (bouton GUI + touche `P`) branchée sur la boucle de combat.
 
 - En input souris, un move vers une case occupée est rejeté immédiatement avant planification/exécution.
+
+- Ajout d'un setup caméra isométrique "ankama-like" automatique dans le vertical slice (angle/offset configurables depuis l'inspector).

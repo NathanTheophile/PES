@@ -20,6 +20,16 @@ namespace PES.Presentation.Scene
         private GameObject _unitBView;
         [SerializeField] private CombatRuntimeConfigAsset _runtimeConfig;
 
+        [Header("Camera (Ankama-like Isometric)")]
+        [SerializeField] private bool _autoSetupIsometricCamera = true;
+        [SerializeField] private float _cameraTiltX = 35f;
+        [SerializeField] private float _cameraYawY = 45f;
+        [SerializeField] private float _cameraDistance = 18f;
+        [SerializeField] private float _cameraHeightOffset = 10f;
+
+        private const int MapWidth = 12;
+        private const int MapDepth = 12;
+
         private ActionResolution _lastResult;
         private MouseIntentMode _mouseIntentMode = MouseIntentMode.Move;
 
@@ -36,6 +46,7 @@ namespace PES.Presentation.Scene
                 runtimePolicies.SkillPolicyOverride);
 
             BuildSteppedMap();
+            EnsureAnkamaLikeCamera();
             _unitAView = CreateUnitVisual("UnitA", Color.cyan);
             _unitBView = CreateUnitVisual("UnitB", Color.red);
             SyncUnitViews();
@@ -337,13 +348,10 @@ namespace PES.Presentation.Scene
 
         private void BuildSteppedMap()
         {
-            const int width = 12;
-            const int depth = 12;
-
             // Sol principal : grande zone jouable pour tests manuels in-engine.
-            for (var x = 0; x < width; x++)
+            for (var x = 0; x < MapWidth; x++)
             {
-                for (var y = 0; y < depth; y++)
+                for (var y = 0; y < MapDepth; y++)
                 {
                     var checker = (x + y) % 2 == 0;
                     var color = checker
@@ -370,6 +378,46 @@ namespace PES.Presentation.Scene
             AddBlockingColumn(7, 6, 2, new Color(0.18f, 0.18f, 0.18f));
         }
 
+
+
+        private void EnsureAnkamaLikeCamera()
+        {
+            if (!_autoSetupIsometricCamera)
+            {
+                return;
+            }
+
+            var mainCamera = Camera.main;
+            if (mainCamera == null)
+            {
+                var cameraObject = new GameObject("Main Camera");
+                mainCamera = cameraObject.AddComponent<Camera>();
+                cameraObject.tag = "MainCamera";
+            }
+
+            var centerX = (MapWidth - 1) * 0.5f;
+            var centerY = (MapDepth - 1) * 0.5f;
+            var mapCenter = new Vector3(centerX, 0f, centerY);
+
+            var rotation = Quaternion.Euler(_cameraTiltX, _cameraYawY, 0f);
+            var backward = rotation * Vector3.back;
+            var cameraPosition = mapCenter + (backward * _cameraDistance) + Vector3.up * _cameraHeightOffset;
+
+            mainCamera.transform.position = cameraPosition;
+            mainCamera.transform.rotation = rotation;
+            mainCamera.orthographic = false;
+            mainCamera.nearClipPlane = 0.1f;
+            mainCamera.farClipPlane = 250f;
+
+            if (mainCamera.TryGetComponent<AudioListener>(out _))
+            {
+                // no-op: déjà présent
+            }
+            else
+            {
+                mainCamera.gameObject.AddComponent<AudioListener>();
+            }
+        }
 
         private void AddBlockingColumn(int x, int y, int height, Color color)
         {
