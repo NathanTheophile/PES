@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using PES.Core.Simulation;
 using PES.Grid.Grid3D;
+using PES.Presentation.Adapters;
+using PES.Presentation.Configuration;
 using UnityEngine;
 
 namespace PES.Presentation.Scene
@@ -15,12 +17,20 @@ namespace PES.Presentation.Scene
         private VerticalSliceCommandPlanner _planner;
         private GameObject _unitAView;
         private GameObject _unitBView;
+        [SerializeField] private CombatRuntimeConfigAsset _runtimeConfig;
+
         private ActionResolution _lastResult;
 
         private void Start()
         {
-            _battleLoop = new VerticalSliceBattleLoop();
-            _planner = new VerticalSliceCommandPlanner(_battleLoop.State);
+            var runtimePolicies = CombatRuntimePolicyProvider.FromAsset(_runtimeConfig);
+            _battleLoop = new VerticalSliceBattleLoop(
+                movePolicyOverride: runtimePolicies.MovePolicyOverride,
+                basicAttackPolicyOverride: runtimePolicies.BasicAttackPolicyOverride);
+            _planner = new VerticalSliceCommandPlanner(
+                _battleLoop.State,
+                runtimePolicies.MovePolicyOverride,
+                runtimePolicies.BasicAttackPolicyOverride);
 
             BuildSteppedMap();
             _unitAView = CreateUnitVisual("UnitA", Color.cyan);
