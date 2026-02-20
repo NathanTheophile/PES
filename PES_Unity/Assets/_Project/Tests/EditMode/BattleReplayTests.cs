@@ -97,7 +97,12 @@ namespace PES.Tests.EditMode
 
         private static bool SnapshotsAreEqual(BattleStateSnapshot a, BattleStateSnapshot b)
         {
-            if (a.Tick != b.Tick || a.EntityPositions.Count != b.EntityPositions.Count || a.EntityHitPoints.Count != b.EntityHitPoints.Count)
+            if (a.Tick != b.Tick ||
+                a.EntityPositions.Count != b.EntityPositions.Count ||
+                a.EntityHitPoints.Count != b.EntityHitPoints.Count ||
+                a.EntityMovementPoints.Count != b.EntityMovementPoints.Count ||
+                a.EntitySkillResources.Count != b.EntitySkillResources.Count ||
+                a.SkillCooldowns.Count != b.SkillCooldowns.Count)
             {
                 return false;
             }
@@ -115,6 +120,35 @@ namespace PES.Tests.EditMode
             {
                 if (!a.EntityHitPoints[i].EntityId.Equals(b.EntityHitPoints[i].EntityId) ||
                     a.EntityHitPoints[i].HitPoints != b.EntityHitPoints[i].HitPoints)
+                {
+                    return false;
+                }
+            }
+
+            for (var i = 0; i < a.EntityMovementPoints.Count; i++)
+            {
+                if (!a.EntityMovementPoints[i].EntityId.Equals(b.EntityMovementPoints[i].EntityId) ||
+                    a.EntityMovementPoints[i].MovementPoints != b.EntityMovementPoints[i].MovementPoints ||
+                    a.EntityMovementPoints[i].MaxMovementPoints != b.EntityMovementPoints[i].MaxMovementPoints)
+                {
+                    return false;
+                }
+            }
+
+            for (var i = 0; i < a.EntitySkillResources.Count; i++)
+            {
+                if (!a.EntitySkillResources[i].EntityId.Equals(b.EntitySkillResources[i].EntityId) ||
+                    a.EntitySkillResources[i].Amount != b.EntitySkillResources[i].Amount)
+                {
+                    return false;
+                }
+            }
+
+            for (var i = 0; i < a.SkillCooldowns.Count; i++)
+            {
+                if (!a.SkillCooldowns[i].EntityId.Equals(b.SkillCooldowns[i].EntityId) ||
+                    a.SkillCooldowns[i].SkillId != b.SkillCooldowns[i].SkillId ||
+                    a.SkillCooldowns[i].RemainingTurns != b.SkillCooldowns[i].RemainingTurns)
                 {
                     return false;
                 }
