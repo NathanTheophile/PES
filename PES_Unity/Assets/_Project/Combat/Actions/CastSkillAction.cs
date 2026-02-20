@@ -59,6 +59,32 @@ namespace PES.Combat.Actions
                 return new ActionResolution(false, ActionResolutionCode.Rejected, $"CastSkillRejected: target already defeated ({TargetId})", ActionFailureReason.TargetDefeated);
             }
 
+            var remainingCooldown = state.GetSkillCooldown(CasterId, policy.SkillId);
+            if (remainingCooldown > 0)
+            {
+                return new ActionResolution(
+                    false,
+                    ActionResolutionCode.Rejected,
+                    $"CastSkillRejected: skill on cooldown ({CasterId}, skill:{policy.SkillId}, remaining:{remainingCooldown})",
+                    ActionFailureReason.SkillOnCooldown,
+                    new ActionResultPayload("SkillCooldown", policy.SkillId, remainingCooldown, 0));
+            }
+
+            if (!state.TryGetEntitySkillResource(CasterId, out var availableResource))
+            {
+                availableResource = 0;
+            }
+
+            if (availableResource < policy.ResourceCost)
+            {
+                return new ActionResolution(
+                    false,
+                    ActionResolutionCode.Rejected,
+                    $"CastSkillRejected: insufficient skill resource ({CasterId}, skill:{policy.SkillId}, available:{availableResource}, required:{policy.ResourceCost})",
+                    ActionFailureReason.SkillResourceInsufficient,
+                    new ActionResultPayload("SkillResourceInsufficient", policy.SkillId, availableResource, policy.ResourceCost));
+            }
+
             var targetingService = new SkillTargetingService();
             var targeting = targetingService.Evaluate(state, CasterId, TargetId, policy);
             if (!targeting.Success)
@@ -99,12 +125,24 @@ namespace PES.Combat.Actions
                 return new ActionResolution(false, ActionResolutionCode.Rejected, $"CastSkillRejected: failed to apply damage to {TargetId}", ActionFailureReason.DamageApplicationFailed);
             }
 
+            if (!state.TryConsumeEntitySkillResource(CasterId, policy.ResourceCost))
+            {
+                return new ActionResolution(
+                    false,
+                    ActionResolutionCode.Rejected,
+                    $"CastSkillRejected: failed to consume skill resource ({CasterId}, skill:{policy.SkillId}, required:{policy.ResourceCost})",
+                    ActionFailureReason.SkillResourceInsufficient,
+                    new ActionResultPayload("SkillResourceInsufficient", policy.SkillId, availableResource, policy.ResourceCost));
+            }
+
+            state.SetSkillCooldown(CasterId, policy.SkillId, policy.CooldownTurns);
+
             return new ActionResolution(
                 true,
                 ActionResolutionCode.Succeeded,
                 $"CastSkillResolved: {CasterId} -> {TargetId} [skill:{policy.SkillId}, roll:{resolution.Roll}, hitChance:{resolution.HitChance}, dmg:{resolution.FinalDamage}, distXZ:{targeting.DistanceXZ}, max:{targeting.EffectiveMaxRange}]",
                 ActionFailureReason.None,
-                new ActionResultPayload("SkillResolved", policy.SkillId, resolution.FinalDamage, targeting.DistanceXZ));
+                new ActionResultPayload("SkillResolved", policy.SkillId, resolution.FinalDamage, availableResource - policy.ResourceCost));
         }
     }
 }

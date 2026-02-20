@@ -41,5 +41,6 @@
 
 ## Sprint G — Objectifs scénario & skills
 - [x] Ajouter un objectif scénario de base (Control Point) dans le domaine de fin de combat.
+- [x] Ajouter coûts ressources + cooldowns sur `CastSkillAction` avec couverture tests/replay.
 - [ ] Étendre vers objectifs multi-conditions (capture, survive, eliminate target).
 - [ ] Porter le système de skills Godot vers contrats domaine Unity.

@@ -76,6 +76,8 @@ namespace PES.Core.Simulation
         ActorDefeated = 20,
         TargetDefeated = 21,
         MovementPointsInsufficient = 22,
+        SkillResourceInsufficient = 23,
+        SkillOnCooldown = 24,
     }
 
     /// <summary>

@@ -17,6 +17,9 @@ namespace PES.Core.Simulation
         private readonly Dictionary<EntityId, int> _entityMaxMovementPoints = new();
         private readonly Dictionary<EntityId, int> _entityCurrentMovementPoints = new();
 
+        private readonly Dictionary<EntityId, int> _entitySkillResources = new();
+        private readonly Dictionary<SkillCooldownKey, int> _skillCooldowns = new();
+
         private readonly HashSet<Position3> _blockedPositions = new();
         private readonly Dictionary<Position3, int> _positionMovementCosts = new();
         private readonly List<string> _eventLog = new();
@@ -136,6 +139,53 @@ namespace PES.Core.Simulation
             return true;
         }
 
+
+        public void SetEntitySkillResource(EntityId entityId, int amount)
+        {
+            _entitySkillResources[entityId] = amount < 0 ? 0 : amount;
+        }
+
+        public bool TryGetEntitySkillResource(EntityId entityId, out int amount)
+        {
+            return _entitySkillResources.TryGetValue(entityId, out amount);
+        }
+
+        public bool TryConsumeEntitySkillResource(EntityId entityId, int cost)
+        {
+            if (!_entitySkillResources.TryGetValue(entityId, out var current))
+            {
+                return false;
+            }
+
+            var safeCost = cost < 0 ? 0 : cost;
+            if (safeCost > current)
+            {
+                return false;
+            }
+
+            _entitySkillResources[entityId] = current - safeCost;
+            return true;
+        }
+
+        public void SetSkillCooldown(EntityId entityId, int skillId, int remainingTurns)
+        {
+            var key = new SkillCooldownKey(entityId, skillId);
+            var safe = remainingTurns < 0 ? 0 : remainingTurns;
+            if (safe == 0)
+            {
+                _skillCooldowns.Remove(key);
+                return;
+            }
+
+            _skillCooldowns[key] = safe;
+        }
+
+        public int GetSkillCooldown(EntityId entityId, int skillId)
+        {
+            var key = new SkillCooldownKey(entityId, skillId);
+            return _skillCooldowns.TryGetValue(key, out var remaining) ? remaining : 0;
+        }
+
         public bool TryMoveEntity(EntityId entityId, Position3 expectedOrigin, Position3 destination)
         {
             if (!_entityPositions.TryGetValue(entityId, out var current) || !current.Equals(expectedOrigin))
@@ -225,7 +275,21 @@ namespace PES.Core.Simulation
                 movementPoints[index++] = new EntityMovementPointSnapshot(pair.Key, pair.Value, max);
             }
 
-            return new BattleStateSnapshot(Tick, positions, hitPoints, movementPoints);
+            var skillResources = new EntitySkillResourceSnapshot[_entitySkillResources.Count];
+            index = 0;
+            foreach (var pair in _entitySkillResources)
+            {
+                skillResources[index++] = new EntitySkillResourceSnapshot(pair.Key, pair.Value);
+            }
+
+            var skillCooldowns = new SkillCooldownSnapshot[_skillCooldowns.Count];
+            index = 0;
+            foreach (var pair in _skillCooldowns)
+            {
+                skillCooldowns[index++] = new SkillCooldownSnapshot(pair.Key.EntityId, pair.Key.SkillId, pair.Value);
+            }
+
+            return new BattleStateSnapshot(Tick, positions, hitPoints, movementPoints, skillResources, skillCooldowns);
         }
 
         public void ApplySnapshot(BattleStateSnapshot snapshot)
@@ -250,6 +314,18 @@ namespace PES.Core.Simulation
                 _entityMaxMovementPoints[row.EntityId] = row.MaxMovementPoints;
             }
 
+            _entitySkillResources.Clear();
+            foreach (var row in snapshot.EntitySkillResources)
+            {
+                _entitySkillResources[row.EntityId] = row.Amount;
+            }
+
+            _skillCooldowns.Clear();
+            foreach (var row in snapshot.SkillCooldowns)
+            {
+                _skillCooldowns[new SkillCooldownKey(row.EntityId, row.SkillId)] = row.RemainingTurns;
+            }
+
             Tick = snapshot.Tick;
         }
     }
@@ -260,12 +336,16 @@ namespace PES.Core.Simulation
             int tick,
             EntityPositionSnapshot[] entityPositions,
             EntityHitPointSnapshot[] entityHitPoints,
-            EntityMovementPointSnapshot[] entityMovementPoints = null)
+            EntityMovementPointSnapshot[] entityMovementPoints = null,
+            EntitySkillResourceSnapshot[] entitySkillResources = null,
+            SkillCooldownSnapshot[] skillCooldowns = null)
         {
             Tick = tick;
             EntityPositions = entityPositions;
             EntityHitPoints = entityHitPoints;
             EntityMovementPoints = entityMovementPoints ?? new EntityMovementPointSnapshot[0];
+            EntitySkillResources = entitySkillResources ?? new EntitySkillResourceSnapshot[0];
+            SkillCooldowns = skillCooldowns ?? new SkillCooldownSnapshot[0];
         }
 
         public int Tick { get; }
@@ -275,6 +355,10 @@ namespace PES.Core.Simulation
         public IReadOnlyList<EntityHitPointSnapshot> EntityHitPoints { get; }
 
         public IReadOnlyList<EntityMovementPointSnapshot> EntityMovementPoints { get; }
+
+        public IReadOnlyList<EntitySkillResourceSnapshot> EntitySkillResources { get; }
+
+        public IReadOnlyList<SkillCooldownSnapshot> SkillCooldowns { get; }
     }
 
     public readonly struct EntityPositionSnapshot
@@ -317,6 +401,48 @@ namespace PES.Core.Simulation
         public int MovementPoints { get; }
 
         public int MaxMovementPoints { get; }
+    }
+
+    public readonly struct EntitySkillResourceSnapshot
+    {
+        public EntitySkillResourceSnapshot(EntityId entityId, int amount)
+        {
+            EntityId = entityId;
+            Amount = amount;
+        }
+
+        public EntityId EntityId { get; }
+
+        public int Amount { get; }
+    }
+
+    public readonly struct SkillCooldownSnapshot
+    {
+        public SkillCooldownSnapshot(EntityId entityId, int skillId, int remainingTurns)
+        {
+            EntityId = entityId;
+            SkillId = skillId;
+            RemainingTurns = remainingTurns;
+        }
+
+        public EntityId EntityId { get; }
+
+        public int SkillId { get; }
+
+        public int RemainingTurns { get; }
+    }
+
+    public readonly struct SkillCooldownKey
+    {
+        public SkillCooldownKey(EntityId entityId, int skillId)
+        {
+            EntityId = entityId;
+            SkillId = skillId;
+        }
+
+        public EntityId EntityId { get; }
+
+        public int SkillId { get; }
     }
 
     public readonly struct Position3
