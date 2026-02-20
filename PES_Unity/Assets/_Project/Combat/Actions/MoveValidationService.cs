@@ -81,6 +81,13 @@ namespace PES.Combat.Actions
                 return new MoveValidationResult(false, MoveValidationFailure.DestinationOccupied, 0);
             }
 
+            // Contrainte explicite de saut vertical par action (indépendante du coût).
+            var actionVerticalDelta = Math.Abs(destination.Z - origin.Z);
+            if (actionVerticalDelta > policy.MaxVerticalStepPerTile)
+            {
+                return new MoveValidationResult(false, MoveValidationFailure.VerticalStepTooHigh, 0);
+            }
+
             var blockedCells = BuildBlockedCellSet(state, actorId, originPosition, destinationPosition);
             var pathService = new PathfindingService();
             if (!pathService.TryComputePath(origin, destination, blockedCells, out var path))
