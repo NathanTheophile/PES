@@ -152,12 +152,12 @@ namespace PES.Core.Simulation
 
         public bool TryConsumeEntitySkillResource(EntityId entityId, int cost)
         {
+            var safeCost = cost < 0 ? 0 : cost;
             if (!_entitySkillResources.TryGetValue(entityId, out var current))
             {
-                return false;
+                return safeCost == 0;
             }
 
-            var safeCost = cost < 0 ? 0 : cost;
             if (safeCost > current)
             {
                 return false;
@@ -165,6 +165,39 @@ namespace PES.Core.Simulation
 
             _entitySkillResources[entityId] = current - safeCost;
             return true;
+        }
+
+        public void TickDownSkillCooldowns(EntityId entityId, int turns = 1)
+        {
+            var safeTurns = turns < 0 ? 0 : turns;
+            if (safeTurns == 0 || _skillCooldowns.Count == 0)
+            {
+                return;
+            }
+
+            var keys = new List<SkillCooldownKey>();
+            foreach (var pair in _skillCooldowns)
+            {
+                if (!pair.Key.EntityId.Equals(entityId))
+                {
+                    continue;
+                }
+
+                keys.Add(pair.Key);
+            }
+
+            for (var i = 0; i < keys.Count; i++)
+            {
+                var key = keys[i];
+                var next = _skillCooldowns[key] - safeTurns;
+                if (next <= 0)
+                {
+                    _skillCooldowns.Remove(key);
+                    continue;
+                }
+
+                _skillCooldowns[key] = next;
+            }
         }
 
         public void SetSkillCooldown(EntityId entityId, int skillId, int remainingTurns)

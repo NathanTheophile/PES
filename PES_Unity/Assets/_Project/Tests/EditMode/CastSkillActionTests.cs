@@ -108,6 +108,27 @@ namespace PES.Tests.EditMode
         }
 
         [Test]
+        public void Resolve_CastSkillAction_WithZeroCostAndNoResourcePool_Succeeds()
+        {
+            var state = new BattleState();
+            var caster = new EntityId(316);
+            var target = new EntityId(317);
+
+            state.SetEntityPosition(caster, new Position3(0, 0, 0));
+            state.SetEntityPosition(target, new Position3(1, 0, 0));
+            state.SetEntityHitPoints(caster, 20);
+            state.SetEntityHitPoints(target, 20);
+
+            var resolver = new ActionResolver(new SeededRngService(42));
+            var policy = new SkillActionPolicy(skillId: 203, minRange: 1, maxRange: 3, baseDamage: 7, baseHitChance: 100, elevationPerRangeBonus: 2, rangeBonusPerElevationStep: 1, resourceCost: 0, cooldownTurns: 0);
+
+            var result = resolver.Resolve(state, new CastSkillAction(caster, target, policy));
+
+            Assert.That(result.Success, Is.True);
+            Assert.That(result.Code, Is.EqualTo(ActionResolutionCode.Succeeded));
+        }
+
+        [Test]
         public void Resolve_CastSkillAction_WithInsufficientResource_IsRejected()
         {
             var state = new BattleState();
