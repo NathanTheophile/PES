@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using PES.Combat.Actions;
 using PES.Core.Random;
 using PES.Core.Simulation;
@@ -21,6 +22,8 @@ namespace PES.Presentation.Scene
         private readonly RoundRobinTurnController _turnController;
         private readonly MoveActionPolicy? _movePolicyOverride;
         private readonly BasicAttackActionPolicy? _basicAttackPolicyOverride;
+        private readonly Dictionary<EntityId, int> _teamByActor;
+        private readonly BattleOutcomeEvaluator _battleOutcomeEvaluator;
 
         private bool _unitAHasMovedOnce;
         private int? _winnerTeamId;
@@ -29,20 +32,32 @@ namespace PES.Presentation.Scene
             int seed = 7,
             float turnDurationSeconds = 10f,
             MoveActionPolicy? movePolicyOverride = null,
-            BasicAttackActionPolicy? basicAttackPolicyOverride = null)
+            BasicAttackActionPolicy? basicAttackPolicyOverride = null,
+            int actionsPerTurn = 1,
+            IReadOnlyList<BattleActorDefinition> actorDefinitions = null)
         {
+            var definitions = actorDefinitions ?? CreateDefaultActorDefinitions();
+
             State = new BattleState();
             _resolver = new ActionResolver(new SeededRngService(seed));
-            _turnController = new RoundRobinTurnController(new[] { UnitA, UnitB }, actionsPerTurn: 1);
-            TurnDurationSeconds = turnDurationSeconds > 0f ? turnDurationSeconds : 10f;
-            RemainingTurnSeconds = TurnDurationSeconds;
+            _battleOutcomeEvaluator = new BattleOutcomeEvaluator();
             _movePolicyOverride = movePolicyOverride;
             _basicAttackPolicyOverride = basicAttackPolicyOverride;
+            _teamByActor = new Dictionary<EntityId, int>(definitions.Count);
 
-            State.SetEntityPosition(UnitA, new Position3(0, 0, 0));
-            State.SetEntityPosition(UnitB, new Position3(2, 0, 1));
-            State.SetEntityHitPoints(UnitA, 40);
-            State.SetEntityHitPoints(UnitB, 40);
+            var turnOrder = new EntityId[definitions.Count];
+            for (var i = 0; i < definitions.Count; i++)
+            {
+                var actor = definitions[i];
+                turnOrder[i] = actor.ActorId;
+                _teamByActor[actor.ActorId] = actor.TeamId;
+                State.SetEntityPosition(actor.ActorId, actor.StartPosition);
+                State.SetEntityHitPoints(actor.ActorId, actor.StartHitPoints);
+            }
+
+            _turnController = new RoundRobinTurnController(turnOrder, actionsPerTurn);
+            TurnDurationSeconds = turnDurationSeconds > 0f ? turnDurationSeconds : 10f;
+            RemainingTurnSeconds = TurnDurationSeconds;
         }
 
         public BattleState State { get; }
@@ -128,7 +143,6 @@ namespace PES.Presentation.Scene
 
             result = _resolver.Resolve(State, command);
 
-            // Une action rejetée ne consomme pas le tour ; l'acteur peut corriger sa commande.
             if (result.Code != ActionResolutionCode.Rejected)
             {
                 _turnController.TryConsumeAction(actorId);
@@ -138,6 +152,7 @@ namespace PES.Presentation.Scene
                 }
             }
 
+            SyncAliveActorsWithHitPoints();
             EvaluateVictory();
             return true;
         }
@@ -186,27 +201,31 @@ namespace PES.Presentation.Scene
 
         private void EvaluateVictory()
         {
-            if (!State.TryGetEntityHitPoints(UnitA, out var hpA) || !State.TryGetEntityHitPoints(UnitB, out var hpB))
+            var outcome = _battleOutcomeEvaluator.Evaluate(State, _teamByActor);
+            if (!outcome.IsBattleOver)
             {
                 return;
             }
 
-            if (hpA <= 0 && hpB <= 0)
-            {
-                _winnerTeamId = 0;
-                return;
-            }
+            _winnerTeamId = outcome.WinnerTeamId;
+        }
 
-            if (hpA <= 0)
+        private void SyncAliveActorsWithHitPoints()
+        {
+            foreach (var pair in _teamByActor)
             {
-                _winnerTeamId = TeamB;
-                return;
+                var isAlive = State.TryGetEntityHitPoints(pair.Key, out var hp) && hp > 0;
+                _turnController.SetActorActive(pair.Key, isAlive);
             }
+        }
 
-            if (hpB <= 0)
+        private static IReadOnlyList<BattleActorDefinition> CreateDefaultActorDefinitions()
+        {
+            return new[]
             {
-                _winnerTeamId = TeamA;
-            }
+                new BattleActorDefinition(UnitA, TeamA, new Position3(0, 0, 0), 40),
+                new BattleActorDefinition(UnitB, TeamB, new Position3(2, 0, 1), 40),
+            };
         }
     }
 }
