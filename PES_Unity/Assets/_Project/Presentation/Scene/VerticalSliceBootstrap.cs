@@ -1,3 +1,4 @@
+using PES.Core.Simulation;
 using UnityEngine;
 
 namespace PES.Presentation.Scene
@@ -11,6 +12,7 @@ namespace PES.Presentation.Scene
         private VerticalSliceBattleLoop _battleLoop;
         private GameObject _unitAView;
         private GameObject _unitBView;
+        private ActionResolution _lastResult;
 
         private void Start()
         {
@@ -20,16 +22,35 @@ namespace PES.Presentation.Scene
             _unitAView = CreateUnitVisual("UnitA", Color.cyan);
             _unitBView = CreateUnitVisual("UnitB", Color.red);
             SyncUnitViews();
+            _lastResult = new ActionResolution(true, ActionResolutionCode.Succeeded, "VerticalSlice ready");
         }
 
         private void Update()
         {
             if (Input.GetKeyDown(KeyCode.Space))
             {
-                var result = _battleLoop.ExecuteNextStep();
+                _lastResult = _battleLoop.ExecuteNextStep();
                 SyncUnitViews();
-                Debug.Log($"[VerticalSlice] {result.Description}");
+                Debug.Log($"[VerticalSlice] {_lastResult.Description}");
             }
+        }
+
+        private void OnGUI()
+        {
+            if (_battleLoop == null)
+            {
+                return;
+            }
+
+            var hpA = _battleLoop.State.TryGetEntityHitPoints(VerticalSliceBattleLoop.UnitA, out var valueA) ? valueA : -1;
+            var hpB = _battleLoop.State.TryGetEntityHitPoints(VerticalSliceBattleLoop.UnitB, out var valueB) ? valueB : -1;
+
+            var panel = new Rect(12f, 12f, 430f, 112f);
+            GUI.Box(panel, "Vertical Slice");
+            GUI.Label(new Rect(24f, 38f, 420f, 20f), $"Tick: {_battleLoop.State.Tick} | Next: {_battleLoop.PeekNextStepLabel()}");
+            GUI.Label(new Rect(24f, 58f, 420f, 20f), $"HP UnitA: {hpA} | HP UnitB: {hpB}");
+            GUI.Label(new Rect(24f, 78f, 420f, 20f), $"Last: {_lastResult.Code} / {_lastResult.FailureReason}");
+            GUI.Label(new Rect(24f, 98f, 420f, 20f), "Press SPACE to execute next action.");
         }
 
         private void BuildSteppedMap()
@@ -80,7 +101,7 @@ namespace PES.Presentation.Scene
             }
         }
 
-        private static Vector3 ToWorld(Core.Simulation.Position3 position)
+        private static Vector3 ToWorld(Position3 position)
         {
             return new Vector3(position.X, position.Z + 1.5f, position.Y);
         }
