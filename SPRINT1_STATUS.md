@@ -97,3 +97,16 @@ En pratique, il faut démarrer par les features `Skills`/`States`/`Flow` déjà 
 - Figer un **contrat d'action standard** (input, validation, résultat, event log, payload versionné) appliqué à toutes les futures mécaniques.
 - Définir un **cadre de migration feature-par-feature**: pour chaque mécanique Godot, ouvrir une ligne de parité + checklist replay + tests déterministes minimum.
 - Prioriser une **verticalisation gameplay**: intégrer d'abord 1-2 skills end-to-end (domaine + présentation + tests), puis élargir progressivement.
+
+## Avancement implémenté (suite)
+- Mise en place d'un **premier vertical slice Skills domaine** avec `CastSkillAction`:
+  - policy data-driven (`SkillActionPolicy`),
+  - service de ciblage (`SkillTargetingService`),
+  - service de résolution déterministe (`SkillResolutionService`),
+  - résultat structuré (`ActionResultPayload`) pour logs/replay.
+- Intégration replay initiale via `RecordedActionType.CastSkill` dans le runner.
+- Ajout de tests EditMode `CastSkillActionTests` (success path, rejet invariant, replay seed-identique).
+
+> Prochaine itération skills: coûts ressources/cooldowns + AOE + catalogue d'effets (buff/debuff) par contrat sérialisable.
+
+- Ajustement du vertical slice skills au design validé: ciblage en grille **x/z**, ligne de vue style raycast direct, bonus de portée par tranche d'élévation (Y).
