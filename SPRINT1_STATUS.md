@@ -114,3 +114,5 @@ En pratique, il faut démarrer par les features `Skills`/`States`/`Flow` déjà 
 - Le command planner vertical slice sait maintenant traduire une intention **skill** en `CastSkillAction` (en plus de move/attack), ce qui prépare le chaînage input tactique ➜ commande domaine.
 
 - Vertical slice in-engine désormais jouable à la souris: mini-map générée, GUI avec mode `MonoSpell`, clic sur map/cible pour planifier puis exécuter des commandes domaine.
+
+- Système PM domaine amorcé: consommation des points de mouvement sur `MoveAction`, rejet explicite si PM insuffisants, reset des PM en début de tour via la boucle de combat.

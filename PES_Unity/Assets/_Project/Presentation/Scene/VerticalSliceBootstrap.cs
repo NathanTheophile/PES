@@ -94,7 +94,7 @@ namespace PES.Presentation.Scene
             var panel = new Rect(12f, 12f, 700f, 244f);
             GUI.Box(panel, "Vertical Slice");
             GUI.Label(new Rect(24f, 38f, 680f, 20f), $"Tick: {_battleLoop.State.Tick} | Round: {_battleLoop.CurrentRound}");
-            GUI.Label(new Rect(24f, 58f, 680f, 20f), $"Actor: {_battleLoop.PeekCurrentActorLabel()} | Next: {_battleLoop.PeekNextStepLabel()} | AP:{_battleLoop.RemainingActions} | Timer:{_battleLoop.RemainingTurnSeconds:0.0}s");
+            GUI.Label(new Rect(24f, 58f, 680f, 20f), $"Actor: {_battleLoop.PeekCurrentActorLabel()} | Next: {_battleLoop.PeekNextStepLabel()} | AP:{_battleLoop.RemainingActions} | PM:{_battleLoop.CurrentActorMovementPoints} | Timer:{_battleLoop.RemainingTurnSeconds:0.0}s");
             GUI.Label(new Rect(24f, 78f, 680f, 20f), $"HP UnitA: {hpA} | HP UnitB: {hpB}");
             GUI.Label(new Rect(24f, 98f, 680f, 20f), $"Selected: {selected} | Planned: {planned} | MouseMode: {_mouseIntentMode}");
             GUI.Label(new Rect(24f, 118f, 680f, 20f), $"Last: {_lastResult.Code} / {_lastResult.FailureReason}");
