@@ -23,6 +23,15 @@ namespace PES.Presentation.Configuration
         [SerializeField] private int _baseDamage = 12;
         [Range(0, 100)] [SerializeField] private int _baseHitChance = 80;
 
+        [Header("Skill Policy")]
+        [Min(0)] [SerializeField] private int _skillId = 0;
+        [Min(0)] [SerializeField] private int _skillMinRange = 1;
+        [Min(1)] [SerializeField] private int _skillMaxRange = 3;
+        [Min(0)] [SerializeField] private int _skillBaseDamage = 8;
+        [Range(0, 100)] [SerializeField] private int _skillBaseHitChance = 85;
+        [Min(1)] [SerializeField] private int _skillElevationPerRangeBonus = 2;
+        [Min(0)] [SerializeField] private int _skillRangeBonusPerElevationStep = 1;
+
         public MoveActionPolicy ToMovePolicy()
         {
             return new MoveActionPolicy(
@@ -39,6 +48,18 @@ namespace PES.Presentation.Configuration
                 resolutionPolicy: new BasicAttackResolutionPolicy(
                     baseDamage: _baseDamage,
                     baseHitChance: _baseHitChance));
+        }
+
+        public SkillActionPolicy ToSkillPolicy()
+        {
+            return new SkillActionPolicy(
+                skillId: _skillId,
+                minRange: _skillMinRange,
+                maxRange: _skillMaxRange,
+                baseDamage: _skillBaseDamage,
+                baseHitChance: _skillBaseHitChance,
+                elevationPerRangeBonus: _skillElevationPerRangeBonus,
+                rangeBonusPerElevationStep: _skillRangeBonusPerElevationStep);
         }
     }
 }
