@@ -35,5 +35,5 @@
 ## Sprint F — Readiness gate avant portage gameplay complet
 - [x] Étendre la matrice de parité avec owner + target sprint + couverture skills/states/save/flow.
 - [x] Définir un gate explicite de passage vers le portage gameplay complet.
-- [ ] Faire passer `Replay-ready` à `Yes` pour Move/BasicAttack/Turn (validation CI Unity).
-- [ ] Activer template `Replay/Determinism Checklist` sur toutes les PR gameplay.
+- [x] Faire passer `Replay-ready` à `Yes` pour Move/BasicAttack/Turn (validation CI Unity).
+- [x] Activer template `Replay/Determinism Checklist` sur toutes les PR gameplay.

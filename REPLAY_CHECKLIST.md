@@ -52,6 +52,7 @@ Cette checklist est obligatoire pour toute feature qui ajoute/modifie:
 
 ## 6) Tests déterministes (minimum requis)
 
+- [ ] **Unity EditMode CI vert** (`Unity EditMode Tests` workflow).
 - [ ] **1 test success path** (résolution nominale).
 - [ ] **1 test rejet invariant** (validation métier non triviale).
 - [ ] **1 test seed-identique => résultat identique**.
