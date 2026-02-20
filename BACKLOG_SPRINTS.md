@@ -37,3 +37,9 @@
 - [x] Définir un gate explicite de passage vers le portage gameplay complet.
 - [x] Faire passer `Replay-ready` à `Yes` pour Move/BasicAttack/Turn (validation CI Unity).
 - [x] Activer template `Replay/Determinism Checklist` sur toutes les PR gameplay.
+
+
+## Sprint G — Objectifs scénario & skills
+- [x] Ajouter un objectif scénario de base (Control Point) dans le domaine de fin de combat.
+- [ ] Étendre vers objectifs multi-conditions (capture, survive, eliminate target).
+- [ ] Porter le système de skills Godot vers contrats domaine Unity.

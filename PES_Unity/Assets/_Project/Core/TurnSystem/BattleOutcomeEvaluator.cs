@@ -35,10 +35,88 @@ namespace PES.Core.TurnSystem
         public int? WinnerTeamId { get; }
     }
 
+    /// <summary>
+    /// Contrat d'objectif de victoire/scénario évalué avant la règle d'élimination standard.
+    /// </summary>
+    public interface IBattleObjective
+    {
+        bool TryResolve(BattleState state, IReadOnlyDictionary<EntityId, int> teamByActor, out BattleOutcome outcome);
+    }
+
+    /// <summary>
+    /// Objectif simple : une équipe gagne dès qu'au moins une unité vivante contrôle la case cible.
+    /// Si plusieurs équipes contestent la case, l'objectif ne se résout pas.
+    /// </summary>
+    public sealed class ControlPointObjective : IBattleObjective
+    {
+        public ControlPointObjective(Position3 controlPoint)
+        {
+            ControlPoint = controlPoint;
+        }
+
+        public Position3 ControlPoint { get; }
+
+        public bool TryResolve(BattleState state, IReadOnlyDictionary<EntityId, int> teamByActor, out BattleOutcome outcome)
+        {
+            outcome = default;
+
+            var controllingTeamId = 0;
+            foreach (var pair in teamByActor)
+            {
+                if (!state.TryGetEntityHitPoints(pair.Key, out var hp) || hp <= 0)
+                {
+                    continue;
+                }
+
+                if (!state.TryGetEntityPosition(pair.Key, out var position) || !position.Equals(ControlPoint))
+                {
+                    continue;
+                }
+
+                if (controllingTeamId == 0)
+                {
+                    controllingTeamId = pair.Value;
+                    continue;
+                }
+
+                if (controllingTeamId != pair.Value)
+                {
+                    return false;
+                }
+            }
+
+            if (controllingTeamId == 0)
+            {
+                return false;
+            }
+
+            outcome = new BattleOutcome(true, controllingTeamId);
+            return true;
+        }
+    }
+
     public sealed class BattleOutcomeEvaluator
     {
+        private readonly IReadOnlyList<IBattleObjective> _objectives;
+
+        public BattleOutcomeEvaluator(IReadOnlyList<IBattleObjective> objectives = null)
+        {
+            _objectives = objectives;
+        }
+
         public BattleOutcome Evaluate(BattleState state, IReadOnlyDictionary<EntityId, int> teamByActor)
         {
+            if (_objectives != null)
+            {
+                for (var i = 0; i < _objectives.Count; i++)
+                {
+                    if (_objectives[i].TryResolve(state, teamByActor, out var objectiveOutcome))
+                    {
+                        return objectiveOutcome;
+                    }
+                }
+            }
+
             var aliveTeams = new HashSet<int>();
 
             foreach (var pair in teamByActor)

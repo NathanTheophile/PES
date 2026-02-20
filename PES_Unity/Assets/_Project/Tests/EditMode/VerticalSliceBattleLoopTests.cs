@@ -1,6 +1,7 @@
 using NUnit.Framework;
 using PES.Combat.Actions;
 using PES.Core.Simulation;
+using PES.Core.TurnSystem;
 using PES.Grid.Grid3D;
 using PES.Presentation.Scene;
 
@@ -132,6 +133,25 @@ namespace PES.Tests.EditMode
             Assert.That(result.Success, Is.True);
             Assert.That(loop.PeekCurrentActorLabel(), Is.EqualTo("UnitA"));
             Assert.That(loop.RemainingActions, Is.EqualTo(1));
+        }
+
+
+        [Test]
+        public void ExecuteNextStep_WithControlPointObjective_EndsBattleBeforeElimination()
+        {
+            var objective = new IBattleObjective[]
+            {
+                new ControlPointObjective(new Position3(1, 0, 1)),
+            };
+
+            var loop = new VerticalSliceBattleLoop(seed: 3, objectives: objective);
+
+            var first = loop.ExecuteNextStep();
+
+            Assert.That(first.Success, Is.True);
+            Assert.That(loop.IsBattleOver, Is.True);
+            Assert.That(loop.WinnerTeamId, Is.EqualTo(1));
+            Assert.That(loop.PeekNextStepLabel(), Is.EqualTo("BattleFinished"));
         }
 
         [Test]

@@ -34,13 +34,14 @@ namespace PES.Presentation.Scene
             MoveActionPolicy? movePolicyOverride = null,
             BasicAttackActionPolicy? basicAttackPolicyOverride = null,
             int actionsPerTurn = 1,
-            IReadOnlyList<BattleActorDefinition> actorDefinitions = null)
+            IReadOnlyList<BattleActorDefinition> actorDefinitions = null,
+            IReadOnlyList<IBattleObjective> objectives = null)
         {
             var definitions = actorDefinitions ?? CreateDefaultActorDefinitions();
 
             State = new BattleState();
             _resolver = new ActionResolver(new SeededRngService(seed));
-            _battleOutcomeEvaluator = new BattleOutcomeEvaluator();
+            _battleOutcomeEvaluator = new BattleOutcomeEvaluator(objectives);
             _movePolicyOverride = movePolicyOverride;
             _basicAttackPolicyOverride = basicAttackPolicyOverride;
             _teamByActor = new Dictionary<EntityId, int>(definitions.Count);
