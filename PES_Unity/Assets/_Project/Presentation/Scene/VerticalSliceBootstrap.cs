@@ -35,8 +35,8 @@ namespace PES.Presentation.Scene
                 return;
             }
 
-            HandleSelectionInputs();
-            HandlePlanningInputs();
+            ProcessSelectionInputs();
+            ProcessPlanningInputs();
 
             if (Input.GetKeyDown(KeyCode.Space))
             {
@@ -79,11 +79,45 @@ namespace PES.Presentation.Scene
             GUI.Label(new Rect(24f, 138f, 540f, 20f), _battleLoop.IsBattleOver ? $"Winner Team: {_battleLoop.WinnerTeamId}" : "Keys: 1/2 select actor, M move, A attack, SPACE execute.");
         }
 
-        private void HandleSelectionInputs()
+        private void ProcessSelectionInputs()
         {
             if (Input.GetKeyDown(KeyCode.Alpha1))
             {
                 _planner.SelectActor(VerticalSliceBattleLoop.UnitA);
+            }
+
+            if (Input.GetKeyDown(KeyCode.Alpha2))
+            {
+                _planner.SelectActor(VerticalSliceBattleLoop.UnitB);
+            }
+        }
+
+        private void ProcessPlanningInputs()
+        {
+            // IMPORTANT: aucune API GUI ici (OnGUI uniquement).
+            if (!_planner.HasActorSelection)
+            {
+                return;
+            }
+
+            if (Input.GetKeyDown(KeyCode.M))
+            {
+                if (_planner.SelectedActorId.Equals(VerticalSliceBattleLoop.UnitA))
+                {
+                    _planner.PlanMove(new GridCoord3(1, 0, 1));
+                }
+                else
+                {
+                    _planner.PlanMove(new GridCoord3(2, 0, 1));
+                }
+            }
+
+            if (Input.GetKeyDown(KeyCode.A))
+            {
+                var target = _planner.SelectedActorId.Equals(VerticalSliceBattleLoop.UnitA)
+                    ? VerticalSliceBattleLoop.UnitB
+                    : VerticalSliceBattleLoop.UnitA;
+                _planner.PlanAttack(target);
             }
 
             if (Input.GetKeyDown(KeyCode.Alpha2))
