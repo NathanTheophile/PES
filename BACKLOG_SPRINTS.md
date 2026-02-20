@@ -8,9 +8,9 @@
 - [ ] Ajouter un test de non-régression sur les defaults (fallback policy).
 
 ## Sprint B — Tour de jeu minimal
-- [ ] Initiative/ordre des tours.
-- [ ] Fin de tour + consommation de ressources d'action.
-- [ ] Conditions de victoire/défaite minimales.
+- [x] Initiative/ordre des tours.
+- [x] Fin de tour + consommation de ressources d'action.
+- [x] Conditions de victoire/défaite minimales.
 
 ## Sprint C — Input tactique
 - [x] Sélection unité / intention (move/attack) en scène (bindings clavier de vertical slice).

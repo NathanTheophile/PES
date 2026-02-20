@@ -1,5 +1,6 @@
 // Utilité : ce script implémente la première commande métier de déplacement
 // avec validation d'origine, trajectoire, occupation, obstacles et coût de mouvement.
+using System;
 using PES.Core.Random;
 using PES.Core.Simulation;
 using PES.Grid.Grid3D;
@@ -50,6 +51,14 @@ namespace PES.Combat.Actions
         public ActionResolution Resolve(BattleState state, IRngService rngService)
         {
             var policy = _policyOverride ?? DefaultPolicy;
+            if (state.TryGetEntityHitPoints(ActorId, out var actorHp) && actorHp <= 0)
+            {
+                return new ActionResolution(
+                    false,
+                    ActionResolutionCode.Rejected,
+                    $"MoveActionRejected: actor is defeated for {ActorId}",
+                    ActionFailureReason.ActorDefeated);
+            }
 
             var validationService = new MoveValidationService();
             var validation = validationService.Validate(state, ActorId, Origin, Destination, policy);
@@ -68,9 +77,12 @@ namespace PES.Combat.Actions
                     MoveValidationFailure.VerticalStepTooHigh =>
                         new ActionResolution(false, ActionResolutionCode.Rejected, $"MoveActionRejected: vertical step too high for {ActorId} ({Origin} -> {Destination})", ActionFailureReason.VerticalStepTooHigh),
                     MoveValidationFailure.MovementBudgetExceeded =>
-                        new ActionResolution(false, ActionResolutionCode.Rejected, $"MoveActionRejected: movement cost exceeded for {ActorId} ({validation.MovementCost}/{policy.MaxMovementCostPerAction})", ActionFailureReason.MovementBudgetExceeded),
+                        new ActionResolution(false, ActionResolutionCode.Rejected, $"MoveActionRejected: movement cost exceeded for {ActorId} ({validation.MovementCost}/{policy.MaxMovementCostPerAction})", ActionFailureReason.MovementBudgetExceeded,
+                            new ActionResultPayload("MoveRejected", validation.MovementCost, policy.MaxMovementCostPerAction)),
                     MoveValidationFailure.NoMovement =>
                         new ActionResolution(false, ActionResolutionCode.Rejected, $"MoveActionRejected: origin and destination are identical for {ActorId} ({Origin})", ActionFailureReason.NoMovement),
+                    MoveValidationFailure.InvalidPolicy =>
+                        new ActionResolution(false, ActionResolutionCode.Rejected, $"MoveActionRejected: invalid move policy for {ActorId} (maxCost:{policy.MaxMovementCostPerAction}, maxStep:{policy.MaxVerticalStepPerTile})", ActionFailureReason.InvalidPolicy),
                     _ =>
                         new ActionResolution(false, ActionResolutionCode.Rejected, $"MoveActionRejected: validation failed for {ActorId} ({Origin} -> {Destination})", ActionFailureReason.InvalidTargeting),
                 };
@@ -82,7 +94,13 @@ namespace PES.Combat.Actions
                 return new ActionResolution(false, ActionResolutionCode.Rejected, $"MoveActionRejected: state mutation failed for {ActorId} ({Origin} -> {Destination})", ActionFailureReason.StateMutationFailed);
             }
 
-            return new ActionResolution(true, ActionResolutionCode.Succeeded, $"MoveActionResolved: {ActorId} {Origin} -> {Destination} [cost:{validation.MovementCost}]");
+            var manhattanDistance = Math.Abs(Destination.X - Origin.X) + Math.Abs(Destination.Y - Origin.Y) + Math.Abs(Destination.Z - Origin.Z);
+            return new ActionResolution(
+                true,
+                ActionResolutionCode.Succeeded,
+                $"MoveActionResolved: {ActorId} {Origin} -> {Destination} [cost:{validation.MovementCost}]",
+                ActionFailureReason.None,
+                new ActionResultPayload("MoveResolved", validation.MovementCost, manhattanDistance));
         }
     }
 }
