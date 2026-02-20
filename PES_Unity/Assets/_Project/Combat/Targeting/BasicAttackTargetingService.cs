@@ -15,6 +15,16 @@ namespace PES.Combat.Targeting
             int maxRange,
             int maxLineOfSightDelta)
         {
+            if (attackerId.Equals(targetId))
+            {
+                return BasicAttackTargetingResult.Reject(BasicAttackTargetingFailure.SelfTargeting, default, default, 0, 0);
+            }
+
+            if (minRange < 0 || maxRange < 0 || maxRange < minRange || maxLineOfSightDelta < 0)
+            {
+                return BasicAttackTargetingResult.Reject(BasicAttackTargetingFailure.InvalidPolicy, default, default, 0, 0);
+            }
+
             if (!state.TryGetEntityPosition(attackerId, out var attackerPosition) ||
                 !state.TryGetEntityPosition(targetId, out var targetPosition))
             {
@@ -38,7 +48,7 @@ namespace PES.Combat.Targeting
                 return BasicAttackTargetingResult.Reject(BasicAttackTargetingFailure.LineOfSightBlocked, attackerPosition, targetPosition, horizontalDistance, verticalDelta);
             }
 
-            if (IsLineBlockedByTerrain(state, attackerPosition, targetPosition))
+            if (IsLineBlocked(state, attackerPosition, targetPosition, attackerId, targetId))
             {
                 return BasicAttackTargetingResult.Reject(BasicAttackTargetingFailure.LineOfSightBlocked, attackerPosition, targetPosition, horizontalDistance, verticalDelta);
             }
@@ -46,7 +56,7 @@ namespace PES.Combat.Targeting
             return BasicAttackTargetingResult.Accept(attackerPosition, targetPosition, horizontalDistance, verticalDelta);
         }
 
-        private static bool IsLineBlockedByTerrain(BattleState state, Position3 from, Position3 to)
+        private static bool IsLineBlocked(BattleState state, Position3 from, Position3 to, EntityId attackerId, EntityId targetId)
         {
             var dx = to.X - from.X;
             var dy = to.Y - from.Y;
@@ -64,7 +74,19 @@ namespace PES.Combat.Targeting
                 var x = (int)Math.Round(from.X + (dx * t));
                 var y = (int)Math.Round(from.Y + (dy * t));
                 var z = (int)Math.Round(from.Z + (dz * t));
-                if (state.IsPositionBlocked(new Position3(x, y, z)))
+                var sample = new Position3(x, y, z);
+
+                if (state.IsPositionBlocked(sample))
+                {
+                    return true;
+                }
+
+                if (state.IsPositionOccupied(sample, attackerId) && !sample.Equals(to))
+                {
+                    return true;
+                }
+
+                if (state.IsPositionOccupied(sample, targetId) && !sample.Equals(to))
                 {
                     return true;
                 }
@@ -126,5 +148,7 @@ namespace PES.Combat.Targeting
         TooClose = 2,
         OutOfRange = 3,
         LineOfSightBlocked = 4,
+        SelfTargeting = 5,
+        InvalidPolicy = 6,
     }
 }

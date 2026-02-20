@@ -4,13 +4,13 @@
 - [x] Externaliser les paramètres de `MoveAction` via `MoveActionPolicy` injecté par commande.
 - [x] Externaliser les paramètres de `BasicAttackAction` via `BasicAttackActionPolicy` injecté par commande.
 - [x] Ajouter des tests EditMode validant qu'un override de policy change effectivement le comportement.
-- [ ] Introduire une source de config runtime (ScriptableObject d'authoring + adapter vers policies domaine).
-- [ ] Ajouter un test de non-régression sur les defaults (fallback policy).
+- [x] Introduire une source de config runtime (ScriptableObject d'authoring + adapter vers policies domaine).
+- [x] Ajouter un test de non-régression sur les defaults (fallback policy).
 
 ## Sprint B — Tour de jeu minimal
-- [ ] Initiative/ordre des tours.
-- [ ] Fin de tour + consommation de ressources d'action.
-- [ ] Conditions de victoire/défaite minimales.
+- [x] Initiative/ordre des tours.
+- [x] Fin de tour + consommation de ressources d'action.
+- [x] Conditions de victoire/défaite minimales.
 
 ## Sprint C — Input tactique
 - [x] Sélection unité / intention (move/attack) en scène (bindings clavier de vertical slice).
@@ -25,3 +25,15 @@
 - [x] Ajouter un timer par tour avec bascule auto vers le prochain acteur à expiration.
 - [x] Exposer l'état du timer (`RemainingTurnSeconds`) pour la couche présentation/debug HUD.
 - [x] Ajouter des tests EditMode couvrant timeout partiel, timeout complet, et reset du timer après fin de tour.
+
+
+## Sprint E — Pilotage portage complet
+- [x] Créer la matrice de parité Godot ➜ Unity (`PARITY_MATRIX.md`).
+- [x] Créer la checklist replay/déterminisme par feature (`REPLAY_CHECKLIST.md`).
+
+
+## Sprint F — Readiness gate avant portage gameplay complet
+- [x] Étendre la matrice de parité avec owner + target sprint + couverture skills/states/save/flow.
+- [x] Définir un gate explicite de passage vers le portage gameplay complet.
+- [x] Faire passer `Replay-ready` à `Yes` pour Move/BasicAttack/Turn (validation CI Unity).
+- [x] Activer template `Replay/Determinism Checklist` sur toutes les PR gameplay.
