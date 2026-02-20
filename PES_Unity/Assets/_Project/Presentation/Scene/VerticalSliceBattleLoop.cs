@@ -160,5 +160,30 @@ namespace PES.Presentation.Scene
                 _winnerTeamId = TeamA;
             }
         }
+
+        private void EvaluateVictory()
+        {
+            if (!State.TryGetEntityHitPoints(UnitA, out var hpA) || !State.TryGetEntityHitPoints(UnitB, out var hpB))
+            {
+                return;
+            }
+
+            if (hpA <= 0 && hpB <= 0)
+            {
+                _winnerTeamId = 0;
+                return;
+            }
+
+            if (hpA <= 0)
+            {
+                _winnerTeamId = TeamB;
+                return;
+            }
+
+            if (hpB <= 0)
+            {
+                _winnerTeamId = TeamA;
+            }
+        }
     }
 }
