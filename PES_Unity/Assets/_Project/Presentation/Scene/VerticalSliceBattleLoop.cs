@@ -234,6 +234,7 @@ namespace PES.Presentation.Scene
         {
             _turnController.EndTurn();
             ResetCurrentActorMovementPoints();
+            State.TickDownSkillCooldowns(CurrentActorId);
             RemainingTurnSeconds = TurnDurationSeconds;
         }
 

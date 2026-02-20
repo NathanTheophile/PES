@@ -72,6 +72,7 @@ namespace PES.Tests.EditMode
             state.SetEntityPosition(target, new Position3(4, 0, 0));
             state.SetEntityHitPoints(caster, 25);
             state.SetEntityHitPoints(target, 25);
+            state.SetEntitySkillResource(caster, 10);
 
             // Obstacle haut au milieu de la ligne x/z => LOS bloquée.
             state.SetBlockedPosition(new Position3(2, 2, 0), blocked: true);
@@ -107,6 +108,98 @@ namespace PES.Tests.EditMode
         }
 
         [Test]
+        public void Resolve_CastSkillAction_WithZeroCostAndNoResourcePool_Succeeds()
+        {
+            var state = new BattleState();
+            var caster = new EntityId(316);
+            var target = new EntityId(317);
+
+            state.SetEntityPosition(caster, new Position3(0, 0, 0));
+            state.SetEntityPosition(target, new Position3(1, 0, 0));
+            state.SetEntityHitPoints(caster, 20);
+            state.SetEntityHitPoints(target, 20);
+
+            var resolver = new ActionResolver(new SeededRngService(42));
+            var policy = new SkillActionPolicy(skillId: 203, minRange: 1, maxRange: 3, baseDamage: 7, baseHitChance: 100, elevationPerRangeBonus: 2, rangeBonusPerElevationStep: 1, resourceCost: 0, cooldownTurns: 0);
+
+            var result = resolver.Resolve(state, new CastSkillAction(caster, target, policy));
+
+            Assert.That(result.Success, Is.True);
+            Assert.That(result.Code, Is.EqualTo(ActionResolutionCode.Succeeded));
+        }
+
+        [Test]
+        public void Resolve_CastSkillAction_WithInsufficientResource_IsRejected()
+        {
+            var state = new BattleState();
+            var caster = new EntityId(310);
+            var target = new EntityId(311);
+
+            state.SetEntityPosition(caster, new Position3(0, 0, 0));
+            state.SetEntityPosition(target, new Position3(1, 0, 0));
+            state.SetEntityHitPoints(caster, 20);
+            state.SetEntityHitPoints(target, 20);
+            state.SetEntitySkillResource(caster, 1);
+
+            var resolver = new ActionResolver(new SeededRngService(42));
+            var policy = new SkillActionPolicy(skillId: 200, minRange: 1, maxRange: 3, baseDamage: 7, baseHitChance: 100, elevationPerRangeBonus: 2, rangeBonusPerElevationStep: 1, resourceCost: 3);
+
+            var result = resolver.Resolve(state, new CastSkillAction(caster, target, policy));
+
+            Assert.That(result.Success, Is.False);
+            Assert.That(result.Code, Is.EqualTo(ActionResolutionCode.Rejected));
+            Assert.That(result.FailureReason, Is.EqualTo(ActionFailureReason.SkillResourceInsufficient));
+        }
+
+        [Test]
+        public void Resolve_CastSkillAction_OnCooldown_IsRejected()
+        {
+            var state = new BattleState();
+            var caster = new EntityId(312);
+            var target = new EntityId(313);
+
+            state.SetEntityPosition(caster, new Position3(0, 0, 0));
+            state.SetEntityPosition(target, new Position3(1, 0, 0));
+            state.SetEntityHitPoints(caster, 20);
+            state.SetEntityHitPoints(target, 20);
+            state.SetEntitySkillResource(caster, 10);
+            state.SetSkillCooldown(caster, skillId: 201, remainingTurns: 2);
+
+            var resolver = new ActionResolver(new SeededRngService(42));
+            var policy = new SkillActionPolicy(skillId: 201, minRange: 1, maxRange: 3, baseDamage: 7, baseHitChance: 100, elevationPerRangeBonus: 2, rangeBonusPerElevationStep: 1, resourceCost: 2);
+
+            var result = resolver.Resolve(state, new CastSkillAction(caster, target, policy));
+
+            Assert.That(result.Success, Is.False);
+            Assert.That(result.Code, Is.EqualTo(ActionResolutionCode.Rejected));
+            Assert.That(result.FailureReason, Is.EqualTo(ActionFailureReason.SkillOnCooldown));
+        }
+
+        [Test]
+        public void Resolve_CastSkillAction_Success_ConsumesResourceAndSetsCooldown()
+        {
+            var state = new BattleState();
+            var caster = new EntityId(314);
+            var target = new EntityId(315);
+
+            state.SetEntityPosition(caster, new Position3(0, 0, 0));
+            state.SetEntityPosition(target, new Position3(1, 0, 0));
+            state.SetEntityHitPoints(caster, 20);
+            state.SetEntityHitPoints(target, 20);
+            state.SetEntitySkillResource(caster, 8);
+
+            var resolver = new ActionResolver(new SeededRngService(42));
+            var policy = new SkillActionPolicy(skillId: 202, minRange: 1, maxRange: 3, baseDamage: 7, baseHitChance: 100, elevationPerRangeBonus: 2, rangeBonusPerElevationStep: 1, resourceCost: 3, cooldownTurns: 2);
+
+            var result = resolver.Resolve(state, new CastSkillAction(caster, target, policy));
+
+            Assert.That(result.Success, Is.True);
+            Assert.That(state.TryGetEntitySkillResource(caster, out var remaining), Is.True);
+            Assert.That(remaining, Is.EqualTo(5));
+            Assert.That(state.GetSkillCooldown(caster, 202), Is.EqualTo(2));
+        }
+
+        [Test]
         public void Replay_WithCastSkillAction_ReproducesFinalSnapshotWithSameSeed()
         {
             var caster = new EntityId(304);
@@ -122,7 +215,7 @@ namespace PES.Tests.EditMode
             recorder.CaptureInitialState(state);
 
             var resolver = new ActionResolver(new SeededRngService(17));
-            var policy = new SkillActionPolicy(skillId: 99, minRange: 1, maxRange: 3, baseDamage: 5, baseHitChance: 100, elevationPerRangeBonus: 2, rangeBonusPerElevationStep: 1);
+            var policy = new SkillActionPolicy(skillId: 99, minRange: 1, maxRange: 3, baseDamage: 5, baseHitChance: 100, elevationPerRangeBonus: 2, rangeBonusPerElevationStep: 1, resourceCost: 2, cooldownTurns: 1);
             resolver.Resolve(state, new CastSkillAction(caster, target, policy));
             recorder.RecordAction(RecordedActionCommand.CastSkill(caster, target, policy), state);
 

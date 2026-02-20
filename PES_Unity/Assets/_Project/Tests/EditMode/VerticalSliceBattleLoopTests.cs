@@ -286,6 +286,31 @@ namespace PES.Tests.EditMode
         }
 
         [Test]
+        public void TryPassTurn_WhenTurnChanges_DecrementsCooldownForNextActor()
+        {
+            var loop = new VerticalSliceBattleLoop(seed: 3);
+            var skillId = 900;
+            loop.State.SetSkillCooldown(VerticalSliceBattleLoop.UnitB, skillId, remainingTurns: 2);
+
+            var firstPass = loop.TryPassTurn(VerticalSliceBattleLoop.UnitA, out var firstResult);
+
+            Assert.That(firstPass, Is.True);
+            Assert.That(firstResult.Success, Is.True);
+            Assert.That(loop.PeekCurrentActorLabel(), Is.EqualTo("UnitB"));
+            Assert.That(loop.State.GetSkillCooldown(VerticalSliceBattleLoop.UnitB, skillId), Is.EqualTo(1));
+
+            var secondPass = loop.TryPassTurn(VerticalSliceBattleLoop.UnitB, out var secondResult);
+            Assert.That(secondPass, Is.True);
+            Assert.That(secondResult.Success, Is.True);
+
+            var thirdPass = loop.TryPassTurn(VerticalSliceBattleLoop.UnitA, out var thirdResult);
+            Assert.That(thirdPass, Is.True);
+            Assert.That(thirdResult.Success, Is.True);
+            Assert.That(loop.PeekCurrentActorLabel(), Is.EqualTo("UnitB"));
+            Assert.That(loop.State.GetSkillCooldown(VerticalSliceBattleLoop.UnitB, skillId), Is.EqualTo(0));
+        }
+
+        [Test]
         public void TryPassTurn_WhenTurnEnds_ResetsNextActorMovementPoints()
         {
             var definitions = new[]
