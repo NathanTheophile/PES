@@ -39,6 +39,21 @@ namespace PES.Combat.Actions
         {
             var policy = _policyOverride ?? DefaultPolicy;
 
+            if (state.TryGetEntityHitPoints(AttackerId, out var attackerHp) && attackerHp <= 0)
+            {
+                return new ActionResolution(false, ActionResolutionCode.Rejected, $"BasicAttackRejected: attacker defeated ({AttackerId})", ActionFailureReason.ActorDefeated);
+            }
+
+            if (!state.TryGetEntityHitPoints(TargetId, out var targetHp))
+            {
+                return new ActionResolution(false, ActionResolutionCode.Rejected, $"BasicAttackRejected: missing hit points for {TargetId}", ActionFailureReason.MissingHitPoints);
+            }
+
+            if (targetHp <= 0)
+            {
+                return new ActionResolution(false, ActionResolutionCode.Rejected, $"BasicAttackRejected: target already defeated ({TargetId})", ActionFailureReason.TargetDefeated);
+            }
+
             var targetingService = new BasicAttackTargetingService();
             var targeting = targetingService.Evaluate(state, AttackerId, TargetId, policy.MinRange, policy.MaxRange, policy.MaxLineOfSightDelta);
             if (!targeting.Success)
@@ -53,14 +68,13 @@ namespace PES.Combat.Actions
                         new ActionResolution(false, ActionResolutionCode.Rejected, $"BasicAttackRejected: out of range ({AttackerId} -> {TargetId}, range:{targeting.HorizontalDistance})", ActionFailureReason.OutOfRange),
                     BasicAttackTargetingFailure.LineOfSightBlocked =>
                         new ActionResolution(false, ActionResolutionCode.Rejected, $"BasicAttackRejected: line of sight blocked ({AttackerId} -> {TargetId}, z:{targeting.VerticalDelta})", ActionFailureReason.LineOfSightBlocked),
+                    BasicAttackTargetingFailure.SelfTargeting =>
+                        new ActionResolution(false, ActionResolutionCode.Rejected, $"BasicAttackRejected: self-targeting ({AttackerId})", ActionFailureReason.SelfTargeting),
+                    BasicAttackTargetingFailure.InvalidPolicy =>
+                        new ActionResolution(false, ActionResolutionCode.Rejected, $"BasicAttackRejected: invalid attack policy ({AttackerId} -> {TargetId})", ActionFailureReason.InvalidPolicy),
                     _ =>
                         new ActionResolution(false, ActionResolutionCode.Rejected, $"BasicAttackRejected: invalid targeting ({AttackerId} -> {TargetId})", ActionFailureReason.InvalidTargeting),
                 };
-            }
-
-            if (!state.TryGetEntityHitPoints(TargetId, out _))
-            {
-                return new ActionResolution(false, ActionResolutionCode.Rejected, $"BasicAttackRejected: missing hit points for {TargetId}", ActionFailureReason.MissingHitPoints);
             }
 
             var resolutionService = new BasicAttackResolutionService();
@@ -71,7 +85,8 @@ namespace PES.Combat.Actions
                     false,
                     ActionResolutionCode.Missed,
                     $"BasicAttackMissed: {AttackerId} -> {TargetId} [roll:{resolution.Roll}, hitChance:{resolution.HitChance}]",
-                    ActionFailureReason.HitRollMissed);
+                    ActionFailureReason.HitRollMissed,
+                    new ActionResultPayload("AttackMissed", resolution.Roll, resolution.HitChance, 0));
             }
 
             var damageApplied = state.TryApplyDamage(TargetId, resolution.FinalDamage);
@@ -83,7 +98,9 @@ namespace PES.Combat.Actions
             return new ActionResolution(
                 true,
                 ActionResolutionCode.Succeeded,
-                $"BasicAttackResolved: {AttackerId} -> {TargetId} [roll:{resolution.Roll}, hitChance:{resolution.HitChance}, dmg:{resolution.FinalDamage}, hBonus:{resolution.HeightDamageBonus}]");
+                $"BasicAttackResolved: {AttackerId} -> {TargetId} [roll:{resolution.Roll}, hitChance:{resolution.HitChance}, dmg:{resolution.FinalDamage}, hBonus:{resolution.HeightDamageBonus}]",
+                ActionFailureReason.None,
+                new ActionResultPayload("AttackResolved", resolution.FinalDamage, resolution.Roll, resolution.HitChance));
         }
     }
 }
