@@ -245,7 +245,7 @@ namespace PES.Presentation.Scene
             }
         }
 
-        private static bool TryResolveActorFromHit(GameObject hitObject, out EntityId actorId)
+        private static bool TryResolveActorFromHit(GameObject hitObject, out Core.Simulation.EntityId actorId)
         {
             actorId = default;
 
