@@ -306,10 +306,52 @@ namespace PES.Presentation.Scene
 
         private void BuildSteppedMap()
         {
-            CreateTileFromGrid(0, 0, 0, new Color(0.25f, 0.25f, 0.25f));
-            CreateTileFromGrid(1, 0, 0, new Color(0.35f, 0.35f, 0.35f));
-            CreateTileFromGrid(1, 0, 1, new Color(0.45f, 0.45f, 0.45f));
-            CreateTileFromGrid(2, 0, 1, new Color(0.55f, 0.55f, 0.55f));
+            const int width = 12;
+            const int depth = 12;
+
+            // Sol principal : grande zone jouable pour tests manuels in-engine.
+            for (var x = 0; x < width; x++)
+            {
+                for (var y = 0; y < depth; y++)
+                {
+                    var checker = (x + y) % 2 == 0;
+                    var color = checker
+                        ? new Color(0.27f, 0.27f, 0.27f)
+                        : new Color(0.33f, 0.33f, 0.33f);
+                    CreateTileFromGrid(x, y, 0, color);
+                }
+            }
+
+            // Plateforme surélevée de test (élévation skills/LOS).
+            for (var x = 4; x <= 7; x++)
+            {
+                for (var y = 4; y <= 7; y++)
+                {
+                    CreateTileFromGrid(x, y, 1, new Color(0.42f, 0.42f, 0.42f));
+                }
+            }
+
+            // Quelques obstacles de ligne de vue au centre.
+            AddBlockingColumn(6, 2, 1, new Color(0.2f, 0.2f, 0.2f));
+            AddBlockingColumn(6, 3, 1, new Color(0.2f, 0.2f, 0.2f));
+            AddBlockingColumn(6, 4, 1, new Color(0.2f, 0.2f, 0.2f));
+            AddBlockingColumn(5, 6, 2, new Color(0.18f, 0.18f, 0.18f));
+            AddBlockingColumn(7, 6, 2, new Color(0.18f, 0.18f, 0.18f));
+        }
+
+
+        private void AddBlockingColumn(int x, int y, int height, Color color)
+        {
+            if (height < 1)
+            {
+                height = 1;
+            }
+
+            for (var z = 1; z <= height; z++)
+            {
+                CreateTileFromGrid(x, y, z, color);
+                _battleLoop.State.SetBlockedPosition(new Position3(x, y, z), blocked: true);
+            }
         }
 
         private static GameObject CreateTileFromGrid(int x, int y, int z, Color color)
