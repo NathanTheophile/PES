@@ -1,26 +1,33 @@
 using PES.Combat.Actions;
 using PES.Core.Random;
 using PES.Core.Simulation;
+using PES.Core.TurnSystem;
 using PES.Grid.Grid3D;
 
 namespace PES.Presentation.Scene
 {
     /// <summary>
-    /// Petit orchestrateur pour démontrer un loop move/attack avec 2 unités sur une map à dénivelé.
+    /// Orchestrateur de démo : initiative round-robin + consommation d'action + condition de victoire minimale.
     /// </summary>
     public sealed class VerticalSliceBattleLoop
     {
         public static readonly EntityId UnitA = new(100);
         public static readonly EntityId UnitB = new(101);
 
+        private const int TeamA = 1;
+        private const int TeamB = 2;
+
         private readonly ActionResolver _resolver;
-        private DemoStep _nextStep;
+        private readonly RoundRobinTurnController _turnController;
+
+        private bool _unitAHasMovedOnce;
+        private int? _winnerTeamId;
 
         public VerticalSliceBattleLoop(int seed = 7)
         {
             State = new BattleState();
             _resolver = new ActionResolver(new SeededRngService(seed));
-            _nextStep = DemoStep.MoveUnitA;
+            _turnController = new RoundRobinTurnController(new[] { UnitA, UnitB }, actionsPerTurn: 1);
 
             State.SetEntityPosition(UnitA, new Position3(0, 0, 0));
             State.SetEntityPosition(UnitB, new Position3(2, 0, 1));
@@ -30,61 +37,108 @@ namespace PES.Presentation.Scene
 
         public BattleState State { get; }
 
-        /// <summary>
-        /// Retourne le nom lisible de la prochaine étape de la boucle de démo.
-        /// </summary>
+        public int CurrentRound => _turnController.Round;
+
+        public int RemainingActions => _turnController.RemainingActions;
+
+        public bool IsBattleOver => _winnerTeamId.HasValue;
+
+        public int? WinnerTeamId => _winnerTeamId;
+
+        public string PeekCurrentActorLabel()
+        {
+            var actor = _turnController.CurrentActorId;
+            return actor.Equals(UnitA) ? "UnitA" : "UnitB";
+        }
+
         public string PeekNextStepLabel()
         {
-            return _nextStep switch
+            if (IsBattleOver)
             {
-                DemoStep.MoveUnitA => "Move(UnitA)",
-                DemoStep.AttackUnitAtoB => "Attack(UnitA->UnitB)",
-                _ => "Attack(UnitB->UnitA)",
-            };
+                return "BattleFinished";
+            }
+
+            var actor = _turnController.CurrentActorId;
+            if (actor.Equals(UnitA))
+            {
+                return _unitAHasMovedOnce ? "Attack(UnitA->UnitB)" : "Move(UnitA)";
+            }
+
+            return "Attack(UnitB->UnitA)";
         }
 
         /// <summary>
-        /// Exécute la prochaine action de démonstration.
-        /// Séquence: Move(A) -> Attack(A,B) -> Attack(B,A) puis boucle.
+        /// Exécute l'action de l'acteur courant puis consomme l'action et termine le tour.
         /// </summary>
         public ActionResolution ExecuteNextStep()
         {
+            if (IsBattleOver)
+            {
+                return new ActionResolution(false, ActionResolutionCode.Rejected, "BattleFinished: no further actions", ActionFailureReason.InvalidTargeting);
+            }
+
+            var actor = _turnController.CurrentActorId;
             ActionResolution result;
 
-            switch (_nextStep)
+            if (actor.Equals(UnitA))
             {
-                case DemoStep.MoveUnitA:
+                if (!_unitAHasMovedOnce)
+                {
                     State.TryGetEntityPosition(UnitA, out var unitAPosition);
                     var moveOrigin = new GridCoord3(unitAPosition.X, unitAPosition.Y, unitAPosition.Z);
                     var moveDestination = moveOrigin.X == 0
                         ? new GridCoord3(1, 0, 1)
                         : new GridCoord3(0, 0, 0);
 
-                    result = _resolver.Resolve(
-                        State,
-                        new MoveAction(UnitA, moveOrigin, moveDestination));
-                    _nextStep = DemoStep.AttackUnitAtoB;
-                    break;
-
-                case DemoStep.AttackUnitAtoB:
+                    result = _resolver.Resolve(State, new MoveAction(UnitA, moveOrigin, moveDestination));
+                    if (result.Success)
+                    {
+                        _unitAHasMovedOnce = true;
+                    }
+                }
+                else
+                {
                     result = _resolver.Resolve(State, new BasicAttackAction(UnitA, UnitB));
-                    _nextStep = DemoStep.AttackUnitBtoA;
-                    break;
-
-                default:
-                    result = _resolver.Resolve(State, new BasicAttackAction(UnitB, UnitA));
-                    _nextStep = DemoStep.MoveUnitA;
-                    break;
+                }
+            }
+            else
+            {
+                result = _resolver.Resolve(State, new BasicAttackAction(UnitB, UnitA));
             }
 
+            _turnController.TryConsumeAction(actor);
+            if (_turnController.RemainingActions <= 0)
+            {
+                _turnController.EndTurn();
+            }
+
+            EvaluateVictory();
             return result;
         }
 
-        private enum DemoStep
+        private void EvaluateVictory()
         {
-            MoveUnitA = 0,
-            AttackUnitAtoB = 1,
-            AttackUnitBtoA = 2,
+            if (!State.TryGetEntityHitPoints(UnitA, out var hpA) || !State.TryGetEntityHitPoints(UnitB, out var hpB))
+            {
+                return;
+            }
+
+            if (hpA <= 0 && hpB <= 0)
+            {
+                _winnerTeamId = 0;
+                return;
+            }
+
+            if (hpA <= 0)
+            {
+                _winnerTeamId = TeamB;
+                return;
+            }
+
+            if (hpB <= 0)
+            {
+                _winnerTeamId = TeamA;
+            }
         }
     }
 }

@@ -45,12 +45,13 @@ namespace PES.Presentation.Scene
             var hpA = _battleLoop.State.TryGetEntityHitPoints(VerticalSliceBattleLoop.UnitA, out var valueA) ? valueA : -1;
             var hpB = _battleLoop.State.TryGetEntityHitPoints(VerticalSliceBattleLoop.UnitB, out var valueB) ? valueB : -1;
 
-            var panel = new Rect(12f, 12f, 430f, 112f);
+            var panel = new Rect(12f, 12f, 460f, 136f);
             GUI.Box(panel, "Vertical Slice");
-            GUI.Label(new Rect(24f, 38f, 420f, 20f), $"Tick: {_battleLoop.State.Tick} | Next: {_battleLoop.PeekNextStepLabel()}");
-            GUI.Label(new Rect(24f, 58f, 420f, 20f), $"HP UnitA: {hpA} | HP UnitB: {hpB}");
-            GUI.Label(new Rect(24f, 78f, 420f, 20f), $"Last: {_lastResult.Code} / {_lastResult.FailureReason}");
-            GUI.Label(new Rect(24f, 98f, 420f, 20f), "Press SPACE to execute next action.");
+            GUI.Label(new Rect(24f, 38f, 420f, 20f), $"Tick: {_battleLoop.State.Tick} | Round: {_battleLoop.CurrentRound}");
+            GUI.Label(new Rect(24f, 58f, 420f, 20f), $"Actor: {_battleLoop.PeekCurrentActorLabel()} | Next: {_battleLoop.PeekNextStepLabel()} | AP:{_battleLoop.RemainingActions}");
+            GUI.Label(new Rect(24f, 78f, 420f, 20f), $"HP UnitA: {hpA} | HP UnitB: {hpB}");
+            GUI.Label(new Rect(24f, 98f, 420f, 20f), $"Last: {_lastResult.Code} / {_lastResult.FailureReason}");
+            GUI.Label(new Rect(24f, 118f, 420f, 20f), _battleLoop.IsBattleOver ? $"Winner Team: {_battleLoop.WinnerTeamId}" : "Press SPACE to execute next action.");
         }
 
         private void BuildSteppedMap()
