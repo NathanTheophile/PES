@@ -17,5 +17,5 @@
 - [x] Conversion UI/input en `IActionCommand` via `VerticalSliceCommandPlanner` (sans logique métier dans MonoBehaviour).
 
 ## Sprint D — Determinism & replay
-- [ ] Persister un flux `action log` + snapshots.
-- [ ] Rejouer une simulation à seed égale et comparer les résultats.
+- [x] Persister un flux `action log` + snapshots (in-memory recorder/replay).
+- [x] Rejouer une simulation à seed égale et comparer les résultats.

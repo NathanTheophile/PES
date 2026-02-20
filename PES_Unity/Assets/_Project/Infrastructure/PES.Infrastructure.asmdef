@@ -1,7 +1,9 @@
 {
   "name": "PES.Infrastructure",
   "references": [
-    "PES.Core"
+    "PES.Core",
+    "PES.Combat",
+    "PES.Grid"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
