@@ -47,7 +47,7 @@ namespace PES.Tests.EditMode
             var policies = CombatRuntimePolicyProvider.FromAsset(null);
 
             var state = new BattleState();
-            var actor = new EntityId(500);
+            var actor = new Core.Simulation.EntityId(500);
             state.SetEntityPosition(actor, new Position3(0, 0, 0));
 
             var resolver = new ActionResolver(new SeededRngService(1));

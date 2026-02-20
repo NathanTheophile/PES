@@ -15,52 +15,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Preflight - Unity activation strategy
-        shell: bash
-        env:
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
-          UNITY_LICENSING_SERVER: ${{ secrets.UNITY_LICENSING_SERVER }}
-        run: |
-          set -euo pipefail
-
-          has_license="false"
-          has_serial_strategy="false"
-          has_server="false"
-
-          if [ -n "${UNITY_LICENSE:-}" ]; then
-            has_license="true"
-          fi
-
-          if [ -n "${UNITY_EMAIL:-}" ] && [ -n "${UNITY_PASSWORD:-}" ] && [ -n "${UNITY_SERIAL:-}" ]; then
-            has_serial_strategy="true"
-          fi
-
-          if [ -n "${UNITY_LICENSING_SERVER:-}" ]; then
-            has_server="true"
-          fi
-
-          echo "Detected strategy flags -> license:${has_license} serial:${has_serial_strategy} server:${has_server}"
-
-          if [ "${has_license}" = "false" ] && [ "${has_serial_strategy}" = "false" ] && [ "${has_server}" = "false" ]; then
-            echo "No valid Unity activation strategy detected."
-            echo "Provide ONE of:"
-            echo " - UNITY_LICENSE"
-            echo " - UNITY_EMAIL + UNITY_PASSWORD + UNITY_SERIAL"
-            echo " - UNITY_LICENSING_SERVER"
-            exit 1
-          fi
-
       - name: Run EditMode tests (GameCI)
         uses: game-ci/unity-test-runner@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
-          UNITY_LICENSING_SERVER: ${{ secrets.UNITY_LICENSING_SERVER }}
         with:
           projectPath: PES_Unity
           testMode: EditMode
