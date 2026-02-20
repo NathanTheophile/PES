@@ -36,6 +36,7 @@ namespace PES.Combat.Actions
         MovementBudgetExceeded = 6,
         StateMutationFailed = 7,
         NoMovement = 8,
+        InvalidPolicy = 9,
     }
 
     /// <summary>
@@ -62,8 +63,18 @@ namespace PES.Combat.Actions
     /// </summary>
     public sealed class MoveValidationService
     {
+
+        private static bool IsPolicyValid(MoveActionPolicy policy)
+        {
+            return policy.MaxMovementCostPerAction > 0 && policy.MaxVerticalStepPerTile >= 0;
+        }
         public MoveValidationResult Validate(BattleState state, EntityId actorId, GridCoord3 origin, GridCoord3 destination, MoveActionPolicy policy)
         {
+            if (!IsPolicyValid(policy))
+            {
+                return new MoveValidationResult(false, MoveValidationFailure.InvalidPolicy, 0);
+            }
+
             var originPosition = ToPosition(origin);
             var destinationPosition = ToPosition(destination);
 
