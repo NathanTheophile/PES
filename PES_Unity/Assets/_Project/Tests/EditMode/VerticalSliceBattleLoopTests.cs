@@ -47,6 +47,25 @@ namespace PES.Tests.EditMode
         }
 
         [Test]
+        public void TryExecutePlannedCommand_WithMovePolicyMatchingPm_AllowsLongerMove()
+        {
+            var movePolicy = new MoveActionPolicy(maxMovementCostPerAction: 6, maxVerticalStepPerTile: 1);
+            var loop = new VerticalSliceBattleLoop(seed: 3, movePolicyOverride: movePolicy);
+
+            var accepted = loop.TryExecutePlannedCommand(
+                VerticalSliceBattleLoop.UnitA,
+                new MoveAction(VerticalSliceBattleLoop.UnitA, new GridCoord3(0, 0, 0), new GridCoord3(4, 0, 0), movePolicy),
+                out var result);
+
+            Assert.That(accepted, Is.True);
+            Assert.That(result.Success, Is.True);
+            Assert.That(loop.State.TryGetEntityPosition(VerticalSliceBattleLoop.UnitA, out var position), Is.True);
+            Assert.That(position, Is.EqualTo(new Position3(4, 0, 0)));
+            Assert.That(loop.State.TryGetEntityMovementPoints(VerticalSliceBattleLoop.UnitA, out var remainingPm), Is.True);
+            Assert.That(remainingPm, Is.EqualTo(2));
+        }
+
+        [Test]
         public void TryPassTurn_WithCurrentActor_SwitchesTurnAndAdvancesTick()
         {
             var loop = new VerticalSliceBattleLoop(seed: 3);

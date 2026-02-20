@@ -50,14 +50,15 @@ namespace PES.Presentation.Scene
         private void Start()
         {
             var runtimePolicies = CombatRuntimePolicyProvider.FromAsset(_runtimeConfig);
-            _effectiveMovePolicy = runtimePolicies.MovePolicyOverride ?? new MoveActionPolicy(maxMovementCostPerAction: 3, maxVerticalStepPerTile: 1);
+            _effectiveMovePolicy = runtimePolicies.MovePolicyOverride
+                ?? new MoveActionPolicy(maxMovementCostPerAction: 6, maxVerticalStepPerTile: 1);
 
             _battleLoop = new VerticalSliceBattleLoop(
-                movePolicyOverride: runtimePolicies.MovePolicyOverride,
+                movePolicyOverride: _effectiveMovePolicy,
                 basicAttackPolicyOverride: runtimePolicies.BasicAttackPolicyOverride);
             _planner = new VerticalSliceCommandPlanner(
                 _battleLoop.State,
-                runtimePolicies.MovePolicyOverride,
+                _effectiveMovePolicy,
                 runtimePolicies.BasicAttackPolicyOverride,
                 runtimePolicies.SkillPolicyOverride);
 
