@@ -33,6 +33,7 @@ namespace PES.Tests.EditMode
             Assert.That(result.Success, Is.True);
             Assert.That(result.Code, Is.EqualTo(ActionResolutionCode.Succeeded));
             Assert.That(result.Description, Does.Contain("MoveActionResolved"));
+            Assert.That(result.FailureReason, Is.EqualTo(ActionFailureReason.None));
             Assert.That(state.Tick, Is.EqualTo(1));
             Assert.That(state.EventLog.Count, Is.EqualTo(1));
             Assert.That(state.StructuredEventLog.Count, Is.EqualTo(1));
@@ -67,6 +68,7 @@ namespace PES.Tests.EditMode
             Assert.That(result.Success, Is.False);
             Assert.That(result.Code, Is.EqualTo(ActionResolutionCode.Rejected));
             Assert.That(result.Description, Does.Contain("MoveActionRejected"));
+            Assert.That(result.FailureReason, Is.EqualTo(ActionFailureReason.VerticalStepTooHigh));
             Assert.That(state.Tick, Is.EqualTo(1));
             Assert.That(state.EventLog.Count, Is.EqualTo(1));
             Assert.That(state.StructuredEventLog.Count, Is.EqualTo(1));
@@ -77,6 +79,27 @@ namespace PES.Tests.EditMode
             Assert.That(position.X, Is.EqualTo(0));
             Assert.That(position.Y, Is.EqualTo(0));
             Assert.That(position.Z, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void Resolve_MoveAction_WithInvalidOrigin_ReturnsStructuredFailureReason()
+        {
+            // Arrange : l'acteur est à (0,0,0) mais l'origine déclarée est incorrecte.
+            var state = new BattleState();
+            var actor = new EntityId(9);
+            state.SetEntityPosition(actor, new Position3(0, 0, 0));
+
+            var resolver = new ActionResolver(new SeededRngService(42));
+            var action = new MoveAction(actor, new GridCoord3(1, 0, 0), new GridCoord3(2, 0, 0));
+
+            // Act.
+            var result = resolver.Resolve(state, action);
+
+            // Assert : rejet lisible + raison stable pour exploitation outillage/replay.
+            Assert.That(result.Success, Is.False);
+            Assert.That(result.Code, Is.EqualTo(ActionResolutionCode.Rejected));
+            Assert.That(result.Description, Does.Contain("invalid origin"));
+            Assert.That(result.FailureReason, Is.EqualTo(ActionFailureReason.InvalidOrigin));
         }
 
         [Test]
@@ -122,6 +145,7 @@ namespace PES.Tests.EditMode
             Assert.That(result.Success, Is.False);
             Assert.That(result.Code, Is.EqualTo(ActionResolutionCode.Rejected));
             Assert.That(result.Description, Does.Contain("blocked path"));
+            Assert.That(result.FailureReason, Is.EqualTo(ActionFailureReason.BlockedPath));
             Assert.That(state.TryGetEntityPosition(actor, out var position), Is.True);
             Assert.That(position.X, Is.EqualTo(0));
             Assert.That(position.Y, Is.EqualTo(0));
@@ -148,6 +172,7 @@ namespace PES.Tests.EditMode
             Assert.That(result.Success, Is.False);
             Assert.That(result.Code, Is.EqualTo(ActionResolutionCode.Rejected));
             Assert.That(result.Description, Does.Contain("destination occupied"));
+            Assert.That(result.FailureReason, Is.EqualTo(ActionFailureReason.DestinationOccupied));
             Assert.That(state.TryGetEntityPosition(actor, out var actorPosition), Is.True);
             Assert.That(actorPosition.X, Is.EqualTo(0));
             Assert.That(actorPosition.Y, Is.EqualTo(0));
@@ -173,6 +198,7 @@ namespace PES.Tests.EditMode
             Assert.That(result.Success, Is.False);
             Assert.That(result.Code, Is.EqualTo(ActionResolutionCode.Rejected));
             Assert.That(result.Description, Does.Contain("movement cost exceeded"));
+            Assert.That(result.FailureReason, Is.EqualTo(ActionFailureReason.MovementBudgetExceeded));
             Assert.That(state.TryGetEntityPosition(actor, out var actorPosition), Is.True);
             Assert.That(actorPosition.X, Is.EqualTo(0));
             Assert.That(actorPosition.Y, Is.EqualTo(0));
@@ -198,6 +224,7 @@ namespace PES.Tests.EditMode
             Assert.That(result.Success, Is.True);
             Assert.That(result.Code, Is.EqualTo(ActionResolutionCode.Succeeded));
             Assert.That(result.Description, Does.Contain("cost:2"));
+            Assert.That(result.FailureReason, Is.EqualTo(ActionFailureReason.None));
             Assert.That(state.TryGetEntityPosition(actor, out var actorPosition), Is.True);
             Assert.That(actorPosition.X, Is.EqualTo(1));
             Assert.That(actorPosition.Y, Is.EqualTo(0));
@@ -226,6 +253,7 @@ namespace PES.Tests.EditMode
             Assert.That(result.Success, Is.True);
             Assert.That(result.Code, Is.EqualTo(ActionResolutionCode.Succeeded));
             Assert.That(result.Description, Does.Contain("BasicAttackResolved"));
+            Assert.That(result.FailureReason, Is.EqualTo(ActionFailureReason.None));
             Assert.That(state.Tick, Is.EqualTo(1));
             Assert.That(state.EventLog.Count, Is.EqualTo(1));
             Assert.That(state.StructuredEventLog.Count, Is.EqualTo(1));
@@ -256,6 +284,7 @@ namespace PES.Tests.EditMode
             Assert.That(result.Success, Is.False);
             Assert.That(result.Code, Is.EqualTo(ActionResolutionCode.Rejected));
             Assert.That(result.Description, Does.Contain("out of range"));
+            Assert.That(result.FailureReason, Is.EqualTo(ActionFailureReason.OutOfRange));
             Assert.That(state.Tick, Is.EqualTo(1));
             Assert.That(state.EventLog.Count, Is.EqualTo(1));
             Assert.That(state.StructuredEventLog.Count, Is.EqualTo(1));
@@ -287,6 +316,7 @@ namespace PES.Tests.EditMode
             Assert.That(result.Success, Is.False);
             Assert.That(result.Code, Is.EqualTo(ActionResolutionCode.Missed));
             Assert.That(result.Description, Does.Contain("BasicAttackMissed"));
+            Assert.That(result.FailureReason, Is.EqualTo(ActionFailureReason.HitRollMissed));
             Assert.That(state.Tick, Is.EqualTo(1));
             Assert.That(state.StructuredEventLog.Count, Is.EqualTo(1));
             Assert.That(state.StructuredEventLog[0].Code, Is.EqualTo(ActionResolutionCode.Missed));
@@ -411,6 +441,7 @@ namespace PES.Tests.EditMode
             Assert.That(result.Success, Is.False);
             Assert.That(result.Code, Is.EqualTo(ActionResolutionCode.Rejected));
             Assert.That(result.Description, Does.Contain("line of sight blocked"));
+            Assert.That(result.FailureReason, Is.EqualTo(ActionFailureReason.LineOfSightBlocked));
             Assert.That(state.TryGetEntityHitPoints(target, out var remainingHp), Is.True);
             Assert.That(remainingHp, Is.EqualTo(30));
         }
@@ -437,8 +468,135 @@ namespace PES.Tests.EditMode
             Assert.That(result.Success, Is.False);
             Assert.That(result.Code, Is.EqualTo(ActionResolutionCode.Rejected));
             Assert.That(result.Description, Does.Contain("line of sight blocked"));
+            Assert.That(result.FailureReason, Is.EqualTo(ActionFailureReason.LineOfSightBlocked));
             Assert.That(state.TryGetEntityHitPoints(target, out var remainingHp), Is.True);
             Assert.That(remainingHp, Is.EqualTo(30));
+        }
+
+
+        [Test]
+        public void Resolve_BasicAttackAction_WithSameSeed_ProducesDeterministicSequence()
+        {
+            // Arrange : deux simulations identiques exécutées avec la même seed.
+            var stateA = new BattleState();
+            var stateB = new BattleState();
+
+            var attacker = new EntityId(80);
+            var target = new EntityId(81);
+
+            stateA.SetEntityPosition(attacker, new Position3(0, 0, 1));
+            stateA.SetEntityPosition(target, new Position3(1, 0, 0));
+            stateA.SetEntityHitPoints(target, 40);
+
+            stateB.SetEntityPosition(attacker, new Position3(0, 0, 1));
+            stateB.SetEntityPosition(target, new Position3(1, 0, 0));
+            stateB.SetEntityHitPoints(target, 40);
+
+            var resolverA = new ActionResolver(new SeededRngService(123));
+            var resolverB = new ActionResolver(new SeededRngService(123));
+
+            // Act : même suite d'actions sur deux états clones.
+            var resultA1 = resolverA.Resolve(stateA, new BasicAttackAction(attacker, target));
+            var resultA2 = resolverA.Resolve(stateA, new BasicAttackAction(attacker, target));
+
+            var resultB1 = resolverB.Resolve(stateB, new BasicAttackAction(attacker, target));
+            var resultB2 = resolverB.Resolve(stateB, new BasicAttackAction(attacker, target));
+
+            // Assert : mêmes codes/résultats et même état final.
+            Assert.That(resultA1.Code, Is.EqualTo(resultB1.Code));
+            Assert.That(resultA1.FailureReason, Is.EqualTo(resultB1.FailureReason));
+            Assert.That(resultA1.Description, Is.EqualTo(resultB1.Description));
+
+            Assert.That(resultA2.Code, Is.EqualTo(resultB2.Code));
+            Assert.That(resultA2.FailureReason, Is.EqualTo(resultB2.FailureReason));
+            Assert.That(resultA2.Description, Is.EqualTo(resultB2.Description));
+
+            Assert.That(stateA.TryGetEntityHitPoints(target, out var hpA), Is.True);
+            Assert.That(stateB.TryGetEntityHitPoints(target, out var hpB), Is.True);
+            Assert.That(hpA, Is.EqualTo(hpB));
+        }
+
+        [Test]
+        public void Resolve_BasicAttackAction_WhenTargetMissingHitPoints_ReturnsStructuredReason()
+        {
+            // Arrange : positions valides mais HP de la cible absents de BattleState.
+            var state = new BattleState();
+            var attacker = new EntityId(82);
+            var target = new EntityId(83);
+            state.SetEntityPosition(attacker, new Position3(0, 0, 0));
+            state.SetEntityPosition(target, new Position3(1, 0, 0));
+
+            var resolver = new ActionResolver(new SeededRngService(42));
+
+            // Act.
+            var result = resolver.Resolve(state, new BasicAttackAction(attacker, target));
+
+            // Assert : rejet explicite et raison normalisée exploitable.
+            Assert.That(result.Success, Is.False);
+            Assert.That(result.Code, Is.EqualTo(ActionResolutionCode.Rejected));
+            Assert.That(result.FailureReason, Is.EqualTo(ActionFailureReason.MissingHitPoints));
+            Assert.That(result.Description, Does.Contain("missing hit points"));
+        }
+
+
+        [Test]
+        public void Resolve_BasicAttackAction_WhenTargetTooClose_IsRejectedWithTooCloseReason()
+        {
+            // Arrange : cible sur la même case XY que l'attaquant (distance 0).
+            var state = new BattleState();
+            var attacker = new EntityId(84);
+            var target = new EntityId(85);
+            state.SetEntityPosition(attacker, new Position3(0, 0, 0));
+            state.SetEntityPosition(target, new Position3(0, 0, 0));
+            state.SetEntityHitPoints(target, 30);
+
+            var resolver = new ActionResolver(new SeededRngService(42));
+
+            // Act.
+            var result = resolver.Resolve(state, new BasicAttackAction(attacker, target));
+
+            // Assert : rejet structuré "too close".
+            Assert.That(result.Success, Is.False);
+            Assert.That(result.Code, Is.EqualTo(ActionResolutionCode.Rejected));
+            Assert.That(result.FailureReason, Is.EqualTo(ActionFailureReason.TooClose));
+            Assert.That(result.Description, Does.Contain("target too close"));
+        }
+
+        [Test]
+        public void Resolve_BasicAttackAction_HighGroundDealsMoreDamageThanLowGround_WithSameRngSequence()
+        {
+            // Arrange : même RNG sur deux simulations, seule la hauteur relative change.
+            var attacker = new EntityId(86);
+            var target = new EntityId(87);
+
+            var highGroundState = new BattleState();
+            highGroundState.SetEntityPosition(attacker, new Position3(0, 0, 2));
+            highGroundState.SetEntityPosition(target, new Position3(1, 0, 0));
+            highGroundState.SetEntityHitPoints(target, 40);
+
+            var lowGroundState = new BattleState();
+            lowGroundState.SetEntityPosition(attacker, new Position3(0, 0, 0));
+            lowGroundState.SetEntityPosition(target, new Position3(1, 0, 2));
+            lowGroundState.SetEntityHitPoints(target, 40);
+
+            // 60 => touche dans les deux cas ; 1 => même variance dégâts.
+            var highResolver = new ActionResolver(new SequenceRngService(60, 1));
+            var lowResolver = new ActionResolver(new SequenceRngService(60, 1));
+
+            // Act.
+            var highResult = highResolver.Resolve(highGroundState, new BasicAttackAction(attacker, target));
+            var lowResult = lowResolver.Resolve(lowGroundState, new BasicAttackAction(attacker, target));
+
+            // Assert : les deux touchent mais le bonus de hauteur augmente les dégâts.
+            Assert.That(highResult.Code, Is.EqualTo(ActionResolutionCode.Succeeded));
+            Assert.That(lowResult.Code, Is.EqualTo(ActionResolutionCode.Succeeded));
+
+            Assert.That(highGroundState.TryGetEntityHitPoints(target, out var highHp), Is.True);
+            Assert.That(lowGroundState.TryGetEntityHitPoints(target, out var lowHp), Is.True);
+            Assert.That(highHp, Is.LessThan(lowHp));
+
+            Assert.That(highResult.Description, Does.Contain("hBonus:4"));
+            Assert.That(lowResult.Description, Does.Contain("hBonus:-4"));
         }
 
         // Utilité : faux RNG de test pour forcer des séquences déterministes contrôlées.
