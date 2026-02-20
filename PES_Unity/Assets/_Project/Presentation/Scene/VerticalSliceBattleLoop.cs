@@ -85,16 +85,22 @@ namespace PES.Presentation.Scene
                 return false;
             }
 
-            if (!_turnController.TryConsumeAction(actorId))
+            if (_turnController.RemainingActions <= 0)
             {
                 result = new ActionResolution(false, ActionResolutionCode.Rejected, "TurnRejected: no action points remaining", ActionFailureReason.InvalidOrigin);
                 return false;
             }
 
             result = _resolver.Resolve(State, command);
-            if (_turnController.RemainingActions <= 0)
+
+            // Une action rejetée ne consomme pas le tour ; l'acteur peut corriger sa commande.
+            if (result.Code != ActionResolutionCode.Rejected)
             {
-                _turnController.EndTurn();
+                _turnController.TryConsumeAction(actorId);
+                if (_turnController.RemainingActions <= 0)
+                {
+                    _turnController.EndTurn();
+                }
             }
 
             EvaluateVictory();

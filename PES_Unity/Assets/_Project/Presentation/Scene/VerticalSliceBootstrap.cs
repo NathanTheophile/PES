@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using PES.Core.Simulation;
 using PES.Grid.Grid3D;
 using UnityEngine;
@@ -102,13 +103,9 @@ namespace PES.Presentation.Scene
 
             if (Input.GetKeyDown(KeyCode.M))
             {
-                if (_planner.SelectedActorId.Equals(VerticalSliceBattleLoop.UnitA))
+                if (TryFindAdjacentMoveDestination(_planner.SelectedActorId, out var destination))
                 {
-                    _planner.PlanMove(new GridCoord3(1, 0, 1));
-                }
-                else
-                {
-                    _planner.PlanMove(new GridCoord3(2, 0, 1));
+                    _planner.PlanMove(destination);
                 }
             }
 
@@ -121,117 +118,45 @@ namespace PES.Presentation.Scene
             }
         }
 
-        private void OnGUI()
+
+        private bool TryFindAdjacentMoveDestination(EntityId actorId, out GridCoord3 destination)
         {
-            if (_battleLoop == null)
+            destination = default;
+
+            if (!_battleLoop.State.TryGetEntityPosition(actorId, out var currentPosition))
             {
-                return;
+                return false;
             }
 
-            var hpA = _battleLoop.State.TryGetEntityHitPoints(VerticalSliceBattleLoop.UnitA, out var valueA) ? valueA : -1;
-            var hpB = _battleLoop.State.TryGetEntityHitPoints(VerticalSliceBattleLoop.UnitB, out var valueB) ? valueB : -1;
-
-            var selected = _planner.HasActorSelection ? _planner.SelectedActorId.ToString() : "None";
-            var planned = _planner.PlannedLabel;
-
-            var panel = new Rect(12f, 12f, 560f, 156f);
-            GUI.Box(panel, "Vertical Slice");
-            GUI.Label(new Rect(24f, 38f, 540f, 20f), $"Tick: {_battleLoop.State.Tick} | Round: {_battleLoop.CurrentRound}");
-            GUI.Label(new Rect(24f, 58f, 540f, 20f), $"Actor: {_battleLoop.PeekCurrentActorLabel()} | Next: {_battleLoop.PeekNextStepLabel()} | AP:{_battleLoop.RemainingActions}");
-            GUI.Label(new Rect(24f, 78f, 540f, 20f), $"HP UnitA: {hpA} | HP UnitB: {hpB}");
-            GUI.Label(new Rect(24f, 98f, 540f, 20f), $"Selected: {selected} | Planned: {planned}");
-            GUI.Label(new Rect(24f, 118f, 540f, 20f), $"Last: {_lastResult.Code} / {_lastResult.FailureReason}");
-            GUI.Label(new Rect(24f, 138f, 540f, 20f), _battleLoop.IsBattleOver ? $"Winner Team: {_battleLoop.WinnerTeamId}" : "Keys: 1/2 select actor, M move, A attack, SPACE execute.");
-        }
-
-        private void ProcessSelectionInputs()
-        {
-            if (Input.GetKeyDown(KeyCode.Alpha1))
+            var origin = new GridCoord3(currentPosition.X, currentPosition.Y, currentPosition.Z);
+            var candidates = new List<GridCoord3>
             {
-                _planner.SelectActor(VerticalSliceBattleLoop.UnitA);
-            }
+                new(origin.X + 1, origin.Y, origin.Z),
+                new(origin.X - 1, origin.Y, origin.Z),
+                new(origin.X, origin.Y + 1, origin.Z),
+                new(origin.X, origin.Y - 1, origin.Z),
+                new(origin.X, origin.Y, origin.Z + 1),
+                new(origin.X, origin.Y, origin.Z - 1),
+            };
 
-            if (Input.GetKeyDown(KeyCode.Alpha2))
+            foreach (var candidate in candidates)
             {
-                _planner.SelectActor(VerticalSliceBattleLoop.UnitB);
-            }
-        }
-
-        private void ProcessPlanningInputs()
-        {
-            // IMPORTANT: aucune API GUI ici (OnGUI uniquement).
-            if (!_planner.HasActorSelection)
-            {
-                return;
-            }
-
-            if (Input.GetKeyDown(KeyCode.M))
-            {
-                if (_planner.SelectedActorId.Equals(VerticalSliceBattleLoop.UnitA))
+                var asPosition = new Position3(candidate.X, candidate.Y, candidate.Z);
+                if (_battleLoop.State.IsPositionBlocked(asPosition))
                 {
-                    _planner.PlanMove(new GridCoord3(1, 0, 1));
+                    continue;
                 }
-                else
+
+                if (_battleLoop.State.IsPositionOccupied(asPosition, actorId))
                 {
-                    _planner.PlanMove(new GridCoord3(2, 0, 1));
+                    continue;
                 }
+
+                destination = candidate;
+                return true;
             }
 
-            if (Input.GetKeyDown(KeyCode.A))
-            {
-                var target = _planner.SelectedActorId.Equals(VerticalSliceBattleLoop.UnitA)
-                    ? VerticalSliceBattleLoop.UnitB
-                    : VerticalSliceBattleLoop.UnitA;
-                _planner.PlanAttack(target);
-            }
-
-            if (Input.GetKeyDown(KeyCode.Alpha2))
-            {
-                _planner.SelectActor(VerticalSliceBattleLoop.UnitB);
-            }
-        }
-
-        private void HandlePlanningInputs()
-        {
-            if (!_planner.HasActorSelection)
-            {
-                return;
-            }
-
-            if (Input.GetKeyDown(KeyCode.M))
-            {
-                if (_planner.SelectedActorId.Equals(VerticalSliceBattleLoop.UnitA))
-                {
-                    _planner.PlanMove(new GridCoord3(1, 0, 1));
-                }
-                else
-                {
-                    _planner.PlanMove(new GridCoord3(2, 0, 1));
-                }
-            }
-
-            if (Input.GetKeyDown(KeyCode.A))
-            {
-                var target = _planner.SelectedActorId.Equals(VerticalSliceBattleLoop.UnitA)
-                    ? VerticalSliceBattleLoop.UnitB
-                    : VerticalSliceBattleLoop.UnitA;
-                _planner.PlanAttack(target);
-            }
-
-            var hpA = _battleLoop.State.TryGetEntityHitPoints(VerticalSliceBattleLoop.UnitA, out var valueA) ? valueA : -1;
-            var hpB = _battleLoop.State.TryGetEntityHitPoints(VerticalSliceBattleLoop.UnitB, out var valueB) ? valueB : -1;
-
-            var selected = _planner.HasActorSelection ? _planner.SelectedActorId.ToString() : "None";
-            var planned = _planner.PlannedLabel;
-
-            var panel = new Rect(12f, 12f, 560f, 156f);
-            GUI.Box(panel, "Vertical Slice");
-            GUI.Label(new Rect(24f, 38f, 540f, 20f), $"Tick: {_battleLoop.State.Tick} | Round: {_battleLoop.CurrentRound}");
-            GUI.Label(new Rect(24f, 58f, 540f, 20f), $"Actor: {_battleLoop.PeekCurrentActorLabel()} | Next: {_battleLoop.PeekNextStepLabel()} | AP:{_battleLoop.RemainingActions}");
-            GUI.Label(new Rect(24f, 78f, 540f, 20f), $"HP UnitA: {hpA} | HP UnitB: {hpB}");
-            GUI.Label(new Rect(24f, 98f, 540f, 20f), $"Selected: {selected} | Planned: {planned}");
-            GUI.Label(new Rect(24f, 118f, 540f, 20f), $"Last: {_lastResult.Code} / {_lastResult.FailureReason}");
-            GUI.Label(new Rect(24f, 138f, 540f, 20f), _battleLoop.IsBattleOver ? $"Winner Team: {_battleLoop.WinnerTeamId}" : "Keys: 1/2 select actor, M move, A attack, SPACE execute.");
+            return false;
         }
 
         private void BuildSteppedMap()

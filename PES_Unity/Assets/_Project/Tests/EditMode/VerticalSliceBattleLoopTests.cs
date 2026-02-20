@@ -1,5 +1,7 @@
 using NUnit.Framework;
 using PES.Combat.Actions;
+using PES.Core.Simulation;
+using PES.Grid.Grid3D;
 using PES.Presentation.Scene;
 
 namespace PES.Tests.EditMode
@@ -61,6 +63,25 @@ namespace PES.Tests.EditMode
             Assert.That(result.Success, Is.False);
             Assert.That(result.Description, Does.Contain("TurnRejected"));
             Assert.That(loop.PeekCurrentActorLabel(), Is.EqualTo("UnitA"));
+        }
+
+
+        [Test]
+        public void TryExecutePlannedCommand_WhenActionIsRejected_DoesNotConsumeTurn()
+        {
+            var loop = new VerticalSliceBattleLoop(seed: 3);
+
+            var accepted = loop.TryExecutePlannedCommand(
+                VerticalSliceBattleLoop.UnitA,
+                new MoveAction(VerticalSliceBattleLoop.UnitA, new GridCoord3(0, 0, 0), new GridCoord3(0, 0, 0)),
+                out var result);
+
+            Assert.That(accepted, Is.True);
+            Assert.That(result.Success, Is.False);
+            Assert.That(result.Code, Is.EqualTo(ActionResolutionCode.Rejected));
+            Assert.That(loop.PeekCurrentActorLabel(), Is.EqualTo("UnitA"));
+            Assert.That(loop.CurrentRound, Is.EqualTo(1));
+            Assert.That(loop.RemainingActions, Is.EqualTo(1));
         }
 
         [Test]
