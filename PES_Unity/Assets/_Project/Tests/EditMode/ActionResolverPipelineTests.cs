@@ -702,6 +702,142 @@ namespace PES.Tests.EditMode
             Assert.That(lowResult.Description, Does.Contain("hBonus:-4"));
         }
 
+
+        [Test]
+        public void Resolve_MoveAction_WhenActorHasZeroHitPoints_IsRejectedAsActorDefeated()
+        {
+            var state = new BattleState();
+            var actor = new EntityId(200);
+            state.SetEntityPosition(actor, new Position3(0, 0, 0));
+            state.SetEntityHitPoints(actor, 0);
+
+            var resolver = new ActionResolver(new SeededRngService(1));
+            var result = resolver.Resolve(state, new MoveAction(actor, new GridCoord3(0, 0, 0), new GridCoord3(1, 0, 0)));
+
+            Assert.That(result.Code, Is.EqualTo(ActionResolutionCode.Rejected));
+            Assert.That(result.FailureReason, Is.EqualTo(ActionFailureReason.ActorDefeated));
+        }
+
+        [Test]
+        public void Resolve_MoveAction_WithInvalidPolicy_IsRejectedWithInvalidPolicyReason()
+        {
+            var state = new BattleState();
+            var actor = new EntityId(201);
+            state.SetEntityPosition(actor, new Position3(0, 0, 0));
+            state.SetEntityHitPoints(actor, 10);
+
+            var invalidPolicy = new MoveActionPolicy(maxMovementCostPerAction: 0, maxVerticalStepPerTile: -1);
+            var resolver = new ActionResolver(new SeededRngService(1));
+            var result = resolver.Resolve(state, new MoveAction(actor, new GridCoord3(0, 0, 0), new GridCoord3(1, 0, 0), invalidPolicy));
+
+            Assert.That(result.Code, Is.EqualTo(ActionResolutionCode.Rejected));
+            Assert.That(result.FailureReason, Is.EqualTo(ActionFailureReason.InvalidPolicy));
+        }
+
+        [Test]
+        public void Resolve_BasicAttackAction_WhenSelfTargeting_IsRejectedWithSelfTargetingReason()
+        {
+            var state = new BattleState();
+            var attacker = new EntityId(210);
+            state.SetEntityPosition(attacker, new Position3(0, 0, 0));
+            state.SetEntityHitPoints(attacker, 20);
+
+            var resolver = new ActionResolver(new SeededRngService(1));
+            var result = resolver.Resolve(state, new BasicAttackAction(attacker, attacker));
+
+            Assert.That(result.Code, Is.EqualTo(ActionResolutionCode.Rejected));
+            Assert.That(result.FailureReason, Is.EqualTo(ActionFailureReason.SelfTargeting));
+        }
+
+        [Test]
+        public void Resolve_BasicAttackAction_WhenIntermediateEntityBlocksLineOfSight_IsRejected()
+        {
+            var state = new BattleState();
+            var attacker = new EntityId(220);
+            var blocker = new EntityId(221);
+            var target = new EntityId(222);
+
+            state.SetEntityPosition(attacker, new Position3(0, 0, 0));
+            state.SetEntityHitPoints(attacker, 25);
+            state.SetEntityPosition(blocker, new Position3(1, 0, 0));
+            state.SetEntityHitPoints(blocker, 25);
+            state.SetEntityPosition(target, new Position3(2, 0, 0));
+            state.SetEntityHitPoints(target, 25);
+
+            var policy = new BasicAttackActionPolicy(
+                minRange: 1,
+                maxRange: 3,
+                maxLineOfSightDelta: 1,
+                resolutionPolicy: new BasicAttackResolutionPolicy(baseDamage: 10, baseHitChance: 100));
+
+            var resolver = new ActionResolver(new SeededRngService(1));
+            var result = resolver.Resolve(state, new BasicAttackAction(attacker, target, policy));
+
+            Assert.That(result.Code, Is.EqualTo(ActionResolutionCode.Rejected));
+            Assert.That(result.FailureReason, Is.EqualTo(ActionFailureReason.LineOfSightBlocked));
+        }
+
+        [Test]
+        public void Resolve_BasicAttackAction_Success_ExposesStructuredPayloadAndMirrorsEventLog()
+        {
+            var state = new BattleState();
+            var attacker = new EntityId(230);
+            var target = new EntityId(231);
+            state.SetEntityPosition(attacker, new Position3(0, 0, 1));
+            state.SetEntityHitPoints(attacker, 30);
+            state.SetEntityPosition(target, new Position3(1, 0, 0));
+            state.SetEntityHitPoints(target, 40);
+
+            var policy = new BasicAttackActionPolicy(
+                minRange: 1,
+                maxRange: 2,
+                maxLineOfSightDelta: 2,
+                resolutionPolicy: new BasicAttackResolutionPolicy(baseDamage: 10, baseHitChance: 95));
+
+            var resolver = new ActionResolver(new SequenceRngService(0, 2));
+            var result = resolver.Resolve(state, new BasicAttackAction(attacker, target, policy));
+
+            Assert.That(result.Code, Is.EqualTo(ActionResolutionCode.Succeeded));
+            Assert.That(result.Payload.HasValue, Is.True);
+            Assert.That(result.Payload.Value.Kind, Is.EqualTo("AttackResolved"));
+            Assert.That(state.StructuredEventLog.Count, Is.EqualTo(1));
+            Assert.That(state.StructuredEventLog[0].Payload.HasValue, Is.True);
+            Assert.That(state.StructuredEventLog[0].Payload.Value.Kind, Is.EqualTo("AttackResolved"));
+            Assert.That(state.StructuredEventLog[0].FailureReason, Is.EqualTo(ActionFailureReason.None));
+        }
+
+        [Test]
+        public void Resolve_BasicAttackAction_WithSameSeed_ProducesSameStructuredOutcome()
+        {
+            var attacker = new EntityId(240);
+            var target = new EntityId(241);
+            var firstState = new BattleState();
+            firstState.SetEntityPosition(attacker, new Position3(0, 0, 0));
+            firstState.SetEntityHitPoints(attacker, 30);
+            firstState.SetEntityPosition(target, new Position3(1, 0, 0));
+            firstState.SetEntityHitPoints(target, 30);
+
+            var secondState = new BattleState();
+            secondState.SetEntityPosition(attacker, new Position3(0, 0, 0));
+            secondState.SetEntityHitPoints(attacker, 30);
+            secondState.SetEntityPosition(target, new Position3(1, 0, 0));
+            secondState.SetEntityHitPoints(target, 30);
+
+            var first = new ActionResolver(new SeededRngService(99)).Resolve(firstState, new BasicAttackAction(attacker, target));
+            var second = new ActionResolver(new SeededRngService(99)).Resolve(secondState, new BasicAttackAction(attacker, target));
+
+            Assert.That(first.Code, Is.EqualTo(second.Code));
+            Assert.That(first.FailureReason, Is.EqualTo(second.FailureReason));
+            Assert.That(first.Payload.HasValue, Is.EqualTo(second.Payload.HasValue));
+            if (first.Payload.HasValue && second.Payload.HasValue)
+            {
+                Assert.That(first.Payload.Value.Kind, Is.EqualTo(second.Payload.Value.Kind));
+                Assert.That(first.Payload.Value.Value1, Is.EqualTo(second.Payload.Value.Value1));
+                Assert.That(first.Payload.Value.Value2, Is.EqualTo(second.Payload.Value.Value2));
+                Assert.That(first.Payload.Value.Value3, Is.EqualTo(second.Payload.Value.Value3));
+            }
+        }
+
         // Utilité : faux RNG de test pour forcer des séquences déterministes contrôlées.
         private sealed class SequenceRngService : IRngService
         {
