@@ -13,13 +13,15 @@ namespace PES.Infrastructure.Replay
             EntityId actorId,
             EntityId targetId,
             GridCoord3 origin,
-            GridCoord3 destination)
+            GridCoord3 destination,
+            int skillId)
         {
             ActionType = actionType;
             ActorId = actorId;
             TargetId = targetId;
             Origin = origin;
             Destination = destination;
+            SkillId = skillId;
         }
 
         public RecordedActionType ActionType { get; }
@@ -32,14 +34,21 @@ namespace PES.Infrastructure.Replay
 
         public GridCoord3 Destination { get; }
 
+        public int SkillId { get; }
+
         public static RecordedActionCommand Move(EntityId actorId, GridCoord3 origin, GridCoord3 destination)
         {
-            return new RecordedActionCommand(RecordedActionType.Move, actorId, default, origin, destination);
+            return new RecordedActionCommand(RecordedActionType.Move, actorId, default, origin, destination, 0);
         }
 
         public static RecordedActionCommand BasicAttack(EntityId attackerId, EntityId targetId)
         {
-            return new RecordedActionCommand(RecordedActionType.BasicAttack, attackerId, targetId, default, default);
+            return new RecordedActionCommand(RecordedActionType.BasicAttack, attackerId, targetId, default, default, 0);
+        }
+
+        public static RecordedActionCommand CastSkill(EntityId casterId, EntityId targetId, int skillId)
+        {
+            return new RecordedActionCommand(RecordedActionType.CastSkill, casterId, targetId, default, default, skillId);
         }
     }
 
@@ -47,5 +56,6 @@ namespace PES.Infrastructure.Replay
     {
         Move = 0,
         BasicAttack = 1,
+        CastSkill = 2,
     }
 }
