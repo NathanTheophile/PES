@@ -21,7 +21,7 @@ namespace PES.Tests.EditMode
         }
 
         [Test]
-        public void TryConsumeAction_WhenActorInactive_ReturnsFalse()
+        public void TryConsumeAction_WhenNonCurrentInactiveActor_IsRejected()
         {
             var a = new EntityId(10);
             var b = new EntityId(11);
@@ -29,7 +29,11 @@ namespace PES.Tests.EditMode
 
             controller.SetActorActive(a, false);
 
-            var consumed = controller.TryConsumeAction(controller.CurrentActorId);
+            // Le contrôleur bascule automatiquement vers le prochain acteur actif (b).
+            Assert.That(controller.CurrentActorId, Is.EqualTo(b));
+
+            // Une consommation au nom de l'acteur inactif doit rester rejetée.
+            var consumed = controller.TryConsumeAction(a);
             Assert.That(consumed, Is.False);
         }
 
