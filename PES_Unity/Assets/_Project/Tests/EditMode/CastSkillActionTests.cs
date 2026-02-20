@@ -124,7 +124,7 @@ namespace PES.Tests.EditMode
             var resolver = new ActionResolver(new SeededRngService(17));
             var policy = new SkillActionPolicy(skillId: 99, minRange: 1, maxRange: 3, baseDamage: 5, baseHitChance: 100, elevationPerRangeBonus: 2, rangeBonusPerElevationStep: 1);
             resolver.Resolve(state, new CastSkillAction(caster, target, policy));
-            recorder.RecordAction(RecordedActionCommand.CastSkill(caster, target, 99), state);
+            recorder.RecordAction(RecordedActionCommand.CastSkill(caster, target, policy), state);
 
             var original = recorder.Build();
             var replay = new BattleReplayRunner().Run(original);
