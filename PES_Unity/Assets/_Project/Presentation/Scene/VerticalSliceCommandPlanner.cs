@@ -10,15 +10,22 @@ namespace PES.Presentation.Scene
     public sealed class VerticalSliceCommandPlanner
     {
         private readonly BattleState _state;
+        private readonly MoveActionPolicy? _movePolicyOverride;
+        private readonly BasicAttackActionPolicy? _basicAttackPolicyOverride;
         private EntityId _selectedActor;
         private bool _hasSelection;
         private PlannedActionKind _plannedKind;
         private GridCoord3 _plannedDestination;
         private EntityId _plannedTarget;
 
-        public VerticalSliceCommandPlanner(BattleState state)
+        public VerticalSliceCommandPlanner(
+            BattleState state,
+            MoveActionPolicy? movePolicyOverride = null,
+            BasicAttackActionPolicy? basicAttackPolicyOverride = null)
         {
             _state = state;
+            _movePolicyOverride = movePolicyOverride;
+            _basicAttackPolicyOverride = basicAttackPolicyOverride;
             _plannedKind = PlannedActionKind.None;
         }
 
@@ -72,11 +79,11 @@ namespace PES.Presentation.Scene
                     }
 
                     var origin = new GridCoord3(originPosition.X, originPosition.Y, originPosition.Z);
-                    command = new MoveAction(_selectedActor, origin, _plannedDestination);
+                    command = new MoveAction(_selectedActor, origin, _plannedDestination, _movePolicyOverride);
                     return true;
 
                 case PlannedActionKind.Attack:
-                    command = new BasicAttackAction(_selectedActor, _plannedTarget);
+                    command = new BasicAttackAction(_selectedActor, _plannedTarget, _basicAttackPolicyOverride);
                     return true;
 
                 default:

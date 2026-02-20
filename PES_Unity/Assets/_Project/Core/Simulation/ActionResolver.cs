@@ -30,7 +30,7 @@ namespace PES.Core.Simulation
             var result = command.Resolve(state, _rngService);
 
             // 2) On persiste un événement structuré + lisible pour replay/debug.
-            state.AddEvent(new CombatEventRecord(state.Tick, result.Code, result.Description));
+            state.AddEvent(new CombatEventRecord(state.Tick, result.Code, result.FailureReason, result.Description, result.Payload));
 
             // 3) On avance la timeline déterministe.
             state.AdvanceTick();
@@ -71,6 +71,32 @@ namespace PES.Core.Simulation
         InvalidTargeting = 15,
         NoMovement = 16,
         TurnTimedOut = 17,
+        SelfTargeting = 18,
+        InvalidPolicy = 19,
+        ActorDefeated = 20,
+        TargetDefeated = 21,
+    }
+
+    /// <summary>
+    /// Payload structuré optionnel attaché à un résultat d'action.
+    /// </summary>
+    public readonly struct ActionResultPayload
+    {
+        public ActionResultPayload(string kind, int value1 = 0, int value2 = 0, int value3 = 0)
+        {
+            Kind = kind;
+            Value1 = value1;
+            Value2 = value2;
+            Value3 = value3;
+        }
+
+        public string Kind { get; }
+
+        public int Value1 { get; }
+
+        public int Value2 { get; }
+
+        public int Value3 { get; }
     }
 
     /// <summary>
@@ -81,12 +107,18 @@ namespace PES.Core.Simulation
         /// <summary>
         /// Construit un nouvel objet résultat d'action.
         /// </summary>
-        public ActionResolution(bool success, ActionResolutionCode code, string description, ActionFailureReason failureReason = ActionFailureReason.None)
+        public ActionResolution(
+            bool success,
+            ActionResolutionCode code,
+            string description,
+            ActionFailureReason failureReason = ActionFailureReason.None,
+            ActionResultPayload? payload = null)
         {
             Success = success;
             Code = code;
             Description = description;
             FailureReason = failureReason;
+            Payload = payload;
         }
 
         /// <summary>
@@ -108,5 +140,10 @@ namespace PES.Core.Simulation
         /// Résumé textuel pour logs/debug et futur flux d'événements.
         /// </summary>
         public string Description { get; }
+
+        /// <summary>
+        /// Données structurées optionnelles (ex: coût de mouvement, jet d'attaque, dégâts).
+        /// </summary>
+        public ActionResultPayload? Payload { get; }
     }
 }
