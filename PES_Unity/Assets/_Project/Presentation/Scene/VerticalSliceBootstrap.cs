@@ -3,6 +3,8 @@ using PES.Combat.Actions;
 using PES.Core.Simulation;
 using PES.Grid.Grid3D;
 using PES.Presentation.Configuration;
+using PES.Presentation.Flow;
+using PES.Infrastructure.Serialization;
 using UnityEngine;
 using EntityId = PES.Core.Simulation.EntityId;
 
@@ -11,6 +13,7 @@ namespace PES.Presentation.Scene
     public sealed partial class VerticalSliceBootstrap : MonoBehaviour
     {
         private VerticalSliceBattleLoop _battleLoop;
+        private ProductFlowController _productFlow;
         private VerticalSliceCommandPlanner _planner;
         private VerticalSliceHudBinder _hudBinder;
         private VerticalSliceInputBinder _inputBinder;
@@ -18,6 +21,7 @@ namespace PES.Presentation.Scene
         private GameObject _unitBView;
 
         [SerializeField] private CombatRuntimeConfigAsset _runtimeConfig;
+        [SerializeField] private int _sessionSeed = 7;
 
         [Header("Authoring (optional)")]
         [SerializeField] private EntityArchetypeAsset _unitAArchetype;
@@ -78,7 +82,11 @@ namespace PES.Presentation.Scene
                 ? _testProfile.UnitBArchetype
                 : _unitBArchetype;
 
-            var setup = VerticalSliceBattleSetup.Create(runtimeConfig, unitAArchetype, unitBArchetype);
+            _productFlow = new ProductFlowController(new InMemorySessionSaveStore());
+            _productFlow.Boot();
+            _productFlow.StartNewBattle(_sessionSeed);
+
+            var setup = VerticalSliceBattleSetup.Create(runtimeConfig, unitAArchetype, unitBArchetype, _sessionSeed);
             var composition = new VerticalSliceCompositionRoot().Compose(setup);
 
             _battleLoop = composition.BattleLoop;
