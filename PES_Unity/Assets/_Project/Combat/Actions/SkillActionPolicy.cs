@@ -1,5 +1,7 @@
 // Utilité : ce script définit le contrat de règles d'une compétence ciblée
 // pour rester data-driven et indépendante de la présentation Unity.
+using PES.Core.Simulation;
+
 namespace PES.Combat.Actions
 {
     /// <summary>
@@ -16,7 +18,15 @@ namespace PES.Combat.Actions
             int elevationPerRangeBonus,
             int rangeBonusPerElevationStep,
             int resourceCost = 0,
-            int cooldownTurns = 0)
+            int cooldownTurns = 0,
+            int splashRadiusXZ = 0,
+            int splashDamagePercent = 0,
+            AttackElement attackElement = AttackElement.Physique,
+            int periodicDamage = 0,
+            int periodicDurationTurns = 0,
+            StatusEffectTickMoment periodicTickMoment = StatusEffectTickMoment.TurnStart,
+            int vulnerableDurationTurns = 0,
+            int invulnerableDurationTurns = 0)
         {
             SkillId = skillId;
             MinRange = minRange;
@@ -27,6 +37,14 @@ namespace PES.Combat.Actions
             RangeBonusPerElevationStep = rangeBonusPerElevationStep;
             ResourceCost = resourceCost;
             CooldownTurns = cooldownTurns;
+            SplashRadiusXZ = splashRadiusXZ;
+            SplashDamagePercent = splashDamagePercent;
+            AttackElement = attackElement;
+            PeriodicDamage = periodicDamage;
+            PeriodicDurationTurns = periodicDurationTurns;
+            PeriodicTickMoment = periodicTickMoment;
+            VulnerableDurationTurns = vulnerableDurationTurns;
+            InvulnerableDurationTurns = invulnerableDurationTurns;
         }
 
         public int SkillId { get; }
@@ -53,6 +71,22 @@ namespace PES.Combat.Actions
 
         public int CooldownTurns { get; }
 
+        public int SplashRadiusXZ { get; }
+
+        public int SplashDamagePercent { get; }
+
+        public AttackElement AttackElement { get; }
+
+        public int PeriodicDamage { get; }
+
+        public int PeriodicDurationTurns { get; }
+
+        public StatusEffectTickMoment PeriodicTickMoment { get; }
+
+        public int VulnerableDurationTurns { get; }
+
+        public int InvulnerableDurationTurns { get; }
+
         public bool IsValid =>
             SkillId >= 0 &&
             MinRange >= 0 &&
@@ -62,6 +96,13 @@ namespace PES.Combat.Actions
             ElevationPerRangeBonus > 0 &&
             RangeBonusPerElevationStep >= 0 &&
             ResourceCost >= 0 &&
-            CooldownTurns >= 0;
+            CooldownTurns >= 0 &&
+            SplashRadiusXZ >= 0 &&
+            SplashDamagePercent is >= 0 and <= 100 &&
+            AttackElement != PES.Core.Simulation.AttackElement.None &&
+            PeriodicDamage >= 0 &&
+            PeriodicDurationTurns >= 0 &&
+            VulnerableDurationTurns >= 0 &&
+            InvulnerableDurationTurns >= 0;
     }
 }
