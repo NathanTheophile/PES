@@ -36,6 +36,7 @@ namespace PES.Combat.Actions
         }
 
         public EntityId CasterId { get; }
+
         public EntityId TargetId { get; }
 
         public ActionResolution Resolve(BattleState state, IRngService rngService)
@@ -43,22 +44,22 @@ namespace PES.Combat.Actions
             var policy = _policyOverride ?? DefaultPolicy;
             if (!policy.IsValid)
             {
-                return new ActionResolution(false, ActionResolutionCode.Rejected, $"CastSkillRejected: invalid skill policy for {CasterId}", ActionFailureReason.InvalidPolicy);
+                return RejectSkill(policy.SkillId, ActionFailureReason.InvalidPolicy, $"CastSkillRejected: invalid skill policy for {CasterId}");
             }
 
             if (state.TryGetEntityHitPoints(CasterId, out var casterHp) && casterHp <= 0)
             {
-                return new ActionResolution(false, ActionResolutionCode.Rejected, $"CastSkillRejected: caster defeated ({CasterId})", ActionFailureReason.ActorDefeated);
+                return RejectSkill(policy.SkillId, ActionFailureReason.ActorDefeated, $"CastSkillRejected: caster defeated ({CasterId})");
             }
 
             if (!state.TryGetEntityHitPoints(TargetId, out var targetHp))
             {
-                return new ActionResolution(false, ActionResolutionCode.Rejected, $"CastSkillRejected: missing hit points for {TargetId}", ActionFailureReason.MissingHitPoints);
+                return RejectSkill(policy.SkillId, ActionFailureReason.MissingHitPoints, $"CastSkillRejected: missing hit points for {TargetId}");
             }
 
             if (targetHp <= 0)
             {
-                return new ActionResolution(false, ActionResolutionCode.Rejected, $"CastSkillRejected: target already defeated ({TargetId})", ActionFailureReason.TargetDefeated);
+                return RejectSkill(policy.SkillId, ActionFailureReason.TargetDefeated, $"CastSkillRejected: target already defeated ({TargetId})");
             }
 
             var remainingCooldown = state.GetSkillCooldown(CasterId, policy.SkillId);
@@ -69,7 +70,7 @@ namespace PES.Combat.Actions
                     ActionResolutionCode.Rejected,
                     $"CastSkillRejected: skill on cooldown ({CasterId}, skill:{policy.SkillId}, remaining:{remainingCooldown})",
                     ActionFailureReason.SkillOnCooldown,
-                    new ActionResultPayload("SkillOnCooldown", policy.SkillId, remainingCooldown, 0));
+                    new ActionResultPayload("SkillRejected", policy.SkillId, (int)ActionFailureReason.SkillOnCooldown, remainingCooldown));
             }
 
             var availableResource = state.TryGetEntitySkillResource(CasterId, out var skillResource) ? skillResource : 0;
@@ -80,7 +81,7 @@ namespace PES.Combat.Actions
                     ActionResolutionCode.Rejected,
                     $"CastSkillRejected: insufficient skill resource ({CasterId}, skill:{policy.SkillId}, available:{availableResource}, required:{policy.ResourceCost})",
                     ActionFailureReason.SkillResourceInsufficient,
-                    new ActionResultPayload("SkillResourceInsufficient", policy.SkillId, availableResource, policy.ResourceCost));
+                    new ActionResultPayload("SkillRejected", policy.SkillId, (int)ActionFailureReason.SkillResourceInsufficient, availableResource));
             }
 
             var targetingService = new SkillTargetingService();
@@ -90,19 +91,19 @@ namespace PES.Combat.Actions
                 return targeting.Failure switch
                 {
                     SkillTargetingFailure.MissingPositions =>
-                        new ActionResolution(false, ActionResolutionCode.Rejected, $"CastSkillRejected: missing positions ({CasterId} -> {TargetId})", ActionFailureReason.MissingPositions),
+                        RejectSkill(policy.SkillId, ActionFailureReason.MissingPositions, $"CastSkillRejected: missing positions ({CasterId} -> {TargetId})", targeting.DistanceXZ),
                     SkillTargetingFailure.TooClose =>
-                        new ActionResolution(false, ActionResolutionCode.Rejected, $"CastSkillRejected: target too close ({CasterId} -> {TargetId}, distXZ:{targeting.DistanceXZ})", ActionFailureReason.TooClose),
+                        RejectSkill(policy.SkillId, ActionFailureReason.TooClose, $"CastSkillRejected: target too close ({CasterId} -> {TargetId}, distXZ:{targeting.DistanceXZ})", targeting.DistanceXZ),
                     SkillTargetingFailure.OutOfRange =>
-                        new ActionResolution(false, ActionResolutionCode.Rejected, $"CastSkillRejected: out of range ({CasterId} -> {TargetId}, distXZ:{targeting.DistanceXZ}, max:{targeting.EffectiveMaxRange})", ActionFailureReason.OutOfRange),
+                        RejectSkill(policy.SkillId, ActionFailureReason.OutOfRange, $"CastSkillRejected: out of range ({CasterId} -> {TargetId}, distXZ:{targeting.DistanceXZ}, max:{targeting.EffectiveMaxRange})", targeting.DistanceXZ),
                     SkillTargetingFailure.LineOfSightBlocked =>
-                        new ActionResolution(false, ActionResolutionCode.Rejected, $"CastSkillRejected: line of sight blocked ({CasterId} -> {TargetId})", ActionFailureReason.LineOfSightBlocked),
+                        RejectSkill(policy.SkillId, ActionFailureReason.LineOfSightBlocked, $"CastSkillRejected: line of sight blocked ({CasterId} -> {TargetId})", targeting.DistanceXZ),
                     SkillTargetingFailure.SelfTargeting =>
-                        new ActionResolution(false, ActionResolutionCode.Rejected, $"CastSkillRejected: self-targeting ({CasterId})", ActionFailureReason.SelfTargeting),
+                        RejectSkill(policy.SkillId, ActionFailureReason.SelfTargeting, $"CastSkillRejected: self-targeting ({CasterId})", targeting.DistanceXZ),
                     SkillTargetingFailure.InvalidPolicy =>
-                        new ActionResolution(false, ActionResolutionCode.Rejected, $"CastSkillRejected: invalid policy ({CasterId} -> {TargetId})", ActionFailureReason.InvalidPolicy),
+                        RejectSkill(policy.SkillId, ActionFailureReason.InvalidPolicy, $"CastSkillRejected: invalid policy ({CasterId} -> {TargetId})", targeting.DistanceXZ),
                     _ =>
-                        new ActionResolution(false, ActionResolutionCode.Rejected, $"CastSkillRejected: invalid targeting ({CasterId} -> {TargetId})", ActionFailureReason.InvalidTargeting),
+                        RejectSkill(policy.SkillId, ActionFailureReason.InvalidTargeting, $"CastSkillRejected: invalid targeting ({CasterId} -> {TargetId})", targeting.DistanceXZ),
                 };
             }
 
@@ -134,7 +135,7 @@ namespace PES.Combat.Actions
 
             if (!state.TryApplyDamage(TargetId, damageResolution.FinalDamage))
             {
-                return new ActionResolution(false, ActionResolutionCode.Rejected, $"CastSkillRejected: failed to apply damage to {TargetId}", ActionFailureReason.DamageApplicationFailed);
+                return RejectSkill(policy.SkillId, ActionFailureReason.DamageApplicationFailed, $"CastSkillRejected: failed to apply damage to {TargetId}");
             }
 
             var splashTargetsHit = ApplySplashDamage(state, policy, damageResolution.FinalDamage);
@@ -146,7 +147,7 @@ namespace PES.Combat.Actions
                     ActionResolutionCode.Rejected,
                     $"CastSkillRejected: failed to consume skill resource ({CasterId}, skill:{policy.SkillId}, required:{policy.ResourceCost})",
                     ActionFailureReason.SkillResourceInsufficient,
-                    new ActionResultPayload("SkillResourceInsufficient", policy.SkillId, availableResource, policy.ResourceCost));
+                    new ActionResultPayload("SkillRejected", policy.SkillId, (int)ActionFailureReason.SkillResourceInsufficient, availableResource));
             }
 
             state.SetSkillCooldown(CasterId, policy.SkillId, policy.CooldownTurns);
@@ -178,6 +179,16 @@ namespace PES.Combat.Actions
                 $"CastSkillResolved: {CasterId} -> {TargetId} [skill:{policy.SkillId}, roll:{resolution.Roll}, hitChance:{resolution.HitChance}, critRoll:{criticalRoll}, critChance:{criticalChance}, crit:{isCritical}, dmg:{damageResolution.FinalDamage}, splashHits:{splashTargetsHit}, distXZ:{targeting.DistanceXZ}, max:{targeting.EffectiveMaxRange}]",
                 ActionFailureReason.None,
                 new ActionResultPayload("SkillResolved", policy.SkillId, damageResolution.FinalDamage, splashTargetsHit));
+        }
+
+        private static ActionResolution RejectSkill(int skillId, ActionFailureReason reason, string description, int contextValue = 0)
+        {
+            return new ActionResolution(
+                false,
+                ActionResolutionCode.Rejected,
+                description,
+                reason,
+                new ActionResultPayload("SkillRejected", skillId, (int)reason, contextValue));
         }
 
         private static void ApplyStatusEffectFromPolicy(
