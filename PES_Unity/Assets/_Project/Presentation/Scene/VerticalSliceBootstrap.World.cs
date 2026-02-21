@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using PES.Core.Simulation;
 using PES.Grid.Grid3D;
 using UnityEngine;
@@ -8,14 +9,13 @@ namespace PES.Presentation.Scene
     {
         private void BuildSteppedMap()
         {
+            var topHeightByCell = new Dictionary<(int X, int Y), int>(MapWidth * MapDepth);
+
             for (var x = 0; x < MapWidth; x++)
             {
                 for (var y = 0; y < MapDepth; y++)
                 {
-                    var checker = (x + y) % 2 == 0;
-                    var color = checker ? new Color(0.27f, 0.27f, 0.27f) : new Color(0.33f, 0.33f, 0.33f);
-                    CreateTileFromGrid(x, y, 0, color);
-                    _mapTiles.Add(new Position3(x, y, 0));
+                    topHeightByCell[(x, y)] = 0;
                 }
             }
 
@@ -23,9 +23,28 @@ namespace PES.Presentation.Scene
             {
                 for (var y = 4; y <= 7; y++)
                 {
-                    CreateTileFromGrid(x, y, 1, new Color(0.42f, 0.42f, 0.42f));
-                    _mapTiles.Add(new Position3(x, y, 1));
+                    topHeightByCell[(x, y)] = 1;
                 }
+            }
+
+            foreach (var pair in topHeightByCell)
+            {
+                var x = pair.Key.X;
+                var y = pair.Key.Y;
+                var topHeight = pair.Value;
+                var checker = (x + y) % 2 == 0;
+                var groundColor = checker ? new Color(0.27f, 0.27f, 0.27f) : new Color(0.33f, 0.33f, 0.33f);
+                var topColor = topHeight > 0 ? new Color(0.42f, 0.42f, 0.42f) : groundColor;
+
+                for (var z = 0; z <= topHeight; z++)
+                {
+                    CreateTileFromGrid(x, y, z, z == topHeight ? topColor : groundColor);
+                }
+
+                var topTile = new Position3(x, y, topHeight);
+                _mapTiles.Add(topTile);
+                _battleLoop.State.SetWalkablePosition(topTile, true);
+                _battleLoop.State.SetMovementCost(topTile, 1);
             }
 
             AddBlockingColumn(6, 2, 1, new Color(0.2f, 0.2f, 0.2f));
@@ -80,8 +99,28 @@ namespace PES.Presentation.Scene
             for (var z = 1; z <= height; z++)
             {
                 CreateTileFromGrid(x, y, z, color);
-                _battleLoop.State.SetBlockedPosition(new Position3(x, y, z), blocked: true);
             }
+
+            var topWalkable = FindTopWalkableTileAt(x, y);
+            if (!topWalkable.HasValue)
+            {
+                return;
+            }
+
+            _battleLoop.State.SetBlockedPosition(topWalkable.Value, blocked: true);
+        }
+
+        private Position3? FindTopWalkableTileAt(int x, int y)
+        {
+            foreach (var tile in _mapTiles)
+            {
+                if (tile.X == x && tile.Y == y)
+                {
+                    return tile;
+                }
+            }
+
+            return null;
         }
 
         private static GameObject CreateTileFromGrid(int x, int y, int z, Color color)

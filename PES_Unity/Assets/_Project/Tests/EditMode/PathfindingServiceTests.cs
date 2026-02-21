@@ -8,7 +8,7 @@ namespace PES.Tests.EditMode
     public sealed class PathfindingServiceTests
     {
         [Test]
-        public void TryComputePath_WhenDirectLineBlocked_FindsDetour()
+        public void TryComputePath_WhenDirectLineBlocked_FindsDetourOnHeightMap()
         {
             var service = new PathfindingService();
             var from = new GridCoord3(0, 0, 0);
@@ -17,8 +17,17 @@ namespace PES.Tests.EditMode
             {
                 new(1, 0, 0),
             };
+            var walkable = new HashSet<GridCoord3>
+            {
+                new(0, 0, 0),
+                new(1, 0, 0),
+                new(2, 0, 0),
+                new(0, 1, 0),
+                new(1, 1, 0),
+                new(2, 1, 0),
+            };
 
-            var found = service.TryComputePath(from, to, blocked, out var path);
+            var found = service.TryComputePath(from, to, blocked, out var path, walkable, maxVerticalStepPerTile: 1);
 
             Assert.That(found, Is.True);
             Assert.That(path[0], Is.EqualTo(from));
@@ -27,17 +36,19 @@ namespace PES.Tests.EditMode
         }
 
         [Test]
-        public void TryComputePath_WhenDestinationBlocked_ReturnsFalse()
+        public void TryComputePath_WhenHeightDeltaTooHigh_ReturnsFalse()
         {
             var service = new PathfindingService();
             var from = new GridCoord3(0, 0, 0);
-            var to = new GridCoord3(1, 0, 0);
-            var blocked = new HashSet<GridCoord3>
+            var to = new GridCoord3(1, 0, 2);
+            var blocked = new HashSet<GridCoord3>();
+            var walkable = new HashSet<GridCoord3>
             {
-                to,
+                new(0, 0, 0),
+                new(1, 0, 2),
             };
 
-            var found = service.TryComputePath(from, to, blocked, out var path);
+            var found = service.TryComputePath(from, to, blocked, out var path, walkable, maxVerticalStepPerTile: 1);
 
             Assert.That(found, Is.False);
             Assert.That(path.Count, Is.EqualTo(1));
