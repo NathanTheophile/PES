@@ -217,6 +217,7 @@ namespace PES.Presentation.Scene
             const float height = 24f;
             const float spacing = 8f;
 
+            var previousGuiColor = GUI.color;
             for (var slot = 0; slot < skillCount; slot++)
             {
                 var x = startX + (slot * (width + spacing));
@@ -226,17 +227,20 @@ namespace PES.Presentation.Scene
                     label = $"> {label}";
                 }
 
+                GUI.color = ResolveSkillSlotGuiColor(actorId, slot);
                 if (GUI.Button(new Rect(x, startY, width, height), label))
                 {
                     _selectedSkillSlot = slot;
                     _mouseIntentMode = VerticalSliceMouseIntentMode.Skill;
                 }
             }
+
+            GUI.color = previousGuiColor;
         }
 
         private void DrawLegendLabel()
         {
-            GUI.Label(new Rect(24f, 412f, 740f, 20f), "Bleu = cases atteignables, ligne blanche = path. Marker cyan = move planifié, rouge = attaque planifiée, doré = skill planifiée, orange/doré translucide = cible survolée (attack/skill). Pulses vert/jaune/rouge = succès/miss/rejet action.");
+            GUI.Label(new Rect(24f, 412f, 740f, 20f), "Bleu = cases atteignables, ligne blanche = path. Marker cyan = move planifié, rouge = attaque planifiée, doré = skill planifiée, orange/doré translucide = cible survolée (attack/skill). Pulses vert/jaune/rouge = succès/miss/rejet action. Slots skills: vert READY, orange CD, rouge NO_RES.");
         }
 
 
@@ -343,6 +347,27 @@ namespace PES.Presentation.Scene
             var cooldown = _battleLoop.State.GetSkillCooldown(actorId, policy.SkillId);
             var resource = _battleLoop.State.TryGetEntitySkillResource(actorId, out var value) ? value : 0;
             return ActionFeedbackFormatter.BuildSkillTooltip(policy, cooldown, resource);
+        }
+
+
+        private Color ResolveSkillSlotGuiColor(EntityId actorId, int slot)
+        {
+            if (!_planner.TryGetSkillPolicy(actorId, slot, out var policy))
+            {
+                return new Color(0.35f, 0.35f, 0.35f, 1f);
+            }
+
+            var cooldown = _battleLoop.State.GetSkillCooldown(actorId, policy.SkillId);
+            var resource = _battleLoop.State.TryGetEntitySkillResource(actorId, out var value) ? value : 0;
+            var stateTag = ActionFeedbackFormatter.BuildSkillSlotStatusLabel(policy, cooldown, resource);
+
+            return stateTag switch
+            {
+                "READY" => new Color(0.2f, 0.82f, 0.32f, 1f),
+                _ when stateTag.StartsWith("CD:") => new Color(0.88f, 0.64f, 0.2f, 1f),
+                _ when stateTag.StartsWith("NO_RES:") => new Color(0.86f, 0.3f, 0.3f, 1f),
+                _ => Color.white,
+            };
         }
 
         private string GetSkillButtonLabel(EntityId actorId, int slot)
