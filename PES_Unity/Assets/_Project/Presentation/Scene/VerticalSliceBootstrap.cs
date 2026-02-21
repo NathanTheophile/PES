@@ -162,7 +162,9 @@ namespace PES.Presentation.Scene
                 TryPassTurn,
                 DrawSkillKitButtons,
                 DrawLegendLabel,
-                GetSelectedSkillLabel);
+                GetSelectedSkillLabel,
+                GetSelectedSkillTooltip,
+                GetActionFeedbackLabel);
         }
 
         private void DrawSkillKitButtons()
@@ -208,7 +210,31 @@ namespace PES.Presentation.Scene
 
         private void DrawLegendLabel()
         {
-            GUI.Label(new Rect(24f, 252f, 740f, 30f), "Bleu = déplacements possibles. Survol d'une case bleue en mode Move => aperçu du chemin blanc.");
+            GUI.Label(new Rect(24f, 302f, 740f, 20f), "Bleu = déplacements possibles. Survol d'une case bleue en mode Move => aperçu du chemin blanc.");
+        }
+
+
+        private string GetActionFeedbackLabel()
+        {
+            return ActionFeedbackFormatter.FormatResolutionSummary(_lastResult);
+        }
+
+        private string GetSelectedSkillTooltip()
+        {
+            if (!_planner.HasActorSelection)
+            {
+                return "Sélectionne une unité pour voir le détail de la skill.";
+            }
+
+            var actorId = _planner.SelectedActorId;
+            if (!_planner.TryGetSkillPolicy(actorId, _selectedSkillSlot, out var policy))
+            {
+                return "Aucune skill configurée sur ce slot.";
+            }
+
+            var cooldown = _battleLoop.State.GetSkillCooldown(actorId, policy.SkillId);
+            var resource = _battleLoop.State.TryGetEntitySkillResource(actorId, out var value) ? value : 0;
+            return ActionFeedbackFormatter.BuildSkillTooltip(policy, cooldown, resource);
         }
 
         private string GetSkillButtonLabel(EntityId actorId, int slot)

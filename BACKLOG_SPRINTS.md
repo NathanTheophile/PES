@@ -60,11 +60,13 @@
 - [ ] Finaliser la boucle joueur complète en combat: sélection unité ➜ move/attack/skill ➜ fin de tour explicite/auto sans blocage UX.
 - [ ] Ajouter des feedbacks visuels minimum viables: surbrillance des cases ciblables, prévisualisation dégâts/état, logs de résolution lisibles.
 - [ ] Stabiliser la UI skills en combat: tooltip (coût/portée/effets), états visuels cohérents (ready/cooldown/ressource insuffisante), annulation claire.
-- [ ] Uniformiser les feedbacks d'action rejetée (`OutOfRange`, `NoLineOfSight`, `NotEnoughResource`) entre domaine et HUD.
+- [x] Uniformiser les feedbacks d'action rejetée (`OutOfRange`, `NoLineOfSight`, `NotEnoughResource`) entre domaine et HUD.
 - [ ] Ajouter un pass animation/VFX placeholder branché sur les events domaine (sans coupler la logique métier à Unity).
 - [ ] Définir une "démo jouable" courte (1 map + 2 camps + 3-4 skills représentatifs) avec checklist de validation UX.
 - [ ] Couvrir ce milestone par un scénario replay déterministe golden-path (seed fixée + snapshot final attendu).
 
+_Progression Sprint H en cours:_
+- HUD vertical slice: ajout d'un résumé lisible de la dernière action (succès/échec) et d'un tooltip skill (portée/coût/dégâts/hit/state).
 
 ## Sprint H.1 — Dé-risquage MMO (strict minimum)
 - [ ] Versionner le format des payloads de log d'actions (compat replay inter-build).
