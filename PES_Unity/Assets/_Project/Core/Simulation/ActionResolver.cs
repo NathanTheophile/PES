@@ -85,12 +85,15 @@ namespace PES.Core.Simulation
     /// </summary>
     public readonly struct ActionResultPayload
     {
-        public ActionResultPayload(string kind, int value1 = 0, int value2 = 0, int value3 = 0)
+        public const int CurrentSchemaVersion = 1;
+
+        public ActionResultPayload(string kind, int value1 = 0, int value2 = 0, int value3 = 0, int schemaVersion = CurrentSchemaVersion)
         {
             Kind = kind;
             Value1 = value1;
             Value2 = value2;
             Value3 = value3;
+            SchemaVersion = schemaVersion <= 0 ? CurrentSchemaVersion : schemaVersion;
         }
 
         public string Kind { get; }
@@ -100,6 +103,8 @@ namespace PES.Core.Simulation
         public int Value2 { get; }
 
         public int Value3 { get; }
+
+        public int SchemaVersion { get; }
     }
 
     /// <summary>
