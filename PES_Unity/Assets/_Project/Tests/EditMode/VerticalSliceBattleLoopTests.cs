@@ -354,5 +354,45 @@ namespace PES.Tests.EditMode
             Assert.That(loop.CurrentActorId, Is.EqualTo(VerticalSliceBattleLoop.UnitB));
             Assert.That(loop.PeekCurrentActorLabel(), Is.EqualTo("UnitB"));
         }
+        [Test]
+        public void TurnOrder_WithMixedTeamsFollowsIndividualRapidityOrder()
+        {
+            var a1 = new EntityId(1001);
+            var a2 = new EntityId(1002);
+            var a3 = new EntityId(1003);
+            var b1 = new EntityId(2001);
+            var b2 = new EntityId(2002);
+            var b3 = new EntityId(2003);
+
+            var actorDefinitions = new[]
+            {
+                new BattleActorDefinition(a1, 1, new Position3(0, 0, 0), 40, 6, rapidity: 50),
+                new BattleActorDefinition(a2, 1, new Position3(1, 0, 0), 40, 6, rapidity: 45),
+                new BattleActorDefinition(b1, 2, new Position3(2, 0, 0), 40, 6, rapidity: 40),
+                new BattleActorDefinition(b2, 2, new Position3(3, 0, 0), 40, 6, rapidity: 35),
+                new BattleActorDefinition(b3, 2, new Position3(4, 0, 0), 40, 6, rapidity: 30),
+                new BattleActorDefinition(a3, 1, new Position3(5, 0, 0), 40, 6, rapidity: 20),
+            };
+
+            var loop = new VerticalSliceBattleLoop(seed: 3, actorDefinitions: actorDefinitions);
+
+            Assert.That(loop.CurrentActorId, Is.EqualTo(a1));
+
+            Assert.That(loop.TryPassTurn(a1, out _), Is.True);
+            Assert.That(loop.CurrentActorId, Is.EqualTo(a2));
+
+            Assert.That(loop.TryPassTurn(a2, out _), Is.True);
+            Assert.That(loop.CurrentActorId, Is.EqualTo(b1));
+
+            Assert.That(loop.TryPassTurn(b1, out _), Is.True);
+            Assert.That(loop.CurrentActorId, Is.EqualTo(b2));
+
+            Assert.That(loop.TryPassTurn(b2, out _), Is.True);
+            Assert.That(loop.CurrentActorId, Is.EqualTo(b3));
+
+            Assert.That(loop.TryPassTurn(b3, out _), Is.True);
+            Assert.That(loop.CurrentActorId, Is.EqualTo(a3));
+        }
+
     }
 }
