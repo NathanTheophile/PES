@@ -43,6 +43,23 @@ namespace PES.Tests.EditMode
         }
 
         [Test]
+        public void VulnerableStatus_AmplifiesIncomingDamage_AndExpiresOnConfiguredTick()
+        {
+            var state = new BattleState();
+            var actor = new EntityId(902);
+            state.SetEntityHitPoints(actor, 20);
+            state.SetStatusEffect(actor, StatusEffectType.Vulnerable, remainingTurns: 1, potency: 50, tickMoment: StatusEffectTickMoment.TurnStart);
+
+            state.TryApplyDamage(actor, 10);
+            Assert.That(state.TryGetEntityHitPoints(actor, out var hpAfterAmp), Is.True);
+            Assert.That(hpAfterAmp, Is.EqualTo(5));
+
+            var tickDamage = state.TickStatusEffects(actor, StatusEffectTickMoment.TurnStart);
+            Assert.That(tickDamage, Is.EqualTo(0));
+            Assert.That(state.GetStatusEffectRemaining(actor, StatusEffectType.Vulnerable), Is.EqualTo(0));
+        }
+
+        [Test]
         public void VerticalSliceLoop_TicksTurnStartAndTurnEndStatusesAccordingToTiming()
         {
             var loop = new VerticalSliceBattleLoop(seed: 3);

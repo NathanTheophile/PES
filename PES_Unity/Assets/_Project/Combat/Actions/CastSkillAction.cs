@@ -145,6 +145,11 @@ namespace PES.Combat.Actions
                 state.SetStatusEffect(TargetId, StatusEffectType.Poison, policy.PeriodicDurationTurns, policy.PeriodicDamage, policy.PeriodicTickMoment);
             }
 
+            if (policy.VulnerablePotencyPercent > 0 && policy.VulnerableDurationTurns > 0)
+            {
+                state.SetStatusEffect(TargetId, StatusEffectType.Vulnerable, policy.VulnerableDurationTurns, policy.VulnerablePotencyPercent, StatusEffectTickMoment.TurnStart);
+            }
+
             return new ActionResolution(
                 true,
                 ActionResolutionCode.Succeeded,

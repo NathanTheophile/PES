@@ -76,9 +76,34 @@ namespace PES.Core.Simulation
             }
 
             var safeDamage = damage < 0 ? 0 : damage;
-            var next = hp - safeDamage;
+            var amplifiedDamage = ApplyIncomingDamageModifiers(entityId, safeDamage);
+            var next = hp - amplifiedDamage;
             _entityHitPoints[entityId] = next < 0 ? 0 : next;
             return true;
+        }
+
+
+        private int ApplyIncomingDamageModifiers(EntityId entityId, int baseDamage)
+        {
+            if (baseDamage <= 0)
+            {
+                return 0;
+            }
+
+            var vulnerableTurns = GetStatusEffectRemaining(entityId, StatusEffectType.Vulnerable);
+            if (vulnerableTurns <= 0)
+            {
+                return baseDamage;
+            }
+
+            var key = new StatusEffectKey(entityId, StatusEffectType.Vulnerable);
+            if (!_statusEffects.TryGetValue(key, out var vulnerableState) || vulnerableState.Potency <= 0)
+            {
+                return baseDamage;
+            }
+
+            var amplified = baseDamage + ((baseDamage * vulnerableState.Potency) / 100);
+            return amplified < 0 ? 0 : amplified;
         }
 
         /// <summary>
@@ -578,6 +603,7 @@ namespace PES.Core.Simulation
     {
         None = 0,
         Poison = 1,
+        Vulnerable = 2,
     }
 
     public enum StatusEffectTickMoment
