@@ -235,6 +235,11 @@ namespace PES.Presentation.Scene
             _turnController.EndTurn();
             ResetCurrentActorMovementPoints();
             State.TickDownSkillCooldowns(CurrentActorId);
+            var periodicDamage = State.TickStatusEffects(CurrentActorId);
+            if (periodicDamage > 0)
+            {
+                State.AddEvent($"StatusTick: {CurrentActorId} took {periodicDamage} periodic damage");
+            }
             RemainingTurnSeconds = TurnDurationSeconds;
         }
 

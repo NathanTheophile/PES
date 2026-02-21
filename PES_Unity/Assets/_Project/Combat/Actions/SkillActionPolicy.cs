@@ -16,7 +16,9 @@ namespace PES.Combat.Actions
             int elevationPerRangeBonus,
             int rangeBonusPerElevationStep,
             int resourceCost = 0,
-            int cooldownTurns = 0)
+            int cooldownTurns = 0,
+            int splashRadiusXZ = 0,
+            int splashDamagePercent = 0)
         {
             SkillId = skillId;
             MinRange = minRange;
@@ -27,6 +29,8 @@ namespace PES.Combat.Actions
             RangeBonusPerElevationStep = rangeBonusPerElevationStep;
             ResourceCost = resourceCost;
             CooldownTurns = cooldownTurns;
+            SplashRadiusXZ = splashRadiusXZ;
+            SplashDamagePercent = splashDamagePercent;
         }
 
         public int SkillId { get; }
@@ -53,6 +57,10 @@ namespace PES.Combat.Actions
 
         public int CooldownTurns { get; }
 
+        public int SplashRadiusXZ { get; }
+
+        public int SplashDamagePercent { get; }
+
         public bool IsValid =>
             SkillId >= 0 &&
             MinRange >= 0 &&
@@ -62,6 +70,8 @@ namespace PES.Combat.Actions
             ElevationPerRangeBonus > 0 &&
             RangeBonusPerElevationStep >= 0 &&
             ResourceCost >= 0 &&
-            CooldownTurns >= 0;
+            CooldownTurns >= 0 &&
+            SplashRadiusXZ >= 0 &&
+            SplashDamagePercent is >= 0 and <= 100;
     }
 }
