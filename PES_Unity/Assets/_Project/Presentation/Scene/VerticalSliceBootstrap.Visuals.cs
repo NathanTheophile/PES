@@ -424,8 +424,9 @@ namespace PES.Presentation.Scene
             }
 
             var blocked = BuildBlockedCellsForPathPreview(actorId, originPosition, destinationPosition);
+            var walkable = BuildWalkableCellsForPathPreview();
             var pathService = new PathfindingService();
-            if (!pathService.TryComputePath(new GridCoord3(originPosition.X, originPosition.Y, originPosition.Z), destination, blocked, out var path))
+            if (!pathService.TryComputePath(new GridCoord3(originPosition.X, originPosition.Y, originPosition.Z), destination, blocked, out var path, walkable, _effectiveMovePolicy.MaxVerticalStepPerTile))
             {
                 HidePathPreview();
                 return;
@@ -436,6 +437,17 @@ namespace PES.Presentation.Scene
             {
                 _pathLineRenderer.SetPosition(i, new Vector3(path[i].X, path[i].Z + 0.62f, path[i].Y));
             }
+        }
+
+        private HashSet<GridCoord3> BuildWalkableCellsForPathPreview()
+        {
+            var walkable = new HashSet<GridCoord3>(_mapTiles.Count);
+            foreach (var tile in _mapTiles)
+            {
+                walkable.Add(new GridCoord3(tile.X, tile.Y, tile.Z));
+            }
+
+            return walkable;
         }
 
         private HashSet<GridCoord3> BuildBlockedCellsForPathPreview(EntityId actorId, Position3 origin, Position3 destination)

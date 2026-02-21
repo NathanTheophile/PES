@@ -123,6 +123,8 @@ namespace PES.Combat.Actions
                 finalDamage = damageResolution.FinalDamage;
             }
 
+            finalDamage = StatusEffectDamageModifier.Apply(state, AttackerId, TargetId, finalDamage);
+
             var damageApplied = state.TryApplyDamage(TargetId, finalDamage);
             if (!damageApplied)
             {

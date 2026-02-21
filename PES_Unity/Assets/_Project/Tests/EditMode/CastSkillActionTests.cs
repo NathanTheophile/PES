@@ -396,6 +396,121 @@ namespace PES.Tests.EditMode
             Assert.That(result.FailureReason, Is.EqualTo(ActionFailureReason.InvalidPolicy));
         }
 
+
+        [Test]
+        public void Resolve_CastSkillAction_RejectionPayload_UsesStableSkillRejectedContract()
+        {
+            var state = new BattleState();
+            var caster = new EntityId(380);
+            var target = new EntityId(381);
+
+            state.SetEntityPosition(caster, new Position3(0, 0, 0));
+            state.SetEntityPosition(target, new Position3(8, 0, 0));
+            state.SetEntityHitPoints(caster, 20);
+            state.SetEntityHitPoints(target, 20);
+
+            var resolver = new ActionResolver(new SeededRngService(42));
+            var policy = new SkillActionPolicy(
+                skillId: 333,
+                minRange: 1,
+                maxRange: 3,
+                baseDamage: 4,
+                baseHitChance: 100,
+                elevationPerRangeBonus: 2,
+                rangeBonusPerElevationStep: 1);
+
+            var result = resolver.Resolve(state, new CastSkillAction(caster, target, policy));
+
+            Assert.That(result.Success, Is.False);
+            Assert.That(result.Code, Is.EqualTo(ActionResolutionCode.Rejected));
+            Assert.That(result.FailureReason, Is.EqualTo(ActionFailureReason.OutOfRange));
+            Assert.That(result.Payload.HasValue, Is.True);
+            Assert.That(result.Payload!.Value.Kind, Is.EqualTo("SkillRejected"));
+            Assert.That(result.Payload!.Value.Value1, Is.EqualTo(333));
+            Assert.That(result.Payload!.Value.Value2, Is.EqualTo((int)ActionFailureReason.OutOfRange));
+            Assert.That(result.Payload!.Value.SchemaVersion, Is.EqualTo(ActionResultPayload.CurrentSchemaVersion));
+        }
+
+        [Test]
+        public void Resolve_CastSkillAction_DifferentSeeds_ProduceControlledDamageDivergence()
+        {
+            var caster = new EntityId(390);
+            var targetA = new EntityId(391);
+            var targetB = new EntityId(392);
+
+            var policy = new SkillActionPolicy(
+                skillId: 334,
+                minRange: 1,
+                maxRange: 3,
+                baseDamage: 9,
+                baseHitChance: 100,
+                elevationPerRangeBonus: 2,
+                rangeBonusPerElevationStep: 1);
+
+            var stateA = new BattleState();
+            stateA.SetEntityPosition(caster, new Position3(0, 0, 0));
+            stateA.SetEntityPosition(targetA, new Position3(1, 0, 0));
+            stateA.SetEntityHitPoints(caster, 40);
+            stateA.SetEntityHitPoints(targetA, 40);
+
+            var stateB = new BattleState();
+            stateB.SetEntityPosition(caster, new Position3(0, 0, 0));
+            stateB.SetEntityPosition(targetB, new Position3(1, 0, 0));
+            stateB.SetEntityHitPoints(caster, 40);
+            stateB.SetEntityHitPoints(targetB, 40);
+
+            var resultA = new ActionResolver(new SeededRngService(5)).Resolve(stateA, new CastSkillAction(caster, targetA, policy));
+            var resultB = new ActionResolver(new SeededRngService(17)).Resolve(stateB, new CastSkillAction(caster, targetB, policy));
+
+            Assert.That(resultA.Success, Is.True);
+            Assert.That(resultB.Success, Is.True);
+            Assert.That(resultA.Payload.HasValue, Is.True);
+            Assert.That(resultB.Payload.HasValue, Is.True);
+            Assert.That(resultA.Payload!.Value.Kind, Is.EqualTo("SkillResolved"));
+            Assert.That(resultB.Payload!.Value.Kind, Is.EqualTo("SkillResolved"));
+            Assert.That(resultA.Payload!.Value.Value2, Is.Not.EqualTo(resultB.Payload!.Value.Value2));
+        }
+
+
+        [Test]
+        public void Resolve_CastSkillAction_WithFortifiedTarget_ReducesResolvedDamage()
+        {
+            var caster = new EntityId(395);
+            var targetA = new EntityId(396);
+            var targetB = new EntityId(397);
+
+            var policy = new SkillActionPolicy(
+                skillId: 335,
+                minRange: 1,
+                maxRange: 3,
+                baseDamage: 10,
+                baseHitChance: 100,
+                elevationPerRangeBonus: 2,
+                rangeBonusPerElevationStep: 1);
+
+            var baselineState = new BattleState();
+            baselineState.SetEntityPosition(caster, new Position3(0, 0, 0));
+            baselineState.SetEntityPosition(targetA, new Position3(1, 0, 0));
+            baselineState.SetEntityHitPoints(caster, 40);
+            baselineState.SetEntityHitPoints(targetA, 40);
+
+            var fortifiedState = new BattleState();
+            fortifiedState.SetEntityPosition(caster, new Position3(0, 0, 0));
+            fortifiedState.SetEntityPosition(targetB, new Position3(1, 0, 0));
+            fortifiedState.SetEntityHitPoints(caster, 40);
+            fortifiedState.SetEntityHitPoints(targetB, 40);
+            fortifiedState.SetStatusEffect(targetB, StatusEffectType.Fortified, remainingTurns: 2, potency: 3);
+
+            var baselineResult = new ActionResolver(new SeededRngService(21)).Resolve(baselineState, new CastSkillAction(caster, targetA, policy));
+            var fortifiedResult = new ActionResolver(new SeededRngService(21)).Resolve(fortifiedState, new CastSkillAction(caster, targetB, policy));
+
+            Assert.That(baselineResult.Success, Is.True);
+            Assert.That(fortifiedResult.Success, Is.True);
+            Assert.That(baselineResult.Payload.HasValue, Is.True);
+            Assert.That(fortifiedResult.Payload.HasValue, Is.True);
+            Assert.That(fortifiedResult.Payload!.Value.Value2, Is.LessThan(baselineResult.Payload!.Value.Value2));
+        }
+
         [Test]
         public void Replay_WithCastSkillAction_ReproducesFinalSnapshotWithSameSeed()
         {
