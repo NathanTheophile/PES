@@ -85,6 +85,7 @@ namespace PES.Presentation.Scene
             SyncUnitViews();
 
             _lastResult = new ActionResolution(true, ActionResolutionCode.Succeeded, "VerticalSlice ready");
+            EnsureSelectedActorIsCurrentTurnActor();
         }
 
         private void Update()
@@ -100,6 +101,8 @@ namespace PES.Presentation.Scene
                 _planner.ClearPlannedAction();
                 Debug.Log($"[VerticalSlice] {_lastResult.Description}");
             }
+
+            EnsureSelectedActorIsCurrentTurnActor();
 
             _inputBinder.ProcessSelectionInputs(_planner, SyncSelectedSkillSlot);
             _inputBinder.ProcessPlanningInputs(

@@ -189,5 +189,23 @@ namespace PES.Presentation.Scene
                 _selectedSkillSlot = 0;
             }
         }
+
+        private void EnsureSelectedActorIsCurrentTurnActor()
+        {
+            if (_battleLoop == null || _planner == null)
+            {
+                return;
+            }
+
+            var currentActor = _battleLoop.CurrentActorId;
+            if (_planner.HasActorSelection && _planner.SelectedActorId.Equals(currentActor))
+            {
+                return;
+            }
+
+            _planner.SelectActor(currentActor);
+            _planner.ClearPlannedAction();
+            SyncSelectedSkillSlot();
+        }
     }
 }
