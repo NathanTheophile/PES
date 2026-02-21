@@ -53,3 +53,4 @@
 
 - [x] Amorcer le système d'états domaine (status effects + tick déterministe + snapshot).
 - [x] Permettre le timing DoT configurable par sort (début vs fin de tour).
+- [x] Étendre `CastSkillAction` aux effets de statut configurables (cible + lanceur) via contrat domaine (buff/debuff).
