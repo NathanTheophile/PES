@@ -14,6 +14,7 @@ namespace PES.Presentation.Scene
             BasicAttackActionPolicy? basicAttackPolicyOverride,
             SkillActionPolicy? skillPolicyOverride,
             IReadOnlyList<BattleActorDefinition> actorDefinitions,
+            int seed,
             IReadOnlyDictionary<EntityId, SkillActionPolicy[]> skillLoadoutMap,
             IReadOnlyList<BattleActorArchetypeBinding> actorBindings)
         {
@@ -21,6 +22,7 @@ namespace PES.Presentation.Scene
             BasicAttackPolicyOverride = basicAttackPolicyOverride;
             SkillPolicyOverride = skillPolicyOverride;
             ActorDefinitions = actorDefinitions;
+            Seed = seed;
             SkillLoadoutMap = skillLoadoutMap;
             ActorBindings = actorBindings;
         }
@@ -33,6 +35,8 @@ namespace PES.Presentation.Scene
 
         public IReadOnlyList<BattleActorDefinition> ActorDefinitions { get; }
 
+        public int Seed { get; }
+
         public IReadOnlyDictionary<EntityId, SkillActionPolicy[]> SkillLoadoutMap { get; }
 
         public IReadOnlyList<BattleActorArchetypeBinding> ActorBindings { get; }
@@ -40,7 +44,8 @@ namespace PES.Presentation.Scene
         public static VerticalSliceBattleSetup Create(
             CombatRuntimeConfigAsset runtimeConfig,
             EntityArchetypeAsset unitAArchetype,
-            EntityArchetypeAsset unitBArchetype)
+            EntityArchetypeAsset unitBArchetype,
+            int seed = 7)
         {
             var runtimePolicies = CombatRuntimePolicyProvider.FromAsset(runtimeConfig);
             var effectiveMovePolicy = runtimePolicies.MovePolicyOverride
@@ -68,6 +73,7 @@ namespace PES.Presentation.Scene
                 runtimePolicies.BasicAttackPolicyOverride,
                 runtimePolicies.SkillPolicyOverride,
                 actorDefinitions,
+                seed,
                 skillLoadoutMap,
                 actorBindings);
         }

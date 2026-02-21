@@ -64,6 +64,9 @@
 - [x] Ajouter un pass animation/VFX placeholder branché sur les events domaine (sans coupler la logique métier à Unity).
 - [x] Définir une "démo jouable" courte (1 map + 2 camps + 3-4 skills représentatifs) avec checklist de validation UX (`DEMO_JOUABLE_CHECKLIST.md`).
 - [x] Couvrir ce milestone par un scénario replay déterministe golden-path (seed fixée + snapshot final attendu).
+- [x] Verrouiller le flow produit minimal (boot ➜ menu ➜ battle) via un contrôleur explicite côté présentation.
+- [x] Poser un socle de sauvegarde/versioning minimal de session (contrat v1 + sérialiseur + tests).
+- [x] Formaliser un mini gate QA interne avec template de 3 runs consécutifs sans blocage majeur.
 
 _Progression Sprint H en cours:_
 - ✅ Feedbacks visuels minimum viables validés sur le vertical slice (surbrillance cases atteignables, logs d'actions lisibles, previews move/attack/skill + markers shader d'intention + highlight de cible survolée en attack/skill).

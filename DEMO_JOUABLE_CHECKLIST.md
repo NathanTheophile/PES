@@ -57,3 +57,20 @@ La démo est considérée **prête** si:
 - Retours UX majeurs:
 - Bugs bloquants:
 - Décision: GO / NO-GO
+
+## Gate QA interne (Release Candidate)
+
+Objectif: valider la démo avec **3 runs consécutifs** sans blocage majeur avant partage plus large.
+
+### Conditions de passage
+- [ ] 3 runs consécutifs terminés (win/lose/draw accepté) sans soft-lock ni crash.
+- [ ] Aucun bug critique (blocant combat, corruption save, flow figé) sur les 3 runs.
+- [ ] Seed et profil de test consignés pour chaque run.
+- [ ] Même binaire/commit utilisé pour la série de 3 runs.
+
+### Journal des runs QA (à remplir)
+| Run | Commit | Seed | Profil/scénario | Résultat | Blocage majeur | Notes |
+|---|---|---|---|---|---|---|
+| 1 |  |  |  |  | Non/Oui |  |
+| 2 |  |  |  |  | Non/Oui |  |
+| 3 |  |  |  |  | Non/Oui |  |
