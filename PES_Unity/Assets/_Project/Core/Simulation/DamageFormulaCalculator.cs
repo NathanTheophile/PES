@@ -34,10 +34,11 @@ namespace PES.Core.Simulation
             var prePowerDamage = spellBaseDamage + attack - defense;
             var poweredDamage = prePowerDamage * (powerPercent / 100f);
             var afterResistanceDamage = poweredDamage * (1f - (resistancePercent / 100f));
+            var normalizedDamage = System.MathF.Floor(afterResistanceDamage);
 
             var criticalChance = spellBaseCriticalChance + attacker.CriticalChance;
             var isCritical = forceCritical;
-            var finalDamage = afterResistanceDamage;
+            var finalDamage = normalizedDamage;
 
             if (isCritical)
             {
