@@ -58,7 +58,7 @@
 
 ## Sprint H — Milestone "niveau jouable" (focus UX/gameplay)
 - [ ] Finaliser la boucle joueur complète en combat: sélection unité ➜ move/attack/skill ➜ fin de tour explicite/auto sans blocage UX.
-- [ ] Ajouter des feedbacks visuels minimum viables: surbrillance des cases ciblables, prévisualisation dégâts/état, logs de résolution lisibles. *(WIP: markers shader Unlit pour intentions move/attack/skill planifiées + preview HUD enrichie).*
+- [x] Ajouter des feedbacks visuels minimum viables: surbrillance des cases ciblables, prévisualisation dégâts/état, logs de résolution lisibles.
 - [ ] Stabiliser la UI skills en combat: tooltip (coût/portée/effets), états visuels cohérents (ready/cooldown/ressource insuffisante), annulation claire. *(WIP: annulation explicite ajoutée via bouton Cancel + touche ESC).*
 - [x] Uniformiser les feedbacks d'action rejetée (`OutOfRange`, `NoLineOfSight`, `NotEnoughResource`) entre domaine et HUD.
 - [ ] Ajouter un pass animation/VFX placeholder branché sur les events domaine (sans coupler la logique métier à Unity).
@@ -66,7 +66,7 @@
 - [ ] Couvrir ce milestone par un scénario replay déterministe golden-path (seed fixée + snapshot final attendu).
 
 _Progression Sprint H en cours:_
-- HUD vertical slice: ajout d'un résumé lisible de la dernière action (succès/échec), d'un tooltip skill (portée/coût/dégâts/hit/state), de tags d'état de slot (`READY`/`CD:x`/`NO_RES:x/y`) et d'une preview planifiée enrichie (move: coût/PM projetés, attack: HP cible, skill: dégâts de base + HP projetés).
+- ✅ Feedbacks visuels minimum viables validés sur le vertical slice (surbrillance cases atteignables, logs d'actions lisibles, previews move/attack/skill + markers shader d'intention).
 
 ## Sprint H.1 — Dé-risquage MMO (strict minimum)
 - [ ] Versionner le format des payloads de log d'actions (compat replay inter-build).
