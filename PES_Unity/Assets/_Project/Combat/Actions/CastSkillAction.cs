@@ -51,6 +51,16 @@ namespace PES.Combat.Actions
                 return new ActionResolution(false, ActionResolutionCode.Rejected, $"CastSkillRejected: caster defeated ({CasterId})", ActionFailureReason.ActorDefeated);
             }
 
+            if (state.IsActionInterrupted(CasterId))
+            {
+                return new ActionResolution(
+                    false,
+                    ActionResolutionCode.Rejected,
+                    $"CastSkillRejected: caster interrupted by status ({CasterId})",
+                    ActionFailureReason.ActionInterrupted,
+                    new ActionResultPayload("ActionInterrupted", (int)StatusEffectType.Stunned, 0, 0));
+            }
+
             if (!state.TryGetEntityHitPoints(TargetId, out var targetHp))
             {
                 return new ActionResolution(false, ActionResolutionCode.Rejected, $"CastSkillRejected: missing hit points for {TargetId}", ActionFailureReason.MissingHitPoints);
@@ -156,12 +166,44 @@ namespace PES.Combat.Actions
                 state.SetStatusEffect(TargetId, StatusEffectType.Poison, policy.PeriodicDurationTurns, policy.PeriodicDamage, policy.PeriodicTickMoment);
             }
 
+            ApplyStatusEffectFromPolicy(
+                state,
+                TargetId,
+                policy.TargetStatusEffectType,
+                policy.TargetStatusDurationTurns,
+                policy.TargetStatusPotency,
+                policy.TargetStatusTickMoment);
+
+            ApplyStatusEffectFromPolicy(
+                state,
+                CasterId,
+                policy.CasterStatusEffectType,
+                policy.CasterStatusDurationTurns,
+                policy.CasterStatusPotency,
+                policy.CasterStatusTickMoment);
+
             return new ActionResolution(
                 true,
                 ActionResolutionCode.Succeeded,
                 $"CastSkillResolved: {CasterId} -> {TargetId} [skill:{policy.SkillId}, roll:{resolution.Roll}, hitChance:{resolution.HitChance}, critRoll:{criticalRoll}, critChance:{criticalChance}, crit:{isCritical}, dmg:{damageResolution.FinalDamage}, splashHits:{splashTargetsHit}, distXZ:{targeting.DistanceXZ}, max:{targeting.EffectiveMaxRange}]",
                 ActionFailureReason.None,
                 new ActionResultPayload("SkillResolved", policy.SkillId, damageResolution.FinalDamage, splashTargetsHit));
+        }
+
+        private static void ApplyStatusEffectFromPolicy(
+            BattleState state,
+            EntityId target,
+            StatusEffectType effectType,
+            int durationTurns,
+            int potency,
+            StatusEffectTickMoment tickMoment)
+        {
+            if (effectType == StatusEffectType.None || durationTurns <= 0)
+            {
+                return;
+            }
+
+            state.SetStatusEffect(target, effectType, durationTurns, potency, tickMoment);
         }
 
         private int ApplySplashDamage(BattleState state, SkillActionPolicy policy, int primaryDamage)

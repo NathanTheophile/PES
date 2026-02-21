@@ -284,6 +284,118 @@ namespace PES.Tests.EditMode
             Assert.That(state.GetStatusEffectRemaining(target, StatusEffectType.Poison), Is.EqualTo(2));
         }
 
+
+        [Test]
+        public void Resolve_CastSkillAction_WithTargetDebuffEffect_AppliesConfiguredStatusEffect()
+        {
+            var state = new BattleState();
+            var caster = new EntityId(350);
+            var target = new EntityId(351);
+
+            state.SetEntityPosition(caster, new Position3(0, 0, 0));
+            state.SetEntityPosition(target, new Position3(1, 0, 0));
+            state.SetEntityHitPoints(caster, 20);
+            state.SetEntityHitPoints(target, 20);
+            state.SetEntitySkillResource(caster, 10);
+
+            var resolver = new ActionResolver(new SeededRngService(42));
+            var policy = new SkillActionPolicy(
+                skillId: 270,
+                minRange: 1,
+                maxRange: 3,
+                baseDamage: 5,
+                baseHitChance: 100,
+                elevationPerRangeBonus: 2,
+                rangeBonusPerElevationStep: 1,
+                targetStatusEffectType: StatusEffectType.Weakened,
+                targetStatusPotency: 3,
+                targetStatusDurationTurns: 2,
+                targetStatusTickMoment: StatusEffectTickMoment.TurnEnd);
+
+            var result = resolver.Resolve(state, new CastSkillAction(caster, target, policy));
+
+            Assert.That(result.Success, Is.True);
+            Assert.That(state.GetStatusEffectRemaining(target, StatusEffectType.Weakened), Is.EqualTo(2));
+            Assert.That(state.GetStatusEffectRemaining(target, StatusEffectType.Poison), Is.EqualTo(0));
+
+            var endTickDamage = state.TickStatusEffects(target, StatusEffectTickMoment.TurnEnd);
+            Assert.That(endTickDamage, Is.EqualTo(0));
+            Assert.That(state.GetStatusEffectRemaining(target, StatusEffectType.Weakened), Is.EqualTo(1));
+        }
+
+        [Test]
+        public void Resolve_CastSkillAction_WithCasterBuffAndPoison_AppliesBothEffects()
+        {
+            var state = new BattleState();
+            var caster = new EntityId(360);
+            var target = new EntityId(361);
+
+            state.SetEntityPosition(caster, new Position3(0, 0, 0));
+            state.SetEntityPosition(target, new Position3(1, 0, 0));
+            state.SetEntityHitPoints(caster, 20);
+            state.SetEntityHitPoints(target, 20);
+            state.SetEntitySkillResource(caster, 10);
+
+            var resolver = new ActionResolver(new SeededRngService(42));
+            var policy = new SkillActionPolicy(
+                skillId: 271,
+                minRange: 1,
+                maxRange: 3,
+                baseDamage: 4,
+                baseHitChance: 100,
+                elevationPerRangeBonus: 2,
+                rangeBonusPerElevationStep: 1,
+                periodicDamage: 2,
+                periodicDurationTurns: 3,
+                periodicTickMoment: StatusEffectTickMoment.TurnStart,
+                casterStatusEffectType: StatusEffectType.Fortified,
+                casterStatusPotency: 1,
+                casterStatusDurationTurns: 2,
+                casterStatusTickMoment: StatusEffectTickMoment.TurnEnd);
+
+            var result = resolver.Resolve(state, new CastSkillAction(caster, target, policy));
+
+            Assert.That(result.Success, Is.True);
+            Assert.That(state.GetStatusEffectRemaining(target, StatusEffectType.Poison), Is.EqualTo(3));
+            Assert.That(state.GetStatusEffectRemaining(caster, StatusEffectType.Fortified), Is.EqualTo(2));
+
+            var poisonDamage = state.TickStatusEffects(target, StatusEffectTickMoment.TurnStart);
+            Assert.That(poisonDamage, Is.EqualTo(2));
+        }
+
+
+        [Test]
+        public void Resolve_CastSkillAction_WithStatusTypeButZeroDuration_IsRejectedAsInvalidPolicy()
+        {
+            var state = new BattleState();
+            var caster = new EntityId(370);
+            var target = new EntityId(371);
+
+            state.SetEntityPosition(caster, new Position3(0, 0, 0));
+            state.SetEntityPosition(target, new Position3(1, 0, 0));
+            state.SetEntityHitPoints(caster, 20);
+            state.SetEntityHitPoints(target, 20);
+
+            var resolver = new ActionResolver(new SeededRngService(42));
+            var policy = new SkillActionPolicy(
+                skillId: 272,
+                minRange: 1,
+                maxRange: 3,
+                baseDamage: 4,
+                baseHitChance: 100,
+                elevationPerRangeBonus: 2,
+                rangeBonusPerElevationStep: 1,
+                targetStatusEffectType: StatusEffectType.Marked,
+                targetStatusDurationTurns: 0,
+                targetStatusPotency: 1);
+
+            var result = resolver.Resolve(state, new CastSkillAction(caster, target, policy));
+
+            Assert.That(result.Success, Is.False);
+            Assert.That(result.Code, Is.EqualTo(ActionResolutionCode.Rejected));
+            Assert.That(result.FailureReason, Is.EqualTo(ActionFailureReason.InvalidPolicy));
+        }
+
         [Test]
         public void Replay_WithCastSkillAction_ReproducesFinalSnapshotWithSameSeed()
         {

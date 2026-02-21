@@ -43,6 +43,16 @@ namespace PES.Combat.Actions
                 return new ActionResolution(false, ActionResolutionCode.Rejected, $"BasicAttackRejected: attacker defeated ({AttackerId})", ActionFailureReason.ActorDefeated);
             }
 
+            if (state.IsActionInterrupted(AttackerId))
+            {
+                return new ActionResolution(
+                    false,
+                    ActionResolutionCode.Rejected,
+                    $"BasicAttackRejected: attacker interrupted by status ({AttackerId})",
+                    ActionFailureReason.ActionInterrupted,
+                    new ActionResultPayload("ActionInterrupted", (int)StatusEffectType.Stunned, 0, 0));
+            }
+
             if (!state.TryGetEntityHitPoints(TargetId, out var targetHp))
             {
                 return new ActionResolution(false, ActionResolutionCode.Rejected, $"BasicAttackRejected: missing hit points for {TargetId}", ActionFailureReason.MissingHitPoints);
@@ -88,21 +98,42 @@ namespace PES.Combat.Actions
                     new ActionResultPayload("AttackMissed", resolution.Roll, resolution.HitChance, 0));
             }
 
-            var attackerStats = state.GetEntityRpgStatsOrEmpty(AttackerId);
-            var defenderStats = state.GetEntityRpgStatsOrEmpty(TargetId);
-            var criticalChance = Clamp(policy.BaseCriticalChance + attackerStats.CriticalChance, 0, 100);
-            var criticalRoll = rngService.NextInt(1, 101);
-            var isCritical = criticalRoll <= criticalChance;
+            var attackerHasRpgStats = state.TryGetEntityRpgStats(AttackerId, out var attackerStats);
+            var defenderHasRpgStats = state.TryGetEntityRpgStats(TargetId, out var defenderStats);
 
-            var damageResolution = DamageFormulaCalculator.Resolve(
-                attackerStats,
-                defenderStats,
-                policy.ResolutionPolicy.BaseDamage,
-                policy.BaseCriticalChance,
-                policy.DamageElement,
-                isCritical);
+            var finalDamage = resolution.FinalDamage;
+            var criticalChance = 0;
+            var criticalRoll = 0;
+            var isCritical = false;
 
-            var damageApplied = state.TryApplyDamage(TargetId, damageResolution.FinalDamage);
+            if (attackerHasRpgStats || defenderHasRpgStats)
+            {
+                if (!attackerHasRpgStats)
+                {
+                    attackerStats = CombatantRpgStats.Empty;
+                }
+
+                if (!defenderHasRpgStats)
+                {
+                    defenderStats = CombatantRpgStats.Empty;
+                }
+
+                criticalChance = Clamp(policy.BaseCriticalChance + attackerStats.CriticalChance, 0, 100);
+                criticalRoll = rngService.NextInt(1, 101);
+                isCritical = criticalRoll <= criticalChance;
+
+                var damageResolution = DamageFormulaCalculator.Resolve(
+                    attackerStats,
+                    defenderStats,
+                    resolution.FinalDamage,
+                    policy.BaseCriticalChance,
+                    policy.DamageElement,
+                    isCritical);
+
+                finalDamage = damageResolution.FinalDamage;
+            }
+
+            var damageApplied = state.TryApplyDamage(TargetId, finalDamage);
             if (!damageApplied)
             {
                 return new ActionResolution(false, ActionResolutionCode.Rejected, $"BasicAttackRejected: failed to apply damage to {TargetId}", ActionFailureReason.DamageApplicationFailed);
@@ -111,9 +142,9 @@ namespace PES.Combat.Actions
             return new ActionResolution(
                 true,
                 ActionResolutionCode.Succeeded,
-                $"BasicAttackResolved: {AttackerId} -> {TargetId} [roll:{resolution.Roll}, hitChance:{resolution.HitChance}, critRoll:{criticalRoll}, critChance:{criticalChance}, crit:{isCritical}, dmg:{damageResolution.FinalDamage}]",
+                $"BasicAttackResolved: {AttackerId} -> {TargetId} [roll:{resolution.Roll}, hitChance:{resolution.HitChance}, hBonus:{resolution.HeightDamageBonus}, critRoll:{criticalRoll}, critChance:{criticalChance}, crit:{isCritical}, dmg:{finalDamage}]",
                 ActionFailureReason.None,
-                new ActionResultPayload("AttackResolved", damageResolution.FinalDamage, criticalRoll, criticalChance));
+                new ActionResultPayload("AttackResolved", finalDamage, criticalRoll, criticalChance));
         }
 
         private static int Clamp(int value, int min, int max)

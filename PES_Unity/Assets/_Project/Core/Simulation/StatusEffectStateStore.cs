@@ -26,6 +26,13 @@ namespace PES.Core.Simulation
             _statusEffects[key] = new StatusEffectState(safeTurns, safePotency, tickMoment);
         }
 
+
+        public bool HasStatusEffect(EntityId entityId, StatusEffectType effectType)
+        {
+            var key = new StatusEffectKey(entityId, effectType);
+            return _statusEffects.TryGetValue(key, out var state) && state.RemainingTurns > 0;
+        }
+
         public int GetStatusEffectRemaining(EntityId entityId, StatusEffectType effectType)
         {
             var key = new StatusEffectKey(entityId, effectType);

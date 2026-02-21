@@ -90,6 +90,10 @@ namespace PES.Core.Simulation
     {
         None = 0,
         Poison = 1,
+        Weakened = 2,
+        Fortified = 3,
+        Marked = 4,
+        Stunned = 5,
     }
 
     public enum StatusEffectTickMoment

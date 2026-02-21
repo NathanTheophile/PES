@@ -60,6 +60,16 @@ namespace PES.Combat.Actions
                     ActionFailureReason.ActorDefeated);
             }
 
+            if (state.IsActionInterrupted(ActorId))
+            {
+                return new ActionResolution(
+                    false,
+                    ActionResolutionCode.Rejected,
+                    $"MoveActionRejected: actor is interrupted by status ({ActorId})",
+                    ActionFailureReason.ActionInterrupted,
+                    new ActionResultPayload("ActionInterrupted", (int)StatusEffectType.Stunned, 0, 0));
+            }
+
             var validationService = new MoveValidationService();
             var validation = validationService.Validate(state, ActorId, Origin, Destination, policy);
             if (!validation.Success)

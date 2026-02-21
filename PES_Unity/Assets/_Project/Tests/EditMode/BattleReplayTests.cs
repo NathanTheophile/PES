@@ -48,6 +48,117 @@ namespace PES.Tests.EditMode
             }
         }
 
+
+        [Test]
+        public void ReplayRecord_WithSkillStatusesAndResources_ReproducesAllSnapshotsAndResults()
+        {
+            var state = new BattleState();
+            state.SetEntityPosition(UnitA, new Position3(0, 0, 0));
+            state.SetEntityPosition(UnitB, new Position3(1, 0, 0));
+            state.SetEntityHitPoints(UnitA, 50);
+            state.SetEntityHitPoints(UnitB, 50);
+            state.SetEntityMovementPoints(UnitA, maxMovementPoints: 6, currentMovementPoints: 5);
+            state.SetEntityMovementPoints(UnitB, maxMovementPoints: 6, currentMovementPoints: 6);
+            state.SetEntitySkillResource(UnitA, 10);
+            state.SetEntitySkillResource(UnitB, 5);
+
+            state.SetEntityRpgStats(UnitA, new CombatantRpgStats(
+                actionPoints: 6,
+                movementPoints: 6,
+                range: 1,
+                elevation: 1,
+                summonCapacity: 1,
+                hitPoints: 50,
+                assiduity: 0,
+                rapidity: 10,
+                criticalChance: 0,
+                criticalDamage: 0,
+                criticalResistance: 0,
+                attack: new DamageElementValues(10, 0, 0, 0, 0, 0),
+                power: new DamageElementValues(100, 100, 100, 100, 100, 100),
+                defense: default,
+                resistance: default));
+
+            state.SetEntityRpgStats(UnitB, new CombatantRpgStats(
+                actionPoints: 6,
+                movementPoints: 6,
+                range: 1,
+                elevation: 1,
+                summonCapacity: 1,
+                hitPoints: 50,
+                assiduity: 0,
+                rapidity: 5,
+                criticalChance: 0,
+                criticalDamage: 0,
+                criticalResistance: 0,
+                attack: default,
+                power: new DamageElementValues(100, 100, 100, 100, 100, 100),
+                defense: new DamageElementValues(2, 0, 0, 0, 0, 0),
+                resistance: default));
+
+            var recorder = new BattleReplayRecorder(seed: 31);
+            recorder.CaptureInitialState(state);
+
+            var resolver = new ActionResolver(new SeededRngService(31));
+            var originalResults = new System.Collections.Generic.List<ActionResolution>();
+
+            var policy = new SkillActionPolicy(
+                skillId: 420,
+                minRange: 1,
+                maxRange: 3,
+                baseDamage: 6,
+                baseHitChance: 100,
+                elevationPerRangeBonus: 2,
+                rangeBonusPerElevationStep: 1,
+                resourceCost: 3,
+                cooldownTurns: 2,
+                periodicDamage: 2,
+                periodicDurationTurns: 2,
+                periodicTickMoment: StatusEffectTickMoment.TurnStart,
+                targetStatusEffectType: StatusEffectType.Weakened,
+                targetStatusPotency: 1,
+                targetStatusDurationTurns: 2,
+                targetStatusTickMoment: StatusEffectTickMoment.TurnEnd,
+                casterStatusEffectType: StatusEffectType.Fortified,
+                casterStatusPotency: 1,
+                casterStatusDurationTurns: 1,
+                casterStatusTickMoment: StatusEffectTickMoment.TurnEnd,
+                damageElement: DamageElement.Blunt,
+                baseCriticalChance: 0);
+
+            var cast = resolver.Resolve(state, new CastSkillAction(UnitA, UnitB, policy));
+            originalResults.Add(cast);
+            recorder.RecordAction(RecordedActionCommand.CastSkill(UnitA, UnitB, policy), state);
+
+            var attack = resolver.Resolve(state, new BasicAttackAction(UnitB, UnitA));
+            originalResults.Add(attack);
+            recorder.RecordAction(RecordedActionCommand.BasicAttack(UnitB, UnitA), state);
+
+            var record = recorder.Build();
+            var replay = new BattleReplayRunner().Run(record);
+
+            Assert.That(replay.Snapshots.Count, Is.EqualTo(record.Snapshots.Count));
+            for (var i = 0; i < record.Snapshots.Count; i++)
+            {
+                AssertSnapshotsEqual(record.Snapshots[i], replay.Snapshots[i]);
+            }
+
+            AssertSnapshotsEqual(record.Snapshots[record.Snapshots.Count - 1], replay.FinalSnapshot);
+            Assert.That(replay.ActionResults.Count, Is.EqualTo(originalResults.Count));
+            for (var i = 0; i < originalResults.Count; i++)
+            {
+                Assert.That(replay.ActionResults[i].Code, Is.EqualTo(originalResults[i].Code));
+                Assert.That(replay.ActionResults[i].FailureReason, Is.EqualTo(originalResults[i].FailureReason));
+                Assert.That(replay.ActionResults[i].Description, Is.EqualTo(originalResults[i].Description));
+                Assert.That(replay.ActionResults[i].Payload, Is.EqualTo(originalResults[i].Payload));
+            }
+
+            Assert.That(replay.FinalSnapshot.SkillCooldowns.Count, Is.GreaterThan(0));
+            Assert.That(replay.FinalSnapshot.StatusEffects.Count, Is.GreaterThan(0));
+            Assert.That(replay.FinalSnapshot.EntitySkillResources.Count, Is.GreaterThan(0));
+            Assert.That(replay.FinalSnapshot.EntityRpgStats.Count, Is.GreaterThan(0));
+        }
+
         [Test]
         public void ReplayRecord_WithDifferentSeed_DivergesFromOriginalOutcome()
         {

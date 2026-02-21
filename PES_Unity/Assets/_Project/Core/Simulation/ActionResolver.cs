@@ -78,6 +78,7 @@ namespace PES.Core.Simulation
         MovementPointsInsufficient = 22,
         SkillResourceInsufficient = 23,
         SkillOnCooldown = 24,
+        ActionInterrupted = 25,
     }
 
     /// <summary>

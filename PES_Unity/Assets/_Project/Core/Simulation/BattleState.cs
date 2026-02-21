@@ -228,6 +228,16 @@ namespace PES.Core.Simulation
             return _statusEffectStore.GetStatusEffectRemaining(entityId, effectType);
         }
 
+        public bool HasStatusEffect(EntityId entityId, StatusEffectType effectType)
+        {
+            return _statusEffectStore.HasStatusEffect(entityId, effectType);
+        }
+
+        public bool IsActionInterrupted(EntityId entityId)
+        {
+            return HasStatusEffect(entityId, StatusEffectType.Stunned);
+        }
+
         public int TickStatusEffects(EntityId entityId, StatusEffectTickMoment tickMoment, int turns = 1)
         {
             return _statusEffectStore.TickStatusEffects(entityId, tickMoment, turns, TryApplyDamage);

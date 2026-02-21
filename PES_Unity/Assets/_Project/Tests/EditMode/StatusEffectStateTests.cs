@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using PES.Combat.Actions;
 using PES.Core.Simulation;
 using PES.Presentation.Scene;
 
@@ -20,6 +21,51 @@ namespace PES.Tests.EditMode
             Assert.That(state.TryGetEntityHitPoints(actor, out var hp), Is.True);
             Assert.That(hp, Is.EqualTo(18));
             Assert.That(state.GetStatusEffectRemaining(actor, StatusEffectType.Poison), Is.EqualTo(2));
+        }
+
+
+        [Test]
+        public void TickStatusEffects_WithNonDamageStatus_TicksDurationWithoutDamage()
+        {
+            var state = new BattleState();
+            var actor = new EntityId(902);
+            state.SetEntityHitPoints(actor, 20);
+            state.SetStatusEffect(actor, StatusEffectType.Weakened, remainingTurns: 2, potency: 3, tickMoment: StatusEffectTickMoment.TurnEnd);
+
+            var damage = state.TickStatusEffects(actor, StatusEffectTickMoment.TurnEnd);
+
+            Assert.That(damage, Is.EqualTo(0));
+            Assert.That(state.TryGetEntityHitPoints(actor, out var hp), Is.True);
+            Assert.That(hp, Is.EqualTo(20));
+            Assert.That(state.GetStatusEffectRemaining(actor, StatusEffectType.Weakened), Is.EqualTo(1));
+        }
+
+        [Test]
+        public void Actions_WhenStunned_AreRejectedWithActionInterrupted()
+        {
+            var state = new BattleState();
+            var actor = new EntityId(903);
+            var target = new EntityId(904);
+            state.SetEntityPosition(actor, new Position3(0, 0, 0));
+            state.SetEntityPosition(target, new Position3(1, 0, 0));
+            state.SetEntityHitPoints(actor, 20);
+            state.SetEntityHitPoints(target, 20);
+            state.SetEntitySkillResource(actor, 10);
+            state.SetStatusEffect(actor, StatusEffectType.Stunned, remainingTurns: 1, potency: 0, tickMoment: StatusEffectTickMoment.TurnStart);
+
+            var resolver = new ActionResolver(new SeededRngService(11));
+
+            var moveResult = resolver.Resolve(state, new MoveAction(actor, new PES.Grid.Grid3D.GridCoord3(0, 0, 0), new PES.Grid.Grid3D.GridCoord3(1, 0, 0)));
+            var attackResult = resolver.Resolve(state, new BasicAttackAction(actor, target));
+            var skillResult = resolver.Resolve(state, new CastSkillAction(actor, target, new SkillActionPolicy(999, 1, 3, 4, 100, 2, 1)));
+
+            Assert.That(moveResult.FailureReason, Is.EqualTo(ActionFailureReason.ActionInterrupted));
+            Assert.That(attackResult.FailureReason, Is.EqualTo(ActionFailureReason.ActionInterrupted));
+            Assert.That(skillResult.FailureReason, Is.EqualTo(ActionFailureReason.ActionInterrupted));
+
+            var tickDamage = state.TickStatusEffects(actor, StatusEffectTickMoment.TurnStart);
+            Assert.That(tickDamage, Is.EqualTo(0));
+            Assert.That(state.GetStatusEffectRemaining(actor, StatusEffectType.Stunned), Is.EqualTo(0));
         }
 
         [Test]
