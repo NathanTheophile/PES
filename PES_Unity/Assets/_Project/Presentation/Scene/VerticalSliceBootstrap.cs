@@ -167,6 +167,7 @@ namespace PES.Presentation.Scene
                 GetSelectedSkillLabel,
                 GetSelectedSkillTooltip,
                 GetActionFeedbackLabel,
+                GetPlannedActionPreviewLabel,
                 GetRecentActionHistory);
         }
 
@@ -213,13 +214,77 @@ namespace PES.Presentation.Scene
 
         private void DrawLegendLabel()
         {
-            GUI.Label(new Rect(24f, 382f, 740f, 20f), "Bleu = déplacements possibles. Survol d'une case bleue en mode Move => aperçu du chemin blanc.");
+            GUI.Label(new Rect(24f, 412f, 740f, 20f), "Bleu = déplacements possibles. Survol d'une case bleue en mode Move => aperçu du chemin blanc.");
         }
 
 
         private string GetActionFeedbackLabel()
         {
             return ActionFeedbackFormatter.FormatResolutionSummary(_lastResult);
+        }
+
+        private string GetPlannedActionPreviewLabel()
+        {
+            if (!_planner.HasPlannedAction)
+            {
+                return "Aucune action planifiée";
+            }
+
+            if (_planner.HasPlannedMove && _planner.TryGetPlannedMoveDestination(out var destination))
+            {
+                if (!_battleLoop.State.TryGetEntityPosition(_planner.SelectedActorId, out var actorPosition))
+                {
+                    return $"Move preview: destination {destination}";
+                }
+
+                var moveCost =
+                    Mathf.Abs(destination.X - actorPosition.X) +
+                    Mathf.Abs(destination.Z - actorPosition.Z) +
+                    Mathf.Abs(destination.Y - actorPosition.Y);
+                var currentPm = _battleLoop.CurrentActorMovementPoints;
+                var projectedPm = currentPm - moveCost;
+                if (projectedPm < 0)
+                {
+                    projectedPm = 0;
+                }
+
+                return $"Move -> {destination} | coût~{moveCost} PM {currentPm}->{projectedPm}";
+            }
+
+            if (!_planner.TryGetPlannedTarget(out var targetId))
+            {
+                return _planner.PlannedLabel;
+            }
+
+            if (_planner.HasPlannedSkill)
+            {
+                var actorId = _planner.SelectedActorId;
+                var skillSlot = _planner.PlannedSkillSlot;
+                if (!_planner.TryGetSkillPolicy(actorId, skillSlot, out var policy))
+                {
+                    return "Skill preview indisponible (policy manquante)";
+                }
+
+                if (!_battleLoop.State.TryGetEntityHitPoints(targetId, out var hp))
+                {
+                    return $"Skill preview: cible invalide {targetId}";
+                }
+
+                var projectedHp = hp - policy.BaseDamage;
+                if (projectedHp < 0)
+                {
+                    projectedHp = 0;
+                }
+
+                return $"Skill[{skillSlot}] dmg~{policy.BaseDamage}, hit {policy.BaseHitChance}% => HP cible {hp}->{projectedHp}";
+            }
+
+            if (!_battleLoop.State.TryGetEntityHitPoints(targetId, out var targetHp))
+            {
+                return $"Attack preview: cible invalide {targetId}";
+            }
+
+            return $"Attack preview: cible {targetId} HP actuel {targetHp}";
         }
 
         private IReadOnlyList<string> GetRecentActionHistory()

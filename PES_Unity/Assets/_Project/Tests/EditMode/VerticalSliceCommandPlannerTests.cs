@@ -217,5 +217,68 @@ namespace PES.Tests.EditMode
             Assert.That(planner.PlannedLabel, Is.EqualTo("None"));
         }
 
+
+
+        [Test]
+        public void PlannedSkillAccessors_WhenSkillPlanned_ReturnTargetAndSlot()
+        {
+            var planner = new VerticalSliceCommandPlanner(new BattleState());
+            planner.SelectActor(VerticalSliceBattleLoop.UnitA);
+            planner.PlanSkill(VerticalSliceBattleLoop.UnitB, skillSlot: 1);
+
+            var hasTarget = planner.TryGetPlannedTarget(out var target);
+
+            Assert.That(planner.HasPlannedSkill, Is.True);
+            Assert.That(planner.PlannedSkillSlot, Is.EqualTo(1));
+            Assert.That(hasTarget, Is.True);
+            Assert.That(target, Is.EqualTo(VerticalSliceBattleLoop.UnitB));
+        }
+
+        [Test]
+        public void PlannedSkillAccessors_WhenNoSkillPlanned_ReturnDefaults()
+        {
+            var planner = new VerticalSliceCommandPlanner(new BattleState());
+            planner.SelectActor(VerticalSliceBattleLoop.UnitA);
+            planner.PlanMove(new GridCoord3(1, 0, 1));
+
+            var hasTarget = planner.TryGetPlannedTarget(out var target);
+
+            Assert.That(planner.HasPlannedSkill, Is.False);
+            Assert.That(planner.PlannedSkillSlot, Is.EqualTo(-1));
+            Assert.That(hasTarget, Is.False);
+            Assert.That(target, Is.EqualTo(default(EntityId)));
+        }
+
+
+
+        [Test]
+        public void PlannedMoveAccessors_WhenMovePlanned_ReturnDestination()
+        {
+            var planner = new VerticalSliceCommandPlanner(new BattleState());
+            planner.SelectActor(VerticalSliceBattleLoop.UnitA);
+            var destination = new GridCoord3(3, 0, 2);
+            planner.PlanMove(destination);
+
+            var hasDestination = planner.TryGetPlannedMoveDestination(out var resolvedDestination);
+
+            Assert.That(planner.HasPlannedMove, Is.True);
+            Assert.That(hasDestination, Is.True);
+            Assert.That(resolvedDestination, Is.EqualTo(destination));
+        }
+
+        [Test]
+        public void PlannedMoveAccessors_WhenNoMovePlanned_ReturnDefault()
+        {
+            var planner = new VerticalSliceCommandPlanner(new BattleState());
+            planner.SelectActor(VerticalSliceBattleLoop.UnitA);
+            planner.PlanAttack(VerticalSliceBattleLoop.UnitB);
+
+            var hasDestination = planner.TryGetPlannedMoveDestination(out var resolvedDestination);
+
+            Assert.That(planner.HasPlannedMove, Is.False);
+            Assert.That(hasDestination, Is.False);
+            Assert.That(resolvedDestination, Is.EqualTo(default(GridCoord3)));
+        }
+
     }
 }
