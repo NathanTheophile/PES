@@ -31,6 +31,11 @@ namespace PES.Presentation.Configuration
         [Range(0, 100)] [SerializeField] private int _skillBaseHitChance = 85;
         [Min(1)] [SerializeField] private int _skillElevationPerRangeBonus = 2;
         [Min(0)] [SerializeField] private int _skillRangeBonusPerElevationStep = 1;
+        [Min(0)] [SerializeField] private int _skillSplashRadiusXZ = 0;
+        [Range(0, 100)] [SerializeField] private int _skillSplashDamagePercent = 0;
+        [Min(0)] [SerializeField] private int _skillPeriodicDamage = 0;
+        [Min(0)] [SerializeField] private int _skillPeriodicDurationTurns = 0;
+        [SerializeField] private PES.Core.Simulation.StatusEffectTickMoment _skillPeriodicTickMoment = PES.Core.Simulation.StatusEffectTickMoment.TurnStart;
 
         public MoveActionPolicy ToMovePolicy()
         {
@@ -59,7 +64,12 @@ namespace PES.Presentation.Configuration
                 baseDamage: _skillBaseDamage,
                 baseHitChance: _skillBaseHitChance,
                 elevationPerRangeBonus: _skillElevationPerRangeBonus,
-                rangeBonusPerElevationStep: _skillRangeBonusPerElevationStep);
+                rangeBonusPerElevationStep: _skillRangeBonusPerElevationStep,
+                splashRadiusXZ: _skillSplashRadiusXZ,
+                splashDamagePercent: _skillSplashDamagePercent,
+                periodicDamage: _skillPeriodicDamage,
+                periodicDurationTurns: _skillPeriodicDurationTurns,
+                periodicTickMoment: _skillPeriodicTickMoment);
         }
     }
 }
