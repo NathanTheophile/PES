@@ -1,5 +1,6 @@
 // Utilité : ce script implémente une première action de skill ciblée
 // (validation, ciblage, résolution RNG et application des dégâts).
+using System;
 using PES.Combat.Resolution;
 using PES.Combat.Targeting;
 using PES.Core.Random;
@@ -125,6 +126,8 @@ namespace PES.Combat.Actions
                 return new ActionResolution(false, ActionResolutionCode.Rejected, $"CastSkillRejected: failed to apply damage to {TargetId}", ActionFailureReason.DamageApplicationFailed);
             }
 
+            var splashTargetsHit = ApplySplashDamage(state, policy, resolution.FinalDamage);
+
             if (!state.TryConsumeEntitySkillResource(CasterId, policy.ResourceCost))
             {
                 return new ActionResolution(
@@ -140,9 +143,55 @@ namespace PES.Combat.Actions
             return new ActionResolution(
                 true,
                 ActionResolutionCode.Succeeded,
-                $"CastSkillResolved: {CasterId} -> {TargetId} [skill:{policy.SkillId}, roll:{resolution.Roll}, hitChance:{resolution.HitChance}, dmg:{resolution.FinalDamage}, distXZ:{targeting.DistanceXZ}, max:{targeting.EffectiveMaxRange}]",
+                $"CastSkillResolved: {CasterId} -> {TargetId} [skill:{policy.SkillId}, roll:{resolution.Roll}, hitChance:{resolution.HitChance}, dmg:{resolution.FinalDamage}, splashHits:{splashTargetsHit}, distXZ:{targeting.DistanceXZ}, max:{targeting.EffectiveMaxRange}]",
                 ActionFailureReason.None,
-                new ActionResultPayload("SkillResolved", policy.SkillId, resolution.FinalDamage, availableResource - policy.ResourceCost));
+                new ActionResultPayload("SkillResolved", policy.SkillId, resolution.FinalDamage, splashTargetsHit));
+        }
+
+        private int ApplySplashDamage(BattleState state, SkillActionPolicy policy, int primaryDamage)
+        {
+            if (policy.SplashRadiusXZ <= 0 || policy.SplashDamagePercent <= 0)
+            {
+                return 0;
+            }
+
+            var splashDamage = (primaryDamage * policy.SplashDamagePercent) / 100;
+            if (splashDamage <= 0)
+            {
+                return 0;
+            }
+
+            if (!state.TryGetEntityPosition(TargetId, out var primaryTargetPosition))
+            {
+                return 0;
+            }
+
+            var hits = 0;
+            foreach (var pair in state.GetEntityPositions())
+            {
+                if (pair.Key.Equals(CasterId) || pair.Key.Equals(TargetId))
+                {
+                    continue;
+                }
+
+                if (!state.TryGetEntityHitPoints(pair.Key, out var hp) || hp <= 0)
+                {
+                    continue;
+                }
+
+                var distanceXZ = Math.Abs(pair.Value.X - primaryTargetPosition.X) + Math.Abs(pair.Value.Z - primaryTargetPosition.Z);
+                if (distanceXZ > policy.SplashRadiusXZ)
+                {
+                    continue;
+                }
+
+                if (state.TryApplyDamage(pair.Key, splashDamage))
+                {
+                    hits++;
+                }
+            }
+
+            return hits;
         }
     }
 }

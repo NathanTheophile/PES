@@ -200,6 +200,52 @@ namespace PES.Tests.EditMode
         }
 
         [Test]
+        public void Resolve_CastSkillAction_WithSplashDamage_HitsSecondaryTargetsInRadius()
+        {
+            var state = new BattleState();
+            var caster = new EntityId(330);
+            var primaryTarget = new EntityId(331);
+            var secondaryTarget = new EntityId(332);
+            var outOfSplashTarget = new EntityId(333);
+
+            state.SetEntityPosition(caster, new Position3(0, 0, 0));
+            state.SetEntityPosition(primaryTarget, new Position3(1, 0, 0));
+            state.SetEntityPosition(secondaryTarget, new Position3(2, 0, 0));
+            state.SetEntityPosition(outOfSplashTarget, new Position3(4, 0, 0));
+
+            state.SetEntityHitPoints(caster, 20);
+            state.SetEntityHitPoints(primaryTarget, 30);
+            state.SetEntityHitPoints(secondaryTarget, 30);
+            state.SetEntityHitPoints(outOfSplashTarget, 30);
+            state.SetEntitySkillResource(caster, 10);
+
+            var resolver = new ActionResolver(new SeededRngService(42));
+            var policy = new SkillActionPolicy(
+                skillId: 250,
+                minRange: 1,
+                maxRange: 4,
+                baseDamage: 10,
+                baseHitChance: 100,
+                elevationPerRangeBonus: 2,
+                rangeBonusPerElevationStep: 1,
+                splashRadiusXZ: 1,
+                splashDamagePercent: 50);
+
+            var result = resolver.Resolve(state, new CastSkillAction(caster, primaryTarget, policy));
+
+            Assert.That(result.Success, Is.True);
+            Assert.That(state.TryGetEntityHitPoints(primaryTarget, out var primaryHp), Is.True);
+            Assert.That(state.TryGetEntityHitPoints(secondaryTarget, out var secondaryHp), Is.True);
+            Assert.That(state.TryGetEntityHitPoints(outOfSplashTarget, out var farHp), Is.True);
+
+            Assert.That(primaryHp, Is.LessThan(30));
+            Assert.That(secondaryHp, Is.LessThan(30));
+            Assert.That(farHp, Is.EqualTo(30));
+            Assert.That(result.Payload.HasValue, Is.True);
+            Assert.That(result.Payload.Value.Value3, Is.EqualTo(1));
+        }
+
+        [Test]
         public void Replay_WithCastSkillAction_ReproducesFinalSnapshotWithSameSeed()
         {
             var caster = new EntityId(304);
