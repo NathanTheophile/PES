@@ -1,4 +1,5 @@
 using PES.Combat.Resolution;
+using PES.Core.Simulation;
 
 namespace PES.Combat.Actions
 {
@@ -7,12 +8,20 @@ namespace PES.Combat.Actions
     /// </summary>
     public readonly struct BasicAttackActionPolicy
     {
-        public BasicAttackActionPolicy(int minRange, int maxRange, int maxLineOfSightDelta, BasicAttackResolutionPolicy resolutionPolicy)
+        public BasicAttackActionPolicy(
+            int minRange,
+            int maxRange,
+            int maxLineOfSightDelta,
+            BasicAttackResolutionPolicy resolutionPolicy,
+            DamageElement damageElement = DamageElement.Physical,
+            int baseCriticalChance = 5)
         {
             MinRange = minRange;
             MaxRange = maxRange;
             MaxLineOfSightDelta = maxLineOfSightDelta;
             ResolutionPolicy = resolutionPolicy;
+            DamageElement = damageElement;
+            BaseCriticalChance = baseCriticalChance;
         }
 
         public int MinRange { get; }
@@ -22,5 +31,9 @@ namespace PES.Combat.Actions
         public int MaxLineOfSightDelta { get; }
 
         public BasicAttackResolutionPolicy ResolutionPolicy { get; }
+
+        public DamageElement DamageElement { get; }
+
+        public int BaseCriticalChance { get; }
     }
 }

@@ -13,7 +13,9 @@ namespace PES.Combat.Actions
             minRange: 1,
             maxRange: 2,
             maxLineOfSightDelta: 2,
-            resolutionPolicy: new BasicAttackResolutionPolicy(baseDamage: 12, baseHitChance: 80));
+            resolutionPolicy: new BasicAttackResolutionPolicy(baseDamage: 12, baseHitChance: 80),
+            damageElement: DamageElement.Physical,
+            baseCriticalChance: 5);
 
         private readonly BasicAttackActionPolicy? _policyOverride;
 
@@ -22,9 +24,6 @@ namespace PES.Combat.Actions
         {
         }
 
-        /// <summary>
-        /// Construit une attaque basique avec politique data-driven explicite.
-        /// </summary>
         public BasicAttackAction(EntityId attackerId, EntityId targetId, BasicAttackActionPolicy? policyOverride)
         {
             AttackerId = attackerId;
@@ -89,7 +88,21 @@ namespace PES.Combat.Actions
                     new ActionResultPayload("AttackMissed", resolution.Roll, resolution.HitChance, 0));
             }
 
-            var damageApplied = state.TryApplyDamage(TargetId, resolution.FinalDamage);
+            var attackerStats = state.GetEntityRpgStatsOrEmpty(AttackerId);
+            var defenderStats = state.GetEntityRpgStatsOrEmpty(TargetId);
+            var criticalChance = Clamp(policy.BaseCriticalChance + attackerStats.CriticalChance, 0, 100);
+            var criticalRoll = rngService.NextInt(1, 101);
+            var isCritical = criticalRoll <= criticalChance;
+
+            var damageResolution = DamageFormulaCalculator.Resolve(
+                attackerStats,
+                defenderStats,
+                policy.ResolutionPolicy.BaseDamage,
+                policy.BaseCriticalChance,
+                policy.DamageElement,
+                isCritical);
+
+            var damageApplied = state.TryApplyDamage(TargetId, damageResolution.FinalDamage);
             if (!damageApplied)
             {
                 return new ActionResolution(false, ActionResolutionCode.Rejected, $"BasicAttackRejected: failed to apply damage to {TargetId}", ActionFailureReason.DamageApplicationFailed);
@@ -98,9 +111,19 @@ namespace PES.Combat.Actions
             return new ActionResolution(
                 true,
                 ActionResolutionCode.Succeeded,
-                $"BasicAttackResolved: {AttackerId} -> {TargetId} [roll:{resolution.Roll}, hitChance:{resolution.HitChance}, dmg:{resolution.FinalDamage}, hBonus:{resolution.HeightDamageBonus}]",
+                $"BasicAttackResolved: {AttackerId} -> {TargetId} [roll:{resolution.Roll}, hitChance:{resolution.HitChance}, critRoll:{criticalRoll}, critChance:{criticalChance}, crit:{isCritical}, dmg:{damageResolution.FinalDamage}]",
                 ActionFailureReason.None,
-                new ActionResultPayload("AttackResolved", resolution.FinalDamage, resolution.Roll, resolution.HitChance));
+                new ActionResultPayload("AttackResolved", damageResolution.FinalDamage, criticalRoll, criticalChance));
+        }
+
+        private static int Clamp(int value, int min, int max)
+        {
+            if (value < min)
+            {
+                return min;
+            }
+
+            return value > max ? max : value;
         }
     }
 }

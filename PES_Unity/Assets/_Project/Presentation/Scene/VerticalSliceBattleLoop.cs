@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using PES.Combat.Actions;
 using PES.Core.Random;
@@ -46,10 +47,27 @@ namespace PES.Presentation.Scene
             _basicAttackPolicyOverride = basicAttackPolicyOverride;
             _teamByActor = new Dictionary<EntityId, int>(definitions.Count);
 
-            var turnOrder = new EntityId[definitions.Count];
+            var orderedDefinitions = new BattleActorDefinition[definitions.Count];
             for (var i = 0; i < definitions.Count; i++)
             {
-                var actor = definitions[i];
+                orderedDefinitions[i] = definitions[i];
+            }
+
+            Array.Sort(orderedDefinitions, static (left, right) =>
+            {
+                var rapidityCompare = right.Rapidity.CompareTo(left.Rapidity);
+                if (rapidityCompare != 0)
+                {
+                    return rapidityCompare;
+                }
+
+                return left.ActorId.Value.CompareTo(right.ActorId.Value);
+            });
+
+            var turnOrder = new EntityId[orderedDefinitions.Length];
+            for (var i = 0; i < orderedDefinitions.Length; i++)
+            {
+                var actor = orderedDefinitions[i];
                 turnOrder[i] = actor.ActorId;
                 _teamByActor[actor.ActorId] = actor.TeamId;
                 State.SetEntityPosition(actor.ActorId, actor.StartPosition);

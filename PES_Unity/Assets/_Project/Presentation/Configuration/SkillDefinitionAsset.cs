@@ -1,4 +1,5 @@
 using PES.Combat.Actions;
+using PES.Core.Simulation;
 using UnityEngine;
 
 namespace PES.Presentation.Configuration
@@ -22,6 +23,8 @@ namespace PES.Presentation.Configuration
         [Header("Resolution")]
         [Min(0)] [SerializeField] private int _baseDamage = 8;
         [Range(0, 100)] [SerializeField] private int _baseHitChance = 85;
+        [SerializeField] private DamageElement _damageElement = DamageElement.Elemental;
+        [Range(0, 100)] [SerializeField] private int _baseCriticalChance = 5;
 
         [Header("Costs")]
         [Min(0)] [SerializeField] private int _resourceCost;
@@ -54,7 +57,9 @@ namespace PES.Presentation.Configuration
                 splashDamagePercent: _splashDamagePercent,
                 periodicDamage: _periodicDamage,
                 periodicDurationTurns: _periodicDurationTurns,
-                periodicTickMoment: _periodicTickMoment);
+                periodicTickMoment: _periodicTickMoment,
+                damageElement: _damageElement,
+                baseCriticalChance: _baseCriticalChance);
         }
     }
 }

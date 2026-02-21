@@ -35,12 +35,14 @@ namespace PES.Presentation.Adapters
                 return new BattleActorDefinition(actorId, teamId, startPosition, 40, 6);
             }
 
+            var stats = archetype.ToCombatantStats();
             return new BattleActorDefinition(
                 actorId,
                 teamId,
                 startPosition,
                 archetype.StartHitPoints,
-                archetype.StartMovementPoints);
+                archetype.StartMovementPoints,
+                stats.Rapidity);
         }
 
         public static IReadOnlyList<BattleActorDefinition> BuildActorDefinitions(IReadOnlyList<BattleActorArchetypeBinding> bindings)
@@ -68,6 +70,7 @@ namespace PES.Presentation.Adapters
             }
 
             state.SetEntitySkillResource(actorId, archetype.StartSkillResource);
+            state.SetEntityRpgStats(actorId, archetype.ToCombatantStats());
         }
 
         public static void ApplyRuntimeResources(BattleState state, IReadOnlyList<BattleActorArchetypeBinding> bindings)

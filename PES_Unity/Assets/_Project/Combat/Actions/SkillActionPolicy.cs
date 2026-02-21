@@ -23,7 +23,9 @@ namespace PES.Combat.Actions
             int splashDamagePercent = 0,
             int periodicDamage = 0,
             int periodicDurationTurns = 0,
-            StatusEffectTickMoment periodicTickMoment = StatusEffectTickMoment.TurnStart)
+            StatusEffectTickMoment periodicTickMoment = StatusEffectTickMoment.TurnStart,
+            DamageElement damageElement = DamageElement.Elemental,
+            int baseCriticalChance = 5)
         {
             SkillId = skillId;
             MinRange = minRange;
@@ -39,6 +41,8 @@ namespace PES.Combat.Actions
             PeriodicDamage = periodicDamage;
             PeriodicDurationTurns = periodicDurationTurns;
             PeriodicTickMoment = periodicTickMoment;
+            DamageElement = damageElement;
+            BaseCriticalChance = baseCriticalChance;
         }
 
         public int SkillId { get; }
@@ -75,6 +79,10 @@ namespace PES.Combat.Actions
 
         public StatusEffectTickMoment PeriodicTickMoment { get; }
 
+        public DamageElement DamageElement { get; }
+
+        public int BaseCriticalChance { get; }
+
         public bool IsValid =>
             SkillId >= 0 &&
             MinRange >= 0 &&
@@ -88,6 +96,7 @@ namespace PES.Combat.Actions
             SplashRadiusXZ >= 0 &&
             SplashDamagePercent is >= 0 and <= 100 &&
             PeriodicDamage >= 0 &&
-            PeriodicDurationTurns >= 0;
+            PeriodicDurationTurns >= 0 &&
+            BaseCriticalChance is >= 0 and <= 100;
     }
 }
