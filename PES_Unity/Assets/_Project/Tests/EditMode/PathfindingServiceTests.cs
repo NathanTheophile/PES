@@ -23,7 +23,7 @@ namespace PES.Tests.EditMode
             Assert.That(found, Is.True);
             Assert.That(path[0], Is.EqualTo(from));
             Assert.That(path[path.Count - 1], Is.EqualTo(to));
-            Assert.That(path, Does.Not.Contain(new GridCoord3(1, 0, 0)));
+            Assert.That(path, Has.No.Member(new GridCoord3(1, 0, 0)));
         }
 
         [Test]
