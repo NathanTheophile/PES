@@ -18,7 +18,9 @@ namespace PES.Core.Simulation
         private readonly Dictionary<EntityId, int> _entityCurrentMovementPoints = new();
 
         private readonly Dictionary<EntityId, int> _entitySkillResources = new();
+        private readonly Dictionary<EntityStatKey, int> _entityStats = new();
         private readonly Dictionary<SkillCooldownKey, int> _skillCooldowns = new();
+        private readonly Dictionary<StatusEffectKey, StatusEffectState> _statusEffects = new();
 
         private readonly HashSet<Position3> _blockedPositions = new();
         private readonly Dictionary<Position3, int> _positionMovementCosts = new();
@@ -67,17 +69,75 @@ namespace PES.Core.Simulation
             return _entityHitPoints.TryGetValue(entityId, out hitPoints);
         }
 
-        public bool TryApplyDamage(EntityId entityId, int damage)
+        public bool TryApplyDamage(EntityId entityId, int damage, AttackElement attackElement = AttackElement.Physique)
         {
             if (!_entityHitPoints.TryGetValue(entityId, out var hp))
             {
                 return false;
             }
 
+            if (!CanReceiveDamage(entityId))
+            {
+                return false;
+            }
+
             var safeDamage = damage < 0 ? 0 : damage;
-            var next = hp - safeDamage;
+            var finalDamage = ApplyElementalWheelModifiers(entityId, safeDamage, attackElement);
+            var next = hp - finalDamage;
             _entityHitPoints[entityId] = next < 0 ? 0 : next;
             return true;
+        }
+
+        private int ApplyElementalWheelModifiers(EntityId entityId, int baseDamage, AttackElement attackElement)
+        {
+            if (baseDamage <= 0 || attackElement == AttackElement.None)
+            {
+                return 0;
+            }
+
+            var defenderElement = GetEntityAffinityElement(entityId);
+            if (!IsElementWeakAgainst(defenderElement, attackElement))
+            {
+                return baseDamage;
+            }
+
+            var amplified = baseDamage + ((baseDamage * 25) / 100);
+            return amplified < 0 ? 0 : amplified;
+        }
+
+        private AttackElement GetEntityAffinityElement(EntityId entityId)
+        {
+            if (!TryGetEntityStat(entityId, EntityStatType.AffinityElement, out var affinityRaw))
+            {
+                return AttackElement.None;
+            }
+
+            var affinity = (AttackElement)affinityRaw;
+            return affinity;
+        }
+
+        private static bool IsElementWeakAgainst(AttackElement defenderElement, AttackElement attackElement)
+        {
+            return defenderElement switch
+            {
+                AttackElement.Physique => attackElement == AttackElement.Contondante,
+                AttackElement.Contondante => attackElement == AttackElement.Elementaire,
+                AttackElement.Elementaire => attackElement == AttackElement.Speciale,
+                AttackElement.Speciale => attackElement == AttackElement.Spirituelle,
+                AttackElement.Spirituelle => attackElement == AttackElement.Physique,
+                _ => false,
+            };
+        }
+
+        private bool CanReceiveDamage(EntityId entityId)
+        {
+            var invulnerableTurns = GetStatusEffectRemaining(entityId, StatusEffectType.Invulnerable);
+            if (invulnerableTurns <= 0)
+            {
+                return true;
+            }
+
+            return GetStatusEffectRemaining(entityId, StatusEffectType.Vulnerable) > 0;
         }
 
         /// <summary>
@@ -167,6 +227,39 @@ namespace PES.Core.Simulation
             return true;
         }
 
+        public void SetEntityStat(EntityId entityId, EntityStatType statType, int value)
+        {
+            _entityStats[new EntityStatKey(entityId, statType)] = value;
+        }
+
+        public bool TryGetEntityStat(EntityId entityId, EntityStatType statType, out int value)
+        {
+            return _entityStats.TryGetValue(new EntityStatKey(entityId, statType), out value);
+        }
+
+        public void SetEntityStats(EntityId entityId, EntityStatBlock statBlock)
+        {
+            SetEntityStat(entityId, EntityStatType.ActionPoints, statBlock.ActionPoints);
+            SetEntityStat(entityId, EntityStatType.MovementPoints, statBlock.MovementPoints);
+            SetEntityStat(entityId, EntityStatType.Range, statBlock.Range);
+            SetEntityStat(entityId, EntityStatType.Elevation, statBlock.Elevation);
+            SetEntityStat(entityId, EntityStatType.SummonSlots, statBlock.SummonSlots);
+            SetEntityStat(entityId, EntityStatType.HitPoints, statBlock.HitPoints);
+            SetEntityStat(entityId, EntityStatType.Diligence, statBlock.Diligence);
+            SetEntityStat(entityId, EntityStatType.Quickness, statBlock.Quickness);
+            SetEntityStat(entityId, EntityStatType.AffinityElement, (int)statBlock.AffinityElement);
+            SetEntityStat(entityId, EntityStatType.MasteryContondante, statBlock.MasteryContondante);
+            SetEntityStat(entityId, EntityStatType.MasteryPhysique, statBlock.MasteryPhysique);
+            SetEntityStat(entityId, EntityStatType.MasteryElementaire, statBlock.MasteryElementaire);
+            SetEntityStat(entityId, EntityStatType.MasterySpeciale, statBlock.MasterySpeciale);
+            SetEntityStat(entityId, EntityStatType.MasterySpirituelle, statBlock.MasterySpirituelle);
+            SetEntityStat(entityId, EntityStatType.CriticalChancePercent, statBlock.CriticalChancePercent);
+            SetEntityStat(entityId, EntityStatType.CriticalDamagePercent, statBlock.CriticalDamagePercent);
+            SetEntityStat(entityId, EntityStatType.ResistancePercent, statBlock.ResistancePercent);
+            SetEntityStat(entityId, EntityStatType.SpecialResistancePercent, statBlock.SpecialResistancePercent);
+            SetEntityStat(entityId, EntityStatType.CriticalResistancePercent, statBlock.CriticalResistancePercent);
+        }
+
         public void TickDownSkillCooldowns(EntityId entityId, int turns = 1)
         {
             var safeTurns = turns < 0 ? 0 : turns;
@@ -217,6 +310,83 @@ namespace PES.Core.Simulation
         {
             var key = new SkillCooldownKey(entityId, skillId);
             return _skillCooldowns.TryGetValue(key, out var remaining) ? remaining : 0;
+        }
+
+
+        public void SetStatusEffect(
+            EntityId entityId,
+            StatusEffectType effectType,
+            int remainingTurns,
+            int potency = 0,
+            StatusEffectTickMoment tickMoment = StatusEffectTickMoment.TurnStart)
+        {
+            var key = new StatusEffectKey(entityId, effectType);
+            var safeTurns = remainingTurns < 0 ? 0 : remainingTurns;
+            if (safeTurns == 0)
+            {
+                _statusEffects.Remove(key);
+                return;
+            }
+
+            var safePotency = potency < 0 ? 0 : potency;
+            _statusEffects[key] = new StatusEffectState(safeTurns, safePotency, tickMoment);
+        }
+
+        public int GetStatusEffectRemaining(EntityId entityId, StatusEffectType effectType)
+        {
+            var key = new StatusEffectKey(entityId, effectType);
+            return _statusEffects.TryGetValue(key, out var state) ? state.RemainingTurns : 0;
+        }
+
+        public int TickStatusEffects(EntityId entityId, StatusEffectTickMoment tickMoment, int turns = 1)
+        {
+            var safeTurns = turns < 0 ? 0 : turns;
+            if (safeTurns == 0 || _statusEffects.Count == 0)
+            {
+                return 0;
+            }
+
+            var keys = new List<StatusEffectKey>();
+            foreach (var pair in _statusEffects)
+            {
+                if (!pair.Key.EntityId.Equals(entityId))
+                {
+                    continue;
+                }
+
+                keys.Add(pair.Key);
+            }
+
+            var totalPeriodicDamage = 0;
+            for (var i = 0; i < keys.Count; i++)
+            {
+                var key = keys[i];
+                var state = _statusEffects[key];
+
+                if (state.TickMoment == tickMoment &&
+                    key.EffectType == StatusEffectType.Poison &&
+                    state.Potency > 0 &&
+                    TryApplyDamage(entityId, state.Potency))
+                {
+                    totalPeriodicDamage += state.Potency;
+                }
+
+                if (state.TickMoment != tickMoment)
+                {
+                    continue;
+                }
+
+                var nextTurns = state.RemainingTurns - safeTurns;
+                if (nextTurns <= 0)
+                {
+                    _statusEffects.Remove(key);
+                    continue;
+                }
+
+                _statusEffects[key] = new StatusEffectState(nextTurns, state.Potency, state.TickMoment);
+            }
+
+            return totalPeriodicDamage;
         }
 
         public bool TryMoveEntity(EntityId entityId, Position3 expectedOrigin, Position3 destination)
@@ -315,6 +485,13 @@ namespace PES.Core.Simulation
                 skillResources[index++] = new EntitySkillResourceSnapshot(pair.Key, pair.Value);
             }
 
+            var entityStats = new EntityStatSnapshot[_entityStats.Count];
+            index = 0;
+            foreach (var pair in _entityStats)
+            {
+                entityStats[index++] = new EntityStatSnapshot(pair.Key.EntityId, pair.Key.StatType, pair.Value);
+            }
+
             var skillCooldowns = new SkillCooldownSnapshot[_skillCooldowns.Count];
             index = 0;
             foreach (var pair in _skillCooldowns)
@@ -322,7 +499,14 @@ namespace PES.Core.Simulation
                 skillCooldowns[index++] = new SkillCooldownSnapshot(pair.Key.EntityId, pair.Key.SkillId, pair.Value);
             }
 
-            return new BattleStateSnapshot(Tick, positions, hitPoints, movementPoints, skillResources, skillCooldowns);
+            var statusEffects = new StatusEffectSnapshot[_statusEffects.Count];
+            index = 0;
+            foreach (var pair in _statusEffects)
+            {
+                statusEffects[index++] = new StatusEffectSnapshot(pair.Key.EntityId, pair.Key.EffectType, pair.Value.RemainingTurns, pair.Value.Potency, pair.Value.TickMoment);
+            }
+
+            return new BattleStateSnapshot(Tick, positions, hitPoints, movementPoints, skillResources, skillCooldowns, statusEffects, entityStats);
         }
 
         public void ApplySnapshot(BattleStateSnapshot snapshot)
@@ -359,6 +543,18 @@ namespace PES.Core.Simulation
                 _skillCooldowns[new SkillCooldownKey(row.EntityId, row.SkillId)] = row.RemainingTurns;
             }
 
+            _statusEffects.Clear();
+            foreach (var row in snapshot.StatusEffects)
+            {
+                _statusEffects[new StatusEffectKey(row.EntityId, row.EffectType)] = new StatusEffectState(row.RemainingTurns, row.Potency, row.TickMoment);
+            }
+
+            _entityStats.Clear();
+            foreach (var row in snapshot.EntityStats)
+            {
+                _entityStats[new EntityStatKey(row.EntityId, row.StatType)] = row.Value;
+            }
+
             Tick = snapshot.Tick;
         }
     }
@@ -371,7 +567,9 @@ namespace PES.Core.Simulation
             EntityHitPointSnapshot[] entityHitPoints,
             EntityMovementPointSnapshot[] entityMovementPoints = null,
             EntitySkillResourceSnapshot[] entitySkillResources = null,
-            SkillCooldownSnapshot[] skillCooldowns = null)
+            SkillCooldownSnapshot[] skillCooldowns = null,
+            StatusEffectSnapshot[] statusEffects = null,
+            EntityStatSnapshot[] entityStats = null)
         {
             Tick = tick;
             EntityPositions = entityPositions;
@@ -379,6 +577,8 @@ namespace PES.Core.Simulation
             EntityMovementPoints = entityMovementPoints ?? new EntityMovementPointSnapshot[0];
             EntitySkillResources = entitySkillResources ?? new EntitySkillResourceSnapshot[0];
             SkillCooldowns = skillCooldowns ?? new SkillCooldownSnapshot[0];
+            StatusEffects = statusEffects ?? new StatusEffectSnapshot[0];
+            EntityStats = entityStats ?? new EntityStatSnapshot[0];
         }
 
         public int Tick { get; }
@@ -392,6 +592,138 @@ namespace PES.Core.Simulation
         public IReadOnlyList<EntitySkillResourceSnapshot> EntitySkillResources { get; }
 
         public IReadOnlyList<SkillCooldownSnapshot> SkillCooldowns { get; }
+
+        public IReadOnlyList<StatusEffectSnapshot> StatusEffects { get; }
+
+        public IReadOnlyList<EntityStatSnapshot> EntityStats { get; }
+    }
+
+    public readonly struct EntityStatSnapshot
+    {
+        public EntityStatSnapshot(EntityId entityId, EntityStatType statType, int value)
+        {
+            EntityId = entityId;
+            StatType = statType;
+            Value = value;
+        }
+
+        public EntityId EntityId { get; }
+
+        public EntityStatType StatType { get; }
+
+        public int Value { get; }
+    }
+
+    public readonly struct EntityStatKey
+    {
+        public EntityStatKey(EntityId entityId, EntityStatType statType)
+        {
+            EntityId = entityId;
+            StatType = statType;
+        }
+
+        public EntityId EntityId { get; }
+
+        public EntityStatType StatType { get; }
+    }
+
+    public readonly struct EntityStatBlock
+    {
+        public EntityStatBlock(
+            int actionPoints,
+            int movementPoints,
+            int range,
+            int elevation,
+            int summonSlots,
+            int hitPoints,
+            int diligence,
+            int quickness,
+            AttackElement affinityElement,
+            int masteryContondante,
+            int masteryPhysique,
+            int masteryElementaire,
+            int masterySpeciale,
+            int masterySpirituelle,
+            int criticalChancePercent,
+            int criticalDamagePercent,
+            int resistancePercent,
+            int specialResistancePercent,
+            int criticalResistancePercent)
+        {
+            ActionPoints = actionPoints;
+            MovementPoints = movementPoints;
+            Range = range;
+            Elevation = elevation;
+            SummonSlots = summonSlots;
+            HitPoints = hitPoints;
+            Diligence = diligence;
+            Quickness = quickness;
+            AffinityElement = affinityElement;
+            MasteryContondante = masteryContondante;
+            MasteryPhysique = masteryPhysique;
+            MasteryElementaire = masteryElementaire;
+            MasterySpeciale = masterySpeciale;
+            MasterySpirituelle = masterySpirituelle;
+            CriticalChancePercent = criticalChancePercent;
+            CriticalDamagePercent = criticalDamagePercent;
+            ResistancePercent = resistancePercent;
+            SpecialResistancePercent = specialResistancePercent;
+            CriticalResistancePercent = criticalResistancePercent;
+        }
+
+        public int ActionPoints { get; }
+        public int MovementPoints { get; }
+        public int Range { get; }
+        public int Elevation { get; }
+        public int SummonSlots { get; }
+        public int HitPoints { get; }
+        public int Diligence { get; }
+        public int Quickness { get; }
+        public AttackElement AffinityElement { get; }
+        public int MasteryContondante { get; }
+        public int MasteryPhysique { get; }
+        public int MasteryElementaire { get; }
+        public int MasterySpeciale { get; }
+        public int MasterySpirituelle { get; }
+        public int CriticalChancePercent { get; }
+        public int CriticalDamagePercent { get; }
+        public int ResistancePercent { get; }
+        public int SpecialResistancePercent { get; }
+        public int CriticalResistancePercent { get; }
+    }
+
+    public enum EntityStatType
+    {
+        None = 0,
+        ActionPoints = 1,
+        MovementPoints = 2,
+        Range = 3,
+        Elevation = 4,
+        SummonSlots = 5,
+        HitPoints = 6,
+        Diligence = 7,
+        Quickness = 8,
+        AffinityElement = 9,
+        MasteryContondante = 10,
+        MasteryPhysique = 11,
+        MasteryElementaire = 12,
+        MasterySpeciale = 13,
+        MasterySpirituelle = 14,
+        CriticalChancePercent = 15,
+        CriticalDamagePercent = 16,
+        ResistancePercent = 17,
+        SpecialResistancePercent = 18,
+        CriticalResistancePercent = 19,
+    }
+
+    public enum AttackElement
+    {
+        None = 0,
+        Contondante = 1,
+        Physique = 2,
+        Elementaire = 3,
+        Speciale = 4,
+        Spirituelle = 5,
     }
 
     public readonly struct EntityPositionSnapshot
@@ -476,6 +808,72 @@ namespace PES.Core.Simulation
         public EntityId EntityId { get; }
 
         public int SkillId { get; }
+    }
+
+
+    public enum StatusEffectType
+    {
+        None = 0,
+        Poison = 1,
+        Vulnerable = 2,
+        Invulnerable = 3,
+    }
+
+    public enum StatusEffectTickMoment
+    {
+        TurnStart = 0,
+        TurnEnd = 1,
+    }
+
+    public readonly struct StatusEffectSnapshot
+    {
+        public StatusEffectSnapshot(EntityId entityId, StatusEffectType effectType, int remainingTurns, int potency, StatusEffectTickMoment tickMoment)
+        {
+            EntityId = entityId;
+            EffectType = effectType;
+            RemainingTurns = remainingTurns;
+            Potency = potency;
+            TickMoment = tickMoment;
+        }
+
+        public EntityId EntityId { get; }
+
+        public StatusEffectType EffectType { get; }
+
+        public int RemainingTurns { get; }
+
+        public int Potency { get; }
+
+        public StatusEffectTickMoment TickMoment { get; }
+    }
+
+    public readonly struct StatusEffectKey
+    {
+        public StatusEffectKey(EntityId entityId, StatusEffectType effectType)
+        {
+            EntityId = entityId;
+            EffectType = effectType;
+        }
+
+        public EntityId EntityId { get; }
+
+        public StatusEffectType EffectType { get; }
+    }
+
+    public readonly struct StatusEffectState
+    {
+        public StatusEffectState(int remainingTurns, int potency, StatusEffectTickMoment tickMoment)
+        {
+            RemainingTurns = remainingTurns;
+            Potency = potency;
+            TickMoment = tickMoment;
+        }
+
+        public int RemainingTurns { get; }
+
+        public int Potency { get; }
+
+        public StatusEffectTickMoment TickMoment { get; }
     }
 
     public readonly struct Position3

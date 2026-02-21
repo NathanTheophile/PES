@@ -21,6 +21,10 @@ namespace PES.Presentation.Scene
         private GameObject _unitBView;
         [SerializeField] private CombatRuntimeConfigAsset _runtimeConfig;
 
+        [Header("Authoring (optional)")]
+        [SerializeField] private EntityArchetypeAsset _unitAArchetype;
+        [SerializeField] private EntityArchetypeAsset _unitBArchetype;
+
         [Header("Camera (Ankama-like Isometric)")]
         [SerializeField] private bool _autoSetupIsometricCamera = true;
         [SerializeField] private float _cameraTiltX = 35f;
@@ -46,6 +50,7 @@ namespace PES.Presentation.Scene
 
         private ActionResolution _lastResult;
         private MouseIntentMode _mouseIntentMode = MouseIntentMode.Move;
+        private int _selectedSkillSlot;
 
         private void Start()
         {
@@ -53,14 +58,23 @@ namespace PES.Presentation.Scene
             _effectiveMovePolicy = runtimePolicies.MovePolicyOverride
                 ?? new MoveActionPolicy(maxMovementCostPerAction: 6, maxVerticalStepPerTile: 1);
 
+            var actorBindings = BuildActorBindingsFromArchetypes();
+            var actorDefinitions = EntityArchetypeRuntimeAdapter.BuildActorDefinitions(actorBindings);
+            var skillLoadoutMap = EntityArchetypeRuntimeAdapter.BuildSkillLoadoutMap(actorBindings);
+
             _battleLoop = new VerticalSliceBattleLoop(
                 movePolicyOverride: _effectiveMovePolicy,
-                basicAttackPolicyOverride: runtimePolicies.BasicAttackPolicyOverride);
+                basicAttackPolicyOverride: runtimePolicies.BasicAttackPolicyOverride,
+                actorDefinitions: actorDefinitions);
+
+            EntityArchetypeRuntimeAdapter.ApplyRuntimeResources(_battleLoop.State, actorBindings);
+
             _planner = new VerticalSliceCommandPlanner(
                 _battleLoop.State,
                 _effectiveMovePolicy,
                 runtimePolicies.BasicAttackPolicyOverride,
-                runtimePolicies.SkillPolicyOverride);
+                runtimePolicies.SkillPolicyOverride,
+                skillLoadoutMap);
 
             BuildSteppedMap();
             EnsureAnkamaLikeCamera();
@@ -122,23 +136,27 @@ namespace PES.Presentation.Scene
             var selected = _planner.HasActorSelection ? _planner.SelectedActorId.ToString() : "None";
             var planned = _planner.PlannedLabel;
 
-            var panel = new Rect(12f, 12f, 760f, 250f);
+            var panel = new Rect(12f, 12f, 760f, 300f);
             GUI.Box(panel, "Vertical Slice");
             GUI.Label(new Rect(24f, 38f, 740f, 20f), $"Tick: {_battleLoop.State.Tick} | Round: {_battleLoop.CurrentRound}");
             GUI.Label(new Rect(24f, 58f, 740f, 20f), $"Actor: {_battleLoop.PeekCurrentActorLabel()} | Next: {_battleLoop.PeekNextStepLabel()} | AP:{_battleLoop.RemainingActions} | PM:{_battleLoop.CurrentActorMovementPoints} | Timer:{_battleLoop.RemainingTurnSeconds:0.0}s");
             GUI.Label(new Rect(24f, 78f, 740f, 20f), $"HP UnitA: {hpA} | HP UnitB: {hpB}");
-            GUI.Label(new Rect(24f, 98f, 740f, 20f), $"Selected: {selected} | Planned: {planned} | MouseMode: {_mouseIntentMode}");
+            var availableSkills = _planner.HasActorSelection ? _planner.GetAvailableSkillCount(_planner.SelectedActorId) : 0;
+            var selectedSkillLabel = GetSelectedSkillLabel();
+            GUI.Label(new Rect(24f, 98f, 740f, 20f), $"Selected: {selected} | Planned: {planned} | MouseMode: {_mouseIntentMode} | SkillSlot:{_selectedSkillSlot + 1}/{(availableSkills > 0 ? availableSkills : 0)} ({selectedSkillLabel})");
             GUI.Label(new Rect(24f, 118f, 740f, 20f), $"Last: {_lastResult.Code} / {_lastResult.FailureReason}");
-            GUI.Label(new Rect(24f, 138f, 740f, 20f), _battleLoop.IsBattleOver ? $"Winner Team: {_battleLoop.WinnerTeamId}" : "Mouse: left click world/unit. Keys: 1/2 select, M/A/S mode, P pass, SPACE execute.");
+            GUI.Label(new Rect(24f, 138f, 740f, 20f), _battleLoop.IsBattleOver ? $"Winner Team: {_battleLoop.WinnerTeamId}" : "Mouse: left click world/unit. Keys: 1/2 select, M/A/S mode, Q/E skill slot, P pass, SPACE execute.");
 
             if (GUI.Button(new Rect(24f, 166f, 90f, 28f), "Select A"))
             {
                 _planner.SelectActor(VerticalSliceBattleLoop.UnitA);
+                SyncSelectedSkillSlot();
             }
 
             if (GUI.Button(new Rect(120f, 166f, 90f, 28f), "Select B"))
             {
                 _planner.SelectActor(VerticalSliceBattleLoop.UnitB);
+                SyncSelectedSkillSlot();
             }
 
             if (GUI.Button(new Rect(230f, 166f, 90f, 28f), "Move"))
@@ -151,7 +169,7 @@ namespace PES.Presentation.Scene
                 _mouseIntentMode = MouseIntentMode.Attack;
             }
 
-            if (GUI.Button(new Rect(422f, 166f, 90f, 28f), "MonoSpell"))
+            if (GUI.Button(new Rect(422f, 166f, 90f, 28f), "Skill"))
             {
                 _mouseIntentMode = MouseIntentMode.Skill;
             }
@@ -166,7 +184,63 @@ namespace PES.Presentation.Scene
                 TryPassTurn();
             }
 
-            GUI.Label(new Rect(24f, 204f, 740f, 30f), "Bleu = déplacements possibles. Survol d'une case bleue en mode Move => aperçu du chemin blanc.");
+            DrawSkillKitButtons();
+            GUI.Label(new Rect(24f, 252f, 740f, 30f), "Bleu = déplacements possibles. Survol d'une case bleue en mode Move => aperçu du chemin blanc.");
+        }
+
+        private void DrawSkillKitButtons()
+        {
+            if (!_planner.HasActorSelection)
+            {
+                GUI.Label(new Rect(24f, 204f, 740f, 20f), "Skills: select an actor to inspect skill kit.");
+                return;
+            }
+
+            var actorId = _planner.SelectedActorId;
+            var skillCount = _planner.GetAvailableSkillCount(actorId);
+            if (skillCount <= 0)
+            {
+                GUI.Label(new Rect(24f, 204f, 740f, 20f), $"Skills: {actorId} has no configured skills.");
+                return;
+            }
+
+            GUI.Label(new Rect(24f, 204f, 740f, 20f), $"Skills for {actorId}: click to select active slot.");
+
+            const float startX = 24f;
+            const float startY = 224f;
+            const float width = 170f;
+            const float height = 24f;
+            const float spacing = 8f;
+
+            for (var slot = 0; slot < skillCount; slot++)
+            {
+                var x = startX + (slot * (width + spacing));
+                var label = GetSkillButtonLabel(actorId, slot);
+                if (_selectedSkillSlot == slot)
+                {
+                    label = $"> {label}";
+                }
+
+                if (GUI.Button(new Rect(x, startY, width, height), label))
+                {
+                    _selectedSkillSlot = slot;
+                    _mouseIntentMode = MouseIntentMode.Skill;
+                }
+            }
+        }
+
+        private string GetSkillButtonLabel(EntityId actorId, int slot)
+        {
+            if (!_planner.TryGetSkillPolicy(actorId, slot, out var policy))
+            {
+                return $"Skill {slot + 1}: n/a";
+            }
+
+            var cooldown = _battleLoop.State.GetSkillCooldown(actorId, policy.SkillId);
+            var resource = _battleLoop.State.TryGetEntitySkillResource(actorId, out var value) ? value : 0;
+            var ready = cooldown <= 0 && resource >= policy.ResourceCost;
+            var readyTag = ready ? "Ready" : $"CD:{cooldown} RES:{resource}/{policy.ResourceCost}";
+            return $"S{slot + 1} [Id:{policy.SkillId}] {readyTag}";
         }
 
         private void ProcessSelectionInputs()
@@ -174,11 +248,13 @@ namespace PES.Presentation.Scene
             if (Input.GetKeyDown(KeyCode.Alpha1))
             {
                 _planner.SelectActor(VerticalSliceBattleLoop.UnitA);
+                SyncSelectedSkillSlot();
             }
 
             if (Input.GetKeyDown(KeyCode.Alpha2))
             {
                 _planner.SelectActor(VerticalSliceBattleLoop.UnitB);
+                SyncSelectedSkillSlot();
             }
         }
 
@@ -213,7 +289,36 @@ namespace PES.Presentation.Scene
                 var target = _planner.SelectedActorId.Equals(VerticalSliceBattleLoop.UnitA)
                     ? VerticalSliceBattleLoop.UnitB
                     : VerticalSliceBattleLoop.UnitA;
-                _planner.PlanSkill(target);
+                if (!TryPlanSkill(target))
+                {
+                    return;
+                }
+            }
+
+            if (Input.GetKeyDown(KeyCode.Q))
+            {
+                var availableSkills = _planner.GetAvailableSkillCount(_planner.SelectedActorId);
+                if (availableSkills <= 0)
+                {
+                    _selectedSkillSlot = 0;
+                }
+                else
+                {
+                    _selectedSkillSlot = _selectedSkillSlot > 0 ? _selectedSkillSlot - 1 : availableSkills - 1;
+                }
+            }
+
+            if (Input.GetKeyDown(KeyCode.E))
+            {
+                var availableSkills = _planner.GetAvailableSkillCount(_planner.SelectedActorId);
+                if (availableSkills <= 0)
+                {
+                    _selectedSkillSlot = 0;
+                }
+                else
+                {
+                    _selectedSkillSlot = (_selectedSkillSlot + 1) % availableSkills;
+                }
             }
 
             if (Input.GetKeyDown(KeyCode.P))
@@ -277,7 +382,11 @@ namespace PES.Presentation.Scene
             }
             else if (_mouseIntentMode == MouseIntentMode.Skill)
             {
-                _planner.PlanSkill(clickedActor);
+                if (!TryPlanSkill(clickedActor))
+                {
+                    return;
+                }
+
                 TryExecutePlanned();
             }
         }
@@ -722,6 +831,85 @@ namespace PES.Presentation.Scene
             var y = Mathf.RoundToInt(world.z);
             var z = Mathf.RoundToInt(world.y);
             return new GridCoord3(x, y, z);
+        }
+
+
+        private bool TryPlanSkill(EntityId targetId)
+        {
+            if (!_planner.HasActorSelection)
+            {
+                return false;
+            }
+
+            if (!_planner.TryGetSkillPolicy(_planner.SelectedActorId, _selectedSkillSlot, out var policy))
+            {
+                _lastResult = new ActionResolution(
+                    false,
+                    ActionResolutionCode.Rejected,
+                    $"SkillSelectionRejected: no skill in slot {_selectedSkillSlot + 1} for {_planner.SelectedActorId}",
+                    ActionFailureReason.InvalidPolicy);
+                return false;
+            }
+
+            _planner.PlanSkill(targetId, _selectedSkillSlot);
+            _lastResult = new ActionResolution(
+                true,
+                ActionResolutionCode.Succeeded,
+                $"SkillSelected: {_planner.SelectedActorId} slot:{_selectedSkillSlot + 1} skill:{policy.SkillId}");
+            return true;
+        }
+
+        private string GetSelectedSkillLabel()
+        {
+            if (_planner == null || !_planner.HasActorSelection)
+            {
+                return "n/a";
+            }
+
+            if (!_planner.TryGetSkillPolicy(_planner.SelectedActorId, _selectedSkillSlot, out var policy))
+            {
+                return "none";
+            }
+
+            return $"SkillId:{policy.SkillId}";
+        }
+
+        private void SyncSelectedSkillSlot()
+        {
+            if (_planner == null || !_planner.HasActorSelection)
+            {
+                _selectedSkillSlot = 0;
+                return;
+            }
+
+            var availableSkills = _planner.GetAvailableSkillCount(_planner.SelectedActorId);
+            if (availableSkills <= 0)
+            {
+                _selectedSkillSlot = 0;
+                return;
+            }
+
+            if (_selectedSkillSlot < 0 || _selectedSkillSlot >= availableSkills)
+            {
+                _selectedSkillSlot = 0;
+            }
+        }
+
+        private IReadOnlyList<BattleActorArchetypeBinding> BuildActorBindingsFromArchetypes()
+        {
+            return new[]
+            {
+                new BattleActorArchetypeBinding(
+                    VerticalSliceBattleLoop.UnitA,
+                    teamId: 1,
+                    startPosition: new Position3(0, 0, 0),
+                    archetype: _unitAArchetype),
+                new BattleActorArchetypeBinding(
+                    VerticalSliceBattleLoop.UnitB,
+                    teamId: 2,
+                    startPosition: new Position3(2, 0, 1),
+                    archetype: _unitBArchetype),
+            };
         }
 
         private enum MouseIntentMode
