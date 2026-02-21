@@ -17,6 +17,7 @@ namespace PES.Presentation.Scene
             Action setAttackMode,
             Action setSkillMode,
             Action executePlanned,
+            Action cancelPlanned,
             Action passTurn,
             Action drawSkillKitButtons,
             Action drawLegendLabel,
@@ -38,7 +39,7 @@ namespace PES.Presentation.Scene
             GUI.Label(new Rect(24f, 78f, 740f, 20f), $"HP UnitA: {hpA} | HP UnitB: {hpB}");
             GUI.Label(new Rect(24f, 98f, 740f, 20f), $"Selected: {selected} | Planned: {planned} | MouseMode: {mouseIntentMode} | SkillSlot:{selectedSkillSlot + 1}/{(availableSkills > 0 ? availableSkills : 0)} ({getSelectedSkillLabel()})");
             GUI.Label(new Rect(24f, 118f, 740f, 20f), $"Last action: {getActionFeedbackLabel()}");
-            GUI.Label(new Rect(24f, 138f, 740f, 20f), battleLoop.IsBattleOver ? $"Winner Team: {battleLoop.WinnerTeamId}" : "Mouse: left click world/unit. Keys: 1/2 select, M/A/S mode, Q/E skill slot, P pass, SPACE execute.");
+            GUI.Label(new Rect(24f, 138f, 740f, 20f), battleLoop.IsBattleOver ? $"Winner Team: {battleLoop.WinnerTeamId}" : "Mouse: left click world/unit. Keys: 1/2 select, M/A/S mode, Q/E skill slot, ESC cancel, P pass, SPACE execute.");
 
             if (GUI.Button(new Rect(24f, 166f, 90f, 28f), "Select A")) selectUnitA();
             if (GUI.Button(new Rect(120f, 166f, 90f, 28f), "Select B")) selectUnitB();
@@ -46,7 +47,8 @@ namespace PES.Presentation.Scene
             if (GUI.Button(new Rect(326f, 166f, 90f, 28f), "Attack")) setAttackMode();
             if (GUI.Button(new Rect(422f, 166f, 90f, 28f), "Skill")) setSkillMode();
             if (GUI.Button(new Rect(518f, 166f, 90f, 28f), "Execute")) executePlanned();
-            if (GUI.Button(new Rect(614f, 166f, 90f, 28f), "Pass Turn")) passTurn();
+            if (GUI.Button(new Rect(614f, 166f, 90f, 28f), "Cancel")) cancelPlanned();
+            if (GUI.Button(new Rect(24f, 198f, 90f, 28f), "Pass Turn")) passTurn();
 
             drawSkillKitButtons();
             GUI.Label(new Rect(24f, 282f, 740f, 20f), $"Skill tooltip: {getSelectedSkillTooltip()}");

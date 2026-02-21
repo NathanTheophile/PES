@@ -95,6 +95,7 @@ namespace PES.Presentation.Scene
                 TryFindAdjacentMoveDestinationAndPlan,
                 PlanAttackToOtherActor,
                 TryPlanSkill,
+                CancelPlannedAction,
                 TryPassTurn);
 
             var hasImmediateResult = _inputBinder.ProcessMouseInputs(
@@ -159,6 +160,7 @@ namespace PES.Presentation.Scene
                 () => _mouseIntentMode = VerticalSliceMouseIntentMode.Attack,
                 () => _mouseIntentMode = VerticalSliceMouseIntentMode.Skill,
                 TryExecutePlanned,
+                CancelPlannedAction,
                 TryPassTurn,
                 DrawSkillKitButtons,
                 DrawLegendLabel,
@@ -306,6 +308,18 @@ namespace PES.Presentation.Scene
                 ? VerticalSliceBattleLoop.UnitB
                 : VerticalSliceBattleLoop.UnitA;
             _planner.PlanAttack(target);
+        }
+
+        private void CancelPlannedAction()
+        {
+            if (!_planner.HasPlannedAction)
+            {
+                _lastResult = new ActionResolution(false, ActionResolutionCode.Rejected, "CancelIgnored: no planned action", ActionFailureReason.InvalidTargeting);
+                return;
+            }
+
+            _planner.ClearPlannedAction();
+            _lastResult = new ActionResolution(true, ActionResolutionCode.Succeeded, "PlanCancelled: cleared planned action");
         }
 
         private void TryPassTurn()
