@@ -8,7 +8,7 @@ namespace PES.Presentation.Scene
     {
         public void Draw(
             VerticalSliceBattleLoop battleLoop,
-            VerticalSliceCommandPlanner planner,
+            VerticalSliceCommandPlanner planhttps://github.com/NathanTheophile/PES/pull/100/conflict?name=PES_Unity%252FAssets%252F_Project%252FTests%252FEditMode%252FVerticalSliceCommandPlannerTests.cs&ancestor_oid=42e6785493c1d5f7ec4dae3377e15d7849df3a67&base_oid=4f960029a0c20ed913502d69ad67d54467023944&head_oid=e8b0dc7b78e7a32249fcb0ad0d60524a6a88dfaaner,
             VerticalSliceMouseIntentMode mouseIntentMode,
             int selectedSkillSlot,
             Action selectUnitA,
