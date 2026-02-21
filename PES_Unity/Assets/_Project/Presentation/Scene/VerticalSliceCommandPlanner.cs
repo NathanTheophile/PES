@@ -80,6 +80,21 @@ namespace PES.Presentation.Scene
         public bool HasPlannedAction => _plannedKind != PlannedActionKind.None;
 
 
+
+        public bool HasPlannedMove => _plannedKind == PlannedActionKind.Move;
+
+        public bool TryGetPlannedMoveDestination(out GridCoord3 destination)
+        {
+            if (_plannedKind == PlannedActionKind.Move)
+            {
+                destination = _plannedDestination;
+                return true;
+            }
+
+            destination = default;
+            return false;
+        }
+
         public bool HasPlannedSkill => _plannedKind == PlannedActionKind.Skill;
 
         public int PlannedSkillSlot => _plannedKind == PlannedActionKind.Skill ? _plannedSkillSlot : -1;

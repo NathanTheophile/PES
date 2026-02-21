@@ -249,5 +249,36 @@ namespace PES.Tests.EditMode
             Assert.That(target, Is.EqualTo(default(EntityId)));
         }
 
+
+
+        [Test]
+        public void PlannedMoveAccessors_WhenMovePlanned_ReturnDestination()
+        {
+            var planner = new VerticalSliceCommandPlanner(new BattleState());
+            planner.SelectActor(VerticalSliceBattleLoop.UnitA);
+            var destination = new GridCoord3(3, 0, 2);
+            planner.PlanMove(destination);
+
+            var hasDestination = planner.TryGetPlannedMoveDestination(out var resolvedDestination);
+
+            Assert.That(planner.HasPlannedMove, Is.True);
+            Assert.That(hasDestination, Is.True);
+            Assert.That(resolvedDestination, Is.EqualTo(destination));
+        }
+
+        [Test]
+        public void PlannedMoveAccessors_WhenNoMovePlanned_ReturnDefault()
+        {
+            var planner = new VerticalSliceCommandPlanner(new BattleState());
+            planner.SelectActor(VerticalSliceBattleLoop.UnitA);
+            planner.PlanAttack(VerticalSliceBattleLoop.UnitB);
+
+            var hasDestination = planner.TryGetPlannedMoveDestination(out var resolvedDestination);
+
+            Assert.That(planner.HasPlannedMove, Is.False);
+            Assert.That(hasDestination, Is.False);
+            Assert.That(resolvedDestination, Is.EqualTo(default(GridCoord3)));
+        }
+
     }
 }

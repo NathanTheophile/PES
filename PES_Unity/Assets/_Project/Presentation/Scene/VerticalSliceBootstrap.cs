@@ -230,30 +230,61 @@ namespace PES.Presentation.Scene
                 return "Aucune action planifiée";
             }
 
-            if (!_planner.HasPlannedSkill || !_planner.TryGetPlannedTarget(out var targetId))
+            if (_planner.HasPlannedMove && _planner.TryGetPlannedMoveDestination(out var destination))
+            {
+                if (!_battleLoop.State.TryGetEntityPosition(_planner.SelectedActorId, out var actorPosition))
+                {
+                    return $"Move preview: destination {destination}";
+                }
+
+                var moveCost =
+                    Mathf.Abs(destination.X - actorPosition.X) +
+                    Mathf.Abs(destination.Z - actorPosition.Z) +
+                    Mathf.Abs(destination.Y - actorPosition.Y);
+                var currentPm = _battleLoop.CurrentActorMovementPoints;
+                var projectedPm = currentPm - moveCost;
+                if (projectedPm < 0)
+                {
+                    projectedPm = 0;
+                }
+
+                return $"Move -> {destination} | coût~{moveCost} PM {currentPm}->{projectedPm}";
+            }
+
+            if (!_planner.TryGetPlannedTarget(out var targetId))
             {
                 return _planner.PlannedLabel;
             }
 
-            var actorId = _planner.SelectedActorId;
-            var skillSlot = _planner.PlannedSkillSlot;
-            if (!_planner.TryGetSkillPolicy(actorId, skillSlot, out var policy))
+            if (_planner.HasPlannedSkill)
             {
-                return "Skill preview indisponible (policy manquante)";
+                var actorId = _planner.SelectedActorId;
+                var skillSlot = _planner.PlannedSkillSlot;
+                if (!_planner.TryGetSkillPolicy(actorId, skillSlot, out var policy))
+                {
+                    return "Skill preview indisponible (policy manquante)";
+                }
+
+                if (!_battleLoop.State.TryGetEntityHitPoints(targetId, out var hp))
+                {
+                    return $"Skill preview: cible invalide {targetId}";
+                }
+
+                var projectedHp = hp - policy.BaseDamage;
+                if (projectedHp < 0)
+                {
+                    projectedHp = 0;
+                }
+
+                return $"Skill[{skillSlot}] dmg~{policy.BaseDamage}, hit {policy.BaseHitChance}% => HP cible {hp}->{projectedHp}";
             }
 
-            if (!_battleLoop.State.TryGetEntityHitPoints(targetId, out var hp))
+            if (!_battleLoop.State.TryGetEntityHitPoints(targetId, out var targetHp))
             {
-                return $"Skill preview: cible invalide {targetId}";
+                return $"Attack preview: cible invalide {targetId}";
             }
 
-            var projectedHp = hp - policy.BaseDamage;
-            if (projectedHp < 0)
-            {
-                projectedHp = 0;
-            }
-
-            return $"Skill[{skillSlot}] dmg~{policy.BaseDamage}, hit {policy.BaseHitChance}% => HP cible {hp}->{projectedHp}";
+            return $"Attack preview: cible {targetId} HP actuel {targetHp}";
         }
 
         private IReadOnlyList<string> GetRecentActionHistory()
