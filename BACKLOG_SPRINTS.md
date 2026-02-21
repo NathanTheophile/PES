@@ -63,7 +63,7 @@
 - [x] Uniformiser les feedbacks d'action rejetée (`OutOfRange`, `NoLineOfSight`, `NotEnoughResource`) entre domaine et HUD.
 - [x] Ajouter un pass animation/VFX placeholder branché sur les events domaine (sans coupler la logique métier à Unity).
 - [ ] Définir une "démo jouable" courte (1 map + 2 camps + 3-4 skills représentatifs) avec checklist de validation UX.
-- [ ] Couvrir ce milestone par un scénario replay déterministe golden-path (seed fixée + snapshot final attendu).
+- [x] Couvrir ce milestone par un scénario replay déterministe golden-path (seed fixée + snapshot final attendu).
 
 _Progression Sprint H en cours:_
 - ✅ Feedbacks visuels minimum viables validés sur le vertical slice (surbrillance cases atteignables, logs d'actions lisibles, previews move/attack/skill + markers shader d'intention + highlight de cible survolée en attack/skill).
