@@ -19,6 +19,7 @@ namespace PES.Core.Simulation
 
         private readonly Dictionary<EntityId, int> _entitySkillResources = new();
         private readonly Dictionary<SkillCooldownKey, int> _skillCooldowns = new();
+        private readonly Dictionary<StatusEffectKey, StatusEffectState> _statusEffects = new();
 
         private readonly HashSet<Position3> _blockedPositions = new();
         private readonly Dictionary<Position3, int> _positionMovementCosts = new();
@@ -219,6 +220,71 @@ namespace PES.Core.Simulation
             return _skillCooldowns.TryGetValue(key, out var remaining) ? remaining : 0;
         }
 
+
+        public void SetStatusEffect(EntityId entityId, StatusEffectType effectType, int remainingTurns, int potency = 0)
+        {
+            var key = new StatusEffectKey(entityId, effectType);
+            var safeTurns = remainingTurns < 0 ? 0 : remainingTurns;
+            if (safeTurns == 0)
+            {
+                _statusEffects.Remove(key);
+                return;
+            }
+
+            var safePotency = potency < 0 ? 0 : potency;
+            _statusEffects[key] = new StatusEffectState(safeTurns, safePotency);
+        }
+
+        public int GetStatusEffectRemaining(EntityId entityId, StatusEffectType effectType)
+        {
+            var key = new StatusEffectKey(entityId, effectType);
+            return _statusEffects.TryGetValue(key, out var state) ? state.RemainingTurns : 0;
+        }
+
+        public int TickStatusEffects(EntityId entityId, int turns = 1)
+        {
+            var safeTurns = turns < 0 ? 0 : turns;
+            if (safeTurns == 0 || _statusEffects.Count == 0)
+            {
+                return 0;
+            }
+
+            var keys = new List<StatusEffectKey>();
+            foreach (var pair in _statusEffects)
+            {
+                if (!pair.Key.EntityId.Equals(entityId))
+                {
+                    continue;
+                }
+
+                keys.Add(pair.Key);
+            }
+
+            var totalPeriodicDamage = 0;
+            for (var i = 0; i < keys.Count; i++)
+            {
+                var key = keys[i];
+                var state = _statusEffects[key];
+
+                if (key.EffectType == StatusEffectType.Poison && state.Potency > 0 &&
+                    TryApplyDamage(entityId, state.Potency))
+                {
+                    totalPeriodicDamage += state.Potency;
+                }
+
+                var nextTurns = state.RemainingTurns - safeTurns;
+                if (nextTurns <= 0)
+                {
+                    _statusEffects.Remove(key);
+                    continue;
+                }
+
+                _statusEffects[key] = new StatusEffectState(nextTurns, state.Potency);
+            }
+
+            return totalPeriodicDamage;
+        }
+
         public bool TryMoveEntity(EntityId entityId, Position3 expectedOrigin, Position3 destination)
         {
             if (!_entityPositions.TryGetValue(entityId, out var current) || !current.Equals(expectedOrigin))
@@ -322,7 +388,14 @@ namespace PES.Core.Simulation
                 skillCooldowns[index++] = new SkillCooldownSnapshot(pair.Key.EntityId, pair.Key.SkillId, pair.Value);
             }
 
-            return new BattleStateSnapshot(Tick, positions, hitPoints, movementPoints, skillResources, skillCooldowns);
+            var statusEffects = new StatusEffectSnapshot[_statusEffects.Count];
+            index = 0;
+            foreach (var pair in _statusEffects)
+            {
+                statusEffects[index++] = new StatusEffectSnapshot(pair.Key.EntityId, pair.Key.EffectType, pair.Value.RemainingTurns, pair.Value.Potency);
+            }
+
+            return new BattleStateSnapshot(Tick, positions, hitPoints, movementPoints, skillResources, skillCooldowns, statusEffects);
         }
 
         public void ApplySnapshot(BattleStateSnapshot snapshot)
@@ -359,6 +432,12 @@ namespace PES.Core.Simulation
                 _skillCooldowns[new SkillCooldownKey(row.EntityId, row.SkillId)] = row.RemainingTurns;
             }
 
+            _statusEffects.Clear();
+            foreach (var row in snapshot.StatusEffects)
+            {
+                _statusEffects[new StatusEffectKey(row.EntityId, row.EffectType)] = new StatusEffectState(row.RemainingTurns, row.Potency);
+            }
+
             Tick = snapshot.Tick;
         }
     }
@@ -371,7 +450,8 @@ namespace PES.Core.Simulation
             EntityHitPointSnapshot[] entityHitPoints,
             EntityMovementPointSnapshot[] entityMovementPoints = null,
             EntitySkillResourceSnapshot[] entitySkillResources = null,
-            SkillCooldownSnapshot[] skillCooldowns = null)
+            SkillCooldownSnapshot[] skillCooldowns = null,
+            StatusEffectSnapshot[] statusEffects = null)
         {
             Tick = tick;
             EntityPositions = entityPositions;
@@ -379,6 +459,7 @@ namespace PES.Core.Simulation
             EntityMovementPoints = entityMovementPoints ?? new EntityMovementPointSnapshot[0];
             EntitySkillResources = entitySkillResources ?? new EntitySkillResourceSnapshot[0];
             SkillCooldowns = skillCooldowns ?? new SkillCooldownSnapshot[0];
+            StatusEffects = statusEffects ?? new StatusEffectSnapshot[0];
         }
 
         public int Tick { get; }
@@ -392,6 +473,8 @@ namespace PES.Core.Simulation
         public IReadOnlyList<EntitySkillResourceSnapshot> EntitySkillResources { get; }
 
         public IReadOnlyList<SkillCooldownSnapshot> SkillCooldowns { get; }
+
+        public IReadOnlyList<StatusEffectSnapshot> StatusEffects { get; }
     }
 
     public readonly struct EntityPositionSnapshot
@@ -476,6 +559,58 @@ namespace PES.Core.Simulation
         public EntityId EntityId { get; }
 
         public int SkillId { get; }
+    }
+
+
+    public enum StatusEffectType
+    {
+        None = 0,
+        Poison = 1,
+    }
+
+    public readonly struct StatusEffectSnapshot
+    {
+        public StatusEffectSnapshot(EntityId entityId, StatusEffectType effectType, int remainingTurns, int potency)
+        {
+            EntityId = entityId;
+            EffectType = effectType;
+            RemainingTurns = remainingTurns;
+            Potency = potency;
+        }
+
+        public EntityId EntityId { get; }
+
+        public StatusEffectType EffectType { get; }
+
+        public int RemainingTurns { get; }
+
+        public int Potency { get; }
+    }
+
+    public readonly struct StatusEffectKey
+    {
+        public StatusEffectKey(EntityId entityId, StatusEffectType effectType)
+        {
+            EntityId = entityId;
+            EffectType = effectType;
+        }
+
+        public EntityId EntityId { get; }
+
+        public StatusEffectType EffectType { get; }
+    }
+
+    public readonly struct StatusEffectState
+    {
+        public StatusEffectState(int remainingTurns, int potency)
+        {
+            RemainingTurns = remainingTurns;
+            Potency = potency;
+        }
+
+        public int RemainingTurns { get; }
+
+        public int Potency { get; }
     }
 
     public readonly struct Position3

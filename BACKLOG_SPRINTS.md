@@ -50,3 +50,5 @@
 - [x] Ajouter un premier support AOE splash sur `CastSkillAction` avec tests EditMode.
 
 - [x] Démarrer une UI de sélection de skills (slots + état ready/cooldown/resource) dans le vertical slice.
+
+- [x] Amorcer le système d'états domaine (status effects + tick déterministe + snapshot).
