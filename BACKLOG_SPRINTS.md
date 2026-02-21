@@ -54,3 +54,21 @@
 - [x] Amorcer le système d'états domaine (status effects + tick déterministe + snapshot).
 - [x] Permettre le timing DoT configurable par sort (début vs fin de tour).
 - [x] Étendre `CastSkillAction` aux effets de statut configurables (cible + lanceur) via contrat domaine (buff/debuff).
+
+
+## Sprint H — Milestone "niveau jouable" (focus UX/gameplay)
+- [x] Finaliser la boucle joueur complète en combat: sélection unité ➜ move/attack/skill ➜ fin de tour explicite/auto sans blocage UX.
+- [x] Ajouter des feedbacks visuels minimum viables: surbrillance des cases ciblables, prévisualisation dégâts/état, logs de résolution lisibles.
+- [x] Stabiliser la UI skills en combat: tooltip (coût/portée/effets), états visuels cohérents (ready/cooldown/ressource insuffisante), annulation claire.
+- [x] Uniformiser les feedbacks d'action rejetée (`OutOfRange`, `NoLineOfSight`, `NotEnoughResource`) entre domaine et HUD.
+- [x] Ajouter un pass animation/VFX placeholder branché sur les events domaine (sans coupler la logique métier à Unity).
+- [ ] Définir une "démo jouable" courte (1 map + 2 camps + 3-4 skills représentatifs) avec checklist de validation UX.
+- [x] Couvrir ce milestone par un scénario replay déterministe golden-path (seed fixée + snapshot final attendu).
+
+_Progression Sprint H en cours:_
+- ✅ Feedbacks visuels minimum viables validés sur le vertical slice (surbrillance cases atteignables, logs d'actions lisibles, previews move/attack/skill + markers shader d'intention + highlight de cible survolée en attack/skill).
+
+## Sprint H.1 — Dé-risquage MMO (strict minimum)
+- [ ] Versionner le format des payloads de log d'actions (compat replay inter-build).
+- [ ] Poser un contrat de sérialisation stable pour snapshots de combat (identifiants, ordering, champs obligatoires).
+- [ ] Reporter explicitement tout chantier réseau/live-op non requis à post-milestone jouable.
