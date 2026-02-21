@@ -85,6 +85,7 @@ namespace PES.Presentation.Scene
             SyncUnitViews();
 
             _lastResult = new ActionResolution(true, ActionResolutionCode.Succeeded, "VerticalSlice ready");
+            EnsureSelectedActorIsCurrentTurnActor();
         }
 
         private void Update()
@@ -100,6 +101,8 @@ namespace PES.Presentation.Scene
                 _planner.ClearPlannedAction();
                 Debug.Log($"[VerticalSlice] {_lastResult.Description}");
             }
+
+            EnsureSelectedActorIsCurrentTurnActor();
 
             _inputBinder.ProcessSelectionInputs(_planner, SyncSelectedSkillSlot);
             _inputBinder.ProcessPlanningInputs(
@@ -154,24 +157,6 @@ namespace PES.Presentation.Scene
                 SyncUnitViews();
                 Debug.Log($"[VerticalSlice] {_lastResult.Description}");
             }
-        }
-
-        private void TryAutoPassTurnWhenNoActionsRemaining()
-        {
-            if (_battleLoop.IsBattleOver || _battleLoop.RemainingActions > 0 || _planner.HasPlannedAction)
-            {
-                return;
-            }
-
-            var actorId = _battleLoop.CurrentActorId;
-            if (!_battleLoop.TryPassTurn(actorId, out var passResult))
-            {
-                return;
-            }
-
-            _lastResult = passResult;
-            SyncUnitViews();
-            Debug.Log($"[VerticalSlice] AutoPass: {_lastResult.Description}");
         }
 
         private void OnGUI()
