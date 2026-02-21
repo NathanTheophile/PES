@@ -267,9 +267,8 @@ namespace PES.Presentation.Scene
 
             var cooldown = _battleLoop.State.GetSkillCooldown(actorId, policy.SkillId);
             var resource = _battleLoop.State.TryGetEntitySkillResource(actorId, out var value) ? value : 0;
-            var ready = cooldown <= 0 && resource >= policy.ResourceCost;
-            var readyTag = ready ? "Ready" : $"CD:{cooldown} RES:{resource}/{policy.ResourceCost}";
-            return $"S{slot + 1} [Id:{policy.SkillId}] {readyTag}";
+            var stateTag = ActionFeedbackFormatter.BuildSkillSlotStatusLabel(policy, cooldown, resource);
+            return $"S{slot + 1} [Id:{policy.SkillId}] {stateTag}";
         }
 
         private ActionResolution PlanAndTryMove(EntityId actorId, GridCoord3 destination)

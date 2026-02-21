@@ -74,5 +74,37 @@ namespace PES.Tests.EditMode
             Assert.That(line, Does.StartWith("[T7] ❌ Ligne de vue bloquée"));
             Assert.That(line, Does.Contain("BasicAttackRejected"));
         }
+
+
+        [Test]
+        public void BuildSkillSlotStatusLabel_WithCooldown_ReturnsCdTag()
+        {
+            var policy = new SkillActionPolicy(7, 1, 3, 9, 80, 2, 1, resourceCost: 2);
+
+            var tag = ActionFeedbackFormatter.BuildSkillSlotStatusLabel(policy, currentCooldown: 3, currentResource: 10);
+
+            Assert.That(tag, Is.EqualTo("CD:3"));
+        }
+
+        [Test]
+        public void BuildSkillSlotStatusLabel_WithInsufficientResource_ReturnsNoResTag()
+        {
+            var policy = new SkillActionPolicy(7, 1, 3, 9, 80, 2, 1, resourceCost: 5);
+
+            var tag = ActionFeedbackFormatter.BuildSkillSlotStatusLabel(policy, currentCooldown: 0, currentResource: 2);
+
+            Assert.That(tag, Is.EqualTo("NO_RES:2/5"));
+        }
+
+        [Test]
+        public void BuildSkillSlotStatusLabel_WhenReady_ReturnsReadyTag()
+        {
+            var policy = new SkillActionPolicy(7, 1, 3, 9, 80, 2, 1, resourceCost: 3);
+
+            var tag = ActionFeedbackFormatter.BuildSkillSlotStatusLabel(policy, currentCooldown: 0, currentResource: 4);
+
+            Assert.That(tag, Is.EqualTo("READY"));
+        }
+
     }
 }

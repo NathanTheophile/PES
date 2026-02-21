@@ -49,6 +49,21 @@ namespace PES.Presentation.Scene
             return $"[T{record.Tick}] {summary}";
         }
 
+        public static string BuildSkillSlotStatusLabel(SkillActionPolicy policy, int currentCooldown, int currentResource)
+        {
+            if (currentCooldown > 0)
+            {
+                return $"CD:{currentCooldown}";
+            }
+
+            if (currentResource < policy.ResourceCost)
+            {
+                return $"NO_RES:{currentResource}/{policy.ResourceCost}";
+            }
+
+            return "READY";
+        }
+
         public static string BuildSkillTooltip(SkillActionPolicy policy, int currentCooldown, int currentResource)
         {
             var stateLabel = currentCooldown > 0

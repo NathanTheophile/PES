@@ -66,7 +66,7 @@
 - [ ] Couvrir ce milestone par un scénario replay déterministe golden-path (seed fixée + snapshot final attendu).
 
 _Progression Sprint H en cours:_
-- HUD vertical slice: ajout d'un résumé lisible de la dernière action (succès/échec) et d'un tooltip skill (portée/coût/dégâts/hit/state).
+- HUD vertical slice: ajout d'un résumé lisible de la dernière action (succès/échec), d'un tooltip skill (portée/coût/dégâts/hit/state) et de tags d'état de slot (`READY`/`CD:x`/`NO_RES:x/y`).
 
 ## Sprint H.1 — Dé-risquage MMO (strict minimum)
 - [ ] Versionner le format des payloads de log d'actions (compat replay inter-build).
