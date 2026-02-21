@@ -12,15 +12,15 @@ namespace PES.Core.Simulation
     {
         private readonly Dictionary<EntityId, Position3> _entityPositions = new();
         private readonly Dictionary<EntityId, int> _entityHitPoints = new();
-        private readonly Dictionary<EntityId, CombatantRpgStats> _entityRpgStats = new();
 
         // PM persistants par entité (pool par tour).
         private readonly Dictionary<EntityId, int> _entityMaxMovementPoints = new();
         private readonly Dictionary<EntityId, int> _entityCurrentMovementPoints = new();
 
         private readonly Dictionary<EntityId, int> _entitySkillResources = new();
-        private readonly Dictionary<SkillCooldownKey, int> _skillCooldowns = new();
-        private readonly Dictionary<StatusEffectKey, StatusEffectState> _statusEffects = new();
+        private readonly SkillCooldownStore _skillCooldownStore = new();
+        private readonly StatusEffectStateStore _statusEffectStore = new();
+        private readonly CombatantStatsStore _combatantStatsStore = new();
 
         private readonly HashSet<Position3> _blockedPositions = new();
         private readonly Dictionary<Position3, int> _positionMovementCosts = new();
@@ -71,17 +71,17 @@ namespace PES.Core.Simulation
 
         public void SetEntityRpgStats(EntityId entityId, CombatantRpgStats stats)
         {
-            _entityRpgStats[entityId] = stats;
+            _combatantStatsStore.SetEntityRpgStats(entityId, stats);
         }
 
         public bool TryGetEntityRpgStats(EntityId entityId, out CombatantRpgStats stats)
         {
-            return _entityRpgStats.TryGetValue(entityId, out stats);
+            return _combatantStatsStore.TryGetEntityRpgStats(entityId, out stats);
         }
 
         public CombatantRpgStats GetEntityRpgStatsOrEmpty(EntityId entityId)
         {
-            return _entityRpgStats.TryGetValue(entityId, out var stats) ? stats : CombatantRpgStats.Empty;
+            return _combatantStatsStore.GetEntityRpgStatsOrEmpty(entityId);
         }
 
         public bool TryApplyEntityRpgDamage(EntityId attackerId, EntityId defenderId, int spellBaseDamage, int spellBaseCriticalChance, DamageElement element, bool forceCritical = false)
@@ -199,54 +199,17 @@ namespace PES.Core.Simulation
 
         public void TickDownSkillCooldowns(EntityId entityId, int turns = 1)
         {
-            var safeTurns = turns < 0 ? 0 : turns;
-            if (safeTurns == 0 || _skillCooldowns.Count == 0)
-            {
-                return;
-            }
-
-            var keys = new List<SkillCooldownKey>();
-            foreach (var pair in _skillCooldowns)
-            {
-                if (!pair.Key.EntityId.Equals(entityId))
-                {
-                    continue;
-                }
-
-                keys.Add(pair.Key);
-            }
-
-            for (var i = 0; i < keys.Count; i++)
-            {
-                var key = keys[i];
-                var next = _skillCooldowns[key] - safeTurns;
-                if (next <= 0)
-                {
-                    _skillCooldowns.Remove(key);
-                    continue;
-                }
-
-                _skillCooldowns[key] = next;
-            }
+            _skillCooldownStore.TickDownSkillCooldowns(entityId, turns);
         }
 
         public void SetSkillCooldown(EntityId entityId, int skillId, int remainingTurns)
         {
-            var key = new SkillCooldownKey(entityId, skillId);
-            var safe = remainingTurns < 0 ? 0 : remainingTurns;
-            if (safe == 0)
-            {
-                _skillCooldowns.Remove(key);
-                return;
-            }
-
-            _skillCooldowns[key] = safe;
+            _skillCooldownStore.SetSkillCooldown(entityId, skillId, remainingTurns);
         }
 
         public int GetSkillCooldown(EntityId entityId, int skillId)
         {
-            var key = new SkillCooldownKey(entityId, skillId);
-            return _skillCooldowns.TryGetValue(key, out var remaining) ? remaining : 0;
+            return _skillCooldownStore.GetSkillCooldown(entityId, skillId);
         }
 
 
@@ -257,73 +220,17 @@ namespace PES.Core.Simulation
             int potency = 0,
             StatusEffectTickMoment tickMoment = StatusEffectTickMoment.TurnStart)
         {
-            var key = new StatusEffectKey(entityId, effectType);
-            var safeTurns = remainingTurns < 0 ? 0 : remainingTurns;
-            if (safeTurns == 0)
-            {
-                _statusEffects.Remove(key);
-                return;
-            }
-
-            var safePotency = potency < 0 ? 0 : potency;
-            _statusEffects[key] = new StatusEffectState(safeTurns, safePotency, tickMoment);
+            _statusEffectStore.SetStatusEffect(entityId, effectType, remainingTurns, potency, tickMoment);
         }
 
         public int GetStatusEffectRemaining(EntityId entityId, StatusEffectType effectType)
         {
-            var key = new StatusEffectKey(entityId, effectType);
-            return _statusEffects.TryGetValue(key, out var state) ? state.RemainingTurns : 0;
+            return _statusEffectStore.GetStatusEffectRemaining(entityId, effectType);
         }
 
         public int TickStatusEffects(EntityId entityId, StatusEffectTickMoment tickMoment, int turns = 1)
         {
-            var safeTurns = turns < 0 ? 0 : turns;
-            if (safeTurns == 0 || _statusEffects.Count == 0)
-            {
-                return 0;
-            }
-
-            var keys = new List<StatusEffectKey>();
-            foreach (var pair in _statusEffects)
-            {
-                if (!pair.Key.EntityId.Equals(entityId))
-                {
-                    continue;
-                }
-
-                keys.Add(pair.Key);
-            }
-
-            var totalPeriodicDamage = 0;
-            for (var i = 0; i < keys.Count; i++)
-            {
-                var key = keys[i];
-                var state = _statusEffects[key];
-
-                if (state.TickMoment == tickMoment &&
-                    key.EffectType == StatusEffectType.Poison &&
-                    state.Potency > 0 &&
-                    TryApplyDamage(entityId, state.Potency))
-                {
-                    totalPeriodicDamage += state.Potency;
-                }
-
-                if (state.TickMoment != tickMoment)
-                {
-                    continue;
-                }
-
-                var nextTurns = state.RemainingTurns - safeTurns;
-                if (nextTurns <= 0)
-                {
-                    _statusEffects.Remove(key);
-                    continue;
-                }
-
-                _statusEffects[key] = new StatusEffectState(nextTurns, state.Potency, state.TickMoment);
-            }
-
-            return totalPeriodicDamage;
+            return _statusEffectStore.TickStatusEffects(entityId, tickMoment, turns, TryApplyDamage);
         }
 
         public bool TryMoveEntity(EntityId entityId, Position3 expectedOrigin, Position3 destination)
@@ -393,55 +300,13 @@ namespace PES.Core.Simulation
 
         public BattleStateSnapshot CreateSnapshot()
         {
-            var positions = new EntityPositionSnapshot[_entityPositions.Count];
-            var index = 0;
-            foreach (var pair in _entityPositions)
-            {
-                positions[index++] = new EntityPositionSnapshot(pair.Key, pair.Value);
-            }
-
-            var hitPoints = new EntityHitPointSnapshot[_entityHitPoints.Count];
-            index = 0;
-            foreach (var pair in _entityHitPoints)
-            {
-                hitPoints[index++] = new EntityHitPointSnapshot(pair.Key, pair.Value);
-            }
-
-            var movementPoints = new EntityMovementPointSnapshot[_entityCurrentMovementPoints.Count];
-            index = 0;
-            foreach (var pair in _entityCurrentMovementPoints)
-            {
-                var max = _entityMaxMovementPoints.TryGetValue(pair.Key, out var value) ? value : pair.Value;
-                movementPoints[index++] = new EntityMovementPointSnapshot(pair.Key, pair.Value, max);
-            }
-
-            var skillResources = new EntitySkillResourceSnapshot[_entitySkillResources.Count];
-            index = 0;
-            foreach (var pair in _entitySkillResources)
-            {
-                skillResources[index++] = new EntitySkillResourceSnapshot(pair.Key, pair.Value);
-            }
-
-            var skillCooldowns = new SkillCooldownSnapshot[_skillCooldowns.Count];
-            index = 0;
-            foreach (var pair in _skillCooldowns)
-            {
-                skillCooldowns[index++] = new SkillCooldownSnapshot(pair.Key.EntityId, pair.Key.SkillId, pair.Value);
-            }
-
-            var statusEffects = new StatusEffectSnapshot[_statusEffects.Count];
-            index = 0;
-            foreach (var pair in _statusEffects)
-            {
-                statusEffects[index++] = new StatusEffectSnapshot(pair.Key.EntityId, pair.Key.EffectType, pair.Value.RemainingTurns, pair.Value.Potency, pair.Value.TickMoment);
-            }
-
-            var rpgStats = new EntityRpgStatsSnapshot[_entityRpgStats.Count];
-            index = 0;
-            foreach (var pair in _entityRpgStats)
-            {
-                rpgStats[index++] = new EntityRpgStatsSnapshot(pair.Key, pair.Value);
-            }
+            var positions = SnapshotSort.CreateEntityPositionSnapshots(_entityPositions);
+            var hitPoints = SnapshotSort.CreateEntityHitPointSnapshots(_entityHitPoints);
+            var movementPoints = SnapshotSort.CreateEntityMovementPointSnapshots(_entityCurrentMovementPoints, _entityMaxMovementPoints);
+            var skillResources = SnapshotSort.CreateEntitySkillResourceSnapshots(_entitySkillResources);
+            var skillCooldowns = _skillCooldownStore.CreateSnapshots();
+            var statusEffects = _statusEffectStore.CreateSnapshots();
+            var rpgStats = _combatantStatsStore.CreateSnapshots();
 
             return new BattleStateSnapshot(Tick, positions, hitPoints, movementPoints, skillResources, skillCooldowns, statusEffects, rpgStats);
         }
@@ -474,226 +339,12 @@ namespace PES.Core.Simulation
                 _entitySkillResources[row.EntityId] = row.Amount;
             }
 
-            _skillCooldowns.Clear();
-            foreach (var row in snapshot.SkillCooldowns)
-            {
-                _skillCooldowns[new SkillCooldownKey(row.EntityId, row.SkillId)] = row.RemainingTurns;
-            }
-
-            _statusEffects.Clear();
-            foreach (var row in snapshot.StatusEffects)
-            {
-                _statusEffects[new StatusEffectKey(row.EntityId, row.EffectType)] = new StatusEffectState(row.RemainingTurns, row.Potency, row.TickMoment);
-            }
-
-            _entityRpgStats.Clear();
-            foreach (var row in snapshot.EntityRpgStats)
-            {
-                _entityRpgStats[row.EntityId] = row.Stats;
-            }
+            _skillCooldownStore.ApplySnapshots(snapshot.SkillCooldowns);
+            _statusEffectStore.ApplySnapshots(snapshot.StatusEffects);
+            _combatantStatsStore.ApplySnapshots(snapshot.EntityRpgStats);
 
             Tick = snapshot.Tick;
         }
-    }
-
-    public readonly struct BattleStateSnapshot
-    {
-        public BattleStateSnapshot(
-            int tick,
-            EntityPositionSnapshot[] entityPositions,
-            EntityHitPointSnapshot[] entityHitPoints,
-            EntityMovementPointSnapshot[] entityMovementPoints = null,
-            EntitySkillResourceSnapshot[] entitySkillResources = null,
-            SkillCooldownSnapshot[] skillCooldowns = null,
-            StatusEffectSnapshot[] statusEffects = null,
-            EntityRpgStatsSnapshot[] entityRpgStats = null)
-        {
-            Tick = tick;
-            EntityPositions = entityPositions;
-            EntityHitPoints = entityHitPoints;
-            EntityMovementPoints = entityMovementPoints ?? new EntityMovementPointSnapshot[0];
-            EntitySkillResources = entitySkillResources ?? new EntitySkillResourceSnapshot[0];
-            SkillCooldowns = skillCooldowns ?? new SkillCooldownSnapshot[0];
-            StatusEffects = statusEffects ?? new StatusEffectSnapshot[0];
-            EntityRpgStats = entityRpgStats ?? new EntityRpgStatsSnapshot[0];
-        }
-
-        public int Tick { get; }
-
-        public IReadOnlyList<EntityPositionSnapshot> EntityPositions { get; }
-
-        public IReadOnlyList<EntityHitPointSnapshot> EntityHitPoints { get; }
-
-        public IReadOnlyList<EntityMovementPointSnapshot> EntityMovementPoints { get; }
-
-        public IReadOnlyList<EntitySkillResourceSnapshot> EntitySkillResources { get; }
-
-        public IReadOnlyList<SkillCooldownSnapshot> SkillCooldowns { get; }
-
-        public IReadOnlyList<StatusEffectSnapshot> StatusEffects { get; }
-
-        public IReadOnlyList<EntityRpgStatsSnapshot> EntityRpgStats { get; }
-    }
-
-    public readonly struct EntityPositionSnapshot
-    {
-        public EntityPositionSnapshot(EntityId entityId, Position3 position)
-        {
-            EntityId = entityId;
-            Position = position;
-        }
-
-        public EntityId EntityId { get; }
-
-        public Position3 Position { get; }
-    }
-
-    public readonly struct EntityHitPointSnapshot
-    {
-        public EntityHitPointSnapshot(EntityId entityId, int hitPoints)
-        {
-            EntityId = entityId;
-            HitPoints = hitPoints;
-        }
-
-        public EntityId EntityId { get; }
-
-        public int HitPoints { get; }
-    }
-
-    public readonly struct EntityMovementPointSnapshot
-    {
-        public EntityMovementPointSnapshot(EntityId entityId, int movementPoints, int maxMovementPoints)
-        {
-            EntityId = entityId;
-            MovementPoints = movementPoints;
-            MaxMovementPoints = maxMovementPoints;
-        }
-
-        public EntityId EntityId { get; }
-
-        public int MovementPoints { get; }
-
-        public int MaxMovementPoints { get; }
-    }
-
-    public readonly struct EntitySkillResourceSnapshot
-    {
-        public EntitySkillResourceSnapshot(EntityId entityId, int amount)
-        {
-            EntityId = entityId;
-            Amount = amount;
-        }
-
-        public EntityId EntityId { get; }
-
-        public int Amount { get; }
-    }
-
-    public readonly struct SkillCooldownSnapshot
-    {
-        public SkillCooldownSnapshot(EntityId entityId, int skillId, int remainingTurns)
-        {
-            EntityId = entityId;
-            SkillId = skillId;
-            RemainingTurns = remainingTurns;
-        }
-
-        public EntityId EntityId { get; }
-
-        public int SkillId { get; }
-
-        public int RemainingTurns { get; }
-    }
-
-    public readonly struct SkillCooldownKey
-    {
-        public SkillCooldownKey(EntityId entityId, int skillId)
-        {
-            EntityId = entityId;
-            SkillId = skillId;
-        }
-
-        public EntityId EntityId { get; }
-
-        public int SkillId { get; }
-    }
-
-
-    public enum StatusEffectType
-    {
-        None = 0,
-        Poison = 1,
-    }
-
-    public enum StatusEffectTickMoment
-    {
-        TurnStart = 0,
-        TurnEnd = 1,
-    }
-
-    public readonly struct StatusEffectSnapshot
-    {
-        public StatusEffectSnapshot(EntityId entityId, StatusEffectType effectType, int remainingTurns, int potency, StatusEffectTickMoment tickMoment)
-        {
-            EntityId = entityId;
-            EffectType = effectType;
-            RemainingTurns = remainingTurns;
-            Potency = potency;
-            TickMoment = tickMoment;
-        }
-
-        public EntityId EntityId { get; }
-
-        public StatusEffectType EffectType { get; }
-
-        public int RemainingTurns { get; }
-
-        public int Potency { get; }
-
-        public StatusEffectTickMoment TickMoment { get; }
-    }
-
-    public readonly struct StatusEffectKey
-    {
-        public StatusEffectKey(EntityId entityId, StatusEffectType effectType)
-        {
-            EntityId = entityId;
-            EffectType = effectType;
-        }
-
-        public EntityId EntityId { get; }
-
-        public StatusEffectType EffectType { get; }
-    }
-
-    public readonly struct StatusEffectState
-    {
-        public StatusEffectState(int remainingTurns, int potency, StatusEffectTickMoment tickMoment)
-        {
-            RemainingTurns = remainingTurns;
-            Potency = potency;
-            TickMoment = tickMoment;
-        }
-
-        public int RemainingTurns { get; }
-
-        public int Potency { get; }
-
-        public StatusEffectTickMoment TickMoment { get; }
-    }
-
-    public readonly struct EntityRpgStatsSnapshot
-    {
-        public EntityRpgStatsSnapshot(EntityId entityId, CombatantRpgStats stats)
-        {
-            EntityId = entityId;
-            Stats = stats;
-        }
-
-        public EntityId EntityId { get; }
-
-        public CombatantRpgStats Stats { get; }
     }
 
     public readonly struct Position3
