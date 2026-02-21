@@ -17,7 +17,9 @@ namespace PES.Combat.Actions
             baseDamage: 8,
             baseHitChance: 85,
             elevationPerRangeBonus: 2,
-            rangeBonusPerElevationStep: 1);
+            rangeBonusPerElevationStep: 1,
+            damageElement: DamageElement.Elemental,
+            baseCriticalChance: 5);
 
         private readonly SkillActionPolicy? _policyOverride;
 
@@ -34,7 +36,6 @@ namespace PES.Combat.Actions
         }
 
         public EntityId CasterId { get; }
-
         public EntityId TargetId { get; }
 
         public ActionResolution Resolve(BattleState state, IRngService rngService)
@@ -68,14 +69,10 @@ namespace PES.Combat.Actions
                     ActionResolutionCode.Rejected,
                     $"CastSkillRejected: skill on cooldown ({CasterId}, skill:{policy.SkillId}, remaining:{remainingCooldown})",
                     ActionFailureReason.SkillOnCooldown,
-                    new ActionResultPayload("SkillCooldown", policy.SkillId, remainingCooldown, 0));
+                    new ActionResultPayload("SkillOnCooldown", policy.SkillId, remainingCooldown, 0));
             }
 
-            if (!state.TryGetEntitySkillResource(CasterId, out var availableResource))
-            {
-                availableResource = 0;
-            }
-
+            var availableResource = state.TryGetEntitySkillResource(CasterId, out var skillResource) ? skillResource : 0;
             if (availableResource < policy.ResourceCost)
             {
                 return new ActionResolution(
@@ -121,12 +118,26 @@ namespace PES.Combat.Actions
                     new ActionResultPayload("SkillMissed", policy.SkillId, resolution.Roll, resolution.HitChance));
             }
 
-            if (!state.TryApplyDamage(TargetId, resolution.FinalDamage))
+            var attackerStats = state.GetEntityRpgStatsOrEmpty(CasterId);
+            var defenderStats = state.GetEntityRpgStatsOrEmpty(TargetId);
+            var criticalChance = Clamp(policy.BaseCriticalChance + attackerStats.CriticalChance, 0, 100);
+            var criticalRoll = rngService.NextInt(1, 101);
+            var isCritical = criticalRoll <= criticalChance;
+
+            var damageResolution = DamageFormulaCalculator.Resolve(
+                attackerStats,
+                defenderStats,
+                policy.BaseDamage,
+                policy.BaseCriticalChance,
+                policy.DamageElement,
+                isCritical);
+
+            if (!state.TryApplyDamage(TargetId, damageResolution.FinalDamage))
             {
                 return new ActionResolution(false, ActionResolutionCode.Rejected, $"CastSkillRejected: failed to apply damage to {TargetId}", ActionFailureReason.DamageApplicationFailed);
             }
 
-            var splashTargetsHit = ApplySplashDamage(state, policy, resolution.FinalDamage);
+            var splashTargetsHit = ApplySplashDamage(state, policy, damageResolution.FinalDamage);
 
             if (!state.TryConsumeEntitySkillResource(CasterId, policy.ResourceCost))
             {
@@ -148,9 +159,9 @@ namespace PES.Combat.Actions
             return new ActionResolution(
                 true,
                 ActionResolutionCode.Succeeded,
-                $"CastSkillResolved: {CasterId} -> {TargetId} [skill:{policy.SkillId}, roll:{resolution.Roll}, hitChance:{resolution.HitChance}, dmg:{resolution.FinalDamage}, splashHits:{splashTargetsHit}, distXZ:{targeting.DistanceXZ}, max:{targeting.EffectiveMaxRange}]",
+                $"CastSkillResolved: {CasterId} -> {TargetId} [skill:{policy.SkillId}, roll:{resolution.Roll}, hitChance:{resolution.HitChance}, critRoll:{criticalRoll}, critChance:{criticalChance}, crit:{isCritical}, dmg:{damageResolution.FinalDamage}, splashHits:{splashTargetsHit}, distXZ:{targeting.DistanceXZ}, max:{targeting.EffectiveMaxRange}]",
                 ActionFailureReason.None,
-                new ActionResultPayload("SkillResolved", policy.SkillId, resolution.FinalDamage, splashTargetsHit));
+                new ActionResultPayload("SkillResolved", policy.SkillId, damageResolution.FinalDamage, splashTargetsHit));
         }
 
         private int ApplySplashDamage(BattleState state, SkillActionPolicy policy, int primaryDamage)
@@ -197,6 +208,16 @@ namespace PES.Combat.Actions
             }
 
             return hits;
+        }
+
+        private static int Clamp(int value, int min, int max)
+        {
+            if (value < min)
+            {
+                return min;
+            }
+
+            return value > max ? max : value;
         }
     }
 }

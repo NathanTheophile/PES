@@ -35,12 +35,14 @@ namespace PES.Presentation.Adapters
                 return new BattleActorDefinition(actorId, teamId, startPosition, 40, 6);
             }
 
+            var stats = archetype.ToCombatantStats();
             return new BattleActorDefinition(
                 actorId,
                 teamId,
                 startPosition,
                 archetype.StartHitPoints,
-                archetype.StartMovementPoints);
+                archetype.StartMovementPoints,
+                stats.Rapidity);
         }
 
         public static IReadOnlyList<BattleActorDefinition> BuildActorDefinitions(IReadOnlyList<BattleActorArchetypeBinding> bindings)

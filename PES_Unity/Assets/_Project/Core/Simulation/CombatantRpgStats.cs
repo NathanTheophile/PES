@@ -110,7 +110,7 @@ namespace PES.Core.Simulation
             criticalDamage: 0,
             criticalResistance: 0,
             attack: default,
-            power: default,
+            power: new DamageElementValues(100, 100, 100, 100, 100, 100),
             defense: default,
             resistance: default);
     }
