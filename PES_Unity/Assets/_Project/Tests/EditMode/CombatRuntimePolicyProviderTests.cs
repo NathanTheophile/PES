@@ -47,6 +47,8 @@ namespace PES.Tests.EditMode
             Assert.That(policies.SkillPolicyOverride.Value.BaseHitChance, Is.EqualTo(85));
             Assert.That(policies.SkillPolicyOverride.Value.ElevationPerRangeBonus, Is.EqualTo(2));
             Assert.That(policies.SkillPolicyOverride.Value.RangeBonusPerElevationStep, Is.EqualTo(1));
+            Assert.That(policies.SkillPolicyOverride.Value.SplashRadiusXZ, Is.EqualTo(0));
+            Assert.That(policies.SkillPolicyOverride.Value.SplashDamagePercent, Is.EqualTo(0));
 
             Object.DestroyImmediate(asset);
         }

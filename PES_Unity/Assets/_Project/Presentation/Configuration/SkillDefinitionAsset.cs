@@ -27,6 +27,10 @@ namespace PES.Presentation.Configuration
         [Min(0)] [SerializeField] private int _resourceCost;
         [Min(0)] [SerializeField] private int _cooldownTurns;
 
+        [Header("AOE (optional)")]
+        [Min(0)] [SerializeField] private int _splashRadiusXZ;
+        [Range(0, 100)] [SerializeField] private int _splashDamagePercent;
+
         public string DisplayName => string.IsNullOrWhiteSpace(_displayName) ? $"Skill {_skillId}" : _displayName;
 
         public SkillActionPolicy ToPolicy()
@@ -40,7 +44,9 @@ namespace PES.Presentation.Configuration
                 elevationPerRangeBonus: _elevationPerRangeBonus,
                 rangeBonusPerElevationStep: _rangeBonusPerElevationStep,
                 resourceCost: _resourceCost,
-                cooldownTurns: _cooldownTurns);
+                cooldownTurns: _cooldownTurns,
+                splashRadiusXZ: _splashRadiusXZ,
+                splashDamagePercent: _splashDamagePercent);
         }
     }
 }
