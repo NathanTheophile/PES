@@ -31,6 +31,7 @@ namespace PES.Presentation.Scene
             Func<EntityId, bool> tryFindAdjacentMoveDestination,
             Action<EntityId> planAttackToOtherActor,
             Func<EntityId, bool> tryPlanSkill,
+            Action clearPlannedAction,
             Action tryPassTurn)
         {
             if (!planner.HasActorSelection)
@@ -79,6 +80,13 @@ namespace PES.Presentation.Scene
                 selectedSkillSlot = availableSkills <= 0
                     ? 0
                     : (selectedSkillSlot + 1) % availableSkills;
+            }
+
+
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                clearPlannedAction();
+                return;
             }
 
             if (Input.GetKeyDown(KeyCode.P))

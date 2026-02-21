@@ -189,5 +189,33 @@ namespace PES.Tests.EditMode
             Assert.That(built, Is.False);
         }
 
+
+        [Test]
+        public void HasPlannedAction_WhenMoveIsPlanned_IsTrueThenFalseAfterClear()
+        {
+            var state = new BattleState();
+            state.SetEntityPosition(VerticalSliceBattleLoop.UnitA, new Position3(0, 0, 0));
+
+            var planner = new VerticalSliceCommandPlanner(state);
+            planner.SelectActor(VerticalSliceBattleLoop.UnitA);
+            planner.PlanMove(new GridCoord3(1, 0, 1));
+
+            Assert.That(planner.HasPlannedAction, Is.True);
+
+            planner.ClearPlannedAction();
+
+            Assert.That(planner.HasPlannedAction, Is.False);
+            Assert.That(planner.PlannedLabel, Is.EqualTo("None"));
+        }
+
+        [Test]
+        public void HasPlannedAction_DefaultPlanner_IsFalse()
+        {
+            var planner = new VerticalSliceCommandPlanner(new BattleState());
+
+            Assert.That(planner.HasPlannedAction, Is.False);
+            Assert.That(planner.PlannedLabel, Is.EqualTo("None"));
+        }
+
     }
 }
