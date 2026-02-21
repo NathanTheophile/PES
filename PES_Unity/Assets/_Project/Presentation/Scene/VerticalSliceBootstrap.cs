@@ -1,22 +1,20 @@
+using System;
 using System.Collections.Generic;
 using PES.Combat.Actions;
 using PES.Core.Simulation;
 using PES.Grid.Grid3D;
 using PES.Grid.Pathfinding;
-using PES.Presentation.Adapters;
 using PES.Presentation.Configuration;
 using UnityEngine;
 
 namespace PES.Presentation.Scene
 {
-    /// <summary>
-    /// Bootstrap MonoBehaviour pour visualiser une mini boucle tactique 3D.
-    /// Jouable clavier + souris avec UI mono-spell.
-    /// </summary>
     public sealed class VerticalSliceBootstrap : MonoBehaviour
     {
         private VerticalSliceBattleLoop _battleLoop;
         private VerticalSliceCommandPlanner _planner;
+        private VerticalSliceHudBinder _hudBinder;
+        private VerticalSliceInputBinder _inputBinder;
         private GameObject _unitAView;
         private GameObject _unitBView;
         [SerializeField] private CombatRuntimeConfigAsset _runtimeConfig;
@@ -49,32 +47,19 @@ namespace PES.Presentation.Scene
         private bool _lastPreviewHasSelection;
 
         private ActionResolution _lastResult;
-        private MouseIntentMode _mouseIntentMode = MouseIntentMode.Move;
+        private VerticalSliceMouseIntentMode _mouseIntentMode = VerticalSliceMouseIntentMode.Move;
         private int _selectedSkillSlot;
 
         private void Start()
         {
-            var runtimePolicies = CombatRuntimePolicyProvider.FromAsset(_runtimeConfig);
-            _effectiveMovePolicy = runtimePolicies.MovePolicyOverride
-                ?? new MoveActionPolicy(maxMovementCostPerAction: 6, maxVerticalStepPerTile: 1);
+            var setup = VerticalSliceBattleSetup.Create(_runtimeConfig, _unitAArchetype, _unitBArchetype);
+            var composition = new VerticalSliceCompositionRoot().Compose(setup);
 
-            var actorBindings = BuildActorBindingsFromArchetypes();
-            var actorDefinitions = EntityArchetypeRuntimeAdapter.BuildActorDefinitions(actorBindings);
-            var skillLoadoutMap = EntityArchetypeRuntimeAdapter.BuildSkillLoadoutMap(actorBindings);
-
-            _battleLoop = new VerticalSliceBattleLoop(
-                movePolicyOverride: _effectiveMovePolicy,
-                basicAttackPolicyOverride: runtimePolicies.BasicAttackPolicyOverride,
-                actorDefinitions: actorDefinitions);
-
-            EntityArchetypeRuntimeAdapter.ApplyRuntimeResources(_battleLoop.State, actorBindings);
-
-            _planner = new VerticalSliceCommandPlanner(
-                _battleLoop.State,
-                _effectiveMovePolicy,
-                runtimePolicies.BasicAttackPolicyOverride,
-                runtimePolicies.SkillPolicyOverride,
-                skillLoadoutMap);
+            _battleLoop = composition.BattleLoop;
+            _planner = composition.Planner;
+            _effectiveMovePolicy = setup.EffectiveMovePolicy;
+            _hudBinder = new VerticalSliceHudBinder();
+            _inputBinder = new VerticalSliceInputBinder();
 
             BuildSteppedMap();
             EnsureAnkamaLikeCamera();
@@ -101,9 +86,33 @@ namespace PES.Presentation.Scene
                 Debug.Log($"[VerticalSlice] {_lastResult.Description}");
             }
 
-            ProcessSelectionInputs();
-            ProcessPlanningInputs();
-            ProcessMouseInputs();
+            _inputBinder.ProcessSelectionInputs(_planner, SyncSelectedSkillSlot);
+            _inputBinder.ProcessPlanningInputs(
+                _planner,
+                ref _mouseIntentMode,
+                ref _selectedSkillSlot,
+                TryFindAdjacentMoveDestinationAndPlan,
+                PlanAttackToOtherActor,
+                TryPlanSkill,
+                TryPassTurn);
+
+            var hasImmediateResult = _inputBinder.ProcessMouseInputs(
+                _battleLoop,
+                _planner,
+                _mouseIntentMode,
+                ToGrid,
+                PlanAndTryMove,
+                hit => (TryResolveActorFromHit(hit, out var actor), actor),
+                TryPlanSkill,
+                target => _planner.PlanAttack(target),
+                TryExecutePlanned,
+                out var immediateResult);
+
+            if (hasImmediateResult)
+            {
+                _lastResult = immediateResult;
+            }
+
             UpdateMovementPreviewVisuals();
 
             if (Input.GetKeyDown(KeyCode.Space))
@@ -130,62 +139,29 @@ namespace PES.Presentation.Scene
                 return;
             }
 
-            var hpA = _battleLoop.State.TryGetEntityHitPoints(VerticalSliceBattleLoop.UnitA, out var valueA) ? valueA : -1;
-            var hpB = _battleLoop.State.TryGetEntityHitPoints(VerticalSliceBattleLoop.UnitB, out var valueB) ? valueB : -1;
-
-            var selected = _planner.HasActorSelection ? _planner.SelectedActorId.ToString() : "None";
-            var planned = _planner.PlannedLabel;
-
-            var panel = new Rect(12f, 12f, 760f, 300f);
-            GUI.Box(panel, "Vertical Slice");
-            GUI.Label(new Rect(24f, 38f, 740f, 20f), $"Tick: {_battleLoop.State.Tick} | Round: {_battleLoop.CurrentRound}");
-            GUI.Label(new Rect(24f, 58f, 740f, 20f), $"Actor: {_battleLoop.PeekCurrentActorLabel()} | Next: {_battleLoop.PeekNextStepLabel()} | AP:{_battleLoop.RemainingActions} | PM:{_battleLoop.CurrentActorMovementPoints} | Timer:{_battleLoop.RemainingTurnSeconds:0.0}s");
-            GUI.Label(new Rect(24f, 78f, 740f, 20f), $"HP UnitA: {hpA} | HP UnitB: {hpB}");
-            var availableSkills = _planner.HasActorSelection ? _planner.GetAvailableSkillCount(_planner.SelectedActorId) : 0;
-            var selectedSkillLabel = GetSelectedSkillLabel();
-            GUI.Label(new Rect(24f, 98f, 740f, 20f), $"Selected: {selected} | Planned: {planned} | MouseMode: {_mouseIntentMode} | SkillSlot:{_selectedSkillSlot + 1}/{(availableSkills > 0 ? availableSkills : 0)} ({selectedSkillLabel})");
-            GUI.Label(new Rect(24f, 118f, 740f, 20f), $"Last: {_lastResult.Code} / {_lastResult.FailureReason}");
-            GUI.Label(new Rect(24f, 138f, 740f, 20f), _battleLoop.IsBattleOver ? $"Winner Team: {_battleLoop.WinnerTeamId}" : "Mouse: left click world/unit. Keys: 1/2 select, M/A/S mode, Q/E skill slot, P pass, SPACE execute.");
-
-            if (GUI.Button(new Rect(24f, 166f, 90f, 28f), "Select A"))
-            {
-                _planner.SelectActor(VerticalSliceBattleLoop.UnitA);
-                SyncSelectedSkillSlot();
-            }
-
-            if (GUI.Button(new Rect(120f, 166f, 90f, 28f), "Select B"))
-            {
-                _planner.SelectActor(VerticalSliceBattleLoop.UnitB);
-                SyncSelectedSkillSlot();
-            }
-
-            if (GUI.Button(new Rect(230f, 166f, 90f, 28f), "Move"))
-            {
-                _mouseIntentMode = MouseIntentMode.Move;
-            }
-
-            if (GUI.Button(new Rect(326f, 166f, 90f, 28f), "Attack"))
-            {
-                _mouseIntentMode = MouseIntentMode.Attack;
-            }
-
-            if (GUI.Button(new Rect(422f, 166f, 90f, 28f), "Skill"))
-            {
-                _mouseIntentMode = MouseIntentMode.Skill;
-            }
-
-            if (GUI.Button(new Rect(518f, 166f, 90f, 28f), "Execute"))
-            {
-                TryExecutePlanned();
-            }
-
-            if (GUI.Button(new Rect(614f, 166f, 90f, 28f), "Pass Turn"))
-            {
-                TryPassTurn();
-            }
-
-            DrawSkillKitButtons();
-            GUI.Label(new Rect(24f, 252f, 740f, 30f), "Bleu = déplacements possibles. Survol d'une case bleue en mode Move => aperçu du chemin blanc.");
+            _hudBinder.Draw(
+                _battleLoop,
+                _planner,
+                _mouseIntentMode,
+                _selectedSkillSlot,
+                () =>
+                {
+                    _planner.SelectActor(VerticalSliceBattleLoop.UnitA);
+                    SyncSelectedSkillSlot();
+                },
+                () =>
+                {
+                    _planner.SelectActor(VerticalSliceBattleLoop.UnitB);
+                    SyncSelectedSkillSlot();
+                },
+                () => _mouseIntentMode = VerticalSliceMouseIntentMode.Move,
+                () => _mouseIntentMode = VerticalSliceMouseIntentMode.Attack,
+                () => _mouseIntentMode = VerticalSliceMouseIntentMode.Skill,
+                TryExecutePlanned,
+                TryPassTurn,
+                DrawSkillKitButtons,
+                DrawLegendLabel,
+                GetSelectedSkillLabel);
         }
 
         private void DrawSkillKitButtons()
@@ -224,9 +200,14 @@ namespace PES.Presentation.Scene
                 if (GUI.Button(new Rect(x, startY, width, height), label))
                 {
                     _selectedSkillSlot = slot;
-                    _mouseIntentMode = MouseIntentMode.Skill;
+                    _mouseIntentMode = VerticalSliceMouseIntentMode.Skill;
                 }
             }
+        }
+
+        private void DrawLegendLabel()
+        {
+            GUI.Label(new Rect(24f, 252f, 740f, 30f), "Bleu = déplacements possibles. Survol d'une case bleue en mode Move => aperçu du chemin blanc.");
         }
 
         private string GetSkillButtonLabel(EntityId actorId, int slot)
@@ -243,152 +224,42 @@ namespace PES.Presentation.Scene
             return $"S{slot + 1} [Id:{policy.SkillId}] {readyTag}";
         }
 
-        private void ProcessSelectionInputs()
+        private ActionResolution PlanAndTryMove(EntityId actorId, GridCoord3 destination)
         {
-            if (Input.GetKeyDown(KeyCode.Alpha1))
+            var destinationPosition = new Position3(destination.X, destination.Y, destination.Z);
+            if (_battleLoop.State.IsPositionOccupied(destinationPosition, actorId))
             {
-                _planner.SelectActor(VerticalSliceBattleLoop.UnitA);
-                SyncSelectedSkillSlot();
+                return new ActionResolution(false, ActionResolutionCode.Rejected, $"MoveActionRejected: destination occupied ({destination})", ActionFailureReason.DestinationOccupied);
             }
 
-            if (Input.GetKeyDown(KeyCode.Alpha2))
+            if (!_currentReachableTiles.Contains(destinationPosition))
             {
-                _planner.SelectActor(VerticalSliceBattleLoop.UnitB);
-                SyncSelectedSkillSlot();
+                return new ActionResolution(false, ActionResolutionCode.Rejected, $"MoveActionRejected: destination unreachable ({destination})", ActionFailureReason.MovementBudgetExceeded);
             }
+
+            _planner.PlanMove(destination);
+            TryExecutePlanned();
+            return _lastResult;
         }
 
-        private void ProcessPlanningInputs()
+
+        private bool TryFindAdjacentMoveDestinationAndPlan(EntityId actorId)
         {
-            if (!_planner.HasActorSelection)
+            if (!TryFindAdjacentMoveDestination(actorId, out var destination))
             {
-                return;
+                return false;
             }
 
-            if (Input.GetKeyDown(KeyCode.M))
-            {
-                _mouseIntentMode = MouseIntentMode.Move;
-                if (TryFindAdjacentMoveDestination(_planner.SelectedActorId, out var destination))
-                {
-                    _planner.PlanMove(destination);
-                }
-            }
-
-            if (Input.GetKeyDown(KeyCode.A))
-            {
-                _mouseIntentMode = MouseIntentMode.Attack;
-                var target = _planner.SelectedActorId.Equals(VerticalSliceBattleLoop.UnitA)
-                    ? VerticalSliceBattleLoop.UnitB
-                    : VerticalSliceBattleLoop.UnitA;
-                _planner.PlanAttack(target);
-            }
-
-            if (Input.GetKeyDown(KeyCode.S))
-            {
-                _mouseIntentMode = MouseIntentMode.Skill;
-                var target = _planner.SelectedActorId.Equals(VerticalSliceBattleLoop.UnitA)
-                    ? VerticalSliceBattleLoop.UnitB
-                    : VerticalSliceBattleLoop.UnitA;
-                if (!TryPlanSkill(target))
-                {
-                    return;
-                }
-            }
-
-            if (Input.GetKeyDown(KeyCode.Q))
-            {
-                var availableSkills = _planner.GetAvailableSkillCount(_planner.SelectedActorId);
-                if (availableSkills <= 0)
-                {
-                    _selectedSkillSlot = 0;
-                }
-                else
-                {
-                    _selectedSkillSlot = _selectedSkillSlot > 0 ? _selectedSkillSlot - 1 : availableSkills - 1;
-                }
-            }
-
-            if (Input.GetKeyDown(KeyCode.E))
-            {
-                var availableSkills = _planner.GetAvailableSkillCount(_planner.SelectedActorId);
-                if (availableSkills <= 0)
-                {
-                    _selectedSkillSlot = 0;
-                }
-                else
-                {
-                    _selectedSkillSlot = (_selectedSkillSlot + 1) % availableSkills;
-                }
-            }
-
-            if (Input.GetKeyDown(KeyCode.P))
-            {
-                TryPassTurn();
-            }
+            _planner.PlanMove(destination);
+            return true;
         }
 
-        private void ProcessMouseInputs()
+        private void PlanAttackToOtherActor(EntityId actorId)
         {
-            if (!_planner.HasActorSelection || !Input.GetMouseButtonDown(0))
-            {
-                return;
-            }
-
-            var ray = Camera.main != null
-                ? Camera.main.ScreenPointToRay(Input.mousePosition)
-                : new Ray();
-
-            if (Camera.main == null || !Physics.Raycast(ray, out var hit, 250f))
-            {
-                return;
-            }
-
-            if (_mouseIntentMode == MouseIntentMode.Move)
-            {
-                var destination = ToGrid(hit.point);
-                var destinationPosition = new Position3(destination.X, destination.Y, destination.Z);
-                if (_battleLoop.State.IsPositionOccupied(destinationPosition, _planner.SelectedActorId))
-                {
-                    _lastResult = new ActionResolution(false, ActionResolutionCode.Rejected, $"MoveActionRejected: destination occupied ({destination})", ActionFailureReason.DestinationOccupied);
-                    return;
-                }
-
-                if (!_currentReachableTiles.Contains(destinationPosition))
-                {
-                    _lastResult = new ActionResolution(false, ActionResolutionCode.Rejected, $"MoveActionRejected: destination unreachable ({destination})", ActionFailureReason.MovementBudgetExceeded);
-                    return;
-                }
-
-                _planner.PlanMove(destination);
-                TryExecutePlanned();
-                return;
-            }
-
-            if (!TryResolveActorFromHit(hit.collider.gameObject, out var clickedActor))
-            {
-                return;
-            }
-
-            var selectedActor = _planner.SelectedActorId;
-            if (clickedActor.Equals(selectedActor))
-            {
-                return;
-            }
-
-            if (_mouseIntentMode == MouseIntentMode.Attack)
-            {
-                _planner.PlanAttack(clickedActor);
-                TryExecutePlanned();
-            }
-            else if (_mouseIntentMode == MouseIntentMode.Skill)
-            {
-                if (!TryPlanSkill(clickedActor))
-                {
-                    return;
-                }
-
-                TryExecutePlanned();
-            }
+            var target = actorId.Equals(VerticalSliceBattleLoop.UnitA)
+                ? VerticalSliceBattleLoop.UnitB
+                : VerticalSliceBattleLoop.UnitA;
+            _planner.PlanAttack(target);
         }
 
         private void TryPassTurn()
@@ -430,26 +301,16 @@ namespace PES.Presentation.Scene
             var pathObject = new GameObject("Preview_PathLine");
             _pathLineRenderer = pathObject.AddComponent<LineRenderer>();
             _pathLineRenderer.material = new Material(Shader.Find("Unlit/Color")) { color = Color.white };
-            _pathLineRenderer.widthMultiplier = 0.08f;
             _pathLineRenderer.positionCount = 0;
-            _pathLineRenderer.useWorldSpace = true;
-            _pathLineRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-            _pathLineRenderer.receiveShadows = false;
-            _pathLineRenderer.alignment = LineAlignment.View;
+            _pathLineRenderer.widthMultiplier = 0.08f;
             _pathLineRenderer.numCapVertices = 4;
+            _pathLineRenderer.useWorldSpace = true;
         }
 
         private void UpdateMovementPreviewVisuals()
         {
-            if (_battleLoop == null || !_planner.HasActorSelection)
-            {
-                ClearMovementPreviewTiles();
-                HidePathPreview();
-                return;
-            }
-
-            var previewActor = _battleLoop.CurrentActorId;
-            var inMoveMode = _mouseIntentMode == MouseIntentMode.Move;
+            var previewActor = _planner.HasActorSelection ? _planner.SelectedActorId : _battleLoop.CurrentActorId;
+            var inMoveMode = _mouseIntentMode == VerticalSliceMouseIntentMode.Move;
             var hasSelection = _planner.HasActorSelection;
             var currentPm = _battleLoop.CurrentActorMovementPoints;
 
@@ -501,12 +362,7 @@ namespace PES.Presentation.Scene
                 }
 
                 var validation = validator.Validate(_battleLoop.State, actorId, origin, destination, _effectiveMovePolicy);
-                if (!validation.Success)
-                {
-                    continue;
-                }
-
-                if (validation.MovementCost > currentPm)
+                if (!validation.Success || validation.MovementCost > currentPm)
                 {
                     continue;
                 }
@@ -514,7 +370,6 @@ namespace PES.Presentation.Scene
                 AddReachableOverlayTile(tile);
             }
 
-            // On affiche aussi la case courante de l'acteur.
             AddReachableOverlayTile(originPosition);
         }
 
@@ -561,13 +416,7 @@ namespace PES.Presentation.Scene
 
         private void UpdateHoveredPathPreview(EntityId actorId)
         {
-            if (!_battleLoop.State.TryGetEntityPosition(actorId, out var originPosition))
-            {
-                HidePathPreview();
-                return;
-            }
-
-            if (Camera.main == null)
+            if (!_battleLoop.State.TryGetEntityPosition(actorId, out var originPosition) || Camera.main == null)
             {
                 HidePathPreview();
                 return;
@@ -590,11 +439,7 @@ namespace PES.Presentation.Scene
 
             var blocked = BuildBlockedCellsForPathPreview(actorId, originPosition, destinationPosition);
             var pathService = new PathfindingService();
-            if (!pathService.TryComputePath(
-                    new GridCoord3(originPosition.X, originPosition.Y, originPosition.Z),
-                    destination,
-                    blocked,
-                    out var path))
+            if (!pathService.TryComputePath(new GridCoord3(originPosition.X, originPosition.Y, originPosition.Z), destination, blocked, out var path))
             {
                 HidePathPreview();
                 return;
@@ -617,12 +462,7 @@ namespace PES.Presentation.Scene
 
             foreach (var pair in _battleLoop.State.GetEntityPositions())
             {
-                if (pair.Key.Equals(actorId))
-                {
-                    continue;
-                }
-
-                if (pair.Value.Equals(origin) || pair.Value.Equals(destination))
+                if (pair.Key.Equals(actorId) || pair.Value.Equals(origin) || pair.Value.Equals(destination))
                 {
                     continue;
                 }
@@ -644,7 +484,6 @@ namespace PES.Presentation.Scene
         private static bool TryResolveActorFromHit(GameObject hitObject, out EntityId actorId)
         {
             actorId = default;
-
             if (hitObject.name == "UnitA")
             {
                 actorId = VerticalSliceBattleLoop.UnitA;
@@ -663,7 +502,6 @@ namespace PES.Presentation.Scene
         private bool TryFindAdjacentMoveDestination(EntityId actorId, out GridCoord3 destination)
         {
             destination = default;
-
             if (!_battleLoop.State.TryGetEntityPosition(actorId, out var currentPosition))
             {
                 return false;
@@ -683,12 +521,7 @@ namespace PES.Presentation.Scene
             foreach (var candidate in candidates)
             {
                 var asPosition = new Position3(candidate.X, candidate.Y, candidate.Z);
-                if (_battleLoop.State.IsPositionBlocked(asPosition))
-                {
-                    continue;
-                }
-
-                if (_battleLoop.State.IsPositionOccupied(asPosition, actorId))
+                if (_battleLoop.State.IsPositionBlocked(asPosition) || _battleLoop.State.IsPositionOccupied(asPosition, actorId))
                 {
                     continue;
                 }
@@ -707,9 +540,7 @@ namespace PES.Presentation.Scene
                 for (var y = 0; y < MapDepth; y++)
                 {
                     var checker = (x + y) % 2 == 0;
-                    var color = checker
-                        ? new Color(0.27f, 0.27f, 0.27f)
-                        : new Color(0.33f, 0.33f, 0.33f);
+                    var color = checker ? new Color(0.27f, 0.27f, 0.27f) : new Color(0.33f, 0.33f, 0.33f);
                     CreateTileFromGrid(x, y, 0, color);
                     _mapTiles.Add(new Position3(x, y, 0));
                 }
@@ -801,7 +632,6 @@ namespace PES.Presentation.Scene
         {
             var unit = GameObject.CreatePrimitive(PrimitiveType.Capsule);
             unit.name = objectName;
-
             var renderer = unit.GetComponent<Renderer>();
             renderer.material.color = color;
             return unit;
@@ -827,12 +657,8 @@ namespace PES.Presentation.Scene
 
         private static GridCoord3 ToGrid(Vector3 world)
         {
-            var x = Mathf.RoundToInt(world.x);
-            var y = Mathf.RoundToInt(world.z);
-            var z = Mathf.RoundToInt(world.y);
-            return new GridCoord3(x, y, z);
+            return new GridCoord3(Mathf.RoundToInt(world.x), Mathf.RoundToInt(world.z), Mathf.RoundToInt(world.y));
         }
-
 
         private bool TryPlanSkill(EntityId targetId)
         {
@@ -843,19 +669,12 @@ namespace PES.Presentation.Scene
 
             if (!_planner.TryGetSkillPolicy(_planner.SelectedActorId, _selectedSkillSlot, out var policy))
             {
-                _lastResult = new ActionResolution(
-                    false,
-                    ActionResolutionCode.Rejected,
-                    $"SkillSelectionRejected: no skill in slot {_selectedSkillSlot + 1} for {_planner.SelectedActorId}",
-                    ActionFailureReason.InvalidPolicy);
+                _lastResult = new ActionResolution(false, ActionResolutionCode.Rejected, $"SkillSelectionRejected: no skill in slot {_selectedSkillSlot + 1} for {_planner.SelectedActorId}", ActionFailureReason.InvalidPolicy);
                 return false;
             }
 
             _planner.PlanSkill(targetId, _selectedSkillSlot);
-            _lastResult = new ActionResolution(
-                true,
-                ActionResolutionCode.Succeeded,
-                $"SkillSelected: {_planner.SelectedActorId} slot:{_selectedSkillSlot + 1} skill:{policy.SkillId}");
+            _lastResult = new ActionResolution(true, ActionResolutionCode.Succeeded, $"SkillSelected: {_planner.SelectedActorId} slot:{_selectedSkillSlot + 1} skill:{policy.SkillId}");
             return true;
         }
 
@@ -883,40 +702,10 @@ namespace PES.Presentation.Scene
             }
 
             var availableSkills = _planner.GetAvailableSkillCount(_planner.SelectedActorId);
-            if (availableSkills <= 0)
-            {
-                _selectedSkillSlot = 0;
-                return;
-            }
-
-            if (_selectedSkillSlot < 0 || _selectedSkillSlot >= availableSkills)
+            if (availableSkills <= 0 || _selectedSkillSlot < 0 || _selectedSkillSlot >= availableSkills)
             {
                 _selectedSkillSlot = 0;
             }
-        }
-
-        private IReadOnlyList<BattleActorArchetypeBinding> BuildActorBindingsFromArchetypes()
-        {
-            return new[]
-            {
-                new BattleActorArchetypeBinding(
-                    VerticalSliceBattleLoop.UnitA,
-                    teamId: 1,
-                    startPosition: new Position3(0, 0, 0),
-                    archetype: _unitAArchetype),
-                new BattleActorArchetypeBinding(
-                    VerticalSliceBattleLoop.UnitB,
-                    teamId: 2,
-                    startPosition: new Position3(2, 0, 1),
-                    archetype: _unitBArchetype),
-            };
-        }
-
-        private enum MouseIntentMode
-        {
-            Move = 0,
-            Attack = 1,
-            Skill = 2,
         }
     }
 }
