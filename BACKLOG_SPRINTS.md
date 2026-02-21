@@ -57,7 +57,7 @@
 
 
 ## Sprint H — Milestone "niveau jouable" (focus UX/gameplay)
-- [ ] Finaliser la boucle joueur complète en combat: sélection unité ➜ move/attack/skill ➜ fin de tour explicite/auto sans blocage UX.
+- [x] Finaliser la boucle joueur complète en combat: sélection unité ➜ move/attack/skill ➜ fin de tour explicite/auto sans blocage UX.
 - [x] Ajouter des feedbacks visuels minimum viables: surbrillance des cases ciblables, prévisualisation dégâts/état, logs de résolution lisibles.
 - [x] Stabiliser la UI skills en combat: tooltip (coût/portée/effets), états visuels cohérents (ready/cooldown/ressource insuffisante), annulation claire.
 - [x] Uniformiser les feedbacks d'action rejetée (`OutOfRange`, `NoLineOfSight`, `NotEnoughResource`) entre domaine et HUD.

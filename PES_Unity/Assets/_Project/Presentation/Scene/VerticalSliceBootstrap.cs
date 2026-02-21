@@ -134,6 +134,7 @@ namespace PES.Presentation.Scene
             UpdateActionIntentPreviewVisuals();
             UpdateHoveredTargetPreviewVisuals();
             UpdateTransientVfxPulses(Time.deltaTime);
+            TryAutoPassTurnWhenNoActionsRemaining();
 
             if (Input.GetKeyDown(KeyCode.Space))
             {
@@ -154,6 +155,24 @@ namespace PES.Presentation.Scene
                 SyncUnitViews();
                 Debug.Log($"[VerticalSlice] {_lastResult.Description}");
             }
+        }
+
+        private void TryAutoPassTurnWhenNoActionsRemaining()
+        {
+            if (_battleLoop.IsBattleOver || _battleLoop.RemainingActions > 0 || _planner.HasPlannedAction)
+            {
+                return;
+            }
+
+            var actorId = _battleLoop.CurrentActorId;
+            if (!_battleLoop.TryPassTurn(actorId, out var passResult))
+            {
+                return;
+            }
+
+            _lastResult = passResult;
+            SyncUnitViews();
+            Debug.Log($"[VerticalSlice] AutoPass: {_lastResult.Description}");
         }
 
         private void OnGUI()
