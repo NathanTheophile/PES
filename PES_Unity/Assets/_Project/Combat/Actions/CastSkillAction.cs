@@ -192,6 +192,16 @@ namespace PES.Combat.Actions
                 new ActionResultPayload("SkillRejected", skillId, (int)reason, contextValue));
         }
 
+        private static ActionResolution RejectSkill(int skillId, ActionFailureReason reason, string description, int contextValue = 0)
+        {
+            return new ActionResolution(
+                false,
+                ActionResolutionCode.Rejected,
+                description,
+                reason,
+                new ActionResultPayload("SkillRejected", skillId, (int)reason, contextValue));
+        }
+
         private static void ApplyStatusEffectFromPolicy(
             BattleState state,
             EntityId target,
