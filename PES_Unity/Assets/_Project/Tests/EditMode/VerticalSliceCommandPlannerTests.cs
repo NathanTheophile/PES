@@ -189,5 +189,65 @@ namespace PES.Tests.EditMode
             Assert.That(built, Is.False);
         }
 
+
+        [Test]
+        public void HasPlannedAction_WhenMoveIsPlanned_IsTrueThenFalseAfterClear()
+        {
+            var state = new BattleState();
+            state.SetEntityPosition(VerticalSliceBattleLoop.UnitA, new Position3(0, 0, 0));
+
+            var planner = new VerticalSliceCommandPlanner(state);
+            planner.SelectActor(VerticalSliceBattleLoop.UnitA);
+            planner.PlanMove(new GridCoord3(1, 0, 1));
+
+            Assert.That(planner.HasPlannedAction, Is.True);
+
+            planner.ClearPlannedAction();
+
+            Assert.That(planner.HasPlannedAction, Is.False);
+            Assert.That(planner.PlannedLabel, Is.EqualTo("None"));
+        }
+
+        [Test]
+        public void HasPlannedAction_DefaultPlanner_IsFalse()
+        {
+            var planner = new VerticalSliceCommandPlanner(new BattleState());
+
+            Assert.That(planner.HasPlannedAction, Is.False);
+            Assert.That(planner.PlannedLabel, Is.EqualTo("None"));
+        }
+
+
+
+        [Test]
+        public void PlannedSkillAccessors_WhenSkillPlanned_ReturnTargetAndSlot()
+        {
+            var planner = new VerticalSliceCommandPlanner(new BattleState());
+            planner.SelectActor(VerticalSliceBattleLoop.UnitA);
+            planner.PlanSkill(VerticalSliceBattleLoop.UnitB, skillSlot: 1);
+
+            var hasTarget = planner.TryGetPlannedTarget(out var target);
+
+            Assert.That(planner.HasPlannedSkill, Is.True);
+            Assert.That(planner.PlannedSkillSlot, Is.EqualTo(1));
+            Assert.That(hasTarget, Is.True);
+            Assert.That(target, Is.EqualTo(VerticalSliceBattleLoop.UnitB));
+        }
+
+        [Test]
+        public void PlannedSkillAccessors_WhenNoSkillPlanned_ReturnDefaults()
+        {
+            var planner = new VerticalSliceCommandPlanner(new BattleState());
+            planner.SelectActor(VerticalSliceBattleLoop.UnitA);
+            planner.PlanMove(new GridCoord3(1, 0, 1));
+
+            var hasTarget = planner.TryGetPlannedTarget(out var target);
+
+            Assert.That(planner.HasPlannedSkill, Is.False);
+            Assert.That(planner.PlannedSkillSlot, Is.EqualTo(-1));
+            Assert.That(hasTarget, Is.False);
+            Assert.That(target, Is.EqualTo(default(EntityId)));
+        }
+
     }
 }

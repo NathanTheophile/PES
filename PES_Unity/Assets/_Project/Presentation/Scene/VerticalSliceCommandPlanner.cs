@@ -77,6 +77,25 @@ namespace PES.Presentation.Scene
             return false;
         }
 
+        public bool HasPlannedAction => _plannedKind != PlannedActionKind.None;
+
+
+        public bool HasPlannedSkill => _plannedKind == PlannedActionKind.Skill;
+
+        public int PlannedSkillSlot => _plannedKind == PlannedActionKind.Skill ? _plannedSkillSlot : -1;
+
+        public bool TryGetPlannedTarget(out EntityId targetId)
+        {
+            if (_plannedKind == PlannedActionKind.Attack || _plannedKind == PlannedActionKind.Skill)
+            {
+                targetId = _plannedTarget;
+                return true;
+            }
+
+            targetId = default;
+            return false;
+        }
+
         public string PlannedLabel => _plannedKind switch
         {
             PlannedActionKind.Move => $"Move to {_plannedDestination}",
