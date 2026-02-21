@@ -48,3 +48,5 @@
 - [x] Ajouter un authoring Unity pour entités/kits de skills (`EntityArchetypeAsset` + `SkillDefinitionAsset`) avec adapter runtime vers le domaine.
 
 - [x] Ajouter un premier support AOE splash sur `CastSkillAction` avec tests EditMode.
+
+- [x] Démarrer une UI de sélection de skills (slots + état ready/cooldown/resource) dans le vertical slice.

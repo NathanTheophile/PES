@@ -136,7 +136,7 @@ namespace PES.Presentation.Scene
             var selected = _planner.HasActorSelection ? _planner.SelectedActorId.ToString() : "None";
             var planned = _planner.PlannedLabel;
 
-            var panel = new Rect(12f, 12f, 760f, 250f);
+            var panel = new Rect(12f, 12f, 760f, 300f);
             GUI.Box(panel, "Vertical Slice");
             GUI.Label(new Rect(24f, 38f, 740f, 20f), $"Tick: {_battleLoop.State.Tick} | Round: {_battleLoop.CurrentRound}");
             GUI.Label(new Rect(24f, 58f, 740f, 20f), $"Actor: {_battleLoop.PeekCurrentActorLabel()} | Next: {_battleLoop.PeekNextStepLabel()} | AP:{_battleLoop.RemainingActions} | PM:{_battleLoop.CurrentActorMovementPoints} | Timer:{_battleLoop.RemainingTurnSeconds:0.0}s");
@@ -184,7 +184,63 @@ namespace PES.Presentation.Scene
                 TryPassTurn();
             }
 
-            GUI.Label(new Rect(24f, 204f, 740f, 30f), "Bleu = déplacements possibles. Survol d'une case bleue en mode Move => aperçu du chemin blanc.");
+            DrawSkillKitButtons();
+            GUI.Label(new Rect(24f, 252f, 740f, 30f), "Bleu = déplacements possibles. Survol d'une case bleue en mode Move => aperçu du chemin blanc.");
+        }
+
+        private void DrawSkillKitButtons()
+        {
+            if (!_planner.HasActorSelection)
+            {
+                GUI.Label(new Rect(24f, 204f, 740f, 20f), "Skills: select an actor to inspect skill kit.");
+                return;
+            }
+
+            var actorId = _planner.SelectedActorId;
+            var skillCount = _planner.GetAvailableSkillCount(actorId);
+            if (skillCount <= 0)
+            {
+                GUI.Label(new Rect(24f, 204f, 740f, 20f), $"Skills: {actorId} has no configured skills.");
+                return;
+            }
+
+            GUI.Label(new Rect(24f, 204f, 740f, 20f), $"Skills for {actorId}: click to select active slot.");
+
+            const float startX = 24f;
+            const float startY = 224f;
+            const float width = 170f;
+            const float height = 24f;
+            const float spacing = 8f;
+
+            for (var slot = 0; slot < skillCount; slot++)
+            {
+                var x = startX + (slot * (width + spacing));
+                var label = GetSkillButtonLabel(actorId, slot);
+                if (_selectedSkillSlot == slot)
+                {
+                    label = $"> {label}";
+                }
+
+                if (GUI.Button(new Rect(x, startY, width, height), label))
+                {
+                    _selectedSkillSlot = slot;
+                    _mouseIntentMode = MouseIntentMode.Skill;
+                }
+            }
+        }
+
+        private string GetSkillButtonLabel(EntityId actorId, int slot)
+        {
+            if (!_planner.TryGetSkillPolicy(actorId, slot, out var policy))
+            {
+                return $"Skill {slot + 1}: n/a";
+            }
+
+            var cooldown = _battleLoop.State.GetSkillCooldown(actorId, policy.SkillId);
+            var resource = _battleLoop.State.TryGetEntitySkillResource(actorId, out var value) ? value : 0;
+            var ready = cooldown <= 0 && resource >= policy.ResourceCost;
+            var readyTag = ready ? "Ready" : $"CD:{cooldown} RES:{resource}/{policy.ResourceCost}";
+            return $"S{slot + 1} [Id:{policy.SkillId}] {readyTag}";
         }
 
         private void ProcessSelectionInputs()

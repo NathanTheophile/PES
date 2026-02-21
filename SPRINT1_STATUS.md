@@ -131,6 +131,8 @@ En pratique, il faut démarrer par les features `Skills`/`States`/`Flow` déjà 
 
 - Ajout d'un premier comportement **AOE splash** sur `CastSkillAction` (dégâts secondaires en rayon x/z autour de la cible primaire) avec couverture EditMode.
 
+- Ajout d'une première UI skills côté vertical slice (slots cliquables + état ready/cooldown/resource) pour accélérer les tests de kits d'entités.
+
 ## Synthèse opérationnelle (assistant)
 
 ### Statut global
