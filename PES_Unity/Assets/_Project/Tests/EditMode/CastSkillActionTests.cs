@@ -471,6 +471,46 @@ namespace PES.Tests.EditMode
             Assert.That(resultA.Payload!.Value.Value2, Is.Not.EqualTo(resultB.Payload!.Value.Value2));
         }
 
+
+        [Test]
+        public void Resolve_CastSkillAction_WithFortifiedTarget_ReducesResolvedDamage()
+        {
+            var caster = new EntityId(395);
+            var targetA = new EntityId(396);
+            var targetB = new EntityId(397);
+
+            var policy = new SkillActionPolicy(
+                skillId: 335,
+                minRange: 1,
+                maxRange: 3,
+                baseDamage: 10,
+                baseHitChance: 100,
+                elevationPerRangeBonus: 2,
+                rangeBonusPerElevationStep: 1);
+
+            var baselineState = new BattleState();
+            baselineState.SetEntityPosition(caster, new Position3(0, 0, 0));
+            baselineState.SetEntityPosition(targetA, new Position3(1, 0, 0));
+            baselineState.SetEntityHitPoints(caster, 40);
+            baselineState.SetEntityHitPoints(targetA, 40);
+
+            var fortifiedState = new BattleState();
+            fortifiedState.SetEntityPosition(caster, new Position3(0, 0, 0));
+            fortifiedState.SetEntityPosition(targetB, new Position3(1, 0, 0));
+            fortifiedState.SetEntityHitPoints(caster, 40);
+            fortifiedState.SetEntityHitPoints(targetB, 40);
+            fortifiedState.SetStatusEffect(targetB, StatusEffectType.Fortified, remainingTurns: 2, potency: 3);
+
+            var baselineResult = new ActionResolver(new SeededRngService(21)).Resolve(baselineState, new CastSkillAction(caster, targetA, policy));
+            var fortifiedResult = new ActionResolver(new SeededRngService(21)).Resolve(fortifiedState, new CastSkillAction(caster, targetB, policy));
+
+            Assert.That(baselineResult.Success, Is.True);
+            Assert.That(fortifiedResult.Success, Is.True);
+            Assert.That(baselineResult.Payload.HasValue, Is.True);
+            Assert.That(fortifiedResult.Payload.HasValue, Is.True);
+            Assert.That(fortifiedResult.Payload!.Value.Value2, Is.LessThan(baselineResult.Payload!.Value.Value2));
+        }
+
         [Test]
         public void Replay_WithCastSkillAction_ReproducesFinalSnapshotWithSameSeed()
         {

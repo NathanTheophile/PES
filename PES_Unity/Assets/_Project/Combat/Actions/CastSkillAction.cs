@@ -133,12 +133,13 @@ namespace PES.Combat.Actions
                 policy.DamageElement,
                 isCritical);
 
-            if (!state.TryApplyDamage(TargetId, damageResolution.FinalDamage))
+            var finalDamage = StatusEffectDamageModifier.Apply(state, CasterId, TargetId, damageResolution.FinalDamage);
+            if (!state.TryApplyDamage(TargetId, finalDamage))
             {
                 return RejectSkill(policy.SkillId, ActionFailureReason.DamageApplicationFailed, $"CastSkillRejected: failed to apply damage to {TargetId}");
             }
 
-            var splashTargetsHit = ApplySplashDamage(state, policy, damageResolution.FinalDamage);
+            var splashTargetsHit = ApplySplashDamage(state, policy, finalDamage);
 
             if (!state.TryConsumeEntitySkillResource(CasterId, policy.ResourceCost))
             {
@@ -176,9 +177,19 @@ namespace PES.Combat.Actions
             return new ActionResolution(
                 true,
                 ActionResolutionCode.Succeeded,
-                $"CastSkillResolved: {CasterId} -> {TargetId} [skill:{policy.SkillId}, roll:{resolution.Roll}, hitChance:{resolution.HitChance}, critRoll:{criticalRoll}, critChance:{criticalChance}, crit:{isCritical}, dmg:{damageResolution.FinalDamage}, splashHits:{splashTargetsHit}, distXZ:{targeting.DistanceXZ}, max:{targeting.EffectiveMaxRange}]",
+                $"CastSkillResolved: {CasterId} -> {TargetId} [skill:{policy.SkillId}, roll:{resolution.Roll}, hitChance:{resolution.HitChance}, critRoll:{criticalRoll}, critChance:{criticalChance}, crit:{isCritical}, dmg:{finalDamage}, splashHits:{splashTargetsHit}, distXZ:{targeting.DistanceXZ}, max:{targeting.EffectiveMaxRange}]",
                 ActionFailureReason.None,
-                new ActionResultPayload("SkillResolved", policy.SkillId, damageResolution.FinalDamage, splashTargetsHit));
+                new ActionResultPayload("SkillResolved", policy.SkillId, finalDamage, splashTargetsHit));
+        }
+
+        private static ActionResolution RejectSkill(int skillId, ActionFailureReason reason, string description, int contextValue = 0)
+        {
+            return new ActionResolution(
+                false,
+                ActionResolutionCode.Rejected,
+                description,
+                reason,
+                new ActionResultPayload("SkillRejected", skillId, (int)reason, contextValue));
         }
 
         private static ActionResolution RejectSkill(int skillId, ActionFailureReason reason, string description, int contextValue = 0)

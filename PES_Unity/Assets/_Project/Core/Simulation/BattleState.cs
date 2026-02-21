@@ -229,6 +229,11 @@ namespace PES.Core.Simulation
             return _statusEffectStore.GetStatusEffectRemaining(entityId, effectType);
         }
 
+        public int GetStatusEffectPotency(EntityId entityId, StatusEffectType effectType)
+        {
+            return _statusEffectStore.GetStatusEffectPotency(entityId, effectType);
+        }
+
         public int TickStatusEffects(EntityId entityId, StatusEffectTickMoment tickMoment, int turns = 1)
         {
             return _statusEffectStore.TickStatusEffects(entityId, tickMoment, turns, TryApplyDamage);

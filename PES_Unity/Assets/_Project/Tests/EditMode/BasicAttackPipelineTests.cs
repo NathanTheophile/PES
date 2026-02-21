@@ -428,5 +428,43 @@ namespace PES.Tests.EditMode
                     Assert.That(hp, Is.EqualTo(75));
                 }
 
+        [Test]
+                public void Resolve_BasicAttackAction_WithMarkedTarget_IncreasesDamage()
+                {
+                    var attacker = new EntityId(910);
+                    var targetA = new EntityId(911);
+                    var targetB = new EntityId(912);
+
+                    var baselineState = new BattleState();
+                    baselineState.SetEntityPosition(attacker, new Position3(0, 0, 0));
+                    baselineState.SetEntityPosition(targetA, new Position3(1, 0, 0));
+                    baselineState.SetEntityHitPoints(attacker, 100);
+                    baselineState.SetEntityHitPoints(targetA, 100);
+
+                    var markedState = new BattleState();
+                    markedState.SetEntityPosition(attacker, new Position3(0, 0, 0));
+                    markedState.SetEntityPosition(targetB, new Position3(1, 0, 0));
+                    markedState.SetEntityHitPoints(attacker, 100);
+                    markedState.SetEntityHitPoints(targetB, 100);
+                    markedState.SetStatusEffect(targetB, StatusEffectType.Marked, remainingTurns: 2, potency: 4);
+
+                    var policy = new BasicAttackActionPolicy(
+                        minRange: 1,
+                        maxRange: 2,
+                        maxLineOfSightDelta: 2,
+                        resolutionPolicy: new BasicAttackResolutionPolicy(baseDamage: 10, baseHitChance: 100),
+                        damageElement: DamageElement.Physical,
+                        baseCriticalChance: 0);
+
+                    var baselineResult = new ActionResolver(new SeededRngService(9)).Resolve(baselineState, new BasicAttackAction(attacker, targetA, policy));
+                    var markedResult = new ActionResolver(new SeededRngService(9)).Resolve(markedState, new BasicAttackAction(attacker, targetB, policy));
+
+                    Assert.That(baselineResult.Success, Is.True);
+                    Assert.That(markedResult.Success, Is.True);
+                    Assert.That(markedState.TryGetEntityHitPoints(targetB, out var markedHp), Is.True);
+                    Assert.That(baselineState.TryGetEntityHitPoints(targetA, out var baselineHp), Is.True);
+                    Assert.That(markedHp, Is.LessThan(baselineHp));
+                }
+
     }
 }

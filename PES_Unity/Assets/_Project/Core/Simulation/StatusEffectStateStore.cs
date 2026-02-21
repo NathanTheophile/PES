@@ -32,6 +32,12 @@ namespace PES.Core.Simulation
             return _statusEffects.TryGetValue(key, out var state) ? state.RemainingTurns : 0;
         }
 
+        public int GetStatusEffectPotency(EntityId entityId, StatusEffectType effectType)
+        {
+            var key = new StatusEffectKey(entityId, effectType);
+            return _statusEffects.TryGetValue(key, out var state) ? state.Potency : 0;
+        }
+
         public int TickStatusEffects(EntityId entityId, StatusEffectTickMoment tickMoment, int turns, Func<EntityId, int, bool> tryApplyDamage)
         {
             var safeTurns = turns < 0 ? 0 : turns;
