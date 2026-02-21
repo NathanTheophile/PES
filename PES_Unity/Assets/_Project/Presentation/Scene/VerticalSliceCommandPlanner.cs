@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using PES.Combat.Actions;
 using PES.Core.Simulation;
 using PES.Grid.Grid3D;
@@ -13,22 +14,26 @@ namespace PES.Presentation.Scene
         private readonly MoveActionPolicy? _movePolicyOverride;
         private readonly BasicAttackActionPolicy? _basicAttackPolicyOverride;
         private readonly SkillActionPolicy? _skillPolicyOverride;
+        private readonly IReadOnlyDictionary<EntityId, SkillActionPolicy[]> _skillLoadoutByActor;
         private EntityId _selectedActor;
         private bool _hasSelection;
         private PlannedActionKind _plannedKind;
         private GridCoord3 _plannedDestination;
         private EntityId _plannedTarget;
+        private int _plannedSkillSlot;
 
         public VerticalSliceCommandPlanner(
             BattleState state,
             MoveActionPolicy? movePolicyOverride = null,
             BasicAttackActionPolicy? basicAttackPolicyOverride = null,
-            SkillActionPolicy? skillPolicyOverride = null)
+            SkillActionPolicy? skillPolicyOverride = null,
+            IReadOnlyDictionary<EntityId, SkillActionPolicy[]> skillLoadoutByActor = null)
         {
             _state = state;
             _movePolicyOverride = movePolicyOverride;
             _basicAttackPolicyOverride = basicAttackPolicyOverride;
             _skillPolicyOverride = skillPolicyOverride;
+            _skillLoadoutByActor = skillLoadoutByActor;
             _plannedKind = PlannedActionKind.None;
         }
 
@@ -40,7 +45,7 @@ namespace PES.Presentation.Scene
         {
             PlannedActionKind.Move => $"Move to {_plannedDestination}",
             PlannedActionKind.Attack => $"Attack {_plannedTarget}",
-            PlannedActionKind.Skill => $"Skill {_plannedTarget}",
+            PlannedActionKind.Skill => $"Skill[{_plannedSkillSlot}] {_plannedTarget}",
             _ => "None",
         };
 
@@ -62,10 +67,11 @@ namespace PES.Presentation.Scene
             _plannedTarget = targetId;
         }
 
-        public void PlanSkill(EntityId targetId)
+        public void PlanSkill(EntityId targetId, int skillSlot = 0)
         {
             _plannedKind = PlannedActionKind.Skill;
             _plannedTarget = targetId;
+            _plannedSkillSlot = skillSlot < 0 ? 0 : skillSlot;
         }
 
         public bool TryBuildCommand(out EntityId actorId, out IActionCommand command)
@@ -97,7 +103,8 @@ namespace PES.Presentation.Scene
                     return true;
 
                 case PlannedActionKind.Skill:
-                    command = new CastSkillAction(_selectedActor, _plannedTarget, _skillPolicyOverride);
+                    var policyOverride = ResolveSkillPolicyOverride(_selectedActor, _plannedSkillSlot);
+                    command = new CastSkillAction(_selectedActor, _plannedTarget, policyOverride);
                     return true;
 
                 default:
@@ -108,6 +115,17 @@ namespace PES.Presentation.Scene
         public void ClearPlannedAction()
         {
             _plannedKind = PlannedActionKind.None;
+        }
+
+        private SkillActionPolicy? ResolveSkillPolicyOverride(EntityId actorId, int skillSlot)
+        {
+            if (_skillLoadoutByActor != null && _skillLoadoutByActor.TryGetValue(actorId, out var policies) &&
+                policies != null && skillSlot >= 0 && skillSlot < policies.Length)
+            {
+                return policies[skillSlot];
+            }
+
+            return _skillPolicyOverride;
         }
 
         private enum PlannedActionKind

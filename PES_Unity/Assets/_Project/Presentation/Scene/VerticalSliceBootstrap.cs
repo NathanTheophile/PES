@@ -21,6 +21,10 @@ namespace PES.Presentation.Scene
         private GameObject _unitBView;
         [SerializeField] private CombatRuntimeConfigAsset _runtimeConfig;
 
+        [Header("Authoring (optional)")]
+        [SerializeField] private EntityArchetypeAsset _unitAArchetype;
+        [SerializeField] private EntityArchetypeAsset _unitBArchetype;
+
         [Header("Camera (Ankama-like Isometric)")]
         [SerializeField] private bool _autoSetupIsometricCamera = true;
         [SerializeField] private float _cameraTiltX = 35f;
@@ -46,6 +50,7 @@ namespace PES.Presentation.Scene
 
         private ActionResolution _lastResult;
         private MouseIntentMode _mouseIntentMode = MouseIntentMode.Move;
+        private int _selectedSkillSlot;
 
         private void Start()
         {
@@ -53,14 +58,27 @@ namespace PES.Presentation.Scene
             _effectiveMovePolicy = runtimePolicies.MovePolicyOverride
                 ?? new MoveActionPolicy(maxMovementCostPerAction: 6, maxVerticalStepPerTile: 1);
 
+            var actorDefinitions = BuildActorDefinitionsFromArchetypes();
+            var skillLoadoutMap = EntityArchetypeRuntimeAdapter.BuildSkillLoadoutMap(
+                VerticalSliceBattleLoop.UnitA,
+                _unitAArchetype,
+                VerticalSliceBattleLoop.UnitB,
+                _unitBArchetype);
+
             _battleLoop = new VerticalSliceBattleLoop(
                 movePolicyOverride: _effectiveMovePolicy,
-                basicAttackPolicyOverride: runtimePolicies.BasicAttackPolicyOverride);
+                basicAttackPolicyOverride: runtimePolicies.BasicAttackPolicyOverride,
+                actorDefinitions: actorDefinitions);
+
+            EntityArchetypeRuntimeAdapter.ApplyRuntimeResources(_battleLoop.State, VerticalSliceBattleLoop.UnitA, _unitAArchetype);
+            EntityArchetypeRuntimeAdapter.ApplyRuntimeResources(_battleLoop.State, VerticalSliceBattleLoop.UnitB, _unitBArchetype);
+
             _planner = new VerticalSliceCommandPlanner(
                 _battleLoop.State,
                 _effectiveMovePolicy,
                 runtimePolicies.BasicAttackPolicyOverride,
-                runtimePolicies.SkillPolicyOverride);
+                runtimePolicies.SkillPolicyOverride,
+                skillLoadoutMap);
 
             BuildSteppedMap();
             EnsureAnkamaLikeCamera();
@@ -127,9 +145,9 @@ namespace PES.Presentation.Scene
             GUI.Label(new Rect(24f, 38f, 740f, 20f), $"Tick: {_battleLoop.State.Tick} | Round: {_battleLoop.CurrentRound}");
             GUI.Label(new Rect(24f, 58f, 740f, 20f), $"Actor: {_battleLoop.PeekCurrentActorLabel()} | Next: {_battleLoop.PeekNextStepLabel()} | AP:{_battleLoop.RemainingActions} | PM:{_battleLoop.CurrentActorMovementPoints} | Timer:{_battleLoop.RemainingTurnSeconds:0.0}s");
             GUI.Label(new Rect(24f, 78f, 740f, 20f), $"HP UnitA: {hpA} | HP UnitB: {hpB}");
-            GUI.Label(new Rect(24f, 98f, 740f, 20f), $"Selected: {selected} | Planned: {planned} | MouseMode: {_mouseIntentMode}");
+            GUI.Label(new Rect(24f, 98f, 740f, 20f), $"Selected: {selected} | Planned: {planned} | MouseMode: {_mouseIntentMode} | SkillSlot:{_selectedSkillSlot}");
             GUI.Label(new Rect(24f, 118f, 740f, 20f), $"Last: {_lastResult.Code} / {_lastResult.FailureReason}");
-            GUI.Label(new Rect(24f, 138f, 740f, 20f), _battleLoop.IsBattleOver ? $"Winner Team: {_battleLoop.WinnerTeamId}" : "Mouse: left click world/unit. Keys: 1/2 select, M/A/S mode, P pass, SPACE execute.");
+            GUI.Label(new Rect(24f, 138f, 740f, 20f), _battleLoop.IsBattleOver ? $"Winner Team: {_battleLoop.WinnerTeamId}" : "Mouse: left click world/unit. Keys: 1/2 select, M/A/S mode, Q/E skill slot, P pass, SPACE execute.");
 
             if (GUI.Button(new Rect(24f, 166f, 90f, 28f), "Select A"))
             {
@@ -151,7 +169,7 @@ namespace PES.Presentation.Scene
                 _mouseIntentMode = MouseIntentMode.Attack;
             }
 
-            if (GUI.Button(new Rect(422f, 166f, 90f, 28f), "MonoSpell"))
+            if (GUI.Button(new Rect(422f, 166f, 90f, 28f), "Skill"))
             {
                 _mouseIntentMode = MouseIntentMode.Skill;
             }
@@ -213,7 +231,17 @@ namespace PES.Presentation.Scene
                 var target = _planner.SelectedActorId.Equals(VerticalSliceBattleLoop.UnitA)
                     ? VerticalSliceBattleLoop.UnitB
                     : VerticalSliceBattleLoop.UnitA;
-                _planner.PlanSkill(target);
+                _planner.PlanSkill(target, _selectedSkillSlot);
+            }
+
+            if (Input.GetKeyDown(KeyCode.Q))
+            {
+                _selectedSkillSlot = _selectedSkillSlot > 0 ? _selectedSkillSlot - 1 : 0;
+            }
+
+            if (Input.GetKeyDown(KeyCode.E))
+            {
+                _selectedSkillSlot++;
             }
 
             if (Input.GetKeyDown(KeyCode.P))
@@ -277,7 +305,7 @@ namespace PES.Presentation.Scene
             }
             else if (_mouseIntentMode == MouseIntentMode.Skill)
             {
-                _planner.PlanSkill(clickedActor);
+                _planner.PlanSkill(clickedActor, _selectedSkillSlot);
                 TryExecutePlanned();
             }
         }
@@ -722,6 +750,25 @@ namespace PES.Presentation.Scene
             var y = Mathf.RoundToInt(world.z);
             var z = Mathf.RoundToInt(world.y);
             return new GridCoord3(x, y, z);
+        }
+
+        private IReadOnlyList<PES.Core.TurnSystem.BattleActorDefinition> BuildActorDefinitionsFromArchetypes()
+        {
+            var actorDefinitions = new[]
+            {
+                EntityArchetypeRuntimeAdapter.BuildActorDefinition(
+                    VerticalSliceBattleLoop.UnitA,
+                    teamId: 1,
+                    startPosition: new Position3(0, 0, 0),
+                    archetype: _unitAArchetype),
+                EntityArchetypeRuntimeAdapter.BuildActorDefinition(
+                    VerticalSliceBattleLoop.UnitB,
+                    teamId: 2,
+                    startPosition: new Position3(2, 0, 1),
+                    archetype: _unitBArchetype),
+            };
+
+            return actorDefinitions;
         }
 
         private enum MouseIntentMode
