@@ -2,11 +2,14 @@ namespace PES.Presentation.Scene
 {
     public sealed class VerticalSliceCompositionRoot
     {
+        private const int UnlimitedActionsPerTurn = int.MaxValue;
+
         public VerticalSliceComposition Compose(VerticalSliceBattleSetup setup)
         {
             var battleLoop = new VerticalSliceBattleLoop(
                 movePolicyOverride: setup.EffectiveMovePolicy,
                 basicAttackPolicyOverride: setup.BasicAttackPolicyOverride,
+                actionsPerTurn: UnlimitedActionsPerTurn,
                 actorDefinitions: setup.ActorDefinitions);
 
             setup.ApplyRuntimeResources(battleLoop.State);
