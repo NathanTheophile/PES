@@ -24,6 +24,14 @@ namespace PES.Combat.Actions
             int periodicDamage = 0,
             int periodicDurationTurns = 0,
             StatusEffectTickMoment periodicTickMoment = StatusEffectTickMoment.TurnStart,
+            StatusEffectType targetStatusEffectType = StatusEffectType.None,
+            int targetStatusPotency = 0,
+            int targetStatusDurationTurns = 0,
+            StatusEffectTickMoment targetStatusTickMoment = StatusEffectTickMoment.TurnStart,
+            StatusEffectType casterStatusEffectType = StatusEffectType.None,
+            int casterStatusPotency = 0,
+            int casterStatusDurationTurns = 0,
+            StatusEffectTickMoment casterStatusTickMoment = StatusEffectTickMoment.TurnStart,
             DamageElement damageElement = DamageElement.Elemental,
             int baseCriticalChance = 5)
         {
@@ -41,6 +49,14 @@ namespace PES.Combat.Actions
             PeriodicDamage = periodicDamage;
             PeriodicDurationTurns = periodicDurationTurns;
             PeriodicTickMoment = periodicTickMoment;
+            TargetStatusEffectType = targetStatusEffectType;
+            TargetStatusPotency = targetStatusPotency;
+            TargetStatusDurationTurns = targetStatusDurationTurns;
+            TargetStatusTickMoment = targetStatusTickMoment;
+            CasterStatusEffectType = casterStatusEffectType;
+            CasterStatusPotency = casterStatusPotency;
+            CasterStatusDurationTurns = casterStatusDurationTurns;
+            CasterStatusTickMoment = casterStatusTickMoment;
             DamageElement = damageElement;
             BaseCriticalChance = baseCriticalChance;
         }
@@ -79,6 +95,22 @@ namespace PES.Combat.Actions
 
         public StatusEffectTickMoment PeriodicTickMoment { get; }
 
+        public StatusEffectType TargetStatusEffectType { get; }
+
+        public int TargetStatusPotency { get; }
+
+        public int TargetStatusDurationTurns { get; }
+
+        public StatusEffectTickMoment TargetStatusTickMoment { get; }
+
+        public StatusEffectType CasterStatusEffectType { get; }
+
+        public int CasterStatusPotency { get; }
+
+        public int CasterStatusDurationTurns { get; }
+
+        public StatusEffectTickMoment CasterStatusTickMoment { get; }
+
         public DamageElement DamageElement { get; }
 
         public int BaseCriticalChance { get; }
@@ -97,6 +129,12 @@ namespace PES.Combat.Actions
             SplashDamagePercent is >= 0 and <= 100 &&
             PeriodicDamage >= 0 &&
             PeriodicDurationTurns >= 0 &&
+            TargetStatusPotency >= 0 &&
+            TargetStatusDurationTurns >= 0 &&
+            CasterStatusPotency >= 0 &&
+            CasterStatusDurationTurns >= 0 &&
+            (TargetStatusEffectType == StatusEffectType.None || TargetStatusDurationTurns > 0) &&
+            (CasterStatusEffectType == StatusEffectType.None || CasterStatusDurationTurns > 0) &&
             BaseCriticalChance is >= 0 and <= 100;
     }
 }

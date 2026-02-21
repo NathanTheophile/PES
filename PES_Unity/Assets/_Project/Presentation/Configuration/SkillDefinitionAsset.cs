@@ -39,6 +39,17 @@ namespace PES.Presentation.Configuration
         [Min(0)] [SerializeField] private int _periodicDurationTurns;
         [SerializeField] private PES.Core.Simulation.StatusEffectTickMoment _periodicTickMoment = PES.Core.Simulation.StatusEffectTickMoment.TurnStart;
 
+        [Header("Status Effects (optional)")]
+        [SerializeField] private PES.Core.Simulation.StatusEffectType _targetStatusEffectType = PES.Core.Simulation.StatusEffectType.None;
+        [Min(0)] [SerializeField] private int _targetStatusPotency;
+        [Min(0)] [SerializeField] private int _targetStatusDurationTurns;
+        [SerializeField] private PES.Core.Simulation.StatusEffectTickMoment _targetStatusTickMoment = PES.Core.Simulation.StatusEffectTickMoment.TurnStart;
+
+        [SerializeField] private PES.Core.Simulation.StatusEffectType _casterStatusEffectType = PES.Core.Simulation.StatusEffectType.None;
+        [Min(0)] [SerializeField] private int _casterStatusPotency;
+        [Min(0)] [SerializeField] private int _casterStatusDurationTurns;
+        [SerializeField] private PES.Core.Simulation.StatusEffectTickMoment _casterStatusTickMoment = PES.Core.Simulation.StatusEffectTickMoment.TurnStart;
+
         public string DisplayName => string.IsNullOrWhiteSpace(_displayName) ? $"Skill {_skillId}" : _displayName;
 
         public SkillActionPolicy ToPolicy()
@@ -58,6 +69,14 @@ namespace PES.Presentation.Configuration
                 periodicDamage: _periodicDamage,
                 periodicDurationTurns: _periodicDurationTurns,
                 periodicTickMoment: _periodicTickMoment,
+                targetStatusEffectType: _targetStatusEffectType,
+                targetStatusPotency: _targetStatusPotency,
+                targetStatusDurationTurns: _targetStatusDurationTurns,
+                targetStatusTickMoment: _targetStatusTickMoment,
+                casterStatusEffectType: _casterStatusEffectType,
+                casterStatusPotency: _casterStatusPotency,
+                casterStatusDurationTurns: _casterStatusDurationTurns,
+                casterStatusTickMoment: _casterStatusTickMoment,
                 damageElement: _damageElement,
                 baseCriticalChance: _baseCriticalChance);
         }
