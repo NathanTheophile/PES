@@ -3,6 +3,7 @@ using UnityEngine;
 using PES.Combat.Actions;
 using PES.Core.Simulation;
 using PES.Grid.Grid3D;
+using EntityId = PES.Core.Simulation.EntityId;
 
 namespace PES.Presentation.Scene
 {

@@ -6,6 +6,7 @@ using PES.Grid.Grid3D;
 using PES.Grid.Pathfinding;
 using PES.Presentation.Configuration;
 using UnityEngine;
+using EntityId = PES.Core.Simulation.EntityId;
 
 namespace PES.Presentation.Scene
 {

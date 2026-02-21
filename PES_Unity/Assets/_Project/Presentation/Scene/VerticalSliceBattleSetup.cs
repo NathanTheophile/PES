@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using PES.Combat.Actions;
 using PES.Core.Simulation;
+using PES.Core.TurnSystem;
 using PES.Presentation.Adapters;
 using PES.Presentation.Configuration;
 

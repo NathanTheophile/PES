@@ -4,6 +4,7 @@ using PES.Core.Simulation;
 using PES.Presentation.Adapters;
 using PES.Presentation.Configuration;
 using UnityEngine;
+using EntityId = PES.Core.Simulation.EntityId;
 
 namespace PES.Tests.EditMode
 {
