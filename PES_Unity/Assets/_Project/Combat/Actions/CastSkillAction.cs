@@ -121,7 +121,7 @@ namespace PES.Combat.Actions
                     new ActionResultPayload("SkillMissed", policy.SkillId, resolution.Roll, resolution.HitChance));
             }
 
-            if (!state.TryApplyDamage(TargetId, resolution.FinalDamage, policy.AttackElement))
+            if (!state.TryApplyDamage(TargetId, resolution.FinalDamage))
             {
                 return new ActionResolution(false, ActionResolutionCode.Rejected, $"CastSkillRejected: failed to apply damage to {TargetId}", ActionFailureReason.DamageApplicationFailed);
             }
@@ -143,16 +143,6 @@ namespace PES.Combat.Actions
             if (policy.PeriodicDamage > 0 && policy.PeriodicDurationTurns > 0)
             {
                 state.SetStatusEffect(TargetId, StatusEffectType.Poison, policy.PeriodicDurationTurns, policy.PeriodicDamage, policy.PeriodicTickMoment);
-            }
-
-            if (policy.VulnerableDurationTurns > 0)
-            {
-                state.SetStatusEffect(TargetId, StatusEffectType.Vulnerable, policy.VulnerableDurationTurns, tickMoment: StatusEffectTickMoment.TurnStart);
-            }
-
-            if (policy.InvulnerableDurationTurns > 0)
-            {
-                state.SetStatusEffect(TargetId, StatusEffectType.Invulnerable, policy.InvulnerableDurationTurns, tickMoment: StatusEffectTickMoment.TurnStart);
             }
 
             return new ActionResolution(
@@ -200,7 +190,7 @@ namespace PES.Combat.Actions
                     continue;
                 }
 
-                if (state.TryApplyDamage(pair.Key, splashDamage, policy.AttackElement))
+                if (state.TryApplyDamage(pair.Key, splashDamage))
                 {
                     hits++;
                 }

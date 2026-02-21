@@ -30,16 +30,11 @@ namespace PES.Presentation.Configuration
         [Header("AOE (optional)")]
         [Min(0)] [SerializeField] private int _splashRadiusXZ;
         [Range(0, 100)] [SerializeField] private int _splashDamagePercent;
-        [SerializeField] private PES.Core.Simulation.AttackElement _attackElement = PES.Core.Simulation.AttackElement.Physique;
 
         [Header("Periodic Damage (optional)")]
         [Min(0)] [SerializeField] private int _periodicDamage;
         [Min(0)] [SerializeField] private int _periodicDurationTurns;
         [SerializeField] private PES.Core.Simulation.StatusEffectTickMoment _periodicTickMoment = PES.Core.Simulation.StatusEffectTickMoment.TurnStart;
-
-        [Header("Debuff (optional)")]
-        [Min(0)] [SerializeField] private int _vulnerableDurationTurns;
-        [Min(0)] [SerializeField] private int _invulnerableDurationTurns;
 
         public string DisplayName => string.IsNullOrWhiteSpace(_displayName) ? $"Skill {_skillId}" : _displayName;
 
@@ -57,12 +52,9 @@ namespace PES.Presentation.Configuration
                 cooldownTurns: _cooldownTurns,
                 splashRadiusXZ: _splashRadiusXZ,
                 splashDamagePercent: _splashDamagePercent,
-                attackElement: _attackElement,
                 periodicDamage: _periodicDamage,
                 periodicDurationTurns: _periodicDurationTurns,
-                periodicTickMoment: _periodicTickMoment,
-                vulnerableDurationTurns: _vulnerableDurationTurns,
-                invulnerableDurationTurns: _invulnerableDurationTurns);
+                periodicTickMoment: _periodicTickMoment);
         }
     }
 }
