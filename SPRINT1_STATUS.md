@@ -127,6 +127,8 @@ En pratique, il faut démarrer par les features `Skills`/`States`/`Flow` déjà 
 
 - Ajout d'un overlay de déplacements possibles (bleu) + prévisualisation du path survolé (ligne blanche) pour l'acteur courant en mode Move.
 
+- Ajout d'une couche d'authoring **Entity/Skill** pour accélérer la création de contenu en Unity: `SkillDefinitionAsset`, `EntityArchetypeAsset`, adapter runtime vers `BattleActorDefinition` + ressources + loadout de skills par entité (branché dans le vertical slice).
+
 ## Synthèse opérationnelle (assistant)
 
 ### Statut global
