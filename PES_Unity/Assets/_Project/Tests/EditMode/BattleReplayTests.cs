@@ -102,7 +102,9 @@ namespace PES.Tests.EditMode
                 a.EntityHitPoints.Count != b.EntityHitPoints.Count ||
                 a.EntityMovementPoints.Count != b.EntityMovementPoints.Count ||
                 a.EntitySkillResources.Count != b.EntitySkillResources.Count ||
-                a.SkillCooldowns.Count != b.SkillCooldowns.Count)
+                a.SkillCooldowns.Count != b.SkillCooldowns.Count ||
+                a.StatusEffects.Count != b.StatusEffects.Count ||
+                a.EntityRpgStats.Count != b.EntityRpgStats.Count)
             {
                 return false;
             }
@@ -149,6 +151,27 @@ namespace PES.Tests.EditMode
                 if (!a.SkillCooldowns[i].EntityId.Equals(b.SkillCooldowns[i].EntityId) ||
                     a.SkillCooldowns[i].SkillId != b.SkillCooldowns[i].SkillId ||
                     a.SkillCooldowns[i].RemainingTurns != b.SkillCooldowns[i].RemainingTurns)
+                {
+                    return false;
+                }
+            }
+
+            for (var i = 0; i < a.StatusEffects.Count; i++)
+            {
+                if (!a.StatusEffects[i].EntityId.Equals(b.StatusEffects[i].EntityId) ||
+                    a.StatusEffects[i].EffectType != b.StatusEffects[i].EffectType ||
+                    a.StatusEffects[i].RemainingTurns != b.StatusEffects[i].RemainingTurns ||
+                    a.StatusEffects[i].Potency != b.StatusEffects[i].Potency ||
+                    a.StatusEffects[i].TickMoment != b.StatusEffects[i].TickMoment)
+                {
+                    return false;
+                }
+            }
+
+            for (var i = 0; i < a.EntityRpgStats.Count; i++)
+            {
+                if (!a.EntityRpgStats[i].EntityId.Equals(b.EntityRpgStats[i].EntityId) ||
+                    !a.EntityRpgStats[i].Stats.Equals(b.EntityRpgStats[i].Stats))
                 {
                     return false;
                 }
