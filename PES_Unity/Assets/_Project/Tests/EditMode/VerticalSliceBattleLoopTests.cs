@@ -339,5 +339,20 @@ namespace PES.Tests.EditMode
             Assert.That(unitBMovement, Is.EqualTo(6));
         }
 
+
+        [Test]
+        public void Constructor_WithRapidityPriority_StartsWithFastestActor()
+        {
+            var actorDefinitions = new[]
+            {
+                new BattleActorDefinition(VerticalSliceBattleLoop.UnitA, 1, new Position3(0, 0, 0), 40, 6, rapidity: 10),
+                new BattleActorDefinition(VerticalSliceBattleLoop.UnitB, 2, new Position3(2, 0, 1), 40, 6, rapidity: 30),
+            };
+
+            var loop = new VerticalSliceBattleLoop(seed: 3, actorDefinitions: actorDefinitions);
+
+            Assert.That(loop.CurrentActorId, Is.EqualTo(VerticalSliceBattleLoop.UnitB));
+            Assert.That(loop.PeekCurrentActorLabel(), Is.EqualTo("UnitB"));
+        }
     }
 }

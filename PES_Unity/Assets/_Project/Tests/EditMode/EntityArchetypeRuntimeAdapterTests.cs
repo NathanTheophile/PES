@@ -4,6 +4,7 @@ using PES.Core.Simulation;
 using PES.Presentation.Adapters;
 using PES.Presentation.Configuration;
 using UnityEngine;
+using EntityId = PES.Core.Simulation.EntityId;
 
 namespace PES.Tests.EditMode
 {
@@ -15,6 +16,7 @@ namespace PES.Tests.EditMode
             var archetype = ScriptableObject.CreateInstance<EntityArchetypeAsset>();
             SetField(archetype, "_startHitPoints", 77);
             SetField(archetype, "_startMovementPoints", 9);
+            SetField(archetype, "_rapidity", 22);
 
             var definition = EntityArchetypeRuntimeAdapter.BuildActorDefinition(
                 new EntityId(500),
@@ -26,6 +28,7 @@ namespace PES.Tests.EditMode
             Assert.That(definition.TeamId, Is.EqualTo(3));
             Assert.That(definition.StartHitPoints, Is.EqualTo(77));
             Assert.That(definition.StartMovementPoints, Is.EqualTo(9));
+            Assert.That(definition.Rapidity, Is.EqualTo(22));
 
             Object.DestroyImmediate(archetype);
         }
@@ -43,6 +46,8 @@ namespace PES.Tests.EditMode
             var hasResource = state.TryGetEntitySkillResource(actorId, out var resource);
             Assert.That(hasResource, Is.True);
             Assert.That(resource, Is.EqualTo(6));
+            Assert.That(state.TryGetEntityRpgStats(actorId, out var stats), Is.True);
+            Assert.That(stats.Rapidity, Is.EqualTo(0));
 
             Object.DestroyImmediate(archetype);
         }
