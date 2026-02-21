@@ -77,6 +77,8 @@ namespace PES.Presentation.Scene
             return false;
         }
 
+        public bool HasPlannedAction => _plannedKind != PlannedActionKind.None;
+
         public string PlannedLabel => _plannedKind switch
         {
             PlannedActionKind.Move => $"Move to {_plannedDestination}",

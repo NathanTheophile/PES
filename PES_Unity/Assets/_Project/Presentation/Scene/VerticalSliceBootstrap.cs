@@ -95,6 +95,7 @@ namespace PES.Presentation.Scene
                 TryFindAdjacentMoveDestinationAndPlan,
                 PlanAttackToOtherActor,
                 TryPlanSkill,
+                CancelPlannedAction,
                 TryPassTurn);
 
             var hasImmediateResult = _inputBinder.ProcessMouseInputs(
@@ -159,10 +160,14 @@ namespace PES.Presentation.Scene
                 () => _mouseIntentMode = VerticalSliceMouseIntentMode.Attack,
                 () => _mouseIntentMode = VerticalSliceMouseIntentMode.Skill,
                 TryExecutePlanned,
+                CancelPlannedAction,
                 TryPassTurn,
                 DrawSkillKitButtons,
                 DrawLegendLabel,
-                GetSelectedSkillLabel);
+                GetSelectedSkillLabel,
+                GetSelectedSkillTooltip,
+                GetActionFeedbackLabel,
+                GetRecentActionHistory);
         }
 
         private void DrawSkillKitButtons()
@@ -208,7 +213,49 @@ namespace PES.Presentation.Scene
 
         private void DrawLegendLabel()
         {
-            GUI.Label(new Rect(24f, 252f, 740f, 30f), "Bleu = déplacements possibles. Survol d'une case bleue en mode Move => aperçu du chemin blanc.");
+            GUI.Label(new Rect(24f, 382f, 740f, 20f), "Bleu = déplacements possibles. Survol d'une case bleue en mode Move => aperçu du chemin blanc.");
+        }
+
+
+        private string GetActionFeedbackLabel()
+        {
+            return ActionFeedbackFormatter.FormatResolutionSummary(_lastResult);
+        }
+
+        private IReadOnlyList<string> GetRecentActionHistory()
+        {
+            const int maxEntries = 3;
+            var history = new List<string>(maxEntries);
+            var log = _battleLoop.State.StructuredEventLog;
+            for (var i = log.Count - 1; i >= 0 && history.Count < maxEntries; i--)
+            {
+                history.Add(ActionFeedbackFormatter.FormatEventRecordLine(log[i]));
+            }
+
+            if (history.Count == 0)
+            {
+                history.Add("(no action yet)");
+            }
+
+            return history;
+        }
+
+        private string GetSelectedSkillTooltip()
+        {
+            if (!_planner.HasActorSelection)
+            {
+                return "Sélectionne une unité pour voir le détail de la skill.";
+            }
+
+            var actorId = _planner.SelectedActorId;
+            if (!_planner.TryGetSkillPolicy(actorId, _selectedSkillSlot, out var policy))
+            {
+                return "Aucune skill configurée sur ce slot.";
+            }
+
+            var cooldown = _battleLoop.State.GetSkillCooldown(actorId, policy.SkillId);
+            var resource = _battleLoop.State.TryGetEntitySkillResource(actorId, out var value) ? value : 0;
+            return ActionFeedbackFormatter.BuildSkillTooltip(policy, cooldown, resource);
         }
 
         private string GetSkillButtonLabel(EntityId actorId, int slot)
@@ -261,6 +308,18 @@ namespace PES.Presentation.Scene
                 ? VerticalSliceBattleLoop.UnitB
                 : VerticalSliceBattleLoop.UnitA;
             _planner.PlanAttack(target);
+        }
+
+        private void CancelPlannedAction()
+        {
+            if (!_planner.HasPlannedAction)
+            {
+                _lastResult = new ActionResolution(false, ActionResolutionCode.Rejected, "CancelIgnored: no planned action", ActionFailureReason.InvalidTargeting);
+                return;
+            }
+
+            _planner.ClearPlannedAction();
+            _lastResult = new ActionResolution(true, ActionResolutionCode.Succeeded, "PlanCancelled: cleared planned action");
         }
 
         private void TryPassTurn()
