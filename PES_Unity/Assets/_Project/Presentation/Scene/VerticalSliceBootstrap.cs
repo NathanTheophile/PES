@@ -41,6 +41,11 @@ namespace PES.Presentation.Scene
         private MoveActionPolicy _effectiveMovePolicy;
         private Material _reachableTileMaterial;
         private LineRenderer _pathLineRenderer;
+        private Material _plannedMoveMarkerMaterial;
+        private Material _plannedAttackMarkerMaterial;
+        private Material _plannedSkillMarkerMaterial;
+        private GameObject _plannedMoveMarkerView;
+        private GameObject _plannedTargetMarkerView;
 
         private EntityId _lastPreviewActor;
         private int _lastPreviewMovementPoints = int.MinValue;
@@ -65,6 +70,7 @@ namespace PES.Presentation.Scene
             BuildSteppedMap();
             EnsureAnkamaLikeCamera();
             SetupMovementPreviewVisuals();
+            SetupActionIntentPreviewVisuals();
 
             _unitAView = CreateUnitVisual("UnitA", Color.cyan);
             _unitBView = CreateUnitVisual("UnitB", Color.red);
@@ -116,6 +122,7 @@ namespace PES.Presentation.Scene
             }
 
             UpdateMovementPreviewVisuals();
+            UpdateActionIntentPreviewVisuals();
 
             if (Input.GetKeyDown(KeyCode.Space))
             {
@@ -214,7 +221,7 @@ namespace PES.Presentation.Scene
 
         private void DrawLegendLabel()
         {
-            GUI.Label(new Rect(24f, 412f, 740f, 20f), "Bleu = déplacements possibles. Survol d'une case bleue en mode Move => aperçu du chemin blanc.");
+            GUI.Label(new Rect(24f, 412f, 740f, 20f), "Bleu = cases atteignables, ligne blanche = path. Marker cyan = move planifié, rouge = attaque planifiée, doré = skill planifiée.");
         }
 
 
@@ -415,6 +422,95 @@ namespace PES.Presentation.Scene
             }
         }
 
+        private void SetupActionIntentPreviewVisuals()
+        {
+            _plannedMoveMarkerMaterial = new Material(Shader.Find("Unlit/Color"))
+            {
+                color = new Color(0.2f, 0.95f, 0.9f, 0.5f)
+            };
+
+            _plannedAttackMarkerMaterial = new Material(Shader.Find("Unlit/Color"))
+            {
+                color = new Color(1f, 0.25f, 0.2f, 0.6f)
+            };
+
+            _plannedSkillMarkerMaterial = new Material(Shader.Find("Unlit/Color"))
+            {
+                color = new Color(1f, 0.8f, 0.2f, 0.65f)
+            };
+
+            _plannedMoveMarkerView = CreateFlatPreviewMarker("Preview_MoveIntent", _plannedMoveMarkerMaterial, 0.92f);
+            _plannedTargetMarkerView = CreateFlatPreviewMarker("Preview_TargetIntent", _plannedAttackMarkerMaterial, 1.16f);
+            HideActionIntentPreviewVisuals();
+        }
+
+        private void UpdateActionIntentPreviewVisuals()
+        {
+            if (_plannedMoveMarkerView == null || _plannedTargetMarkerView == null || !_planner.HasPlannedAction)
+            {
+                HideActionIntentPreviewVisuals();
+                return;
+            }
+
+            if (_planner.HasPlannedMove && _planner.TryGetPlannedMoveDestination(out var destination))
+            {
+                _plannedMoveMarkerView.SetActive(true);
+                _plannedTargetMarkerView.SetActive(false);
+                _plannedMoveMarkerView.transform.position = new Vector3(destination.X, destination.Z + 0.54f, destination.Y);
+                return;
+            }
+
+            if (!_planner.TryGetPlannedTarget(out var targetId) || !_battleLoop.State.TryGetEntityPosition(targetId, out var targetPosition))
+            {
+                HideActionIntentPreviewVisuals();
+                return;
+            }
+
+            _plannedMoveMarkerView.SetActive(false);
+            _plannedTargetMarkerView.SetActive(true);
+            _plannedTargetMarkerView.transform.position = new Vector3(targetPosition.X, targetPosition.Z + 0.58f, targetPosition.Y);
+
+            var targetRenderer = _plannedTargetMarkerView.GetComponent<Renderer>();
+            if (targetRenderer != null)
+            {
+                targetRenderer.material = _planner.HasPlannedSkill ? _plannedSkillMarkerMaterial : _plannedAttackMarkerMaterial;
+            }
+        }
+
+        private void HideActionIntentPreviewVisuals()
+        {
+            if (_plannedMoveMarkerView != null)
+            {
+                _plannedMoveMarkerView.SetActive(false);
+            }
+
+            if (_plannedTargetMarkerView != null)
+            {
+                _plannedTargetMarkerView.SetActive(false);
+            }
+        }
+
+        private static GameObject CreateFlatPreviewMarker(string name, Material material, float scale)
+        {
+            var marker = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            marker.name = name;
+            marker.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+            marker.transform.localScale = new Vector3(scale, scale, scale);
+
+            var renderer = marker.GetComponent<Renderer>();
+            renderer.material = material;
+            renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            renderer.receiveShadows = false;
+
+            var collider = marker.GetComponent<Collider>();
+            if (collider != null)
+            {
+                UnityEngine.Object.Destroy(collider);
+            }
+
+            return marker;
+        }
+
         private void SetupMovementPreviewVisuals()
         {
             _reachableTileMaterial = new Material(Shader.Find("Unlit/Color"))
@@ -518,7 +614,7 @@ namespace PES.Presentation.Scene
             var collider = overlay.GetComponent<Collider>();
             if (collider != null)
             {
-                Destroy(collider);
+                UnityEngine.Object.Destroy(collider);
             }
 
             _reachableOverlayTiles.Add(overlay);
