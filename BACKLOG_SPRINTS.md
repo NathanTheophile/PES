@@ -61,7 +61,7 @@
 - [x] Ajouter des feedbacks visuels minimum viables: surbrillance des cases ciblables, prévisualisation dégâts/état, logs de résolution lisibles.
 - [ ] Stabiliser la UI skills en combat: tooltip (coût/portée/effets), états visuels cohérents (ready/cooldown/ressource insuffisante), annulation claire. *(WIP: annulation explicite ajoutée via bouton Cancel + touche ESC).*
 - [x] Uniformiser les feedbacks d'action rejetée (`OutOfRange`, `NoLineOfSight`, `NotEnoughResource`) entre domaine et HUD.
-- [ ] Ajouter un pass animation/VFX placeholder branché sur les events domaine (sans coupler la logique métier à Unity).
+- [x] Ajouter un pass animation/VFX placeholder branché sur les events domaine (sans coupler la logique métier à Unity).
 - [ ] Définir une "démo jouable" courte (1 map + 2 camps + 3-4 skills représentatifs) avec checklist de validation UX.
 - [ ] Couvrir ce milestone par un scénario replay déterministe golden-path (seed fixée + snapshot final attendu).
 

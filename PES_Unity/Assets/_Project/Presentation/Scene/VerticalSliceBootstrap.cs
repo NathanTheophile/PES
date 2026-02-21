@@ -50,6 +50,11 @@ namespace PES.Presentation.Scene
         private GameObject _plannedTargetMarkerView;
         private GameObject _hoverTargetMarkerView;
 
+        private Material _vfxSuccessMaterial;
+        private Material _vfxMissedMaterial;
+        private Material _vfxRejectedMaterial;
+        private readonly List<TransientVfxPulse> _transientVfxPulses = new();
+
         private EntityId _lastPreviewActor;
         private int _lastPreviewMovementPoints = int.MinValue;
         private bool _lastPreviewMoveMode;
@@ -74,6 +79,7 @@ namespace PES.Presentation.Scene
             EnsureAnkamaLikeCamera();
             SetupMovementPreviewVisuals();
             SetupActionIntentPreviewVisuals();
+            SetupActionVfxPlaceholders();
 
             _unitAView = CreateUnitVisual("UnitA", Color.cyan);
             _unitBView = CreateUnitVisual("UnitB", Color.red);
@@ -127,17 +133,22 @@ namespace PES.Presentation.Scene
             UpdateMovementPreviewVisuals();
             UpdateActionIntentPreviewVisuals();
             UpdateHoveredTargetPreviewVisuals();
+            UpdateTransientVfxPulses(Time.deltaTime);
 
             if (Input.GetKeyDown(KeyCode.Space))
             {
                 if (_planner.TryBuildCommand(out var actorId, out var command))
                 {
+                    var hadTarget = _planner.TryGetPlannedTarget(out var plannedTarget);
                     _battleLoop.TryExecutePlannedCommand(actorId, command, out _lastResult);
+                    PlayActionVfxPlaceholder(actorId, hadTarget ? plannedTarget : (EntityId?)null, _lastResult);
                     _planner.ClearPlannedAction();
                 }
                 else
                 {
+                    var scriptedActor = _battleLoop.CurrentActorId;
                     _lastResult = _battleLoop.ExecuteNextStep();
+                    PlayActionVfxPlaceholder(scriptedActor, null, _lastResult);
                 }
 
                 SyncUnitViews();
@@ -225,7 +236,7 @@ namespace PES.Presentation.Scene
 
         private void DrawLegendLabel()
         {
-            GUI.Label(new Rect(24f, 412f, 740f, 20f), "Bleu = cases atteignables, ligne blanche = path. Marker cyan = move planifié, rouge = attaque planifiée, doré = skill planifiée, orange/doré translucide = cible survolée (attack/skill).");
+            GUI.Label(new Rect(24f, 412f, 740f, 20f), "Bleu = cases atteignables, ligne blanche = path. Marker cyan = move planifié, rouge = attaque planifiée, doré = skill planifiée, orange/doré translucide = cible survolée (attack/skill). Pulses vert/jaune/rouge = succès/miss/rejet action.");
         }
 
 
@@ -405,6 +416,7 @@ namespace PES.Presentation.Scene
             }
 
             _battleLoop.TryPassTurn(_planner.SelectedActorId, out _lastResult);
+            PlayActionVfxPlaceholder(_planner.SelectedActorId, null, _lastResult);
             _planner.ClearPlannedAction();
             SyncUnitViews();
             Debug.Log($"[VerticalSlice] {_lastResult.Description}");
@@ -419,10 +431,106 @@ namespace PES.Presentation.Scene
 
             if (_planner.TryBuildCommand(out var actorId, out var command))
             {
+                var hadTarget = _planner.TryGetPlannedTarget(out var plannedTarget);
                 _battleLoop.TryExecutePlannedCommand(actorId, command, out _lastResult);
+                PlayActionVfxPlaceholder(actorId, hadTarget ? plannedTarget : (EntityId?)null, _lastResult);
                 _planner.ClearPlannedAction();
                 SyncUnitViews();
                 Debug.Log($"[VerticalSlice] {_lastResult.Description}");
+            }
+        }
+
+        private void SetupActionVfxPlaceholders()
+        {
+            _vfxSuccessMaterial = new Material(Shader.Find("Unlit/Color"))
+            {
+                color = new Color(0.2f, 1f, 0.35f, 0.55f)
+            };
+
+            _vfxMissedMaterial = new Material(Shader.Find("Unlit/Color"))
+            {
+                color = new Color(1f, 0.9f, 0.2f, 0.5f)
+            };
+
+            _vfxRejectedMaterial = new Material(Shader.Find("Unlit/Color"))
+            {
+                color = new Color(1f, 0.25f, 0.25f, 0.52f)
+            };
+        }
+
+        private void PlayActionVfxPlaceholder(EntityId actorId, EntityId? targetId, ActionResolution resolution)
+        {
+            if (_battleLoop == null)
+            {
+                return;
+            }
+
+            if (_battleLoop.State.TryGetEntityPosition(actorId, out var actorPosition))
+            {
+                SpawnTransientPulse(actorPosition, ResolveVfxMaterial(resolution.Code), 0.42f, 0.35f);
+            }
+
+            if (targetId.HasValue && _battleLoop.State.TryGetEntityPosition(targetId.Value, out var targetPosition))
+            {
+                SpawnTransientPulse(targetPosition, ResolveVfxMaterial(resolution.Code), 0.58f, 0.42f);
+            }
+        }
+
+        private Material ResolveVfxMaterial(ActionResolutionCode code)
+        {
+            return code switch
+            {
+                ActionResolutionCode.Succeeded => _vfxSuccessMaterial,
+                ActionResolutionCode.Missed => _vfxMissedMaterial,
+                _ => _vfxRejectedMaterial,
+            };
+        }
+
+        private void SpawnTransientPulse(Position3 position, Material material, float yOffset, float ttlSeconds)
+        {
+            if (material == null)
+            {
+                return;
+            }
+
+            var pulse = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            pulse.name = $"VfxPulse_{position.X}_{position.Y}_{position.Z}_{_transientVfxPulses.Count}";
+            pulse.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+            pulse.transform.position = new Vector3(position.X, position.Z + yOffset, position.Y);
+            pulse.transform.localScale = new Vector3(0.82f, 0.82f, 0.82f);
+
+            var renderer = pulse.GetComponent<Renderer>();
+            renderer.material = material;
+            renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            renderer.receiveShadows = false;
+
+            var collider = pulse.GetComponent<Collider>();
+            if (collider != null)
+            {
+                UnityEngine.Object.Destroy(collider);
+            }
+
+            _transientVfxPulses.Add(new TransientVfxPulse(pulse, ttlSeconds));
+        }
+
+        private void UpdateTransientVfxPulses(float deltaTime)
+        {
+            for (var i = _transientVfxPulses.Count - 1; i >= 0; i--)
+            {
+                var pulse = _transientVfxPulses[i];
+                var nextTtl = pulse.TtlSeconds - deltaTime;
+                if (nextTtl <= 0f)
+                {
+                    if (pulse.View != null)
+                    {
+                        UnityEngine.Object.Destroy(pulse.View);
+                    }
+
+                    _transientVfxPulses.RemoveAt(i);
+                    continue;
+                }
+
+                _transientVfxPulses[i] = new TransientVfxPulse(pulse.View, nextTtl);
             }
         }
 
@@ -931,6 +1039,20 @@ namespace PES.Presentation.Scene
             {
                 _unitBView.transform.position = ToWorld(unitBPosition);
             }
+        }
+
+
+        private readonly struct TransientVfxPulse
+        {
+            public TransientVfxPulse(GameObject view, float ttlSeconds)
+            {
+                View = view;
+                TtlSeconds = ttlSeconds;
+            }
+
+            public GameObject View { get; }
+
+            public float TtlSeconds { get; }
         }
 
         private static Vector3 ToWorld(Position3 position)
