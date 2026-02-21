@@ -135,6 +135,8 @@ En pratique, il faut démarrer par les features `Skills`/`States`/`Flow` déjà 
 
 - Amorçage du domaine **States** avec un premier status effect `Poison` (durée, dégâts périodiques, tick début/fin de tour configurable par sort, snapshot/replay).
 
+- Extension des states/skills avec un premier debuff non périodique `Vulnerable` (appliqué par skill, amplification des dégâts entrants, sérialisé dans snapshot/replay).
+
 ## Synthèse opérationnelle (assistant)
 
 ### Statut global

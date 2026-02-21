@@ -68,6 +68,7 @@ namespace PES.Presentation.Adapters
             }
 
             state.SetEntitySkillResource(actorId, archetype.StartSkillResource);
+            state.SetEntityStats(actorId, archetype.ToStatBlock());
         }
 
         public static void ApplyRuntimeResources(BattleState state, IReadOnlyList<BattleActorArchetypeBinding> bindings)

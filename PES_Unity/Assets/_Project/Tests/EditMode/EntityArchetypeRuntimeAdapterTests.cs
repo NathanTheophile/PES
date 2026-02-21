@@ -44,6 +44,60 @@ namespace PES.Tests.EditMode
             Assert.That(hasResource, Is.True);
             Assert.That(resource, Is.EqualTo(6));
 
+            Assert.That(state.TryGetEntityStat(actorId, EntityStatType.ActionPoints, out var actionPoints), Is.True);
+            Assert.That(actionPoints, Is.EqualTo(6));
+            Assert.That(state.TryGetEntityStat(actorId, EntityStatType.HitPoints, out var statHitPoints), Is.True);
+            Assert.That(statHitPoints, Is.EqualTo(40));
+
+            Object.DestroyImmediate(archetype);
+        }
+
+        [Test]
+        public void ToStatBlock_MapsConfiguredRpgStats()
+        {
+            var archetype = ScriptableObject.CreateInstance<EntityArchetypeAsset>();
+            SetField(archetype, "_startActionPoints", 11);
+            SetField(archetype, "_startMovementPoints", 5);
+            SetField(archetype, "_startRange", 7);
+            SetField(archetype, "_startElevation", 2);
+            SetField(archetype, "_startSummonSlots", 3);
+            SetField(archetype, "_startHitPoints", 99);
+            SetField(archetype, "_diligence", 12);
+            SetField(archetype, "_quickness", 14);
+            SetField(archetype, "_affinityElement", AttackElement.Elementaire);
+            SetField(archetype, "_masteryContondante", 20);
+            SetField(archetype, "_masteryPhysique", 30);
+            SetField(archetype, "_masteryElementaire", 40);
+            SetField(archetype, "_masterySpeciale", 50);
+            SetField(archetype, "_masterySpirituelle", 60);
+            SetField(archetype, "_criticalChancePercent", 15);
+            SetField(archetype, "_criticalDamagePercent", 70);
+            SetField(archetype, "_resistancePercent", 11);
+            SetField(archetype, "_specialResistancePercent", 13);
+            SetField(archetype, "_criticalResistancePercent", 9);
+
+            var block = archetype.ToStatBlock();
+
+            Assert.That(block.ActionPoints, Is.EqualTo(11));
+            Assert.That(block.MovementPoints, Is.EqualTo(5));
+            Assert.That(block.Range, Is.EqualTo(7));
+            Assert.That(block.Elevation, Is.EqualTo(2));
+            Assert.That(block.SummonSlots, Is.EqualTo(3));
+            Assert.That(block.HitPoints, Is.EqualTo(99));
+            Assert.That(block.Diligence, Is.EqualTo(12));
+            Assert.That(block.Quickness, Is.EqualTo(14));
+            Assert.That(block.AffinityElement, Is.EqualTo(AttackElement.Elementaire));
+            Assert.That(block.MasteryContondante, Is.EqualTo(20));
+            Assert.That(block.MasteryPhysique, Is.EqualTo(30));
+            Assert.That(block.MasteryElementaire, Is.EqualTo(40));
+            Assert.That(block.MasterySpeciale, Is.EqualTo(50));
+            Assert.That(block.MasterySpirituelle, Is.EqualTo(60));
+            Assert.That(block.CriticalChancePercent, Is.EqualTo(15));
+            Assert.That(block.CriticalDamagePercent, Is.EqualTo(70));
+            Assert.That(block.ResistancePercent, Is.EqualTo(11));
+            Assert.That(block.SpecialResistancePercent, Is.EqualTo(13));
+            Assert.That(block.CriticalResistancePercent, Is.EqualTo(9));
+
             Object.DestroyImmediate(archetype);
         }
 

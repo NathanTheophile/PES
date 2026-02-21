@@ -53,3 +53,4 @@
 
 - [x] Amorcer le système d'états domaine (status effects + tick déterministe + snapshot).
 - [x] Permettre le timing DoT configurable par sort (début vs fin de tour).
+- [x] Ajouter un premier debuff non-DoT (`Vulnerable`) appliqué par skill avec impact dégâts.

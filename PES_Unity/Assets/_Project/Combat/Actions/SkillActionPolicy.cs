@@ -21,9 +21,12 @@ namespace PES.Combat.Actions
             int cooldownTurns = 0,
             int splashRadiusXZ = 0,
             int splashDamagePercent = 0,
+            AttackElement attackElement = AttackElement.Physique,
             int periodicDamage = 0,
             int periodicDurationTurns = 0,
-            StatusEffectTickMoment periodicTickMoment = StatusEffectTickMoment.TurnStart)
+            StatusEffectTickMoment periodicTickMoment = StatusEffectTickMoment.TurnStart,
+            int vulnerableDurationTurns = 0,
+            int invulnerableDurationTurns = 0)
         {
             SkillId = skillId;
             MinRange = minRange;
@@ -36,9 +39,12 @@ namespace PES.Combat.Actions
             CooldownTurns = cooldownTurns;
             SplashRadiusXZ = splashRadiusXZ;
             SplashDamagePercent = splashDamagePercent;
+            AttackElement = attackElement;
             PeriodicDamage = periodicDamage;
             PeriodicDurationTurns = periodicDurationTurns;
             PeriodicTickMoment = periodicTickMoment;
+            VulnerableDurationTurns = vulnerableDurationTurns;
+            InvulnerableDurationTurns = invulnerableDurationTurns;
         }
 
         public int SkillId { get; }
@@ -69,11 +75,17 @@ namespace PES.Combat.Actions
 
         public int SplashDamagePercent { get; }
 
+        public AttackElement AttackElement { get; }
+
         public int PeriodicDamage { get; }
 
         public int PeriodicDurationTurns { get; }
 
         public StatusEffectTickMoment PeriodicTickMoment { get; }
+
+        public int VulnerableDurationTurns { get; }
+
+        public int InvulnerableDurationTurns { get; }
 
         public bool IsValid =>
             SkillId >= 0 &&
@@ -87,7 +99,10 @@ namespace PES.Combat.Actions
             CooldownTurns >= 0 &&
             SplashRadiusXZ >= 0 &&
             SplashDamagePercent is >= 0 and <= 100 &&
+            AttackElement != PES.Core.Simulation.AttackElement.None &&
             PeriodicDamage >= 0 &&
-            PeriodicDurationTurns >= 0;
+            PeriodicDurationTurns >= 0 &&
+            VulnerableDurationTurns >= 0 &&
+            InvulnerableDurationTurns >= 0;
     }
 }

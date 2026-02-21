@@ -89,7 +89,7 @@ namespace PES.Combat.Actions
                     new ActionResultPayload("AttackMissed", resolution.Roll, resolution.HitChance, 0));
             }
 
-            var damageApplied = state.TryApplyDamage(TargetId, resolution.FinalDamage);
+            var damageApplied = state.TryApplyDamage(TargetId, resolution.FinalDamage, AttackElement.Physique);
             if (!damageApplied)
             {
                 return new ActionResolution(false, ActionResolutionCode.Rejected, $"BasicAttackRejected: failed to apply damage to {TargetId}", ActionFailureReason.DamageApplicationFailed);
