@@ -140,6 +140,11 @@ namespace PES.Combat.Actions
 
             state.SetSkillCooldown(CasterId, policy.SkillId, policy.CooldownTurns);
 
+            if (policy.PeriodicDamage > 0 && policy.PeriodicDurationTurns > 0)
+            {
+                state.SetStatusEffect(TargetId, StatusEffectType.Poison, policy.PeriodicDurationTurns, policy.PeriodicDamage, policy.PeriodicTickMoment);
+            }
+
             return new ActionResolution(
                 true,
                 ActionResolutionCode.Succeeded,

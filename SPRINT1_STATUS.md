@@ -133,7 +133,7 @@ En pratique, il faut démarrer par les features `Skills`/`States`/`Flow` déjà 
 
 - Ajout d'une première UI skills côté vertical slice (slots cliquables + état ready/cooldown/resource) pour accélérer les tests de kits d'entités.
 
-- Amorçage du domaine **States** avec un premier status effect `Poison` (durée, dégâts périodiques, tick au passage de tour, snapshot/replay).
+- Amorçage du domaine **States** avec un premier status effect `Poison` (durée, dégâts périodiques, tick début/fin de tour configurable par sort, snapshot/replay).
 
 ## Synthèse opérationnelle (assistant)
 

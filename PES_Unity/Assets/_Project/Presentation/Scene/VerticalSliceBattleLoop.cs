@@ -232,14 +232,24 @@ namespace PES.Presentation.Scene
 
         private void EndCurrentTurn()
         {
+            var endingActor = CurrentActorId;
+            var endingDamage = State.TickStatusEffects(endingActor, StatusEffectTickMoment.TurnEnd);
+            if (endingDamage > 0)
+            {
+                State.AddEvent($"StatusTickEnd: {endingActor} took {endingDamage} periodic damage");
+            }
+
             _turnController.EndTurn();
             ResetCurrentActorMovementPoints();
             State.TickDownSkillCooldowns(CurrentActorId);
-            var periodicDamage = State.TickStatusEffects(CurrentActorId);
-            if (periodicDamage > 0)
+
+            var startingActor = CurrentActorId;
+            var startingDamage = State.TickStatusEffects(startingActor, StatusEffectTickMoment.TurnStart);
+            if (startingDamage > 0)
             {
-                State.AddEvent($"StatusTick: {CurrentActorId} took {periodicDamage} periodic damage");
+                State.AddEvent($"StatusTickStart: {startingActor} took {startingDamage} periodic damage");
             }
+
             RemainingTurnSeconds = TurnDurationSeconds;
         }
 

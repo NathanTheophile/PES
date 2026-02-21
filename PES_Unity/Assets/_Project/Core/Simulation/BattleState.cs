@@ -221,7 +221,12 @@ namespace PES.Core.Simulation
         }
 
 
-        public void SetStatusEffect(EntityId entityId, StatusEffectType effectType, int remainingTurns, int potency = 0)
+        public void SetStatusEffect(
+            EntityId entityId,
+            StatusEffectType effectType,
+            int remainingTurns,
+            int potency = 0,
+            StatusEffectTickMoment tickMoment = StatusEffectTickMoment.TurnStart)
         {
             var key = new StatusEffectKey(entityId, effectType);
             var safeTurns = remainingTurns < 0 ? 0 : remainingTurns;
@@ -232,7 +237,7 @@ namespace PES.Core.Simulation
             }
 
             var safePotency = potency < 0 ? 0 : potency;
-            _statusEffects[key] = new StatusEffectState(safeTurns, safePotency);
+            _statusEffects[key] = new StatusEffectState(safeTurns, safePotency, tickMoment);
         }
 
         public int GetStatusEffectRemaining(EntityId entityId, StatusEffectType effectType)
@@ -241,7 +246,7 @@ namespace PES.Core.Simulation
             return _statusEffects.TryGetValue(key, out var state) ? state.RemainingTurns : 0;
         }
 
-        public int TickStatusEffects(EntityId entityId, int turns = 1)
+        public int TickStatusEffects(EntityId entityId, StatusEffectTickMoment tickMoment, int turns = 1)
         {
             var safeTurns = turns < 0 ? 0 : turns;
             if (safeTurns == 0 || _statusEffects.Count == 0)
@@ -266,10 +271,17 @@ namespace PES.Core.Simulation
                 var key = keys[i];
                 var state = _statusEffects[key];
 
-                if (key.EffectType == StatusEffectType.Poison && state.Potency > 0 &&
+                if (state.TickMoment == tickMoment &&
+                    key.EffectType == StatusEffectType.Poison &&
+                    state.Potency > 0 &&
                     TryApplyDamage(entityId, state.Potency))
                 {
                     totalPeriodicDamage += state.Potency;
+                }
+
+                if (state.TickMoment != tickMoment)
+                {
+                    continue;
                 }
 
                 var nextTurns = state.RemainingTurns - safeTurns;
@@ -279,7 +291,7 @@ namespace PES.Core.Simulation
                     continue;
                 }
 
-                _statusEffects[key] = new StatusEffectState(nextTurns, state.Potency);
+                _statusEffects[key] = new StatusEffectState(nextTurns, state.Potency, state.TickMoment);
             }
 
             return totalPeriodicDamage;
@@ -392,7 +404,7 @@ namespace PES.Core.Simulation
             index = 0;
             foreach (var pair in _statusEffects)
             {
-                statusEffects[index++] = new StatusEffectSnapshot(pair.Key.EntityId, pair.Key.EffectType, pair.Value.RemainingTurns, pair.Value.Potency);
+                statusEffects[index++] = new StatusEffectSnapshot(pair.Key.EntityId, pair.Key.EffectType, pair.Value.RemainingTurns, pair.Value.Potency, pair.Value.TickMoment);
             }
 
             return new BattleStateSnapshot(Tick, positions, hitPoints, movementPoints, skillResources, skillCooldowns, statusEffects);
@@ -435,7 +447,7 @@ namespace PES.Core.Simulation
             _statusEffects.Clear();
             foreach (var row in snapshot.StatusEffects)
             {
-                _statusEffects[new StatusEffectKey(row.EntityId, row.EffectType)] = new StatusEffectState(row.RemainingTurns, row.Potency);
+                _statusEffects[new StatusEffectKey(row.EntityId, row.EffectType)] = new StatusEffectState(row.RemainingTurns, row.Potency, row.TickMoment);
             }
 
             Tick = snapshot.Tick;
@@ -568,14 +580,21 @@ namespace PES.Core.Simulation
         Poison = 1,
     }
 
+    public enum StatusEffectTickMoment
+    {
+        TurnStart = 0,
+        TurnEnd = 1,
+    }
+
     public readonly struct StatusEffectSnapshot
     {
-        public StatusEffectSnapshot(EntityId entityId, StatusEffectType effectType, int remainingTurns, int potency)
+        public StatusEffectSnapshot(EntityId entityId, StatusEffectType effectType, int remainingTurns, int potency, StatusEffectTickMoment tickMoment)
         {
             EntityId = entityId;
             EffectType = effectType;
             RemainingTurns = remainingTurns;
             Potency = potency;
+            TickMoment = tickMoment;
         }
 
         public EntityId EntityId { get; }
@@ -585,6 +604,8 @@ namespace PES.Core.Simulation
         public int RemainingTurns { get; }
 
         public int Potency { get; }
+
+        public StatusEffectTickMoment TickMoment { get; }
     }
 
     public readonly struct StatusEffectKey
@@ -602,15 +623,18 @@ namespace PES.Core.Simulation
 
     public readonly struct StatusEffectState
     {
-        public StatusEffectState(int remainingTurns, int potency)
+        public StatusEffectState(int remainingTurns, int potency, StatusEffectTickMoment tickMoment)
         {
             RemainingTurns = remainingTurns;
             Potency = potency;
+            TickMoment = tickMoment;
         }
 
         public int RemainingTurns { get; }
 
         public int Potency { get; }
+
+        public StatusEffectTickMoment TickMoment { get; }
     }
 
     public readonly struct Position3

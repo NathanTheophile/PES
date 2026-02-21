@@ -49,6 +49,9 @@ namespace PES.Tests.EditMode
             Assert.That(policies.SkillPolicyOverride.Value.RangeBonusPerElevationStep, Is.EqualTo(1));
             Assert.That(policies.SkillPolicyOverride.Value.SplashRadiusXZ, Is.EqualTo(0));
             Assert.That(policies.SkillPolicyOverride.Value.SplashDamagePercent, Is.EqualTo(0));
+            Assert.That(policies.SkillPolicyOverride.Value.PeriodicDamage, Is.EqualTo(0));
+            Assert.That(policies.SkillPolicyOverride.Value.PeriodicDurationTurns, Is.EqualTo(0));
+            Assert.That(policies.SkillPolicyOverride.Value.PeriodicTickMoment, Is.EqualTo(StatusEffectTickMoment.TurnStart));
 
             Object.DestroyImmediate(asset);
         }

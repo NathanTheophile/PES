@@ -52,3 +52,4 @@
 - [x] Démarrer une UI de sélection de skills (slots + état ready/cooldown/resource) dans le vertical slice.
 
 - [x] Amorcer le système d'états domaine (status effects + tick déterministe + snapshot).
+- [x] Permettre le timing DoT configurable par sort (début vs fin de tour).

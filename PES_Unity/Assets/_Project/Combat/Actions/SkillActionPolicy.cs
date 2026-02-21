@@ -1,5 +1,7 @@
 // Utilité : ce script définit le contrat de règles d'une compétence ciblée
 // pour rester data-driven et indépendante de la présentation Unity.
+using PES.Core.Simulation;
+
 namespace PES.Combat.Actions
 {
     /// <summary>
@@ -18,7 +20,10 @@ namespace PES.Combat.Actions
             int resourceCost = 0,
             int cooldownTurns = 0,
             int splashRadiusXZ = 0,
-            int splashDamagePercent = 0)
+            int splashDamagePercent = 0,
+            int periodicDamage = 0,
+            int periodicDurationTurns = 0,
+            StatusEffectTickMoment periodicTickMoment = StatusEffectTickMoment.TurnStart)
         {
             SkillId = skillId;
             MinRange = minRange;
@@ -31,6 +36,9 @@ namespace PES.Combat.Actions
             CooldownTurns = cooldownTurns;
             SplashRadiusXZ = splashRadiusXZ;
             SplashDamagePercent = splashDamagePercent;
+            PeriodicDamage = periodicDamage;
+            PeriodicDurationTurns = periodicDurationTurns;
+            PeriodicTickMoment = periodicTickMoment;
         }
 
         public int SkillId { get; }
@@ -61,6 +69,12 @@ namespace PES.Combat.Actions
 
         public int SplashDamagePercent { get; }
 
+        public int PeriodicDamage { get; }
+
+        public int PeriodicDurationTurns { get; }
+
+        public StatusEffectTickMoment PeriodicTickMoment { get; }
+
         public bool IsValid =>
             SkillId >= 0 &&
             MinRange >= 0 &&
@@ -72,6 +86,8 @@ namespace PES.Combat.Actions
             ResourceCost >= 0 &&
             CooldownTurns >= 0 &&
             SplashRadiusXZ >= 0 &&
-            SplashDamagePercent is >= 0 and <= 100;
+            SplashDamagePercent is >= 0 and <= 100 &&
+            PeriodicDamage >= 0 &&
+            PeriodicDurationTurns >= 0;
     }
 }
