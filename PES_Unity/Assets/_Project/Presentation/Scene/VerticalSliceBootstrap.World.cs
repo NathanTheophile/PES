@@ -130,7 +130,8 @@ namespace PES.Presentation.Scene
 
         private static GridCoord3 ToGrid(Vector3 world)
         {
-            return new GridCoord3(Mathf.RoundToInt(world.x), Mathf.RoundToInt(world.z), Mathf.RoundToInt(world.y));
+            var gridZ = Mathf.FloorToInt(world.y + 0.001f);
+            return new GridCoord3(Mathf.RoundToInt(world.x), Mathf.RoundToInt(world.z), gridZ);
         }
     }
 }
