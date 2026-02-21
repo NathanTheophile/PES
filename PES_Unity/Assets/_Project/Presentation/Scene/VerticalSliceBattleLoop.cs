@@ -9,7 +9,7 @@ using PES.Grid.Grid3D;
 namespace PES.Presentation.Scene
 {
     /// <summary>
-    /// Orchestrateur de démo : initiative round-robin + consommation d'action + condition de victoire minimale.
+    /// Orchestrateur de démo : initiative individuelle (rapidity) + round-robin + consommation d'action + condition de victoire minimale.
     /// </summary>
     public sealed class VerticalSliceBattleLoop
     {
@@ -47,22 +47,7 @@ namespace PES.Presentation.Scene
             _basicAttackPolicyOverride = basicAttackPolicyOverride;
             _teamByActor = new Dictionary<EntityId, int>(definitions.Count);
 
-            var orderedDefinitions = new BattleActorDefinition[definitions.Count];
-            for (var i = 0; i < definitions.Count; i++)
-            {
-                orderedDefinitions[i] = definitions[i];
-            }
-
-            Array.Sort(orderedDefinitions, static (left, right) =>
-            {
-                var rapidityCompare = right.Rapidity.CompareTo(left.Rapidity);
-                if (rapidityCompare != 0)
-                {
-                    return rapidityCompare;
-                }
-
-                return left.ActorId.Value.CompareTo(right.ActorId.Value);
-            });
+            var orderedDefinitions = InitiativeOrderService.BuildIndividualTurnOrder(definitions);
 
             var turnOrder = new EntityId[orderedDefinitions.Length];
             for (var i = 0; i < orderedDefinitions.Length; i++)
