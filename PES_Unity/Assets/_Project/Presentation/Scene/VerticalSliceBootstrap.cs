@@ -44,8 +44,11 @@ namespace PES.Presentation.Scene
         private Material _plannedMoveMarkerMaterial;
         private Material _plannedAttackMarkerMaterial;
         private Material _plannedSkillMarkerMaterial;
+        private Material _hoverAttackMarkerMaterial;
+        private Material _hoverSkillMarkerMaterial;
         private GameObject _plannedMoveMarkerView;
         private GameObject _plannedTargetMarkerView;
+        private GameObject _hoverTargetMarkerView;
 
         private EntityId _lastPreviewActor;
         private int _lastPreviewMovementPoints = int.MinValue;
@@ -123,6 +126,7 @@ namespace PES.Presentation.Scene
 
             UpdateMovementPreviewVisuals();
             UpdateActionIntentPreviewVisuals();
+            UpdateHoveredTargetPreviewVisuals();
 
             if (Input.GetKeyDown(KeyCode.Space))
             {
@@ -221,7 +225,7 @@ namespace PES.Presentation.Scene
 
         private void DrawLegendLabel()
         {
-            GUI.Label(new Rect(24f, 412f, 740f, 20f), "Bleu = cases atteignables, ligne blanche = path. Marker cyan = move planifié, rouge = attaque planifiée, doré = skill planifiée.");
+            GUI.Label(new Rect(24f, 412f, 740f, 20f), "Bleu = cases atteignables, ligne blanche = path. Marker cyan = move planifié, rouge = attaque planifiée, doré = skill planifiée, orange/doré translucide = cible survolée (attack/skill).");
         }
 
 
@@ -439,9 +443,21 @@ namespace PES.Presentation.Scene
                 color = new Color(1f, 0.8f, 0.2f, 0.65f)
             };
 
+            _hoverAttackMarkerMaterial = new Material(Shader.Find("Unlit/Color"))
+            {
+                color = new Color(1f, 0.45f, 0.15f, 0.42f)
+            };
+
+            _hoverSkillMarkerMaterial = new Material(Shader.Find("Unlit/Color"))
+            {
+                color = new Color(1f, 0.92f, 0.25f, 0.42f)
+            };
+
             _plannedMoveMarkerView = CreateFlatPreviewMarker("Preview_MoveIntent", _plannedMoveMarkerMaterial, 0.92f);
             _plannedTargetMarkerView = CreateFlatPreviewMarker("Preview_TargetIntent", _plannedAttackMarkerMaterial, 1.16f);
+            _hoverTargetMarkerView = CreateFlatPreviewMarker("Preview_HoverTarget", _hoverAttackMarkerMaterial, 1.28f);
             HideActionIntentPreviewVisuals();
+            HideHoveredTargetPreviewVisuals();
         }
 
         private void UpdateActionIntentPreviewVisuals()
@@ -474,6 +490,53 @@ namespace PES.Presentation.Scene
             if (targetRenderer != null)
             {
                 targetRenderer.material = _planner.HasPlannedSkill ? _plannedSkillMarkerMaterial : _plannedAttackMarkerMaterial;
+            }
+        }
+
+        private void UpdateHoveredTargetPreviewVisuals()
+        {
+            if (_hoverTargetMarkerView == null || !_planner.HasActorSelection || Camera.main == null)
+            {
+                HideHoveredTargetPreviewVisuals();
+                return;
+            }
+
+            if (_mouseIntentMode != VerticalSliceMouseIntentMode.Attack && _mouseIntentMode != VerticalSliceMouseIntentMode.Skill)
+            {
+                HideHoveredTargetPreviewVisuals();
+                return;
+            }
+
+            var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            if (!Physics.Raycast(ray, out var hit, 250f) || !TryResolveActorFromHit(hit.collider.gameObject, out var hoveredActorId))
+            {
+                HideHoveredTargetPreviewVisuals();
+                return;
+            }
+
+            if (hoveredActorId.Equals(_planner.SelectedActorId) || !_battleLoop.State.TryGetEntityPosition(hoveredActorId, out var hoveredPosition))
+            {
+                HideHoveredTargetPreviewVisuals();
+                return;
+            }
+
+            _hoverTargetMarkerView.SetActive(true);
+            _hoverTargetMarkerView.transform.position = new Vector3(hoveredPosition.X, hoveredPosition.Z + 0.64f, hoveredPosition.Y);
+
+            var hoverRenderer = _hoverTargetMarkerView.GetComponent<Renderer>();
+            if (hoverRenderer != null)
+            {
+                hoverRenderer.material = _mouseIntentMode == VerticalSliceMouseIntentMode.Skill
+                    ? _hoverSkillMarkerMaterial
+                    : _hoverAttackMarkerMaterial;
+            }
+        }
+
+        private void HideHoveredTargetPreviewVisuals()
+        {
+            if (_hoverTargetMarkerView != null)
+            {
+                _hoverTargetMarkerView.SetActive(false);
             }
         }
 

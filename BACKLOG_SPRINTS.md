@@ -66,7 +66,7 @@
 - [ ] Couvrir ce milestone par un scénario replay déterministe golden-path (seed fixée + snapshot final attendu).
 
 _Progression Sprint H en cours:_
-- ✅ Feedbacks visuels minimum viables validés sur le vertical slice (surbrillance cases atteignables, logs d'actions lisibles, previews move/attack/skill + markers shader d'intention).
+- ✅ Feedbacks visuels minimum viables validés sur le vertical slice (surbrillance cases atteignables, logs d'actions lisibles, previews move/attack/skill + markers shader d'intention + highlight de cible survolée en attack/skill).
 
 ## Sprint H.1 — Dé-risquage MMO (strict minimum)
 - [ ] Versionner le format des payloads de log d'actions (compat replay inter-build).
