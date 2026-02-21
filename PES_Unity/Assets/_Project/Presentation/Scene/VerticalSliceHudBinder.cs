@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace PES.Presentation.Scene
@@ -21,7 +22,8 @@ namespace PES.Presentation.Scene
             Action drawLegendLabel,
             Func<string> getSelectedSkillLabel,
             Func<string> getSelectedSkillTooltip,
-            Func<string> getActionFeedbackLabel)
+            Func<string> getActionFeedbackLabel,
+            Func<IReadOnlyList<string>> getRecentActionHistory)
         {
             var hpA = battleLoop.State.TryGetEntityHitPoints(VerticalSliceBattleLoop.UnitA, out var valueA) ? valueA : -1;
             var hpB = battleLoop.State.TryGetEntityHitPoints(VerticalSliceBattleLoop.UnitB, out var valueB) ? valueB : -1;
@@ -29,7 +31,7 @@ namespace PES.Presentation.Scene
             var planned = planner.PlannedLabel;
             var availableSkills = planner.HasActorSelection ? planner.GetAvailableSkillCount(planner.SelectedActorId) : 0;
 
-            var panel = new Rect(12f, 12f, 760f, 330f);
+            var panel = new Rect(12f, 12f, 760f, 410f);
             GUI.Box(panel, "Vertical Slice");
             GUI.Label(new Rect(24f, 38f, 740f, 20f), $"Tick: {battleLoop.State.Tick} | Round: {battleLoop.CurrentRound}");
             GUI.Label(new Rect(24f, 58f, 740f, 20f), $"Actor: {battleLoop.PeekCurrentActorLabel()} | Next: {battleLoop.PeekNextStepLabel()} | AP:{battleLoop.RemainingActions} | PM:{battleLoop.CurrentActorMovementPoints} | Timer:{battleLoop.RemainingTurnSeconds:0.0}s");
@@ -48,6 +50,13 @@ namespace PES.Presentation.Scene
 
             drawSkillKitButtons();
             GUI.Label(new Rect(24f, 282f, 740f, 20f), $"Skill tooltip: {getSelectedSkillTooltip()}");
+
+            var recentActionHistory = getRecentActionHistory();
+            GUI.Label(new Rect(24f, 302f, 740f, 20f), "Action log (latest):");
+            for (var i = 0; i < recentActionHistory.Count && i < 3; i++)
+            {
+                GUI.Label(new Rect(24f, 322f + (i * 20f), 740f, 20f), recentActionHistory[i]);
+            }
             drawLegendLabel();
         }
     }

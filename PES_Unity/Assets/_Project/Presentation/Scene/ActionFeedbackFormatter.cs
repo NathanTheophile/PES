@@ -37,6 +37,18 @@ namespace PES.Presentation.Scene
             };
         }
 
+        public static string FormatEventRecordLine(CombatEventRecord record)
+        {
+            var summary = FormatResolutionSummary(new ActionResolution(
+                success: record.Code == ActionResolutionCode.Succeeded,
+                code: record.Code,
+                description: record.Description,
+                failureReason: record.FailureReason,
+                payload: record.Payload));
+
+            return $"[T{record.Tick}] {summary}";
+        }
+
         public static string BuildSkillTooltip(SkillActionPolicy policy, int currentCooldown, int currentResource)
         {
             var stateLabel = currentCooldown > 0

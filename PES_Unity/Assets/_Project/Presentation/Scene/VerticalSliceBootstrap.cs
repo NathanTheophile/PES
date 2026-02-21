@@ -164,7 +164,8 @@ namespace PES.Presentation.Scene
                 DrawLegendLabel,
                 GetSelectedSkillLabel,
                 GetSelectedSkillTooltip,
-                GetActionFeedbackLabel);
+                GetActionFeedbackLabel,
+                GetRecentActionHistory);
         }
 
         private void DrawSkillKitButtons()
@@ -210,13 +211,31 @@ namespace PES.Presentation.Scene
 
         private void DrawLegendLabel()
         {
-            GUI.Label(new Rect(24f, 302f, 740f, 20f), "Bleu = déplacements possibles. Survol d'une case bleue en mode Move => aperçu du chemin blanc.");
+            GUI.Label(new Rect(24f, 382f, 740f, 20f), "Bleu = déplacements possibles. Survol d'une case bleue en mode Move => aperçu du chemin blanc.");
         }
 
 
         private string GetActionFeedbackLabel()
         {
             return ActionFeedbackFormatter.FormatResolutionSummary(_lastResult);
+        }
+
+        private IReadOnlyList<string> GetRecentActionHistory()
+        {
+            const int maxEntries = 3;
+            var history = new List<string>(maxEntries);
+            var log = _battleLoop.State.StructuredEventLog;
+            for (var i = log.Count - 1; i >= 0 && history.Count < maxEntries; i--)
+            {
+                history.Add(ActionFeedbackFormatter.FormatEventRecordLine(log[i]));
+            }
+
+            if (history.Count == 0)
+            {
+                history.Add("(no action yet)");
+            }
+
+            return history;
         }
 
         private string GetSelectedSkillTooltip()

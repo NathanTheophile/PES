@@ -58,5 +58,21 @@ namespace PES.Tests.EditMode
             Assert.That(tooltip, Does.Contain("Hit 85%"));
             Assert.That(tooltip, Does.Contain("Prête"));
         }
+
+
+        [Test]
+        public void FormatEventRecordLine_IncludesTickAndMappedReason()
+        {
+            var record = new CombatEventRecord(
+                tick: 7,
+                code: ActionResolutionCode.Rejected,
+                failureReason: ActionFailureReason.LineOfSightBlocked,
+                description: "BasicAttackRejected: line of sight blocked");
+
+            var line = ActionFeedbackFormatter.FormatEventRecordLine(record);
+
+            Assert.That(line, Does.StartWith("[T7] ❌ Ligne de vue bloquée"));
+            Assert.That(line, Does.Contain("BasicAttackRejected"));
+        }
     }
 }
