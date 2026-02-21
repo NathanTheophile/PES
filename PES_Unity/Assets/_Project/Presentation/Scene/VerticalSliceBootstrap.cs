@@ -156,6 +156,24 @@ namespace PES.Presentation.Scene
             }
         }
 
+        private void TryAutoPassTurnWhenNoActionsRemaining()
+        {
+            if (_battleLoop.IsBattleOver || _battleLoop.RemainingActions > 0 || _planner.HasPlannedAction)
+            {
+                return;
+            }
+
+            var actorId = _battleLoop.CurrentActorId;
+            if (!_battleLoop.TryPassTurn(actorId, out var passResult))
+            {
+                return;
+            }
+
+            _lastResult = passResult;
+            SyncUnitViews();
+            Debug.Log($"[VerticalSlice] AutoPass: {_lastResult.Description}");
+        }
+
         private void OnGUI()
         {
             if (_battleLoop == null)
