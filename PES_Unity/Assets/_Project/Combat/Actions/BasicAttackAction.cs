@@ -97,7 +97,7 @@ namespace PES.Combat.Actions
             var damageResolution = DamageFormulaCalculator.Resolve(
                 attackerStats,
                 defenderStats,
-                policy.ResolutionPolicy.BaseDamage,
+                resolution.FinalDamage,
                 policy.BaseCriticalChance,
                 policy.DamageElement,
                 isCritical);
@@ -111,7 +111,7 @@ namespace PES.Combat.Actions
             return new ActionResolution(
                 true,
                 ActionResolutionCode.Succeeded,
-                $"BasicAttackResolved: {AttackerId} -> {TargetId} [roll:{resolution.Roll}, hitChance:{resolution.HitChance}, critRoll:{criticalRoll}, critChance:{criticalChance}, crit:{isCritical}, dmg:{damageResolution.FinalDamage}]",
+                $"BasicAttackResolved: {AttackerId} -> {TargetId} [roll:{resolution.Roll}, hitChance:{resolution.HitChance}, hBonus:{resolution.HeightDamageBonus}, critRoll:{criticalRoll}, critChance:{criticalChance}, crit:{isCritical}, dmg:{damageResolution.FinalDamage}]",
                 ActionFailureReason.None,
                 new ActionResultPayload("AttackResolved", damageResolution.FinalDamage, criticalRoll, criticalChance));
         }
