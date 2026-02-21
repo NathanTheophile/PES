@@ -145,18 +145,21 @@ namespace PES.Presentation.Scene
             GUI.Label(new Rect(24f, 38f, 740f, 20f), $"Tick: {_battleLoop.State.Tick} | Round: {_battleLoop.CurrentRound}");
             GUI.Label(new Rect(24f, 58f, 740f, 20f), $"Actor: {_battleLoop.PeekCurrentActorLabel()} | Next: {_battleLoop.PeekNextStepLabel()} | AP:{_battleLoop.RemainingActions} | PM:{_battleLoop.CurrentActorMovementPoints} | Timer:{_battleLoop.RemainingTurnSeconds:0.0}s");
             GUI.Label(new Rect(24f, 78f, 740f, 20f), $"HP UnitA: {hpA} | HP UnitB: {hpB}");
-            GUI.Label(new Rect(24f, 98f, 740f, 20f), $"Selected: {selected} | Planned: {planned} | MouseMode: {_mouseIntentMode} | SkillSlot:{_selectedSkillSlot}");
+            var availableSkills = _planner.HasActorSelection ? _planner.GetAvailableSkillCount(_planner.SelectedActorId) : 0;
+            GUI.Label(new Rect(24f, 98f, 740f, 20f), $"Selected: {selected} | Planned: {planned} | MouseMode: {_mouseIntentMode} | SkillSlot:{_selectedSkillSlot + 1}/{(availableSkills > 0 ? availableSkills : 0)}");
             GUI.Label(new Rect(24f, 118f, 740f, 20f), $"Last: {_lastResult.Code} / {_lastResult.FailureReason}");
             GUI.Label(new Rect(24f, 138f, 740f, 20f), _battleLoop.IsBattleOver ? $"Winner Team: {_battleLoop.WinnerTeamId}" : "Mouse: left click world/unit. Keys: 1/2 select, M/A/S mode, Q/E skill slot, P pass, SPACE execute.");
 
             if (GUI.Button(new Rect(24f, 166f, 90f, 28f), "Select A"))
             {
                 _planner.SelectActor(VerticalSliceBattleLoop.UnitA);
+                SyncSelectedSkillSlot();
             }
 
             if (GUI.Button(new Rect(120f, 166f, 90f, 28f), "Select B"))
             {
                 _planner.SelectActor(VerticalSliceBattleLoop.UnitB);
+                SyncSelectedSkillSlot();
             }
 
             if (GUI.Button(new Rect(230f, 166f, 90f, 28f), "Move"))
@@ -192,11 +195,13 @@ namespace PES.Presentation.Scene
             if (Input.GetKeyDown(KeyCode.Alpha1))
             {
                 _planner.SelectActor(VerticalSliceBattleLoop.UnitA);
+                SyncSelectedSkillSlot();
             }
 
             if (Input.GetKeyDown(KeyCode.Alpha2))
             {
                 _planner.SelectActor(VerticalSliceBattleLoop.UnitB);
+                SyncSelectedSkillSlot();
             }
         }
 
@@ -236,12 +241,28 @@ namespace PES.Presentation.Scene
 
             if (Input.GetKeyDown(KeyCode.Q))
             {
-                _selectedSkillSlot = _selectedSkillSlot > 0 ? _selectedSkillSlot - 1 : 0;
+                var availableSkills = _planner.GetAvailableSkillCount(_planner.SelectedActorId);
+                if (availableSkills <= 0)
+                {
+                    _selectedSkillSlot = 0;
+                }
+                else
+                {
+                    _selectedSkillSlot = _selectedSkillSlot > 0 ? _selectedSkillSlot - 1 : availableSkills - 1;
+                }
             }
 
             if (Input.GetKeyDown(KeyCode.E))
             {
-                _selectedSkillSlot++;
+                var availableSkills = _planner.GetAvailableSkillCount(_planner.SelectedActorId);
+                if (availableSkills <= 0)
+                {
+                    _selectedSkillSlot = 0;
+                }
+                else
+                {
+                    _selectedSkillSlot = (_selectedSkillSlot + 1) % availableSkills;
+                }
             }
 
             if (Input.GetKeyDown(KeyCode.P))
@@ -750,6 +771,28 @@ namespace PES.Presentation.Scene
             var y = Mathf.RoundToInt(world.z);
             var z = Mathf.RoundToInt(world.y);
             return new GridCoord3(x, y, z);
+        }
+
+
+        private void SyncSelectedSkillSlot()
+        {
+            if (_planner == null || !_planner.HasActorSelection)
+            {
+                _selectedSkillSlot = 0;
+                return;
+            }
+
+            var availableSkills = _planner.GetAvailableSkillCount(_planner.SelectedActorId);
+            if (availableSkills <= 0)
+            {
+                _selectedSkillSlot = 0;
+                return;
+            }
+
+            if (_selectedSkillSlot < 0 || _selectedSkillSlot >= availableSkills)
+            {
+                _selectedSkillSlot = 0;
+            }
         }
 
         private IReadOnlyList<PES.Core.TurnSystem.BattleActorDefinition> BuildActorDefinitionsFromArchetypes()

@@ -58,7 +58,9 @@ namespace PES.Tests.EditMode
         public void TryBuildCommand_WithSkillPlan_ProducesCastSkillAction()
         {
             var state = new BattleState();
-            var planner = new VerticalSliceCommandPlanner(state);
+            var planner = new VerticalSliceCommandPlanner(
+                state,
+                skillPolicyOverride: new SkillActionPolicy(0, 1, 3, 8, 85, 2, 1));
             planner.SelectActor(VerticalSliceBattleLoop.UnitA);
             planner.PlanSkill(VerticalSliceBattleLoop.UnitB);
 
@@ -104,5 +106,51 @@ namespace PES.Tests.EditMode
             Assert.That(resolution.Payload.HasValue, Is.True);
             Assert.That(resolution.Payload.Value.Value1, Is.EqualTo(9));
         }
+
+        [Test]
+        public void GetAvailableSkillCount_WithoutSkillPolicies_ReturnsZero()
+        {
+            var state = new BattleState();
+            var planner = new VerticalSliceCommandPlanner(state);
+
+            var count = planner.GetAvailableSkillCount(VerticalSliceBattleLoop.UnitA);
+
+            Assert.That(count, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void TryBuildCommand_WithSkillPlanAndNoPolicies_ReturnsFalse()
+        {
+            var state = new BattleState();
+            var planner = new VerticalSliceCommandPlanner(state);
+            planner.SelectActor(VerticalSliceBattleLoop.UnitA);
+            planner.PlanSkill(VerticalSliceBattleLoop.UnitB, skillSlot: 0);
+
+            var built = planner.TryBuildCommand(out _, out _);
+
+            Assert.That(built, Is.False);
+        }
+
+        [Test]
+        public void TryBuildCommand_WithSkillPlanAndOutOfRangeSlot_ReturnsFalse()
+        {
+            var state = new BattleState();
+            var loadout = new Dictionary<EntityId, SkillActionPolicy[]>
+            {
+                [VerticalSliceBattleLoop.UnitA] = new[]
+                {
+                    new SkillActionPolicy(1, 1, 3, 3, 100, 2, 1, 1, 0),
+                }
+            };
+
+            var planner = new VerticalSliceCommandPlanner(state, skillLoadoutByActor: loadout);
+            planner.SelectActor(VerticalSliceBattleLoop.UnitA);
+            planner.PlanSkill(VerticalSliceBattleLoop.UnitB, skillSlot: 5);
+
+            var built = planner.TryBuildCommand(out _, out _);
+
+            Assert.That(built, Is.False);
+        }
+
     }
 }

@@ -41,6 +41,16 @@ namespace PES.Presentation.Scene
 
         public EntityId SelectedActorId => _selectedActor;
 
+        public int GetAvailableSkillCount(EntityId actorId)
+        {
+            if (_skillLoadoutByActor != null && _skillLoadoutByActor.TryGetValue(actorId, out var policies) && policies != null)
+            {
+                return policies.Length;
+            }
+
+            return _skillPolicyOverride.HasValue ? 1 : 0;
+        }
+
         public string PlannedLabel => _plannedKind switch
         {
             PlannedActionKind.Move => $"Move to {_plannedDestination}",
@@ -103,7 +113,11 @@ namespace PES.Presentation.Scene
                     return true;
 
                 case PlannedActionKind.Skill:
-                    var policyOverride = ResolveSkillPolicyOverride(_selectedActor, _plannedSkillSlot);
+                    if (!TryResolveSkillPolicyOverride(_selectedActor, _plannedSkillSlot, out var policyOverride))
+                    {
+                        return false;
+                    }
+
                     command = new CastSkillAction(_selectedActor, _plannedTarget, policyOverride);
                     return true;
 
@@ -117,15 +131,29 @@ namespace PES.Presentation.Scene
             _plannedKind = PlannedActionKind.None;
         }
 
-        private SkillActionPolicy? ResolveSkillPolicyOverride(EntityId actorId, int skillSlot)
+        private bool TryResolveSkillPolicyOverride(EntityId actorId, int skillSlot, out SkillActionPolicy? policy)
         {
             if (_skillLoadoutByActor != null && _skillLoadoutByActor.TryGetValue(actorId, out var policies) &&
-                policies != null && skillSlot >= 0 && skillSlot < policies.Length)
+                policies != null)
             {
-                return policies[skillSlot];
+                if (skillSlot < 0 || skillSlot >= policies.Length)
+                {
+                    policy = default;
+                    return false;
+                }
+
+                policy = policies[skillSlot];
+                return true;
             }
 
-            return _skillPolicyOverride;
+            if (_skillPolicyOverride.HasValue)
+            {
+                policy = _skillPolicyOverride;
+                return true;
+            }
+
+            policy = default;
+            return false;
         }
 
         private enum PlannedActionKind
