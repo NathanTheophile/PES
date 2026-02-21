@@ -69,7 +69,8 @@ _Progression Sprint H en cours:_
 - ✅ Feedbacks visuels minimum viables validés sur le vertical slice (surbrillance cases atteignables, logs d'actions lisibles, previews move/attack/skill + markers shader d'intention + highlight de cible survolée en attack/skill).
 
 ## Sprint H.1 — Dé-risquage MMO (strict minimum)
+- ✅ H1 décisions documentées: contrat snapshot versionné + report réseau/live-op (`H1_DECISIONS.md`).
 - ✅ `SchemaVersion` ajouté sur `ActionResultPayload` (+ tests) pour stabiliser la compatibilité future des logs.
 - [x] Versionner le format des payloads de log d'actions (compat replay inter-build).
-- [ ] Poser un contrat de sérialisation stable pour snapshots de combat (identifiants, ordering, champs obligatoires).
-- [ ] Reporter explicitement tout chantier réseau/live-op non requis à post-milestone jouable.
+- [x] Poser un contrat de sérialisation stable pour snapshots de combat (identifiants, ordering, champs obligatoires) (`BattleStateSnapshot.ContractVersion`).
+- [x] Reporter explicitement tout chantier réseau/live-op non requis à post-milestone jouable (`H1_DECISIONS.md`).

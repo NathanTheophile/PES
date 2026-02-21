@@ -4,6 +4,8 @@ namespace PES.Core.Simulation
 {
     public readonly struct BattleStateSnapshot
     {
+        public const int CurrentContractVersion = 1;
+
         public BattleStateSnapshot(
             int tick,
             EntityPositionSnapshot[] entityPositions,
@@ -12,7 +14,8 @@ namespace PES.Core.Simulation
             EntitySkillResourceSnapshot[] entitySkillResources = null,
             SkillCooldownSnapshot[] skillCooldowns = null,
             StatusEffectSnapshot[] statusEffects = null,
-            EntityRpgStatsSnapshot[] entityRpgStats = null)
+            EntityRpgStatsSnapshot[] entityRpgStats = null,
+            int contractVersion = CurrentContractVersion)
         {
             Tick = tick;
             EntityPositions = entityPositions;
@@ -22,9 +25,12 @@ namespace PES.Core.Simulation
             SkillCooldowns = skillCooldowns ?? new SkillCooldownSnapshot[0];
             StatusEffects = statusEffects ?? new StatusEffectSnapshot[0];
             EntityRpgStats = entityRpgStats ?? new EntityRpgStatsSnapshot[0];
+            ContractVersion = contractVersion <= 0 ? CurrentContractVersion : contractVersion;
         }
 
         public int Tick { get; }
+
+        public int ContractVersion { get; }
 
         public IReadOnlyList<EntityPositionSnapshot> EntityPositions { get; }
 
