@@ -85,6 +85,55 @@ namespace PES.Tests.EditMode
             Assert.That(same, Is.False);
         }
 
+
+        [Test]
+        public void GoldenPathReplay_WithFixedSeed_ProducesExpectedFinalSnapshot()
+        {
+            var state = CreateInitialState();
+            var recorder = new BattleReplayRecorder(seed: 23);
+            recorder.CaptureInitialState(state);
+
+            var resolver = new ActionResolver(new SeededRngService(23));
+            var skillA = new SkillActionPolicy(
+                skillId: 101,
+                minRange: 1,
+                maxRange: 3,
+                baseDamage: 12,
+                baseHitChance: 100,
+                elevationPerRangeBonus: 2,
+                rangeBonusPerElevationStep: 1);
+
+            var skillB = new SkillActionPolicy(
+                skillId: 202,
+                minRange: 1,
+                maxRange: 3,
+                baseDamage: 9,
+                baseHitChance: 100,
+                elevationPerRangeBonus: 2,
+                rangeBonusPerElevationStep: 1);
+
+            resolver.Resolve(state, new CastSkillAction(UnitA, UnitB, skillA));
+            recorder.RecordAction(RecordedActionCommand.CastSkill(UnitA, UnitB, skillA), state);
+
+            resolver.Resolve(state, new CastSkillAction(UnitB, UnitA, skillB));
+            recorder.RecordAction(RecordedActionCommand.CastSkill(UnitB, UnitA, skillB), state);
+
+            var record = recorder.Build();
+            var replay = new BattleReplayRunner().Run(record);
+
+            Assert.That(replay.FinalSnapshot.Tick, Is.EqualTo(2));
+            Assert.That(replay.FinalSnapshot.EntityHitPoints.Count, Is.EqualTo(2));
+
+            var hpA = FindHitPoints(replay.FinalSnapshot, UnitA);
+            var hpB = FindHitPoints(replay.FinalSnapshot, UnitB);
+            Assert.That(hpA, Is.EqualTo(31));
+            Assert.That(hpB, Is.EqualTo(28));
+
+            Assert.That(replay.Events.Count, Is.EqualTo(2));
+            Assert.That(replay.Events[0].Description, Does.Contain("CastSkillResolved"));
+            Assert.That(replay.Events[1].Description, Does.Contain("CastSkillResolved"));
+        }
+
         private static BattleState CreateInitialState()
         {
             var state = new BattleState();
@@ -178,6 +227,20 @@ namespace PES.Tests.EditMode
             }
 
             return true;
+        }
+
+
+        private static int FindHitPoints(BattleStateSnapshot snapshot, EntityId entityId)
+        {
+            for (var i = 0; i < snapshot.EntityHitPoints.Count; i++)
+            {
+                if (snapshot.EntityHitPoints[i].EntityId.Equals(entityId))
+                {
+                    return snapshot.EntityHitPoints[i].HitPoints;
+                }
+            }
+
+            return -1;
         }
 
         private static void AssertSnapshotsEqual(BattleStateSnapshot expected, BattleStateSnapshot actual)
