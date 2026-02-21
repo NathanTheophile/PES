@@ -12,6 +12,7 @@ namespace PES.Core.Simulation
     {
         private readonly Dictionary<EntityId, Position3> _entityPositions = new();
         private readonly Dictionary<EntityId, int> _entityHitPoints = new();
+        private readonly Dictionary<EntityId, CombatantRpgStats> _entityRpgStats = new();
 
         // PM persistants par entité (pool par tour).
         private readonly Dictionary<EntityId, int> _entityMaxMovementPoints = new();
@@ -66,6 +67,34 @@ namespace PES.Core.Simulation
         public bool TryGetEntityHitPoints(EntityId entityId, out int hitPoints)
         {
             return _entityHitPoints.TryGetValue(entityId, out hitPoints);
+        }
+
+        public void SetEntityRpgStats(EntityId entityId, CombatantRpgStats stats)
+        {
+            _entityRpgStats[entityId] = stats;
+        }
+
+        public bool TryGetEntityRpgStats(EntityId entityId, out CombatantRpgStats stats)
+        {
+            return _entityRpgStats.TryGetValue(entityId, out stats);
+        }
+
+        public CombatantRpgStats GetEntityRpgStatsOrEmpty(EntityId entityId)
+        {
+            return _entityRpgStats.TryGetValue(entityId, out var stats) ? stats : CombatantRpgStats.Empty;
+        }
+
+        public bool TryApplyEntityRpgDamage(EntityId attackerId, EntityId defenderId, int spellBaseDamage, int spellBaseCriticalChance, DamageElement element, bool forceCritical = false)
+        {
+            if (!TryGetEntityHitPoints(defenderId, out _))
+            {
+                return false;
+            }
+
+            var attackerStats = GetEntityRpgStatsOrEmpty(attackerId);
+            var defenderStats = GetEntityRpgStatsOrEmpty(defenderId);
+            var resolution = DamageFormulaCalculator.Resolve(attackerStats, defenderStats, spellBaseDamage, spellBaseCriticalChance, element, forceCritical);
+            return TryApplyDamage(defenderId, resolution.FinalDamage);
         }
 
         public bool TryApplyDamage(EntityId entityId, int damage)
@@ -407,7 +436,14 @@ namespace PES.Core.Simulation
                 statusEffects[index++] = new StatusEffectSnapshot(pair.Key.EntityId, pair.Key.EffectType, pair.Value.RemainingTurns, pair.Value.Potency, pair.Value.TickMoment);
             }
 
-            return new BattleStateSnapshot(Tick, positions, hitPoints, movementPoints, skillResources, skillCooldowns, statusEffects);
+            var rpgStats = new EntityRpgStatsSnapshot[_entityRpgStats.Count];
+            index = 0;
+            foreach (var pair in _entityRpgStats)
+            {
+                rpgStats[index++] = new EntityRpgStatsSnapshot(pair.Key, pair.Value);
+            }
+
+            return new BattleStateSnapshot(Tick, positions, hitPoints, movementPoints, skillResources, skillCooldowns, statusEffects, rpgStats);
         }
 
         public void ApplySnapshot(BattleStateSnapshot snapshot)
@@ -450,6 +486,12 @@ namespace PES.Core.Simulation
                 _statusEffects[new StatusEffectKey(row.EntityId, row.EffectType)] = new StatusEffectState(row.RemainingTurns, row.Potency, row.TickMoment);
             }
 
+            _entityRpgStats.Clear();
+            foreach (var row in snapshot.EntityRpgStats)
+            {
+                _entityRpgStats[row.EntityId] = row.Stats;
+            }
+
             Tick = snapshot.Tick;
         }
     }
@@ -463,7 +505,8 @@ namespace PES.Core.Simulation
             EntityMovementPointSnapshot[] entityMovementPoints = null,
             EntitySkillResourceSnapshot[] entitySkillResources = null,
             SkillCooldownSnapshot[] skillCooldowns = null,
-            StatusEffectSnapshot[] statusEffects = null)
+            StatusEffectSnapshot[] statusEffects = null,
+            EntityRpgStatsSnapshot[] entityRpgStats = null)
         {
             Tick = tick;
             EntityPositions = entityPositions;
@@ -472,6 +515,7 @@ namespace PES.Core.Simulation
             EntitySkillResources = entitySkillResources ?? new EntitySkillResourceSnapshot[0];
             SkillCooldowns = skillCooldowns ?? new SkillCooldownSnapshot[0];
             StatusEffects = statusEffects ?? new StatusEffectSnapshot[0];
+            EntityRpgStats = entityRpgStats ?? new EntityRpgStatsSnapshot[0];
         }
 
         public int Tick { get; }
@@ -487,6 +531,8 @@ namespace PES.Core.Simulation
         public IReadOnlyList<SkillCooldownSnapshot> SkillCooldowns { get; }
 
         public IReadOnlyList<StatusEffectSnapshot> StatusEffects { get; }
+
+        public IReadOnlyList<EntityRpgStatsSnapshot> EntityRpgStats { get; }
     }
 
     public readonly struct EntityPositionSnapshot
@@ -635,6 +681,19 @@ namespace PES.Core.Simulation
         public int Potency { get; }
 
         public StatusEffectTickMoment TickMoment { get; }
+    }
+
+    public readonly struct EntityRpgStatsSnapshot
+    {
+        public EntityRpgStatsSnapshot(EntityId entityId, CombatantRpgStats stats)
+        {
+            EntityId = entityId;
+            Stats = stats;
+        }
+
+        public EntityId EntityId { get; }
+
+        public CombatantRpgStats Stats { get; }
     }
 
     public readonly struct Position3
