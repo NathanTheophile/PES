@@ -23,6 +23,9 @@ namespace PES.Presentation.Scene
         [SerializeField] private EntityArchetypeAsset _unitAArchetype;
         [SerializeField] private EntityArchetypeAsset _unitBArchetype;
 
+        [Header("Test Profile (optional)")]
+        [SerializeField] private VerticalSliceTestProfileAsset _testProfile;
+
         [Header("Camera (Ankama-like Isometric)")]
         [SerializeField] private bool _autoSetupIsometricCamera = true;
         [SerializeField] private float _cameraTiltX = 35f;
@@ -65,7 +68,17 @@ namespace PES.Presentation.Scene
 
         private void Start()
         {
-            var setup = VerticalSliceBattleSetup.Create(_runtimeConfig, _unitAArchetype, _unitBArchetype);
+            var runtimeConfig = _testProfile != null && _testProfile.RuntimeConfig != null
+                ? _testProfile.RuntimeConfig
+                : _runtimeConfig;
+            var unitAArchetype = _testProfile != null && _testProfile.UnitAArchetype != null
+                ? _testProfile.UnitAArchetype
+                : _unitAArchetype;
+            var unitBArchetype = _testProfile != null && _testProfile.UnitBArchetype != null
+                ? _testProfile.UnitBArchetype
+                : _unitBArchetype;
+
+            var setup = VerticalSliceBattleSetup.Create(runtimeConfig, unitAArchetype, unitBArchetype);
             var composition = new VerticalSliceCompositionRoot().Compose(setup);
 
             _battleLoop = composition.BattleLoop;
