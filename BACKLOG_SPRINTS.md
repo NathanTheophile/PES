@@ -66,6 +66,7 @@
 - [x] Couvrir ce milestone par un scénario replay déterministe golden-path (seed fixée + snapshot final attendu).
 - [x] Verrouiller le flow produit minimal (boot ➜ menu ➜ battle) via un contrôleur explicite côté présentation.
 - [x] Poser un socle de sauvegarde/versioning minimal de session (contrat v1 + sérialiseur + tests).
+- [x] Brancher un store de persistance locale (PlayerPrefs) pour la reprise de session boot/menu/battle.
 - [x] Formaliser un mini gate QA interne avec template de 3 runs consécutifs sans blocage majeur.
 
 _Progression Sprint H en cours:_

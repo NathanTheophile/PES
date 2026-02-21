@@ -23,6 +23,10 @@ namespace PES.Presentation.Scene
         [SerializeField] private CombatRuntimeConfigAsset _runtimeConfig;
         [SerializeField] private int _sessionSeed = 7;
 
+        [Header("Session Flow")]
+        [SerializeField] private string _sessionSaveKey = "PES.VerticalSlice.Session";
+        [SerializeField] private bool _preferResumeOnBoot = true;
+
         [Header("Authoring (optional)")]
         [SerializeField] private EntityArchetypeAsset _unitAArchetype;
         [SerializeField] private EntityArchetypeAsset _unitBArchetype;
@@ -82,11 +86,20 @@ namespace PES.Presentation.Scene
                 ? _testProfile.UnitBArchetype
                 : _unitBArchetype;
 
-            _productFlow = new ProductFlowController(new InMemorySessionSaveStore());
+            _productFlow = new ProductFlowController(new PlayerPrefsSessionSaveStore(_sessionSaveKey));
             _productFlow.Boot();
-            _productFlow.StartNewBattle(_sessionSeed);
 
-            var setup = VerticalSliceBattleSetup.Create(runtimeConfig, unitAArchetype, unitBArchetype, _sessionSeed);
+            if (_preferResumeOnBoot && _productFlow.HasBattleToResume)
+            {
+                _productFlow.TryResumeBattle();
+            }
+            else
+            {
+                _productFlow.StartNewBattle(_sessionSeed);
+            }
+
+            var seedToUse = _productFlow.LastBattleSeed > 0 ? _productFlow.LastBattleSeed : _sessionSeed;
+            var setup = VerticalSliceBattleSetup.Create(runtimeConfig, unitAArchetype, unitBArchetype, seedToUse);
             var composition = new VerticalSliceCompositionRoot().Compose(setup);
 
             _battleLoop = composition.BattleLoop;
