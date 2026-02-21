@@ -98,6 +98,11 @@ namespace PES.Combat.Actions
                 return new MoveValidationResult(false, MoveValidationFailure.NoMovement, 0);
             }
 
+            if (!state.IsWalkablePosition(destinationPosition))
+            {
+                return new MoveValidationResult(false, MoveValidationFailure.DestinationBlocked, 0);
+            }
+
             // Contrainte explicite de saut vertical par action (indépendante du coût).
             var actionVerticalDelta = Math.Abs(destination.Z - origin.Z);
             if (actionVerticalDelta > policy.MaxVerticalStepPerTile)
@@ -106,8 +111,9 @@ namespace PES.Combat.Actions
             }
 
             var blockedCells = BuildBlockedCellSet(state, actorId, originPosition, destinationPosition);
+            var walkableCells = BuildWalkableCellSet(state);
             var pathService = new PathfindingService();
-            if (!pathService.TryComputePath(origin, destination, blockedCells, out var path))
+            if (!pathService.TryComputePath(origin, destination, blockedCells, out var path, walkableCells, policy.MaxVerticalStepPerTile))
             {
                 return new MoveValidationResult(false, MoveValidationFailure.BlockedPath, 0);
             }
@@ -174,6 +180,18 @@ namespace PES.Combat.Actions
             }
 
             return blocked;
+        }
+
+
+        private static HashSet<GridCoord3> BuildWalkableCellSet(BattleState state)
+        {
+            var walkable = new HashSet<GridCoord3>();
+            foreach (var walkablePosition in state.GetWalkablePositions())
+            {
+                walkable.Add(new GridCoord3(walkablePosition.X, walkablePosition.Y, walkablePosition.Z));
+            }
+
+            return walkable;
         }
 
         private static Position3 ToPosition(GridCoord3 coord)

@@ -23,6 +23,7 @@ namespace PES.Core.Simulation
         private readonly CombatantStatsStore _combatantStatsStore = new();
 
         private readonly HashSet<Position3> _blockedPositions = new();
+        private readonly HashSet<Position3> _walkablePositions = new();
         private readonly Dictionary<Position3, int> _positionMovementCosts = new();
         private readonly List<string> _eventLog = new();
         private readonly CombatEventLog _combatEventLog = new();
@@ -244,6 +245,23 @@ namespace PES.Core.Simulation
             return true;
         }
 
+
+        public void SetWalkablePosition(Position3 position, bool walkable = true)
+        {
+            if (walkable)
+            {
+                _walkablePositions.Add(position);
+                return;
+            }
+
+            _walkablePositions.Remove(position);
+        }
+
+        public bool IsWalkablePosition(Position3 position)
+        {
+            return _walkablePositions.Contains(position);
+        }
+
         public void SetBlockedPosition(Position3 position, bool blocked = true)
         {
             if (blocked)
@@ -291,6 +309,11 @@ namespace PES.Core.Simulation
         public IEnumerable<Position3> GetBlockedPositions()
         {
             return _blockedPositions;
+        }
+
+        public IEnumerable<Position3> GetWalkablePositions()
+        {
+            return _walkablePositions;
         }
 
         public IEnumerable<KeyValuePair<EntityId, Position3>> GetEntityPositions()

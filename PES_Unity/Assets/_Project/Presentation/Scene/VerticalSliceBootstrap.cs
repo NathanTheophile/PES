@@ -23,6 +23,9 @@ namespace PES.Presentation.Scene
         [SerializeField] private EntityArchetypeAsset _unitAArchetype;
         [SerializeField] private EntityArchetypeAsset _unitBArchetype;
 
+        [Header("Test Profile (optional)")]
+        [SerializeField] private VerticalSliceTestProfileAsset _testProfile;
+
         [Header("Camera (Ankama-like Isometric)")]
         [SerializeField] private bool _autoSetupIsometricCamera = true;
         [SerializeField] private float _cameraTiltX = 35f;
@@ -65,7 +68,17 @@ namespace PES.Presentation.Scene
 
         private void Start()
         {
-            var setup = VerticalSliceBattleSetup.Create(_runtimeConfig, _unitAArchetype, _unitBArchetype);
+            var runtimeConfig = _testProfile != null && _testProfile.RuntimeConfig != null
+                ? _testProfile.RuntimeConfig
+                : _runtimeConfig;
+            var unitAArchetype = _testProfile != null && _testProfile.UnitAArchetype != null
+                ? _testProfile.UnitAArchetype
+                : _unitAArchetype;
+            var unitBArchetype = _testProfile != null && _testProfile.UnitBArchetype != null
+                ? _testProfile.UnitBArchetype
+                : _unitBArchetype;
+
+            var setup = VerticalSliceBattleSetup.Create(runtimeConfig, unitAArchetype, unitBArchetype);
             var composition = new VerticalSliceCompositionRoot().Compose(setup);
 
             _battleLoop = composition.BattleLoop;
@@ -85,6 +98,7 @@ namespace PES.Presentation.Scene
             SyncUnitViews();
 
             _lastResult = new ActionResolution(true, ActionResolutionCode.Succeeded, "VerticalSlice ready");
+            EnsureSelectedActorIsCurrentTurnActor();
         }
 
         private void Update()
@@ -100,6 +114,8 @@ namespace PES.Presentation.Scene
                 _planner.ClearPlannedAction();
                 Debug.Log($"[VerticalSlice] {_lastResult.Description}");
             }
+
+            EnsureSelectedActorIsCurrentTurnActor();
 
             _inputBinder.ProcessSelectionInputs(_planner, SyncSelectedSkillSlot);
             _inputBinder.ProcessPlanningInputs(
@@ -154,24 +170,6 @@ namespace PES.Presentation.Scene
                 SyncUnitViews();
                 Debug.Log($"[VerticalSlice] {_lastResult.Description}");
             }
-        }
-
-        private void TryAutoPassTurnWhenNoActionsRemaining()
-        {
-            if (_battleLoop.IsBattleOver || _battleLoop.RemainingActions > 0 || _planner.HasPlannedAction)
-            {
-                return;
-            }
-
-            var actorId = _battleLoop.CurrentActorId;
-            if (!_battleLoop.TryPassTurn(actorId, out var passResult))
-            {
-                return;
-            }
-
-            _lastResult = passResult;
-            SyncUnitViews();
-            Debug.Log($"[VerticalSlice] AutoPass: {_lastResult.Description}");
         }
 
         private void OnGUI()
