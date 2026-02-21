@@ -7,6 +7,7 @@ namespace PES.Presentation.Scene
         public VerticalSliceComposition Compose(VerticalSliceBattleSetup setup)
         {
             var battleLoop = new VerticalSliceBattleLoop(
+                seed: setup.Seed,
                 movePolicyOverride: setup.EffectiveMovePolicy,
                 basicAttackPolicyOverride: setup.BasicAttackPolicyOverride,
                 actionsPerTurn: UnlimitedActionsPerTurn,
