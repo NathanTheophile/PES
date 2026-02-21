@@ -36,6 +36,10 @@ namespace PES.Presentation.Configuration
         [Min(0)] [SerializeField] private int _periodicDurationTurns;
         [SerializeField] private PES.Core.Simulation.StatusEffectTickMoment _periodicTickMoment = PES.Core.Simulation.StatusEffectTickMoment.TurnStart;
 
+        [Header("Debuff (optional)")]
+        [Range(0, 100)] [SerializeField] private int _vulnerablePotencyPercent;
+        [Min(0)] [SerializeField] private int _vulnerableDurationTurns;
+
         public string DisplayName => string.IsNullOrWhiteSpace(_displayName) ? $"Skill {_skillId}" : _displayName;
 
         public SkillActionPolicy ToPolicy()
@@ -54,7 +58,9 @@ namespace PES.Presentation.Configuration
                 splashDamagePercent: _splashDamagePercent,
                 periodicDamage: _periodicDamage,
                 periodicDurationTurns: _periodicDurationTurns,
-                periodicTickMoment: _periodicTickMoment);
+                periodicTickMoment: _periodicTickMoment,
+                vulnerablePotencyPercent: _vulnerablePotencyPercent,
+                vulnerableDurationTurns: _vulnerableDurationTurns);
         }
     }
 }

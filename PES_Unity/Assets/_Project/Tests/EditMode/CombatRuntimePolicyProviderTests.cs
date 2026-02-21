@@ -52,6 +52,8 @@ namespace PES.Tests.EditMode
             Assert.That(policies.SkillPolicyOverride.Value.PeriodicDamage, Is.EqualTo(0));
             Assert.That(policies.SkillPolicyOverride.Value.PeriodicDurationTurns, Is.EqualTo(0));
             Assert.That(policies.SkillPolicyOverride.Value.PeriodicTickMoment, Is.EqualTo(StatusEffectTickMoment.TurnStart));
+            Assert.That(policies.SkillPolicyOverride.Value.VulnerablePotencyPercent, Is.EqualTo(0));
+            Assert.That(policies.SkillPolicyOverride.Value.VulnerableDurationTurns, Is.EqualTo(0));
 
             Object.DestroyImmediate(asset);
         }

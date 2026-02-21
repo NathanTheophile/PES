@@ -285,6 +285,42 @@ namespace PES.Tests.EditMode
         }
 
         [Test]
+        public void Resolve_CastSkillAction_WithVulnerableDebuff_AppliesStatusOnTarget()
+        {
+            var state = new BattleState();
+            var caster = new EntityId(342);
+            var target = new EntityId(343);
+
+            state.SetEntityPosition(caster, new Position3(0, 0, 0));
+            state.SetEntityPosition(target, new Position3(1, 0, 0));
+            state.SetEntityHitPoints(caster, 20);
+            state.SetEntityHitPoints(target, 20);
+            state.SetEntitySkillResource(caster, 10);
+
+            var resolver = new ActionResolver(new SeededRngService(42));
+            var policy = new SkillActionPolicy(
+                skillId: 261,
+                minRange: 1,
+                maxRange: 3,
+                baseDamage: 5,
+                baseHitChance: 100,
+                elevationPerRangeBonus: 2,
+                rangeBonusPerElevationStep: 1,
+                vulnerablePotencyPercent: 40,
+                vulnerableDurationTurns: 2);
+
+            var result = resolver.Resolve(state, new CastSkillAction(caster, target, policy));
+
+            Assert.That(result.Success, Is.True);
+            Assert.That(state.GetStatusEffectRemaining(target, StatusEffectType.Vulnerable), Is.EqualTo(2));
+
+            state.SetEntityHitPoints(target, 20);
+            state.TryApplyDamage(target, 10);
+            Assert.That(state.TryGetEntityHitPoints(target, out var hp), Is.True);
+            Assert.That(hp, Is.EqualTo(6));
+        }
+
+        [Test]
         public void Replay_WithCastSkillAction_ReproducesFinalSnapshotWithSameSeed()
         {
             var caster = new EntityId(304);
