@@ -41,6 +41,19 @@ namespace PES.Presentation.Scene
         private MoveActionPolicy _effectiveMovePolicy;
         private Material _reachableTileMaterial;
         private LineRenderer _pathLineRenderer;
+        private Material _plannedMoveMarkerMaterial;
+        private Material _plannedAttackMarkerMaterial;
+        private Material _plannedSkillMarkerMaterial;
+        private Material _hoverAttackMarkerMaterial;
+        private Material _hoverSkillMarkerMaterial;
+        private GameObject _plannedMoveMarkerView;
+        private GameObject _plannedTargetMarkerView;
+        private GameObject _hoverTargetMarkerView;
+
+        private Material _vfxSuccessMaterial;
+        private Material _vfxMissedMaterial;
+        private Material _vfxRejectedMaterial;
+        private readonly List<TransientVfxPulse> _transientVfxPulses = new();
 
         private EntityId _lastPreviewActor;
         private int _lastPreviewMovementPoints = int.MinValue;
@@ -65,6 +78,8 @@ namespace PES.Presentation.Scene
             BuildSteppedMap();
             EnsureAnkamaLikeCamera();
             SetupMovementPreviewVisuals();
+            SetupActionIntentPreviewVisuals();
+            SetupActionVfxPlaceholders();
 
             _unitAView = CreateUnitVisual("UnitA", Color.cyan);
             _unitBView = CreateUnitVisual("UnitB", Color.red);
@@ -95,6 +110,7 @@ namespace PES.Presentation.Scene
                 TryFindAdjacentMoveDestinationAndPlan,
                 PlanAttackToOtherActor,
                 TryPlanSkill,
+                CancelPlannedAction,
                 TryPassTurn);
 
             var hasImmediateResult = _inputBinder.ProcessMouseInputs(
@@ -115,22 +131,48 @@ namespace PES.Presentation.Scene
             }
 
             UpdateMovementPreviewVisuals();
+            UpdateActionIntentPreviewVisuals();
+            UpdateHoveredTargetPreviewVisuals();
+            UpdateTransientVfxPulses(Time.deltaTime);
+            TryAutoPassTurnWhenNoActionsRemaining();
 
             if (Input.GetKeyDown(KeyCode.Space))
             {
                 if (_planner.TryBuildCommand(out var actorId, out var command))
                 {
+                    var hadTarget = _planner.TryGetPlannedTarget(out var plannedTarget);
                     _battleLoop.TryExecutePlannedCommand(actorId, command, out _lastResult);
+                    PlayActionVfxPlaceholder(actorId, hadTarget ? plannedTarget : (EntityId?)null, _lastResult);
                     _planner.ClearPlannedAction();
                 }
                 else
                 {
+                    var scriptedActor = _battleLoop.CurrentActorId;
                     _lastResult = _battleLoop.ExecuteNextStep();
+                    PlayActionVfxPlaceholder(scriptedActor, null, _lastResult);
                 }
 
                 SyncUnitViews();
                 Debug.Log($"[VerticalSlice] {_lastResult.Description}");
             }
+        }
+
+        private void TryAutoPassTurnWhenNoActionsRemaining()
+        {
+            if (_battleLoop.IsBattleOver || _battleLoop.RemainingActions > 0 || _planner.HasPlannedAction)
+            {
+                return;
+            }
+
+            var actorId = _battleLoop.CurrentActorId;
+            if (!_battleLoop.TryPassTurn(actorId, out var passResult))
+            {
+                return;
+            }
+
+            _lastResult = passResult;
+            SyncUnitViews();
+            Debug.Log($"[VerticalSlice] AutoPass: {_lastResult.Description}");
         }
 
         private void OnGUI()
@@ -159,10 +201,15 @@ namespace PES.Presentation.Scene
                 () => _mouseIntentMode = VerticalSliceMouseIntentMode.Attack,
                 () => _mouseIntentMode = VerticalSliceMouseIntentMode.Skill,
                 TryExecutePlanned,
+                CancelPlannedAction,
                 TryPassTurn,
                 DrawSkillKitButtons,
                 DrawLegendLabel,
-                GetSelectedSkillLabel);
+                GetSelectedSkillLabel,
+                GetSelectedSkillTooltip,
+                GetActionFeedbackLabel,
+                GetPlannedActionPreviewLabel,
+                GetRecentActionHistory);
         }
 
         private void DrawSkillKitButtons()
@@ -189,6 +236,7 @@ namespace PES.Presentation.Scene
             const float height = 24f;
             const float spacing = 8f;
 
+            var previousGuiColor = GUI.color;
             for (var slot = 0; slot < skillCount; slot++)
             {
                 var x = startX + (slot * (width + spacing));
@@ -198,17 +246,147 @@ namespace PES.Presentation.Scene
                     label = $"> {label}";
                 }
 
+                GUI.color = ResolveSkillSlotGuiColor(actorId, slot);
                 if (GUI.Button(new Rect(x, startY, width, height), label))
                 {
                     _selectedSkillSlot = slot;
                     _mouseIntentMode = VerticalSliceMouseIntentMode.Skill;
                 }
             }
+
+            GUI.color = previousGuiColor;
         }
 
         private void DrawLegendLabel()
         {
-            GUI.Label(new Rect(24f, 252f, 740f, 30f), "Bleu = déplacements possibles. Survol d'une case bleue en mode Move => aperçu du chemin blanc.");
+            GUI.Label(new Rect(24f, 412f, 740f, 20f), "Bleu = cases atteignables, ligne blanche = path. Marker cyan = move planifié, rouge = attaque planifiée, doré = skill planifiée, orange/doré translucide = cible survolée (attack/skill). Pulses vert/jaune/rouge = succès/miss/rejet action. Slots skills: vert READY, orange CD, rouge NO_RES.");
+        }
+
+
+        private string GetActionFeedbackLabel()
+        {
+            return ActionFeedbackFormatter.FormatResolutionSummary(_lastResult);
+        }
+
+        private string GetPlannedActionPreviewLabel()
+        {
+            if (!_planner.HasPlannedAction)
+            {
+                return "Aucune action planifiée";
+            }
+
+            if (_planner.HasPlannedMove && _planner.TryGetPlannedMoveDestination(out var destination))
+            {
+                if (!_battleLoop.State.TryGetEntityPosition(_planner.SelectedActorId, out var actorPosition))
+                {
+                    return $"Move preview: destination {destination}";
+                }
+
+                var moveCost =
+                    Mathf.Abs(destination.X - actorPosition.X) +
+                    Mathf.Abs(destination.Z - actorPosition.Z) +
+                    Mathf.Abs(destination.Y - actorPosition.Y);
+                var currentPm = _battleLoop.CurrentActorMovementPoints;
+                var projectedPm = currentPm - moveCost;
+                if (projectedPm < 0)
+                {
+                    projectedPm = 0;
+                }
+
+                return $"Move -> {destination} | coût~{moveCost} PM {currentPm}->{projectedPm}";
+            }
+
+            if (!_planner.TryGetPlannedTarget(out var targetId))
+            {
+                return _planner.PlannedLabel;
+            }
+
+            if (_planner.HasPlannedSkill)
+            {
+                var actorId = _planner.SelectedActorId;
+                var skillSlot = _planner.PlannedSkillSlot;
+                if (!_planner.TryGetSkillPolicy(actorId, skillSlot, out var policy))
+                {
+                    return "Skill preview indisponible (policy manquante)";
+                }
+
+                if (!_battleLoop.State.TryGetEntityHitPoints(targetId, out var hp))
+                {
+                    return $"Skill preview: cible invalide {targetId}";
+                }
+
+                var projectedHp = hp - policy.BaseDamage;
+                if (projectedHp < 0)
+                {
+                    projectedHp = 0;
+                }
+
+                return $"Skill[{skillSlot}] dmg~{policy.BaseDamage}, hit {policy.BaseHitChance}% => HP cible {hp}->{projectedHp}";
+            }
+
+            if (!_battleLoop.State.TryGetEntityHitPoints(targetId, out var targetHp))
+            {
+                return $"Attack preview: cible invalide {targetId}";
+            }
+
+            return $"Attack preview: cible {targetId} HP actuel {targetHp}";
+        }
+
+        private IReadOnlyList<string> GetRecentActionHistory()
+        {
+            const int maxEntries = 3;
+            var history = new List<string>(maxEntries);
+            var log = _battleLoop.State.StructuredEventLog;
+            for (var i = log.Count - 1; i >= 0 && history.Count < maxEntries; i--)
+            {
+                history.Add(ActionFeedbackFormatter.FormatEventRecordLine(log[i]));
+            }
+
+            if (history.Count == 0)
+            {
+                history.Add("(no action yet)");
+            }
+
+            return history;
+        }
+
+        private string GetSelectedSkillTooltip()
+        {
+            if (!_planner.HasActorSelection)
+            {
+                return "Sélectionne une unité pour voir le détail de la skill.";
+            }
+
+            var actorId = _planner.SelectedActorId;
+            if (!_planner.TryGetSkillPolicy(actorId, _selectedSkillSlot, out var policy))
+            {
+                return "Aucune skill configurée sur ce slot.";
+            }
+
+            var cooldown = _battleLoop.State.GetSkillCooldown(actorId, policy.SkillId);
+            var resource = _battleLoop.State.TryGetEntitySkillResource(actorId, out var value) ? value : 0;
+            return ActionFeedbackFormatter.BuildSkillTooltip(policy, cooldown, resource);
+        }
+
+
+        private Color ResolveSkillSlotGuiColor(EntityId actorId, int slot)
+        {
+            if (!_planner.TryGetSkillPolicy(actorId, slot, out var policy))
+            {
+                return new Color(0.35f, 0.35f, 0.35f, 1f);
+            }
+
+            var cooldown = _battleLoop.State.GetSkillCooldown(actorId, policy.SkillId);
+            var resource = _battleLoop.State.TryGetEntitySkillResource(actorId, out var value) ? value : 0;
+            var stateTag = ActionFeedbackFormatter.BuildSkillSlotStatusLabel(policy, cooldown, resource);
+
+            return stateTag switch
+            {
+                "READY" => new Color(0.2f, 0.82f, 0.32f, 1f),
+                _ when stateTag.StartsWith("CD:") => new Color(0.88f, 0.64f, 0.2f, 1f),
+                _ when stateTag.StartsWith("NO_RES:") => new Color(0.86f, 0.3f, 0.3f, 1f),
+                _ => Color.white,
+            };
         }
 
         private string GetSkillButtonLabel(EntityId actorId, int slot)
@@ -220,9 +398,8 @@ namespace PES.Presentation.Scene
 
             var cooldown = _battleLoop.State.GetSkillCooldown(actorId, policy.SkillId);
             var resource = _battleLoop.State.TryGetEntitySkillResource(actorId, out var value) ? value : 0;
-            var ready = cooldown <= 0 && resource >= policy.ResourceCost;
-            var readyTag = ready ? "Ready" : $"CD:{cooldown} RES:{resource}/{policy.ResourceCost}";
-            return $"S{slot + 1} [Id:{policy.SkillId}] {readyTag}";
+            var stateTag = ActionFeedbackFormatter.BuildSkillSlotStatusLabel(policy, cooldown, resource);
+            return $"S{slot + 1} [Id:{policy.SkillId}] {stateTag}";
         }
 
         private ActionResolution PlanAndTryMove(EntityId actorId, GridCoord3 destination)
@@ -263,6 +440,18 @@ namespace PES.Presentation.Scene
             _planner.PlanAttack(target);
         }
 
+        private void CancelPlannedAction()
+        {
+            if (!_planner.HasPlannedAction)
+            {
+                _lastResult = new ActionResolution(false, ActionResolutionCode.Rejected, "CancelIgnored: no planned action", ActionFailureReason.InvalidTargeting);
+                return;
+            }
+
+            _planner.ClearPlannedAction();
+            _lastResult = new ActionResolution(true, ActionResolutionCode.Succeeded, "PlanCancelled: cleared planned action");
+        }
+
         private void TryPassTurn()
         {
             if (!_planner.HasActorSelection)
@@ -271,6 +460,7 @@ namespace PES.Presentation.Scene
             }
 
             _battleLoop.TryPassTurn(_planner.SelectedActorId, out _lastResult);
+            PlayActionVfxPlaceholder(_planner.SelectedActorId, null, _lastResult);
             _planner.ClearPlannedAction();
             SyncUnitViews();
             Debug.Log($"[VerticalSlice] {_lastResult.Description}");
@@ -285,11 +475,255 @@ namespace PES.Presentation.Scene
 
             if (_planner.TryBuildCommand(out var actorId, out var command))
             {
+                var hadTarget = _planner.TryGetPlannedTarget(out var plannedTarget);
                 _battleLoop.TryExecutePlannedCommand(actorId, command, out _lastResult);
+                PlayActionVfxPlaceholder(actorId, hadTarget ? plannedTarget : (EntityId?)null, _lastResult);
                 _planner.ClearPlannedAction();
                 SyncUnitViews();
                 Debug.Log($"[VerticalSlice] {_lastResult.Description}");
             }
+        }
+
+        private void SetupActionVfxPlaceholders()
+        {
+            _vfxSuccessMaterial = new Material(Shader.Find("Unlit/Color"))
+            {
+                color = new Color(0.2f, 1f, 0.35f, 0.55f)
+            };
+
+            _vfxMissedMaterial = new Material(Shader.Find("Unlit/Color"))
+            {
+                color = new Color(1f, 0.9f, 0.2f, 0.5f)
+            };
+
+            _vfxRejectedMaterial = new Material(Shader.Find("Unlit/Color"))
+            {
+                color = new Color(1f, 0.25f, 0.25f, 0.52f)
+            };
+        }
+
+        private void PlayActionVfxPlaceholder(EntityId actorId, EntityId? targetId, ActionResolution resolution)
+        {
+            if (_battleLoop == null)
+            {
+                return;
+            }
+
+            if (_battleLoop.State.TryGetEntityPosition(actorId, out var actorPosition))
+            {
+                SpawnTransientPulse(actorPosition, ResolveVfxMaterial(resolution.Code), 0.42f, 0.35f);
+            }
+
+            if (targetId.HasValue && _battleLoop.State.TryGetEntityPosition(targetId.Value, out var targetPosition))
+            {
+                SpawnTransientPulse(targetPosition, ResolveVfxMaterial(resolution.Code), 0.58f, 0.42f);
+            }
+        }
+
+        private Material ResolveVfxMaterial(ActionResolutionCode code)
+        {
+            return code switch
+            {
+                ActionResolutionCode.Succeeded => _vfxSuccessMaterial,
+                ActionResolutionCode.Missed => _vfxMissedMaterial,
+                _ => _vfxRejectedMaterial,
+            };
+        }
+
+        private void SpawnTransientPulse(Position3 position, Material material, float yOffset, float ttlSeconds)
+        {
+            if (material == null)
+            {
+                return;
+            }
+
+            var pulse = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            pulse.name = $"VfxPulse_{position.X}_{position.Y}_{position.Z}_{_transientVfxPulses.Count}";
+            pulse.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+            pulse.transform.position = new Vector3(position.X, position.Z + yOffset, position.Y);
+            pulse.transform.localScale = new Vector3(0.82f, 0.82f, 0.82f);
+
+            var renderer = pulse.GetComponent<Renderer>();
+            renderer.material = material;
+            renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            renderer.receiveShadows = false;
+
+            var collider = pulse.GetComponent<Collider>();
+            if (collider != null)
+            {
+                UnityEngine.Object.Destroy(collider);
+            }
+
+            _transientVfxPulses.Add(new TransientVfxPulse(pulse, ttlSeconds));
+        }
+
+        private void UpdateTransientVfxPulses(float deltaTime)
+        {
+            for (var i = _transientVfxPulses.Count - 1; i >= 0; i--)
+            {
+                var pulse = _transientVfxPulses[i];
+                var nextTtl = pulse.TtlSeconds - deltaTime;
+                if (nextTtl <= 0f)
+                {
+                    if (pulse.View != null)
+                    {
+                        UnityEngine.Object.Destroy(pulse.View);
+                    }
+
+                    _transientVfxPulses.RemoveAt(i);
+                    continue;
+                }
+
+                _transientVfxPulses[i] = new TransientVfxPulse(pulse.View, nextTtl);
+            }
+        }
+
+        private void SetupActionIntentPreviewVisuals()
+        {
+            _plannedMoveMarkerMaterial = new Material(Shader.Find("Unlit/Color"))
+            {
+                color = new Color(0.2f, 0.95f, 0.9f, 0.5f)
+            };
+
+            _plannedAttackMarkerMaterial = new Material(Shader.Find("Unlit/Color"))
+            {
+                color = new Color(1f, 0.25f, 0.2f, 0.6f)
+            };
+
+            _plannedSkillMarkerMaterial = new Material(Shader.Find("Unlit/Color"))
+            {
+                color = new Color(1f, 0.8f, 0.2f, 0.65f)
+            };
+
+            _hoverAttackMarkerMaterial = new Material(Shader.Find("Unlit/Color"))
+            {
+                color = new Color(1f, 0.45f, 0.15f, 0.42f)
+            };
+
+            _hoverSkillMarkerMaterial = new Material(Shader.Find("Unlit/Color"))
+            {
+                color = new Color(1f, 0.92f, 0.25f, 0.42f)
+            };
+
+            _plannedMoveMarkerView = CreateFlatPreviewMarker("Preview_MoveIntent", _plannedMoveMarkerMaterial, 0.92f);
+            _plannedTargetMarkerView = CreateFlatPreviewMarker("Preview_TargetIntent", _plannedAttackMarkerMaterial, 1.16f);
+            _hoverTargetMarkerView = CreateFlatPreviewMarker("Preview_HoverTarget", _hoverAttackMarkerMaterial, 1.28f);
+            HideActionIntentPreviewVisuals();
+            HideHoveredTargetPreviewVisuals();
+        }
+
+        private void UpdateActionIntentPreviewVisuals()
+        {
+            if (_plannedMoveMarkerView == null || _plannedTargetMarkerView == null || !_planner.HasPlannedAction)
+            {
+                HideActionIntentPreviewVisuals();
+                return;
+            }
+
+            if (_planner.HasPlannedMove && _planner.TryGetPlannedMoveDestination(out var destination))
+            {
+                _plannedMoveMarkerView.SetActive(true);
+                _plannedTargetMarkerView.SetActive(false);
+                _plannedMoveMarkerView.transform.position = new Vector3(destination.X, destination.Z + 0.54f, destination.Y);
+                return;
+            }
+
+            if (!_planner.TryGetPlannedTarget(out var targetId) || !_battleLoop.State.TryGetEntityPosition(targetId, out var targetPosition))
+            {
+                HideActionIntentPreviewVisuals();
+                return;
+            }
+
+            _plannedMoveMarkerView.SetActive(false);
+            _plannedTargetMarkerView.SetActive(true);
+            _plannedTargetMarkerView.transform.position = new Vector3(targetPosition.X, targetPosition.Z + 0.58f, targetPosition.Y);
+
+            var targetRenderer = _plannedTargetMarkerView.GetComponent<Renderer>();
+            if (targetRenderer != null)
+            {
+                targetRenderer.material = _planner.HasPlannedSkill ? _plannedSkillMarkerMaterial : _plannedAttackMarkerMaterial;
+            }
+        }
+
+        private void UpdateHoveredTargetPreviewVisuals()
+        {
+            if (_hoverTargetMarkerView == null || !_planner.HasActorSelection || Camera.main == null)
+            {
+                HideHoveredTargetPreviewVisuals();
+                return;
+            }
+
+            if (_mouseIntentMode != VerticalSliceMouseIntentMode.Attack && _mouseIntentMode != VerticalSliceMouseIntentMode.Skill)
+            {
+                HideHoveredTargetPreviewVisuals();
+                return;
+            }
+
+            var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            if (!Physics.Raycast(ray, out var hit, 250f) || !TryResolveActorFromHit(hit.collider.gameObject, out var hoveredActorId))
+            {
+                HideHoveredTargetPreviewVisuals();
+                return;
+            }
+
+            if (hoveredActorId.Equals(_planner.SelectedActorId) || !_battleLoop.State.TryGetEntityPosition(hoveredActorId, out var hoveredPosition))
+            {
+                HideHoveredTargetPreviewVisuals();
+                return;
+            }
+
+            _hoverTargetMarkerView.SetActive(true);
+            _hoverTargetMarkerView.transform.position = new Vector3(hoveredPosition.X, hoveredPosition.Z + 0.64f, hoveredPosition.Y);
+
+            var hoverRenderer = _hoverTargetMarkerView.GetComponent<Renderer>();
+            if (hoverRenderer != null)
+            {
+                hoverRenderer.material = _mouseIntentMode == VerticalSliceMouseIntentMode.Skill
+                    ? _hoverSkillMarkerMaterial
+                    : _hoverAttackMarkerMaterial;
+            }
+        }
+
+        private void HideHoveredTargetPreviewVisuals()
+        {
+            if (_hoverTargetMarkerView != null)
+            {
+                _hoverTargetMarkerView.SetActive(false);
+            }
+        }
+
+        private void HideActionIntentPreviewVisuals()
+        {
+            if (_plannedMoveMarkerView != null)
+            {
+                _plannedMoveMarkerView.SetActive(false);
+            }
+
+            if (_plannedTargetMarkerView != null)
+            {
+                _plannedTargetMarkerView.SetActive(false);
+            }
+        }
+
+        private static GameObject CreateFlatPreviewMarker(string name, Material material, float scale)
+        {
+            var marker = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            marker.name = name;
+            marker.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+            marker.transform.localScale = new Vector3(scale, scale, scale);
+
+            var renderer = marker.GetComponent<Renderer>();
+            renderer.material = material;
+            renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            renderer.receiveShadows = false;
+
+            var collider = marker.GetComponent<Collider>();
+            if (collider != null)
+            {
+                UnityEngine.Object.Destroy(collider);
+            }
+
+            return marker;
         }
 
         private void SetupMovementPreviewVisuals()
@@ -395,7 +829,7 @@ namespace PES.Presentation.Scene
             var collider = overlay.GetComponent<Collider>();
             if (collider != null)
             {
-                Destroy(collider);
+                UnityEngine.Object.Destroy(collider);
             }
 
             _reachableOverlayTiles.Add(overlay);
@@ -649,6 +1083,20 @@ namespace PES.Presentation.Scene
             {
                 _unitBView.transform.position = ToWorld(unitBPosition);
             }
+        }
+
+
+        private readonly struct TransientVfxPulse
+        {
+            public TransientVfxPulse(GameObject view, float ttlSeconds)
+            {
+                View = view;
+                TtlSeconds = ttlSeconds;
+            }
+
+            public GameObject View { get; }
+
+            public float TtlSeconds { get; }
         }
 
         private static Vector3 ToWorld(Position3 position)
