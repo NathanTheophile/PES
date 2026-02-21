@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace PES.Presentation.Configuration
@@ -22,6 +24,6 @@ namespace PES.Presentation.Configuration
 
         public int StartSkillResource => _startSkillResource;
 
-        public SkillDefinitionAsset[] Skills => _skills;
+        public IReadOnlyList<SkillDefinitionAsset> Skills => _skills ?? Array.Empty<SkillDefinitionAsset>();
     }
 }

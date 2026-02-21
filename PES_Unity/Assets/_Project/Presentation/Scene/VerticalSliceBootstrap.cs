@@ -58,20 +58,16 @@ namespace PES.Presentation.Scene
             _effectiveMovePolicy = runtimePolicies.MovePolicyOverride
                 ?? new MoveActionPolicy(maxMovementCostPerAction: 6, maxVerticalStepPerTile: 1);
 
-            var actorDefinitions = BuildActorDefinitionsFromArchetypes();
-            var skillLoadoutMap = EntityArchetypeRuntimeAdapter.BuildSkillLoadoutMap(
-                VerticalSliceBattleLoop.UnitA,
-                _unitAArchetype,
-                VerticalSliceBattleLoop.UnitB,
-                _unitBArchetype);
+            var actorBindings = BuildActorBindingsFromArchetypes();
+            var actorDefinitions = EntityArchetypeRuntimeAdapter.BuildActorDefinitions(actorBindings);
+            var skillLoadoutMap = EntityArchetypeRuntimeAdapter.BuildSkillLoadoutMap(actorBindings);
 
             _battleLoop = new VerticalSliceBattleLoop(
                 movePolicyOverride: _effectiveMovePolicy,
                 basicAttackPolicyOverride: runtimePolicies.BasicAttackPolicyOverride,
                 actorDefinitions: actorDefinitions);
 
-            EntityArchetypeRuntimeAdapter.ApplyRuntimeResources(_battleLoop.State, VerticalSliceBattleLoop.UnitA, _unitAArchetype);
-            EntityArchetypeRuntimeAdapter.ApplyRuntimeResources(_battleLoop.State, VerticalSliceBattleLoop.UnitB, _unitBArchetype);
+            EntityArchetypeRuntimeAdapter.ApplyRuntimeResources(_battleLoop.State, actorBindings);
 
             _planner = new VerticalSliceCommandPlanner(
                 _battleLoop.State,
@@ -843,23 +839,21 @@ namespace PES.Presentation.Scene
             }
         }
 
-        private IReadOnlyList<PES.Core.TurnSystem.BattleActorDefinition> BuildActorDefinitionsFromArchetypes()
+        private IReadOnlyList<BattleActorArchetypeBinding> BuildActorBindingsFromArchetypes()
         {
-            var actorDefinitions = new[]
+            return new[]
             {
-                EntityArchetypeRuntimeAdapter.BuildActorDefinition(
+                new BattleActorArchetypeBinding(
                     VerticalSliceBattleLoop.UnitA,
                     teamId: 1,
                     startPosition: new Position3(0, 0, 0),
                     archetype: _unitAArchetype),
-                EntityArchetypeRuntimeAdapter.BuildActorDefinition(
+                new BattleActorArchetypeBinding(
                     VerticalSliceBattleLoop.UnitB,
                     teamId: 2,
                     startPosition: new Position3(2, 0, 1),
                     archetype: _unitBArchetype),
             };
-
-            return actorDefinitions;
         }
 
         private enum MouseIntentMode

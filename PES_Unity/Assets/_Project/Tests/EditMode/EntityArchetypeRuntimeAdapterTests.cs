@@ -47,6 +47,57 @@ namespace PES.Tests.EditMode
             Object.DestroyImmediate(archetype);
         }
 
+
+        [Test]
+        public void BuildActorDefinitions_WithBindings_MapsAllActors()
+        {
+            var archetypeA = ScriptableObject.CreateInstance<EntityArchetypeAsset>();
+            SetField(archetypeA, "_startHitPoints", 30);
+            var archetypeB = ScriptableObject.CreateInstance<EntityArchetypeAsset>();
+            SetField(archetypeB, "_startHitPoints", 45);
+
+            var bindings = new[]
+            {
+                new BattleActorArchetypeBinding(new EntityId(100), 1, new Position3(0, 0, 0), archetypeA),
+                new BattleActorArchetypeBinding(new EntityId(101), 2, new Position3(2, 0, 1), archetypeB),
+            };
+
+            var definitions = EntityArchetypeRuntimeAdapter.BuildActorDefinitions(bindings);
+
+            Assert.That(definitions.Count, Is.EqualTo(2));
+            Assert.That(definitions[0].StartHitPoints, Is.EqualTo(30));
+            Assert.That(definitions[1].StartHitPoints, Is.EqualTo(45));
+
+            Object.DestroyImmediate(archetypeA);
+            Object.DestroyImmediate(archetypeB);
+        }
+
+        [Test]
+        public void ApplyRuntimeResources_WithBindings_SetsEachActorResource()
+        {
+            var archetypeA = ScriptableObject.CreateInstance<EntityArchetypeAsset>();
+            SetField(archetypeA, "_startSkillResource", 3);
+            var archetypeB = ScriptableObject.CreateInstance<EntityArchetypeAsset>();
+            SetField(archetypeB, "_startSkillResource", 7);
+
+            var bindings = new[]
+            {
+                new BattleActorArchetypeBinding(new EntityId(100), 1, new Position3(0, 0, 0), archetypeA),
+                new BattleActorArchetypeBinding(new EntityId(101), 2, new Position3(2, 0, 1), archetypeB),
+            };
+
+            var state = new BattleState();
+            EntityArchetypeRuntimeAdapter.ApplyRuntimeResources(state, bindings);
+
+            Assert.That(state.TryGetEntitySkillResource(new EntityId(100), out var valueA), Is.True);
+            Assert.That(valueA, Is.EqualTo(3));
+            Assert.That(state.TryGetEntitySkillResource(new EntityId(101), out var valueB), Is.True);
+            Assert.That(valueB, Is.EqualTo(7));
+
+            Object.DestroyImmediate(archetypeA);
+            Object.DestroyImmediate(archetypeB);
+        }
+
         [Test]
         public void BuildSkillLoadoutMap_ConvertsSkillAssetsToPolicyArraysPerActor()
         {
@@ -63,9 +114,13 @@ namespace PES.Tests.EditMode
             var archetypeB = ScriptableObject.CreateInstance<EntityArchetypeAsset>();
             SetField(archetypeB, "_skills", new[] { skillB });
 
-            var loadout = EntityArchetypeRuntimeAdapter.BuildSkillLoadoutMap(
-                new EntityId(100), archetypeA,
-                new EntityId(101), archetypeB);
+            var bindings = new[]
+            {
+                new BattleActorArchetypeBinding(new EntityId(100), 1, new Position3(0, 0, 0), archetypeA),
+                new BattleActorArchetypeBinding(new EntityId(101), 2, new Position3(2, 0, 1), archetypeB),
+            };
+
+            var loadout = EntityArchetypeRuntimeAdapter.BuildSkillLoadoutMap(bindings);
 
             Assert.That(loadout[new EntityId(100)].Length, Is.EqualTo(2));
             Assert.That(loadout[new EntityId(100)][0].SkillId, Is.EqualTo(10));
