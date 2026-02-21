@@ -51,6 +51,32 @@ namespace PES.Presentation.Scene
             return _skillPolicyOverride.HasValue ? 1 : 0;
         }
 
+
+        public bool TryGetSkillPolicy(EntityId actorId, int skillSlot, out SkillActionPolicy policy)
+        {
+            if (_skillLoadoutByActor != null && _skillLoadoutByActor.TryGetValue(actorId, out var policies) &&
+                policies != null)
+            {
+                if (skillSlot < 0 || skillSlot >= policies.Length)
+                {
+                    policy = default;
+                    return false;
+                }
+
+                policy = policies[skillSlot];
+                return true;
+            }
+
+            if (_skillPolicyOverride.HasValue && skillSlot == 0)
+            {
+                policy = _skillPolicyOverride.Value;
+                return true;
+            }
+
+            policy = default;
+            return false;
+        }
+
         public string PlannedLabel => _plannedKind switch
         {
             PlannedActionKind.Move => $"Move to {_plannedDestination}",
@@ -133,22 +159,9 @@ namespace PES.Presentation.Scene
 
         private bool TryResolveSkillPolicyOverride(EntityId actorId, int skillSlot, out SkillActionPolicy? policy)
         {
-            if (_skillLoadoutByActor != null && _skillLoadoutByActor.TryGetValue(actorId, out var policies) &&
-                policies != null)
+            if (TryGetSkillPolicy(actorId, skillSlot, out var resolvedPolicy))
             {
-                if (skillSlot < 0 || skillSlot >= policies.Length)
-                {
-                    policy = default;
-                    return false;
-                }
-
-                policy = policies[skillSlot];
-                return true;
-            }
-
-            if (_skillPolicyOverride.HasValue)
-            {
-                policy = _skillPolicyOverride;
+                policy = resolvedPolicy;
                 return true;
             }
 

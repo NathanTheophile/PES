@@ -146,7 +146,8 @@ namespace PES.Presentation.Scene
             GUI.Label(new Rect(24f, 58f, 740f, 20f), $"Actor: {_battleLoop.PeekCurrentActorLabel()} | Next: {_battleLoop.PeekNextStepLabel()} | AP:{_battleLoop.RemainingActions} | PM:{_battleLoop.CurrentActorMovementPoints} | Timer:{_battleLoop.RemainingTurnSeconds:0.0}s");
             GUI.Label(new Rect(24f, 78f, 740f, 20f), $"HP UnitA: {hpA} | HP UnitB: {hpB}");
             var availableSkills = _planner.HasActorSelection ? _planner.GetAvailableSkillCount(_planner.SelectedActorId) : 0;
-            GUI.Label(new Rect(24f, 98f, 740f, 20f), $"Selected: {selected} | Planned: {planned} | MouseMode: {_mouseIntentMode} | SkillSlot:{_selectedSkillSlot + 1}/{(availableSkills > 0 ? availableSkills : 0)}");
+            var selectedSkillLabel = GetSelectedSkillLabel();
+            GUI.Label(new Rect(24f, 98f, 740f, 20f), $"Selected: {selected} | Planned: {planned} | MouseMode: {_mouseIntentMode} | SkillSlot:{_selectedSkillSlot + 1}/{(availableSkills > 0 ? availableSkills : 0)} ({selectedSkillLabel})");
             GUI.Label(new Rect(24f, 118f, 740f, 20f), $"Last: {_lastResult.Code} / {_lastResult.FailureReason}");
             GUI.Label(new Rect(24f, 138f, 740f, 20f), _battleLoop.IsBattleOver ? $"Winner Team: {_battleLoop.WinnerTeamId}" : "Mouse: left click world/unit. Keys: 1/2 select, M/A/S mode, Q/E skill slot, P pass, SPACE execute.");
 
@@ -236,7 +237,10 @@ namespace PES.Presentation.Scene
                 var target = _planner.SelectedActorId.Equals(VerticalSliceBattleLoop.UnitA)
                     ? VerticalSliceBattleLoop.UnitB
                     : VerticalSliceBattleLoop.UnitA;
-                _planner.PlanSkill(target, _selectedSkillSlot);
+                if (!TryPlanSkill(target))
+                {
+                    return;
+                }
             }
 
             if (Input.GetKeyDown(KeyCode.Q))
@@ -326,7 +330,11 @@ namespace PES.Presentation.Scene
             }
             else if (_mouseIntentMode == MouseIntentMode.Skill)
             {
-                _planner.PlanSkill(clickedActor, _selectedSkillSlot);
+                if (!TryPlanSkill(clickedActor))
+                {
+                    return;
+                }
+
                 TryExecutePlanned();
             }
         }
@@ -773,6 +781,46 @@ namespace PES.Presentation.Scene
             return new GridCoord3(x, y, z);
         }
 
+
+        private bool TryPlanSkill(EntityId targetId)
+        {
+            if (!_planner.HasActorSelection)
+            {
+                return false;
+            }
+
+            if (!_planner.TryGetSkillPolicy(_planner.SelectedActorId, _selectedSkillSlot, out var policy))
+            {
+                _lastResult = new ActionResolution(
+                    false,
+                    ActionResolutionCode.Rejected,
+                    $"SkillSelectionRejected: no skill in slot {_selectedSkillSlot + 1} for {_planner.SelectedActorId}",
+                    ActionFailureReason.InvalidPolicy);
+                return false;
+            }
+
+            _planner.PlanSkill(targetId, _selectedSkillSlot);
+            _lastResult = new ActionResolution(
+                true,
+                ActionResolutionCode.Succeeded,
+                $"SkillSelected: {_planner.SelectedActorId} slot:{_selectedSkillSlot + 1} skill:{policy.SkillId}");
+            return true;
+        }
+
+        private string GetSelectedSkillLabel()
+        {
+            if (_planner == null || !_planner.HasActorSelection)
+            {
+                return "n/a";
+            }
+
+            if (!_planner.TryGetSkillPolicy(_planner.SelectedActorId, _selectedSkillSlot, out var policy))
+            {
+                return "none";
+            }
+
+            return $"SkillId:{policy.SkillId}";
+        }
 
         private void SyncSelectedSkillSlot()
         {

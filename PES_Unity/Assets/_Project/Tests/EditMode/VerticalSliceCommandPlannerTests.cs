@@ -108,6 +108,43 @@ namespace PES.Tests.EditMode
         }
 
         [Test]
+        public void TryGetSkillPolicy_WithSingleOverrideOnlySlotZero_IsTrue()
+        {
+            var state = new BattleState();
+            var policy = new SkillActionPolicy(5, 1, 3, 8, 85, 2, 1);
+            var planner = new VerticalSliceCommandPlanner(state, skillPolicyOverride: policy);
+
+            var ok = planner.TryGetSkillPolicy(VerticalSliceBattleLoop.UnitA, 0, out var resolved);
+
+            Assert.That(ok, Is.True);
+            Assert.That(resolved.SkillId, Is.EqualTo(5));
+        }
+
+        [Test]
+        public void TryGetSkillPolicy_WithSingleOverrideAndSlotOne_IsFalse()
+        {
+            var state = new BattleState();
+            var policy = new SkillActionPolicy(5, 1, 3, 8, 85, 2, 1);
+            var planner = new VerticalSliceCommandPlanner(state, skillPolicyOverride: policy);
+
+            var ok = planner.TryGetSkillPolicy(VerticalSliceBattleLoop.UnitA, 1, out _);
+
+            Assert.That(ok, Is.False);
+        }
+
+        [Test]
+        public void GetAvailableSkillCount_WithSingleOverride_ReturnsOne()
+        {
+            var state = new BattleState();
+            var policy = new SkillActionPolicy(5, 1, 3, 8, 85, 2, 1);
+            var planner = new VerticalSliceCommandPlanner(state, skillPolicyOverride: policy);
+
+            var count = planner.GetAvailableSkillCount(VerticalSliceBattleLoop.UnitA);
+
+            Assert.That(count, Is.EqualTo(1));
+        }
+
+        [Test]
         public void GetAvailableSkillCount_WithoutSkillPolicies_ReturnsZero()
         {
             var state = new BattleState();
