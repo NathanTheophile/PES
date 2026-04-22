@@ -1,0 +1,72 @@
+[gd_scene load_steps=8 format=2]
+
+[ext_resource path="res://skills/SkillScript.gd" type="Script" id=1]
+[ext_resource path="res://characters/002 - Zoro/skills/aura.tscn" type="PackedScene" id=2]
+[ext_resource path="res://skills/icons/heal.png" type="Texture" id=3]
+[ext_resource path="res://characters/002 - Zoro/skills/toragari.tscn" type="PackedScene" id=4]
+[ext_resource path="res://skills/icons/aoe.png" type="Texture" id=5]
+[ext_resource path="res://skills/HelperWindows/Lifesteal.tscn" type="PackedScene" id=6]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Node
+
+# targetArray = Array contendo as posições que esse feitiço atingiu
+#               A célula central será contida em um Array sozinha, para fácil identificação
+var skill
+func effects(targetArray):
+	skill = get_parent()
+	var c
+	for i in targetArray:
+		if i is Array:
+			c = i[0]
+			break
+	
+	BattleMechanics.playAnimEntity(skill.caster, \"Toragari\")
+	
+	yield(get_tree().create_timer(0.5),\"timeout\")
+	BattleMechanics.playAnim(skill.visuals[1],skill.caster.posit,false,\"under\")
+	AM.play(skill.caster.audioEX[1])
+	yield(get_tree().create_timer(1.7),\"timeout\")
+	
+	var skip = false
+	for i in targetArray:
+		var tgt = BattleMechanics.getEntityAt(i if not i is Array else i[0])
+		if tgt and tgt.ent_name == \"Dracule Mihawk\":
+			skip = true
+			break
+	if !skip:
+		BattleMechanics.playAnim(skill.visuals[0],c, false if skill.caster.direction.x!=0 else true)
+	BattleMechanics.shake()
+	
+	BattleMechanics.dmgAtAoe(targetArray, {\"base\": skill.base*dmgMod(), \"lifesteal\": 0.5}, skill.caster)
+	AM.play(skill.caster.audioEX[2],{\"randp\": true, \"reverb\": true})
+	yield(get_tree().create_timer(1),\"timeout\")
+
+func dmgMod(target=false):
+	var p = BattleMechanics.currentPlaying
+	return 2 - ((p.hp - p.hp_loss) / p.hp)
+	
+	
+	
+"
+
+[node name="Skill" type="Node2D"]
+script = ExtResource( 1 )
+skillName = "Tora Gari"
+description = "[b]{b}[/b] [img]res://skills/sword.png[/img], [b]Lifesteal 50[/b].
+
+[b]+1% [img]res://skills/sword.png[/img][/b] for each 1% HP missing."
+icon1 = ExtResource( 5 )
+icon2 = ExtResource( 3 )
+base = 50
+apCost = 2
+element = 1
+linear = true
+sight = true
+aoeShape = 6
+cooldown = 5
+visuals = [ ExtResource( 4 ), ExtResource( 2 ) ]
+effects = SubResource( 1 )
+helpertext = [ ExtResource( 6 ) ]
+
+[node name="Effects" type="Node" parent="."]

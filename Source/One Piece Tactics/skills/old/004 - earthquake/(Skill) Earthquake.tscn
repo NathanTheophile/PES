@@ -1,0 +1,72 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://skills/SkillScript.gd" type="Script" id=1]
+[ext_resource path="res://skills/old/004 - earthquake/Dust.tscn" type="PackedScene" id=2]
+[ext_resource path="res://skills/old/004 - earthquake/Shock.tscn" type="PackedScene" id=3]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Node
+
+# targetArray = Array contendo as posições que esse feitiço atingiu
+#               A célula central será contida em um Array sozinha, para fácil identificação
+var skill
+func effects(targetArray):
+	skill = get_parent()
+	
+	BattleMechanics.playAnimEntity(skill.caster, \"Hit\")
+	yield(get_tree().create_timer(0.4),\"timeout\")
+	
+	var cells = {}
+	var focus
+	
+	for i in targetArray:
+		if i is Array:
+			focus = i[0]
+	
+	for i in targetArray:
+		if not i is Array:
+			if cells.has(BattleMechanics.distanceTo(i,focus)):
+				cells[BattleMechanics.distanceTo(i,focus)].append(i)
+			else:
+				cells[BattleMechanics.distanceTo(i,focus)] = [i]
+	
+	BattleMechanics.playAnim(skill.visuals[0],focus,false,\"ysort\")
+	BattleMechanics.playAnim(skill.visuals[1],focus,false,\"under\")
+	
+	var keys = cells.keys()
+	keys.sort()
+	
+	var rest = 0.7
+	var cent = BattleMechanics.getEntityAt(focus)
+	if cent and not cent.player:
+		BattleMechanics.dealDmg([6,\"e\"], cent, skill.caster)
+	for i in keys:
+		for j in cells[i]:
+			var tgt = BattleMechanics.getEntityAt(j)
+			if tgt and not tgt.player:
+				BattleMechanics.dealDmg([6,\"e\"], tgt, skill.caster)
+			BattleMechanics.playAnim(skill.visuals[0],j,false,\"ysort\")
+		yield(get_tree().create_timer(0.05),\"timeout\")
+		rest -= 0.05
+	if rest > 0:
+		yield(get_tree().create_timer(rest),\"timeout\")
+			
+	
+	
+	
+"
+
+[node name="Skill" type="Node2D"]
+script = ExtResource( 1 )
+skillName = "Shatter"
+description = "Deals [color=#5ea60f]6 earth damage[/color]."
+apCost = 1
+element = 4
+rangeMin = 2
+rangeMax = 2
+aoeShape = 3
+usePerTurn = 2
+visuals = [ ExtResource( 2 ), ExtResource( 3 ) ]
+effects = SubResource( 1 )
+
+[node name="Effects" type="Node" parent="."]

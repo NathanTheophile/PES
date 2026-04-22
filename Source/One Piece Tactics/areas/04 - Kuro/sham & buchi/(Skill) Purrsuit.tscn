@@ -1,0 +1,50 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://skills/SkillScript.gd" type="Script" id=1]
+[ext_resource path="res://skills/Recursos Comuns/Hit.tscn" type="PackedScene" id=2]
+[ext_resource path="res://skills/HelperWindows/Push.tscn" type="PackedScene" id=3]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Node
+
+# targetArray = Array contendo as posições que esse feitiço atingiu
+#               A célula central será contida em um Array sozinha, para fácil identificação
+var skill
+func effects(targetArray):
+	skill = get_parent()
+
+	
+	
+	BattleMechanics.playAnimEntity(skill.caster, \"Atk\")
+	yield(get_tree().create_timer(0.2),\"timeout\")
+	BattleMechanics.push(skill.caster, skill.caster, 20, skill.caster.direction)
+	BattleMechanics.bounceTgt(skill.caster)
+	yield(get_tree().create_timer(0.3),\"timeout\")
+	
+	var tgt = BattleMechanics.getEntityAt(targetArray[0])
+	if tgt:
+		BattleMechanics.dealDmg(skill.base, tgt, skill.caster)
+		BattleMechanics.playAnim(skill.visuals[0],tgt.posit)
+	
+	yield(get_tree().create_timer(1),\"timeout\")
+	
+			
+	
+	
+	
+"
+
+[node name="Skill" type="Node2D"]
+script = ExtResource( 1 )
+skillName = "Purrsuit"
+base = 15
+apCost = 1
+rangeMax = 3
+linear = true
+sight = true
+usePerTgt = 1
+visuals = [ ExtResource( 2 ) ]
+effects = SubResource( 1 )
+helpertext = [ ExtResource( 3 ) ]
+
+[node name="Effects" type="Node" parent="."]

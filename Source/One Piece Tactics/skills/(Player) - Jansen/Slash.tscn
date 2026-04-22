@@ -1,0 +1,143 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://characters/001 - Hiro/parts/fperna1.png" type="Texture" id=1]
+[ext_resource path="res://characters/001 - Hiro/parts/fcorpo2.png" type="Texture" id=2]
+[ext_resource path="res://skills/(Player) - Tenebrus/Golpe Armado/layer_116.png" type="Texture" id=3]
+
+[sub_resource type="Animation" id=1]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/path = NodePath("Layer116:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ Vector2( -29, -12 ) ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Layer116:rotation_degrees")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ 59.1357 ]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("Layer116:scale")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ Vector2( 1.69828, 0.598231 ) ]
+}
+tracks/3/type = "value"
+tracks/3/path = NodePath("Layer116:modulate")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ Color( 1, 1, 1, 1 ) ]
+}
+
+[sub_resource type="Animation" id=2]
+resource_name = "main"
+tracks/0/type = "value"
+tracks/0/path = NodePath("Layer116:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 0.5 ),
+"transitions": PoolRealArray( 0.189465, 1 ),
+"update": 0,
+"values": [ Vector2( -39, -21 ), Vector2( -36.5375, 1.24171 ) ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Layer116:rotation_degrees")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0, 0.5 ),
+"transitions": PoolRealArray( 0.189465, 1 ),
+"update": 0,
+"values": [ 59.1357, 47.7595 ]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("Layer116:scale")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/keys = {
+"times": PoolRealArray( 0, 0.5 ),
+"transitions": PoolRealArray( 0.189465, 1 ),
+"update": 0,
+"values": [ Vector2( 1.69828, 0.598231 ), Vector2( 2.57435, 0.747 ) ]
+}
+tracks/3/type = "value"
+tracks/3/path = NodePath("Layer116:modulate")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/keys = {
+"times": PoolRealArray( 0, 0.5 ),
+"transitions": PoolRealArray( 1, 1 ),
+"update": 0,
+"values": [ Color( 1, 1, 1, 1 ), Color( 1, 1, 1, 0 ) ]
+}
+
+[node name="Node2D" type="Node2D"]
+
+[node name="Layer116" type="Sprite" parent="."]
+position = Vector2( -29, -12 )
+rotation = 1.03211
+scale = Vector2( 1.69828, 0.598231 )
+texture = ExtResource( 3 )
+offset = Vector2( 7, -69 )
+
+[node name="VisualFront" type="Node2D" parent="."]
+visible = false
+modulate = Color( 1, 1, 1, 0.341176 )
+position = Vector2( -23, -27 )
+__meta__ = {
+"_edit_group_": true
+}
+
+[node name="Node2D" type="Node2D" parent="VisualFront"]
+position = Vector2( 0, 2 )
+scale = Vector2( 1.05, 0.95 )
+
+[node name="Fperna1" type="Sprite" parent="VisualFront/Node2D"]
+position = Vector2( 1, 18.9201 )
+texture = ExtResource( 1 )
+offset = Vector2( 0, -11 )
+
+[node name="Fcorpo1" type="Sprite" parent="VisualFront/Node2D"]
+position = Vector2( 0, -10.0799 )
+texture = ExtResource( 2 )
+offset = Vector2( 1, -7 )
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+autoplay = "main"
+anims/RESET = SubResource( 1 )
+anims/main = SubResource( 2 )

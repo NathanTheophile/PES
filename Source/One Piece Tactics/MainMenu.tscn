@@ -1,0 +1,118 @@
+[gd_scene format=2]
+
+[node name="Main Menu" type="Node2D"]
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+margin_left = 23.0
+margin_top = 12.0
+margin_right = 331.0
+margin_bottom = 52.0
+custom_constants/separation = 19
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Slime 1" type="Button" parent="HBoxContainer"]
+margin_right = 90.0
+margin_bottom = 40.0
+rect_min_size = Vector2( 90, 0 )
+text = "Slime 1"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Slime 2" type="Button" parent="HBoxContainer"]
+margin_left = 109.0
+margin_right = 199.0
+margin_bottom = 40.0
+rect_min_size = Vector2( 90, 0 )
+text = "Slime 2"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Slime 3" type="Button" parent="HBoxContainer"]
+margin_left = 218.0
+margin_right = 308.0
+margin_bottom = 40.0
+rect_min_size = Vector2( 90, 0 )
+text = "Slime 3"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+margin_left = 844.0
+margin_top = 23.0
+margin_right = 883.0
+margin_bottom = 63.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Hiro" type="HBoxContainer" parent="VBoxContainer"]
+margin_right = 107.0
+margin_bottom = 40.0
+
+[node name="CheckButton" type="CheckButton" parent="VBoxContainer/Hiro"]
+margin_right = 76.0
+margin_bottom = 40.0
+pressed = true
+
+[node name="Label" type="Label" parent="VBoxContainer/Hiro"]
+margin_left = 80.0
+margin_top = 13.0
+margin_right = 107.0
+margin_bottom = 27.0
+text = "Hiro"
+
+[node name="Hiro2" type="HBoxContainer" parent="VBoxContainer"]
+margin_top = 44.0
+margin_right = 107.0
+margin_bottom = 84.0
+
+[node name="CheckButton" type="CheckButton" parent="VBoxContainer/Hiro2"]
+margin_right = 76.0
+margin_bottom = 40.0
+pressed = true
+
+[node name="Label" type="Label" parent="VBoxContainer/Hiro2"]
+margin_left = 80.0
+margin_top = 13.0
+margin_right = 88.0
+margin_bottom = 27.0
+text = "[]"
+
+[node name="Hiro3" type="HBoxContainer" parent="VBoxContainer"]
+margin_top = 88.0
+margin_right = 107.0
+margin_bottom = 128.0
+
+[node name="CheckButton" type="CheckButton" parent="VBoxContainer/Hiro3"]
+margin_right = 76.0
+margin_bottom = 40.0
+pressed = true
+
+[node name="Label" type="Label" parent="VBoxContainer/Hiro3"]
+margin_left = 80.0
+margin_top = 13.0
+margin_right = 88.0
+margin_bottom = 27.0
+text = "[]"
+
+[node name="Hiro4" type="HBoxContainer" parent="VBoxContainer"]
+margin_top = 132.0
+margin_right = 107.0
+margin_bottom = 172.0
+
+[node name="CheckButton" type="CheckButton" parent="VBoxContainer/Hiro4"]
+margin_right = 76.0
+margin_bottom = 40.0
+pressed = true
+
+[node name="Label" type="Label" parent="VBoxContainer/Hiro4"]
+margin_left = 80.0
+margin_top = 13.0
+margin_right = 88.0
+margin_bottom = 27.0
+text = "[]"

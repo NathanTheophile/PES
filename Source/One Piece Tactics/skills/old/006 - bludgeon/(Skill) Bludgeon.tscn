@@ -1,0 +1,59 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://skills/SkillScript.gd" type="Script" id=1]
+[ext_resource path="res://skills/old/006 - bludgeon/AnimDown.tscn" type="PackedScene" id=2]
+[ext_resource path="res://skills/old/006 - bludgeon/AnimUp.tscn" type="PackedScene" id=3]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Node
+
+# targetArray = Array contendo as posições que esse feitiço atingiu
+#               A célula central será contida em um Array sozinha, para fácil identificação
+var skill
+func effects(targetArray):
+	skill = get_parent()
+	
+	BattleMechanics.playAnimEntity(skill.caster, \"Kick\")
+	yield(get_tree().create_timer(0.4),\"timeout\")
+	
+	var dir = BattleMechanics.directionTo(skill.caster.posit, targetArray[0])
+	match dir:
+		Vector2(1,0):
+			BattleMechanics.playAnim(skill.visuals[0],targetArray[0],false,\"ysort\")
+		Vector2(0,1):
+			BattleMechanics.playAnim(skill.visuals[0],targetArray[0],true,\"ysort\")
+		Vector2(-1,0):
+			BattleMechanics.playAnim(skill.visuals[1],targetArray[0],true,\"ysort\")
+		Vector2(0,-1):
+			BattleMechanics.playAnim(skill.visuals[1],targetArray[0],false,\"ysort\")
+	
+	var tgt = BattleMechanics.getEntityAt(targetArray[0])
+	if tgt:
+		BattleMechanics.dealDmg([4,\"e\"], tgt, skill.caster)
+		#yield(get_tree().create_timer(0.1),\"timeout\")
+		yield(BattleMechanics.push(
+			tgt,
+			skill.caster,
+			3,
+			BattleMechanics.directionTo(skill.caster.posit, targetArray[0]),
+			[1,\"n\"]
+		), \"completed\")
+	
+	
+	
+	
+"
+
+[node name="Skill" type="Node2D"]
+script = ExtResource( 1 )
+skillName = "Outta Here"
+description = "Deals [color=#5ea60f]4 earth damage[/color] and pushes the target back 3 cells."
+apCost = 1
+element = 4
+linear = true
+sight = true
+usePerTgt = 1
+visuals = [ ExtResource( 2 ), ExtResource( 3 ) ]
+effects = SubResource( 1 )
+
+[node name="Effects" type="Node" parent="."]

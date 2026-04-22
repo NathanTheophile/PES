@@ -1,0 +1,44 @@
+[gd_scene load_steps=4 format=2]
+
+[ext_resource path="res://skills/SkillScript.gd" type="Script" id=1]
+[ext_resource path="res://skills/(Player) - Jansen/Slash.tscn" type="PackedScene" id=2]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Node
+
+# targetArray = Array contendo as posições que esse feitiço atingiu
+#               A célula central será contida em um Array sozinha, para fácil identificação
+var skill
+func effects(targetArray):
+	skill = get_parent()
+	
+	BattleMechanics.playAnimEntity(skill.caster, \"Ataque\")
+	yield(get_tree().create_timer(0.1),\"timeout\")
+	
+	BattleMechanics.playAnim(skill.visuals[0],targetArray[0])
+	var tgt = BattleMechanics.getEntityAt(targetArray[0])
+	if tgt:
+		if not tgt.player:
+			BattleMechanics.dealDmg([50,\"a\"],tgt,skill.caster)
+		BattleMechanics.push(tgt,skill.caster,2,skill.caster.direction, [25, \"n\"] if not tgt.player else false)
+	yield(get_tree().create_timer(1),\"timeout\")
+			
+	
+	
+	
+	
+"
+
+[node name="Skill" type="Node2D"]
+script = ExtResource( 1 )
+skillName = "Haste Lâminada"
+description = "Causa [b][color=#f09ee5]50 de dano de ar[/color][/b] e empurra o alvo 2 células."
+apCost = 1
+element = 3
+linear = true
+sight = true
+usePerTurn = 2
+visuals = [ ExtResource( 2 ) ]
+effects = SubResource( 1 )
+
+[node name="Effects" type="Node" parent="."]

@@ -1,0 +1,143 @@
+[gd_scene load_steps=7 format=2]
+
+[ext_resource path="res://Roboto-Bold.ttf" type="DynamicFontData" id=1]
+[ext_resource path="res://areas/Score.gd" type="Script" id=2]
+
+[sub_resource type="StyleBoxFlat" id=7]
+bg_color = Color( 0.14902, 0.14902, 0.14902, 0.843137 )
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+expand_margin_left = 5.0
+expand_margin_right = 5.0
+expand_margin_top = 5.0
+expand_margin_bottom = 5.0
+
+[sub_resource type="DynamicFont" id=8]
+size = 12
+outline_color = Color( 0.145098, 0.145098, 0.12549, 1 )
+font_data = ExtResource( 1 )
+
+[sub_resource type="Animation" id=9]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/path = NodePath(".:rect_position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ Vector2( 37, 0 ) ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath(".:rect_rotation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ 0.0 ]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath(".:rect_size")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ Vector2( 7, 15 ) ]
+}
+tracks/3/type = "value"
+tracks/3/path = NodePath(".:rect_scale")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ Vector2( 1, 1 ) ]
+}
+
+[sub_resource type="Animation" id=10]
+resource_name = "m"
+length = 0.3
+step = 0.05
+tracks/0/type = "value"
+tracks/0/path = NodePath(".:rect_position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3 ),
+"transitions": PoolRealArray( 1, 1, 1, 1, 1, 1, 1 ),
+"update": 0,
+"values": [ Vector2( 37, 0 ), Vector2( 38, 1 ), Vector2( 36, 2 ), Vector2( 38, 0 ), Vector2( 38, -1.5 ), Vector2( 38, -1 ), Vector2( 37, 0 ) ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath(".:rect_rotation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3 ),
+"transitions": PoolRealArray( 1, 1, 1, 1, 1, 1, 1 ),
+"update": 0,
+"values": [ 0.0, 4.23844, -9.07509, 12.6425, 6.32123, 0.0, 0.0 ]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath(".:rect_size")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/keys = {
+"times": PoolRealArray( 0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3 ),
+"transitions": PoolRealArray( 1, 1, 1, 1, 1, 1, 1 ),
+"update": 0,
+"values": [ Vector2( 7, 15 ), Vector2( 7, 15 ), Vector2( 21, 15 ), Vector2( 7, 15 ), Vector2( 21, 15 ), Vector2( 7, 15 ), Vector2( 7, 15 ) ]
+}
+
+[node name="PanelContainer" type="PanelContainer"]
+margin_left = 939.0
+margin_top = 57.0
+margin_right = 1006.0
+margin_bottom = 73.0
+rect_pivot_offset = Vector2( -246, 26 )
+custom_styles/panel = SubResource( 7 )
+script = ExtResource( 2 )
+
+[node name="HBoxContainer" type="Control" parent="."]
+margin_right = 67.0
+margin_bottom = 16.0
+
+[node name="Label" type="Label" parent="HBoxContainer"]
+margin_right = 33.0
+margin_bottom = 15.0
+custom_fonts/font = SubResource( 8 )
+text = "Score:"
+
+[node name="Label2" type="Label" parent="HBoxContainer"]
+modulate = Color( 1, 0.266667, 0.266667, 1 )
+margin_left = 37.0
+margin_right = 44.0
+margin_bottom = 15.0
+custom_fonts/font = SubResource( 8 )
+text = "0"
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="HBoxContainer/Label2"]
+anims/RESET = SubResource( 9 )
+anims/m = SubResource( 10 )

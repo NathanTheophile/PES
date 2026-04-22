@@ -1,0 +1,74 @@
+[gd_scene load_steps=8 format=2]
+
+[ext_resource path="res://Roboto-Bold.ttf" type="DynamicFontData" id=1]
+[ext_resource path="res://Roboto-Regular.ttf" type="DynamicFontData" id=2]
+[ext_resource path="res://skills/HelperWindows/HelperText.gd" type="Script" id=3]
+
+[sub_resource type="StyleBoxFlat" id=1]
+bg_color = Color( 0.14902, 0.14902, 0.14902, 0.843137 )
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="DynamicFont" id=2]
+size = 12
+font_data = ExtResource( 1 )
+
+[sub_resource type="DynamicFont" id=5]
+size = 10
+font_data = ExtResource( 1 )
+
+[sub_resource type="DynamicFont" id=3]
+size = 10
+font_data = ExtResource( 2 )
+
+[node name="Preview" type="Panel"]
+margin_right = 209.0
+margin_bottom = 65.0
+rect_min_size = Vector2( 209, 65 )
+mouse_filter = 2
+custom_styles/panel = SubResource( 1 )
+script = ExtResource( 3 )
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+margin_left = 5.0
+margin_top = 5.0
+margin_right = 203.0
+margin_bottom = 47.0
+size_flags_horizontal = 13
+size_flags_vertical = 13
+
+[node name="SpellName" type="RichTextLabel" parent="VBoxContainer"]
+margin_right = 198.0
+margin_bottom = 15.0
+rect_min_size = Vector2( 160, 15 )
+rect_clip_content = false
+custom_fonts/normal_font = SubResource( 2 )
+text = "X Cost"
+scroll_active = false
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="HSeparator2" type="HSeparator" parent="VBoxContainer"]
+margin_top = 19.0
+margin_right = 198.0
+margin_bottom = 23.0
+
+[node name="Desc" type="RichTextLabel" parent="VBoxContainer"]
+margin_top = 27.0
+margin_right = 198.0
+margin_bottom = 55.0
+rect_min_size = Vector2( 0, 15 )
+rect_clip_content = false
+custom_fonts/bold_font = SubResource( 5 )
+custom_fonts/normal_font = SubResource( 3 )
+bbcode_enabled = true
+bbcode_text = "This skill's AP cost is flexible. The amount of AP spent to use it will dictate the value of [b]X[/b]."
+text = "This skill's AP cost is flexible. The amount of AP spent to use it will dictate the value of X."
+fit_content_height = true
+scroll_active = false
+__meta__ = {
+"_edit_use_anchors_": false
+}

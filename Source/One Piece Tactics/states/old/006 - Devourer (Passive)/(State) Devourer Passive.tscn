@@ -1,0 +1,82 @@
+[gd_scene load_steps=10 format=2]
+
+[ext_resource path="res://states/StatePreview.tscn" type="PackedScene" id=1]
+[ext_resource path="res://Roboto-Bold.ttf" type="DynamicFontData" id=2]
+[ext_resource path="res://states/StateScript.gd" type="Script" id=3]
+[ext_resource path="res://states/old/005 - MP Buff/icon.png" type="Texture" id=4]
+[ext_resource path="res://states/old/007 - Infinite MP Buff/(State) Infinite MP Buff.tscn" type="PackedScene" id=5]
+[ext_resource path="res://states/old/004 - Stun/(State) Stun.tscn" type="PackedScene" id=6]
+[ext_resource path="res://states/Estados Globais/008 - Armadura/(State) Armor.tscn" type="PackedScene" id=7]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Node
+
+var state
+var porter
+func stateSetup():
+	state = get_parent()
+	porter = state.get_node(\"../..\")
+	porter.connect(\"turn_end\",self,\"expire\")
+	porter.connect(\"skill_used\",self,\"gorged\")
+	BattleMechanics.addState(state.extraStates[2], porter, porter, 20)
+
+func expire():
+	if not gorged:
+		BattleMechanics.addState(state.extraStates[0], porter, porter, 1)
+	else:
+		BattleMechanics.removeState(7, porter)
+		BattleMechanics.addState(state.extraStates[1], porter, porter, 1)
+		gorged = false
+
+var gorged = false
+func gorged(skill, _cell, before):
+	if skill.skillName == \"Gorge\" and not before:
+		gorged = true
+"
+
+[sub_resource type="DynamicFont" id=2]
+outline_size = 3
+outline_color = Color( 0.215686, 0.215686, 0.215686, 1 )
+font_data = ExtResource( 2 )
+
+[node name="State" type="Node2D"]
+z_as_relative = false
+script = ExtResource( 3 )
+stateName = "MP Buff"
+id = 6
+description = "[b]+{lvl} MP[/b] until the end of the porter's move."
+type = 3
+effects = SubResource( 1 )
+extraStates = [ ExtResource( 5 ), ExtResource( 6 ), ExtResource( 7 ) ]
+
+[node name="Effects" type="Node" parent="."]
+
+[node name="Icon" type="TextureRect" parent="."]
+visible = false
+margin_right = 32.0
+margin_bottom = 32.0
+mouse_filter = 0
+texture = ExtResource( 4 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="LVl" type="Label" parent="Icon"]
+margin_left = 21.0
+margin_top = 17.0
+margin_right = 30.0
+margin_bottom = 36.0
+custom_fonts/font = SubResource( 2 )
+text = "1"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Window" type="Node2D" parent="Icon"]
+
+[node name="Panel" parent="Icon/Window" instance=ExtResource( 1 )]
+visible = false
+margin_left = 32.0
+margin_top = -60.0
+margin_right = 238.0
+margin_bottom = -7.0

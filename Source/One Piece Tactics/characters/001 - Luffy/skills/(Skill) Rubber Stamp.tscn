@@ -1,0 +1,80 @@
+[gd_scene load_steps=10 format=2]
+
+[ext_resource path="res://skills/SkillScript.gd" type="Script" id=1]
+[ext_resource path="res://characters/001 - Luffy/skills/Cracks.tscn" type="PackedScene" id=2]
+[ext_resource path="res://characters/001 - Luffy/skills/AoE.tscn" type="PackedScene" id=3]
+[ext_resource path="res://characters/001 - Luffy/skills/Center.tscn" type="PackedScene" id=4]
+[ext_resource path="res://skills/icons/aoe.png" type="Texture" id=5]
+[ext_resource path="res://skills/HelperWindows/Push.tscn" type="PackedScene" id=6]
+[ext_resource path="res://characters/001 - Luffy/(State) Unpushable.tscn" type="PackedScene" id=7]
+[ext_resource path="res://skills/icons/move.png" type="Texture" id=8]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Node
+
+# targetArray = Array contendo as posições que esse feitiço atingiu
+#               A célula central será contida em um Array sozinha, para fácil identificação
+var skill
+var last
+func effects(targetArray):
+	skill = get_parent()
+
+	AM.play(skill.caster.audioEX[0], {\"randp\": true})
+	BattleMechanics.playAnimEntity(skill.caster, \"Stamp\")
+	
+	yield(get_tree().create_timer(1.1),\"timeout\")
+	BattleMechanics.shake()
+	var center
+	for i in targetArray:
+		if i is Array:
+			center = i[0]
+	BattleMechanics.playAnim(skill.visuals[0],center, false, \"under\")
+	BattleMechanics.playAnim(skill.visuals[1],center)
+	
+	BattleMechanics.dmgAtAoe(targetArray, skill.base, skill.caster, skill.visuals[2])
+	var order = BattleMechanics.orderAoE(targetArray)
+	var keys = order.keys()
+	keys.sort_custom(self, \"desc\")
+	
+	var ctgt = BattleMechanics.getEntityAt(center)
+	if ctgt:
+		BattleMechanics.addState(skill.states[0], ctgt, skill.caster)
+	for i in keys:
+		if i>0:
+			for j in order[i]:
+				var tgt = BattleMechanics.getEntityAt(j)
+				if tgt and tgt != skill.caster:
+					BattleMechanics.push(tgt, skill.caster, 2, BattleMechanics.directionTo(center, tgt.posit), [5,\"n\"])
+					BattleMechanics.bounceTgt(tgt)
+	AM.play(skill.caster.audioEX[4], {\"randp\": true})
+	yield(get_tree().create_timer(1),\"timeout\")
+	AM.play(skill.caster.audioEX[2], {\"randp\": true})
+func desc(a,b):
+	return a > b
+	
+	
+	
+"
+
+[node name="Skill" type="Node2D"]
+script = ExtResource( 1 )
+skillName = "Gomu no Stamp"
+description = "[b]{b}[/b] [img]res://skills/sword.png[/img] and [b]Push 2[/b] away from the center.
+
+[b]On Center:[/b] Target becomes [b]Unpushable[/b] for a turn. It still takes collision damage."
+icon1 = ExtResource( 5 )
+icon2 = ExtResource( 8 )
+base = 25
+apCost = 1
+element = 1
+linear = true
+sight = true
+aoeShape = 1
+aoeSize = 2
+cooldown = 2
+visuals = [ ExtResource( 2 ), ExtResource( 4 ), ExtResource( 3 ) ]
+effects = SubResource( 1 )
+states = [ ExtResource( 7 ) ]
+helpertext = [ ExtResource( 6 ) ]
+
+[node name="Effects" type="Node" parent="."]

@@ -1,0 +1,71 @@
+[gd_scene load_steps=11 format=2]
+
+[ext_resource path="res://skills/SkillScript.gd" type="Script" id=1]
+[ext_resource path="res://characters/003 - Usopp/skill/CaltropsP.tscn" type="PackedScene" id=2]
+[ext_resource path="res://skills/icons/aoe.png" type="Texture" id=3]
+[ext_resource path="res://skills/icons/debuff.png" type="Texture" id=4]
+[ext_resource path="res://skills/HelperWindows/Cripple.tscn" type="PackedScene" id=5]
+[ext_resource path="res://skills/HelperWindows/On Enter.tscn" type="PackedScene" id=6]
+[ext_resource path="res://characters/003 - Usopp/skill/(Glyph) Caltrops.tscn" type="PackedScene" id=7]
+[ext_resource path="res://characters/001 - Luffy/skills/AoE.tscn" type="PackedScene" id=8]
+[ext_resource path="res://areas/01 - Alvida/enemies/Alvida/cannonball.tscn" type="PackedScene" id=9]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Node
+
+# targetArray = Array contendo as posições que esse feitiço atingiu
+#               A célula central será contida em um Array sozinha, para fácil identificação
+var skill
+func effects(targetArray):
+	skill = get_parent()
+	var d = skill.caster.direction
+	
+	
+	var order = BattleMechanics.orderAoE(targetArray)
+	var keys = order.keys()
+	keys.sort()
+	
+	for i in keys:
+		BattleMechanics.playAnimEntity(skill.caster, \"Throw\")
+		yield(get_tree().create_timer(0.4),\"timeout\")
+		AM.play(skill.caster.audioEX[2],{\"randp\": true, \"pitch\": 1.6})
+		
+		yield(get_tree().create_timer(0.2),\"timeout\")
+		
+		for j in order[i]:
+			shoot(j)
+		yield(get_tree().create_timer(0.1),\"timeout\")
+		
+	yield(get_tree().create_timer(0.9),\"timeout\")
+			
+func shoot(c):
+	BattleMechanics.shootProjectile(skill.visuals[0],skill.caster.posit,c,1,Vector2(0,0),Vector2(0,-40))
+	yield(get_tree().create_timer(1),\"timeout\")
+	BattleMechanics.playAnim(skill.visuals[2],c)
+	BattleMechanics.placeGlyph(skill.states[0],c,skill.caster)
+	
+"
+
+[node name="Skill" type="Node2D"]
+script = ExtResource( 1 )
+skillName = "Caltrop Hell"
+description = "Place [b]Caltrops[/b] in the targeted cells:
+
+[b]On Entering:[/b] [b]{b2}[/b] [img]res://skills/sword.png[/img] and [b]Cripple 1[/b] that entity. [b]Non-Lethal[/b]."
+icon1 = ExtResource( 3 )
+icon2 = ExtResource( 4 )
+base2 = 5
+apCost = 1
+element = 1
+rangeMin = 3
+rangeMax = 8
+sight = true
+aoeShape = 1
+aoeSize = 2
+cooldown = 3
+visuals = [ ExtResource( 2 ), ExtResource( 9 ), ExtResource( 8 ) ]
+effects = SubResource( 1 )
+states = [ ExtResource( 7 ) ]
+helpertext = [ ExtResource( 6 ), ExtResource( 5 ) ]
+
+[node name="Effects" type="Node" parent="."]

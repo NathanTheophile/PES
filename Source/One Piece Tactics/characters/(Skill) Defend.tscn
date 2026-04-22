@@ -1,0 +1,43 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://skills/SkillScript.gd" type="Script" id=1]
+[ext_resource path="res://skills/(Player) - Jansen/Self.tscn" type="PackedScene" id=2]
+[ext_resource path="res://skills/(Player) - Jansen/Heal.tscn" type="PackedScene" id=3]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Node
+
+# targetArray = Array contendo as posições que esse feitiço atingiu
+#               A célula central será contida em um Array sozinha, para fácil identificação
+var skill
+func effects(targetArray):
+	skill = get_parent()
+	
+	BattleMechanics.playAnimEntity(skill.caster, \"Tocar\")
+	BattleMechanics.playAnim(skill.visuals[0],skill.caster.posit)
+	BattleMechanics.playAnim(skill.visuals[1],targetArray[0])
+	yield(get_tree().create_timer(2.6),\"timeout\")
+	var tgt = BattleMechanics.getEntityAt(targetArray[0])
+	if tgt:
+		BattleMechanics.heal(ceil(tgt.hp * 0.3),tgt,skill.caster)
+	
+			
+	
+	
+	
+"
+
+[node name="Skill" type="Node2D"]
+script = ExtResource( 1 )
+skillName = "Defend"
+description = "Cura [b]30% da vida máxima[/b] do alvo."
+apCost = 1
+element = 2
+rangeMin = 0
+rangeMax = 0
+usePerTgt = 1
+usePerTurn = 2
+visuals = [ ExtResource( 2 ), ExtResource( 3 ) ]
+effects = SubResource( 1 )
+
+[node name="Effects" type="Node" parent="."]

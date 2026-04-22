@@ -1,0 +1,217 @@
+[gd_scene load_steps=26 format=2]
+
+[ext_resource path="res://states/StateScript.gd" type="Script" id=1]
+[ext_resource path="res://Roboto-Bold.ttf" type="DynamicFontData" id=2]
+[ext_resource path="res://states/(Player) - Jansen/007 - Queimadura/(State) Queimadura.tscn" type="PackedScene" id=3]
+[ext_resource path="res://states/StatePreview.tscn" type="PackedScene" id=4]
+[ext_resource path="res://states/(Player) - Jansen/006 - Inspiração Flamejante/icon.png" type="Texture" id=5]
+[ext_resource path="res://skills/Recursos Comuns/dot.png" type="Texture" id=6]
+[ext_resource path="res://skills/(Player) - Jansen/note2.png" type="Texture" id=7]
+[ext_resource path="res://skills/(Player) - Jansen/note1.png" type="Texture" id=8]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Node
+
+var state
+var porter
+var caster
+func stateSetup():
+	state = get_parent()
+	porter = state.get_node(\"../..\")
+	porter.connect(\"turn_end\",self,\"end\")
+	porter.connect(\"dmg_dealt\",self,\"dmg\")
+	caster = state.caster
+
+var all = 4
+func dmg(_dmg, tgt, before):
+	if not before and all!=0:
+		BattleMechanics.addState(state.extraStates[0],tgt,caster,20)
+		all -= 1
+
+
+func end():
+	yield(get_tree(),\"idle_frame\")
+	BattleMechanics.removeState(state)
+
+"
+
+[sub_resource type="DynamicFont" id=2]
+outline_size = 3
+outline_color = Color( 0.215686, 0.215686, 0.215686, 1 )
+font_data = ExtResource( 2 )
+
+[sub_resource type="Gradient" id=68]
+offsets = PoolRealArray( 0, 0.745342, 1 )
+colors = PoolColorArray( 1, 1, 1, 1, 0.948242, 0.638974, 0.144459, 1, 0.82666, 0.428505, 0.0645828, 0 )
+
+[sub_resource type="GradientTexture" id=66]
+gradient = SubResource( 68 )
+
+[sub_resource type="Curve" id=69]
+_data = [ Vector2( 0, 0.596591 ), 0.0, 0.597403, 0, 0, Vector2( 1, 1 ), 0.0, 0.0, 0, 0 ]
+
+[sub_resource type="CurveTexture" id=67]
+curve = SubResource( 69 )
+
+[sub_resource type="ParticlesMaterial" id=70]
+lifetime_randomness = 0.52
+emission_shape = 1
+emission_sphere_radius = 22.32
+flag_disable_z = true
+direction = Vector3( 0, -1, 0 )
+spread = 28.24
+gravity = Vector3( 0, -5, 0 )
+initial_velocity = 49.02
+initial_velocity_random = 1.0
+angular_velocity = -20.0
+angular_velocity_random = 1.0
+orbit_velocity = 0.0
+orbit_velocity_random = 0.0
+angle = -46.5
+angle_random = 1.0
+scale = 1.3
+scale_random = 1.0
+scale_curve = SubResource( 67 )
+color_ramp = SubResource( 66 )
+
+[sub_resource type="Gradient" id=71]
+offsets = PoolRealArray( 0, 0.503106, 1 )
+colors = PoolColorArray( 1, 0.961983, 0.742188, 1, 1, 0.890196, 0.243137, 0.564706, 0.82666, 0.428505, 0.0645828, 0 )
+
+[sub_resource type="GradientTexture" id=32]
+gradient = SubResource( 71 )
+
+[sub_resource type="Curve" id=72]
+_data = [ Vector2( 0, 0.596591 ), 0.0, 0.597403, 0, 0, Vector2( 1, 1 ), 0.0, 0.0, 0, 0 ]
+
+[sub_resource type="CurveTexture" id=34]
+curve = SubResource( 72 )
+
+[sub_resource type="ParticlesMaterial" id=73]
+lifetime_randomness = 0.52
+emission_shape = 1
+emission_sphere_radius = 17.3
+flag_disable_z = true
+direction = Vector3( 0, -1, 0 )
+spread = 0.0
+gravity = Vector3( 0, -25, 0 )
+initial_velocity = 39.21
+initial_velocity_random = 1.0
+angular_velocity = -20.0
+angular_velocity_random = 1.0
+orbit_velocity = 0.0
+orbit_velocity_random = 0.0
+angle = -46.5
+angle_random = 1.0
+scale = 1.3
+scale_random = 1.0
+scale_curve = SubResource( 34 )
+color_ramp = SubResource( 32 )
+
+[sub_resource type="Gradient" id=74]
+offsets = PoolRealArray( 0, 0.503106, 1 )
+colors = PoolColorArray( 1, 0.961983, 0.742188, 1, 1, 0.890196, 0.243137, 0.564706, 0.82666, 0.428505, 0.0645828, 0 )
+
+[sub_resource type="GradientTexture" id=12]
+gradient = SubResource( 74 )
+
+[sub_resource type="Curve" id=75]
+_data = [ Vector2( 0, 0.596591 ), 0.0, 0.597403, 0, 0, Vector2( 1, 1 ), 0.0, 0.0, 0, 0 ]
+
+[sub_resource type="CurveTexture" id=14]
+curve = SubResource( 75 )
+
+[sub_resource type="ParticlesMaterial" id=76]
+lifetime_randomness = 0.52
+emission_shape = 1
+emission_sphere_radius = 17.3
+flag_disable_z = true
+direction = Vector3( 0, -1, 0 )
+spread = 0.0
+gravity = Vector3( 0, -25, 0 )
+initial_velocity = 39.21
+initial_velocity_random = 1.0
+angular_velocity = -20.0
+angular_velocity_random = 1.0
+orbit_velocity = 0.0
+orbit_velocity_random = 0.0
+angle = -46.5
+angle_random = 1.0
+scale = 1.3
+scale_random = 1.0
+scale_curve = SubResource( 14 )
+color_ramp = SubResource( 12 )
+
+[node name="State" type="Node2D"]
+z_as_relative = false
+script = ExtResource( 1 )
+stateName = "Inspiração Ardente"
+id = 6
+description = "Quando o portador causa dano:
+- Aplica [b]Queimadura Lvl20[/b] no alvo.
+- Máximo 5 ativações desse efeito.
+
+Some no fim do turno do portador."
+type = 1
+effects = SubResource( 1 )
+extraStates = [ ExtResource( 3 ) ]
+appearOver = true
+modularDesc = true
+
+[node name="Effects" type="Node" parent="."]
+
+[node name="Icon" type="TextureRect" parent="."]
+visible = false
+margin_right = 32.0
+margin_bottom = 32.0
+mouse_filter = 0
+texture = ExtResource( 5 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="LVl" type="Label" parent="Icon"]
+margin_left = 21.0
+margin_top = 17.0
+margin_right = 30.0
+margin_bottom = 36.0
+grow_horizontal = 2
+custom_fonts/font = SubResource( 2 )
+text = "1"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Window" type="Node2D" parent="Icon"]
+
+[node name="Panel" parent="Icon/Window" instance=ExtResource( 4 )]
+visible = false
+margin_left = 32.0
+margin_top = -60.0
+margin_right = 238.0
+margin_bottom = -7.0
+
+[node name="sml" type="Node2D" parent="."]
+
+[node name="Particles2D10" type="Particles2D" parent="sml"]
+position = Vector2( 0, -13 )
+amount = 15
+lifetime = 1.3
+process_material = SubResource( 70 )
+texture = ExtResource( 6 )
+
+[node name="Particles2D8" type="Particles2D" parent="sml"]
+position = Vector2( 3, 18 )
+amount = 3
+lifetime = 1.3
+randomness = 1.0
+process_material = SubResource( 73 )
+texture = ExtResource( 8 )
+
+[node name="Particles2D7" type="Particles2D" parent="sml"]
+position = Vector2( 3, 12 )
+amount = 3
+lifetime = 1.3
+randomness = 1.0
+process_material = SubResource( 76 )
+texture = ExtResource( 7 )
