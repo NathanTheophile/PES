@@ -1,0 +1,46 @@
+[gd_scene load_steps=4 format=2]
+
+[ext_resource path="res://skills/old/015 - Fling/Splat.tscn" type="PackedScene" id=1]
+[ext_resource path="res://skills/SkillScript.gd" type="Script" id=2]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Node
+
+# targetArray = Array contendo as posições que esse feitiço atingiu
+#               A célula central será contida em um Array sozinha, para fácil identificação
+var skill
+func effects(targetArray):
+	skill = get_parent()
+	
+	BattleMechanics.playAnimEntity(skill.caster, \"Fling\")
+	
+	yield(get_tree().create_timer(0.2),\"timeout\")
+	yield(get_tree(),\"idle_frame\")
+	
+	affect(targetArray[0])
+
+func affect(cell):
+	BattleMechanics.playAnim(skill.visuals[0],cell,false,\"ysort\")
+	
+	var tgt = BattleMechanics.getEntityAt(cell)
+	if tgt:
+		if tgt.player:
+			BattleMechanics.dealDmg([60,\"w\"], tgt, skill.caster)
+
+"
+
+[node name="Skill" type="Node2D"]
+script = ExtResource( 2 )
+skillName = "Fling"
+description = "Deals [color=#5ea60f]6 water  damage[/color]."
+apCost = 1
+element = 2
+rangeMin = 2
+rangeMax = 7
+linear = true
+sight = true
+usePerTgt = 1
+visuals = [ ExtResource( 1 ) ]
+effects = SubResource( 1 )
+
+[node name="Effects" type="Node" parent="."]

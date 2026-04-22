@@ -1,0 +1,289 @@
+[gd_scene load_steps=20 format=2]
+
+[ext_resource path="res://areas/05 - Mihawk/planks3.png" type="Texture" id=1]
+[ext_resource path="res://areas/05 - Mihawk/planks1.png" type="Texture" id=2]
+[ext_resource path="res://areas/05 - Mihawk/planks2.png" type="Texture" id=3]
+[ext_resource path="res://areas/05 - Mihawk/foamS.png" type="Texture" id=4]
+[ext_resource path="res://areas/05 - Mihawk/water.png" type="Texture" id=5]
+[ext_resource path="res://areas/05 - Mihawk/planksT.png" type="Texture" id=6]
+[ext_resource path="res://scrollfixUV.tres" type="Shader" id=7]
+[ext_resource path="res://areas/05 - Mihawk/planks4.png" type="Texture" id=8]
+[ext_resource path="res://areas/05 - Mihawk/hole.gd" type="Script" id=9]
+[ext_resource path="res://areas/05 - Mihawk/extra.png" type="Texture" id=10]
+
+[sub_resource type="ShaderMaterial" id=83]
+shader = ExtResource( 7 )
+shader_param/d = Vector2( 0.5, 1 )
+shader_param/s = 0.06
+shader_param/scale = 10.0
+shader_param/offset = Vector2( 0, 0 )
+
+[sub_resource type="ShaderMaterial" id=84]
+shader = ExtResource( 7 )
+shader_param/d = Vector2( 0.5, 1 )
+shader_param/s = 0.05
+shader_param/scale = 10.0
+shader_param/offset = Vector2( 0.1, 0.2 )
+
+[sub_resource type="Shader" id=118]
+code = "shader_type canvas_item;
+
+
+uniform sampler2D NOISE_TEXTURE;
+uniform float strength: hint_range(0.0, 50, 0.1) = 1.0;
+uniform float uv_scaling: hint_range (0.0, 2.0, 0.05) = 1.0;
+uniform vec2 movement_direction = vec2(1, 0);
+uniform float movement_speed: hint_range (0.0, 0.5, 0.01) = 0.1;
+
+void fragment() {
+	vec2 uv = SCREEN_UV;
+	vec4 screen_texture = texture(SCREEN_TEXTURE, uv);
+	vec2 movement_factor = movement_direction * movement_speed * TIME;
+	float noise_value = texture(NOISE_TEXTURE, uv*uv_scaling + movement_factor).r - 0.5;
+	uv += noise_value * SCREEN_PIXEL_SIZE * strength;
+	COLOR = texture(SCREEN_TEXTURE, uv);
+}"
+
+[sub_resource type="OpenSimplexNoise" id=120]
+seed = 9
+period = 109.8
+persistence = 0.489
+lacunarity = 2.41
+
+[sub_resource type="NoiseTexture" id=119]
+seamless = true
+noise = SubResource( 120 )
+
+[sub_resource type="ShaderMaterial" id=121]
+shader = SubResource( 118 )
+shader_param/strength = 50.0
+shader_param/uv_scaling = 1.0
+shader_param/movement_direction = Vector2( 1, 1 )
+shader_param/movement_speed = 0.03
+shader_param/NOISE_TEXTURE = SubResource( 119 )
+
+[sub_resource type="Gradient" id=82]
+offsets = PoolRealArray( 0, 0.046875, 1 )
+colors = PoolColorArray( 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0 )
+
+[sub_resource type="GradientTexture" id=32]
+gradient = SubResource( 82 )
+
+[sub_resource type="ParticlesMaterial" id=34]
+lifetime_randomness = 0.75
+emission_shape = 1
+emission_sphere_radius = 1.0
+flag_disable_z = true
+direction = Vector3( -1, 1, 0 )
+spread = 13.61
+gravity = Vector3( 0, 0, 0 )
+initial_velocity = 10.0
+initial_velocity_random = 0.98
+orbit_velocity = 0.0
+orbit_velocity_random = 0.0
+damping = 2.0
+scale = 1.1
+scale_random = 1.0
+color_ramp = SubResource( 32 )
+
+[node name="Polygon2D" type="Polygon2D"]
+color = Color( 0.203922, 0.67451, 0.835294, 1 )
+offset = Vector2( 0, 1 )
+polygon = PoolVector2Array( 0, -3, 42, 18, -1, 40, -44, 19 )
+script = ExtResource( 9 )
+
+[node name="Node2D" type="Node2D" parent="."]
+modulate = Color( 0.760784, 0.760784, 0.760784, 1 )
+
+[node name="ColorRect" type="ColorRect" parent="Node2D" groups=["upright"]]
+margin_left = -1.0
+margin_top = 1.0
+margin_right = 33.0
+margin_bottom = 8.0
+rect_rotation = 30.5669
+color = Color( 0.619608, 0.466667, 0.270588, 1 )
+
+[node name="ColorRect2" type="ColorRect" parent="Node2D" groups=["upleft"]]
+margin_left = -34.0
+margin_top = 20.0
+margin_right = 1.0
+margin_bottom = 32.0
+rect_rotation = -34.632
+color = Color( 0.619608, 0.466667, 0.270588, 1 )
+
+[node name="Planks5" type="Sprite" parent="Node2D" groups=["upright"]]
+position = Vector2( 11.125, 16.3118 )
+rotation = 0.503935
+scale = Vector2( 0.618363, 1 )
+texture = ExtResource( 1 )
+
+[node name="Planks6" type="Sprite" parent="Node2D" groups=["upleft"]]
+position = Vector2( -11, 18 )
+scale = Vector2( 0.9, 1 )
+texture = ExtResource( 2 )
+
+[node name="Panel2" type="Polygon2D" parent="."]
+modulate = Color( 1, 1, 1, 0.788235 )
+color = Color( 0.203922, 0.67451, 0.835294, 1 )
+polygon = PoolVector2Array( -1, 4, 30, 20, -5, 37, -30, 19 )
+
+[node name="Node2D2" type="Node2D" parent="."]
+position = Vector2( -286, -392 )
+scale = Vector2( 2, 1 )
+
+[node name="TextureRect2" type="TextureRect" parent="Node2D2"]
+modulate = Color( 0.14902, 0.552941, 0.690196, 1 )
+material = SubResource( 83 )
+margin_left = 143.0
+margin_top = 390.0
+margin_right = 173.0
+margin_bottom = 421.0
+rect_rotation = 45.0
+mouse_filter = 2
+texture = ExtResource( 5 )
+expand = true
+stretch_mode = 2
+
+[node name="TextureRect3" type="TextureRect" parent="Node2D2"]
+modulate = Color( 0.541176, 0.882353, 1, 1 )
+material = SubResource( 84 )
+margin_left = 143.0
+margin_top = 390.0
+margin_right = 173.0
+margin_bottom = 421.0
+rect_rotation = 45.0
+mouse_filter = 2
+texture = ExtResource( 5 )
+expand = true
+stretch_mode = 2
+
+[node name="ColorRect" type="ColorRect" parent="Node2D2"]
+material = SubResource( 121 )
+margin_left = 143.0
+margin_top = 390.0
+margin_right = 173.0
+margin_bottom = 421.0
+rect_rotation = 45.0
+mouse_filter = 2
+
+[node name="ColorRect2" type="ColorRect" parent="Node2D2"]
+material = SubResource( 121 )
+margin_left = 143.0
+margin_top = 390.0
+margin_right = 173.0
+margin_bottom = 421.0
+rect_rotation = 45.0
+mouse_filter = 2
+
+[node name="corners" type="Node2D" parent="."]
+
+[node name="Extra" type="Sprite" parent="corners" groups=["up"]]
+position = Vector2( -5.92739, 0.213738 )
+rotation = -0.161618
+scale = Vector2( 1.11986, 0.767571 )
+texture = ExtResource( 10 )
+offset = Vector2( 4.13885, 2.1566 )
+
+[node name="Extra3" type="Sprite" parent="corners" groups=["down"]]
+position = Vector2( -6, 40 )
+rotation = 0.118104
+scale = Vector2( 1.12, -1 )
+texture = ExtResource( 10 )
+offset = Vector2( 4.13885, 2.1566 )
+
+[node name="Extra2" type="Sprite" parent="corners" groups=["left"]]
+position = Vector2( -37.3454, 23.9075 )
+rotation = -1.71123
+scale = Vector2( 0.861846, 1.34404 )
+texture = ExtResource( 10 )
+offset = Vector2( 4.13885, 2.1566 )
+
+[node name="Extra4" type="Sprite" parent="corners" groups=["right"]]
+position = Vector2( 37, 24 )
+rotation = -1.58785
+scale = Vector2( 0.862, -1.344 )
+texture = ExtResource( 10 )
+offset = Vector2( 4.13885, 2.1566 )
+
+[node name="Particles2D3" type="Particles2D" parent="." groups=["upleft"]]
+position = Vector2( -15, 13 )
+rotation = 3.01588
+scale = Vector2( 0.433749, -0.397422 )
+amount = 10
+lifetime = 10.0
+preprocess = 50.0
+process_material = SubResource( 34 )
+texture = ExtResource( 4 )
+
+[node name="Particles2D2" type="Particles2D" parent="." groups=["upright"]]
+position = Vector2( 13, 12 )
+rotation = 0.0801686
+scale = Vector2( 0.600688, 0.484454 )
+amount = 10
+lifetime = 10.0
+preprocess = 50.0
+process_material = SubResource( 34 )
+texture = ExtResource( 4 )
+
+[node name="Node2D3" type="Node2D" parent="."]
+scale = Vector2( 1, 0.5 )
+
+[node name="ColorRect3" type="ColorRect" parent="Node2D3" groups=["upleft"]]
+margin_left = -3.0
+margin_top = -9.0
+margin_right = 9.0
+margin_bottom = 56.0
+rect_rotation = 45.0
+color = Color( 0.619608, 0.466667, 0.270588, 1 )
+
+[node name="ColorRect6" type="ColorRect" parent="Node2D3" groups=["downright"]]
+margin_left = 39.0
+margin_top = 32.0
+margin_right = 52.0
+margin_bottom = 97.0
+rect_rotation = 45.0
+color = Color( 0.619608, 0.466667, 0.270588, 1 )
+
+[node name="Planks2" type="Sprite" parent="." groups=["downright"]]
+position = Vector2( 15.75, 26 )
+rotation = -0.0545984
+scale = Vector2( 1.03191, 1 )
+texture = ExtResource( 3 )
+
+[node name="Planks1" type="Sprite" parent="." groups=["upleft"]]
+modulate = Color( 1, 1, 1, 0.996078 )
+position = Vector2( -13.3798, 11.0216 )
+rotation = -0.0402233
+scale = Vector2( 1.06902, 1 )
+texture = ExtResource( 6 )
+
+[node name="Node2D4" type="Node2D" parent="."]
+scale = Vector2( 1, 0.5 )
+
+[node name="ColorRect4" type="ColorRect" parent="Node2D4" groups=["downleft"]]
+margin_left = -40.0
+margin_top = 31.0
+margin_right = 30.0
+margin_bottom = 46.0
+rect_rotation = 45.0
+color = Color( 0.619608, 0.466667, 0.270588, 1 )
+
+[node name="ColorRect5" type="ColorRect" parent="Node2D4" groups=["upright"]]
+margin_top = -10.0
+margin_right = 69.0
+margin_bottom = 1.0
+rect_rotation = 45.0
+color = Color( 0.619608, 0.466667, 0.270588, 1 )
+
+[node name="Planks3" type="Sprite" parent="." groups=["downleft"]]
+position = Vector2( -16, 28 )
+rotation = 0.503935
+scale = Vector2( 0.84559, 1 )
+texture = ExtResource( 1 )
+
+[node name="Planks4" type="Sprite" parent="." groups=["upright"]]
+modulate = Color( 0.294118, 0.243137, 0.168627, 1 )
+position = Vector2( 14, 11 )
+rotation = 0.503935
+scale = Vector2( 0.84559, 1 )
+texture = ExtResource( 8 )

@@ -1,0 +1,63 @@
+[gd_scene load_steps=7 format=2]
+
+[ext_resource path="res://states/StateScript.gd" type="Script" id=1]
+[ext_resource path="res://skills/Recursos Comuns/q.png" type="Texture" id=2]
+[ext_resource path="res://Roboto-Bold.ttf" type="DynamicFontData" id=3]
+[ext_resource path="res://states/StatePreview.tscn" type="PackedScene" id=4]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Node
+
+var state
+var porter
+func stateSetup():
+	state = get_parent()
+	
+"
+
+[sub_resource type="DynamicFont" id=2]
+outline_size = 3
+outline_color = Color( 0.215686, 0.215686, 0.215686, 1 )
+font_data = ExtResource( 3 )
+
+[node name="State" type="Node2D"]
+z_as_relative = false
+script = ExtResource( 1 )
+stateName = "Captain Kuro - Phase 2"
+description = "If Kuro ends his turn without attacking any player:
+- Marks a cell to jump next turn.
+- After jumping, gains [b]+1 MP[/b] (cummulative).
+- This bonus [b]does not reset anymore[/b].
+
+Kuro's [b]Lacerations[/b] never go away."
+effects = SubResource( 1 )
+appearOver = true
+
+[node name="Effects" type="Node" parent="."]
+
+[node name="Icon" type="TextureRect" parent="."]
+visible = false
+margin_right = 32.0
+margin_bottom = 32.0
+mouse_filter = 0
+texture = ExtResource( 2 )
+
+[node name="LVl" type="Label" parent="Icon"]
+margin_left = 21.0
+margin_top = 17.0
+margin_right = 30.0
+margin_bottom = 36.0
+custom_fonts/font = SubResource( 2 )
+text = "1"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Window" type="Node2D" parent="Icon"]
+
+[node name="Panel" parent="Icon/Window" instance=ExtResource( 4 )]
+visible = false
+margin_left = 32.0
+margin_top = -60.0
+margin_right = 238.0
+margin_bottom = -7.0

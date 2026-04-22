@@ -1,0 +1,64 @@
+[gd_scene load_steps=9 format=2]
+
+[ext_resource path="res://skills/SkillScript.gd" type="Script" id=1]
+[ext_resource path="res://skills/(Player) - Jansen/Self.tscn" type="PackedScene" id=2]
+[ext_resource path="res://skills/(Player) - Jansen/Pilar.tscn" type="PackedScene" id=3]
+[ext_resource path="res://skills/(Player) - Jansen/Buff1.tscn" type="PackedScene" id=4]
+[ext_resource path="res://skills/(Player) - Jansen/Burn.tscn" type="PackedScene" id=5]
+[ext_resource path="res://states/(Player) - Jansen/007 - Queimadura/(State) Queimadura.tscn" type="PackedScene" id=6]
+[ext_resource path="res://states/(Player) - Jansen/006 - Inspiração Flamejante/(State) Inspiração Ardente.tscn" type="PackedScene" id=7]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Node
+
+# targetArray = Array contendo as posições que esse feitiço atingiu
+#               A célula central será contida em um Array sozinha, para fácil identificação
+var skill
+func effects(targetArray):
+	skill = get_parent()
+	
+	BattleMechanics.playAnimEntity(skill.caster, \"Tocar\")
+	BattleMechanics.playAnim(skill.visuals[0],skill.caster.posit)
+	
+	
+	var tgt = BattleMechanics.getEntityAt(targetArray[0])
+	if tgt and not tgt.player:
+		BattleMechanics.playAnim(skill.visuals[1],targetArray[0])
+		yield(get_tree().create_timer(2.6),\"timeout\")
+		BattleMechanics.dealDmg([50,\"f\"],tgt,skill.caster)
+		BattleMechanics.addState(skill.states[0],tgt,skill.caster,60)
+		
+	elif tgt and tgt.player:
+		BattleMechanics.playAnim(skill.visuals[2],targetArray[0])
+		
+		yield(get_tree().create_timer(2.6),\"timeout\")
+		BattleMechanics.addState(skill.states[1],tgt,skill.caster,1)
+		var cells = BattleMechanics.getCellInRadius(targetArray[0], 1, false, 0, [], 0, true)
+		for i in cells:
+			if not i is Array:
+				BattleMechanics.playAnim(skill.visuals[3],i)
+				var tgtAoe = BattleMechanics.getEntityAt(i)
+				if tgtAoe and not tgtAoe.player:
+					BattleMechanics.addState(skill.states[0],tgtAoe,skill.caster,80)
+	else:
+		yield(get_tree(),\"idle_frame\")
+	
+	
+"
+
+[node name="Skill" type="Node2D"]
+script = ExtResource( 1 )
+skillName = "Pimpolho"
+description = "Invoca [b]Pimpolho[/b] na célula visada.
+Caso [b]Pimpolho[/b] ja esteja em campo, usar essa habilidade nele o recolherá."
+apCost = 1
+element = 1
+rangeMax = 3
+sight = true
+cooldown = 2
+tgtTypeEntity = true
+visuals = [ ExtResource( 2 ), ExtResource( 3 ), ExtResource( 4 ), ExtResource( 5 ) ]
+effects = SubResource( 1 )
+states = [ ExtResource( 6 ), ExtResource( 7 ) ]
+
+[node name="Effects" type="Node" parent="."]

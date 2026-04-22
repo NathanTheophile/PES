@@ -1,0 +1,91 @@
+[gd_scene load_steps=7 format=2]
+
+[ext_resource path="res://states/StateScript.gd" type="Script" id=1]
+[ext_resource path="res://Roboto-Bold.ttf" type="DynamicFontData" id=2]
+[ext_resource path="res://states/old/035 - Bloom/icon.png" type="Texture" id=3]
+[ext_resource path="res://states/StatePreview.tscn" type="PackedScene" id=4]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Node
+
+var state
+var porter
+func stateSetup():
+	state = get_parent()
+	porter = state.get_node(\"../..\")
+	porter.connect(\"turn_start\",self,\"end\")
+	lvlUpdate()
+	
+
+var bonus = 0
+var stay = false
+func lvlUpdate():
+	stay = true
+	porter.mp -= bonus
+	porter.speed = clamp(0.05 * bonus + porter.speed, 0.3, 0.6) 
+	bonus = state.lvl
+	porter.mp += bonus
+	porter.speed = clamp(porter.speed - 0.05 * bonus, 0.3, 0.6) 
+
+func end():
+	if not stay:
+		porter.mp -= bonus
+		porter.speed = 0.6
+		BattleMechanics.removeState(state)
+	else:
+		stay = false
+"
+
+[sub_resource type="DynamicFont" id=2]
+outline_size = 3
+outline_color = Color( 0.215686, 0.215686, 0.215686, 1 )
+font_data = ExtResource( 2 )
+
+[node name="State" type="Node2D"]
+z_as_relative = false
+script = ExtResource( 1 )
+stateName = "Bloom"
+id = 35
+description = "[b]+{lvl} MP[/b].
+
+This state also increases the effects of Baby Bloomer's skills.
+
+Max stack 3. Bloom will persist as long as it's reaplied every turn"
+type = 1
+effects = SubResource( 1 )
+appearOver = true
+maxStack = 3
+stacks = true
+modularDesc = true
+
+[node name="Effects" type="Node" parent="."]
+
+[node name="Icon" type="TextureRect" parent="."]
+visible = false
+margin_right = 32.0
+margin_bottom = 32.0
+mouse_filter = 0
+texture = ExtResource( 3 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="LVl" type="Label" parent="Icon"]
+margin_left = 21.0
+margin_top = 17.0
+margin_right = 30.0
+margin_bottom = 36.0
+custom_fonts/font = SubResource( 2 )
+text = "1"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Window" type="Node2D" parent="Icon"]
+
+[node name="Panel" parent="Icon/Window" instance=ExtResource( 4 )]
+visible = false
+margin_left = 32.0
+margin_top = -60.0
+margin_right = 238.0
+margin_bottom = -7.0

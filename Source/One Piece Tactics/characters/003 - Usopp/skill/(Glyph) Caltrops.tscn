@@ -1,0 +1,367 @@
+[gd_scene load_steps=8 format=2]
+
+[ext_resource path="res://characters/003 - Usopp/skill/spike.png" type="Texture" id=1]
+[ext_resource path="res://areas/cell.png" type="Texture" id=2]
+[ext_resource path="res://glyph/Glyph.gd" type="Script" id=3]
+[ext_resource path="res://skills/Recursos Comuns/Hit.tscn" type="PackedScene" id=4]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Node
+
+var glyph
+func setup():
+	glyph = get_parent()
+	for i in BattleMechanics.area.entities.get_children():
+		i.connect(\"walked\",		 self,	 \"over\",	[i])
+		i.connect(\"pushTravel\",	 self,	 \"over\",	[i])
+
+func over(from,to,ent):
+	if to==glyph.posit:
+		BattleMechanics.removeGlyph(glyph)
+		if BattleMechanics.currentPlaying and BattleMechanics.currentPlaying == ent:
+			BattleMechanics.forceStop = true
+		BattleMechanics.removal(\"mp\",1,glyph.caster,ent,0)
+		BattleMechanics.aiMonsterYield = 0.5
+		BattleMechanics.dealDmg({\"base\": 5, \"nonLethal\": true, \"indirect\": true, \"ignoreDir\": true},ent,glyph.caster)
+		BattleMechanics.playAnim(glyph.extraStates[0],to)
+		AM.play(glyph.caster.audioEX[3],{\"randp\": true, \"pitch\": 1.6, \"db\": -10})
+		
+"
+
+[sub_resource type="Animation" id=2]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/path = NodePath("Spike3:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ Vector2( 4, 28 ) ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Spike3:rotation_degrees")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ 0.0 ]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("Spike3:scale")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ Vector2( 0.535714, 0.535714 ) ]
+}
+tracks/3/type = "value"
+tracks/3/path = NodePath("Spike2:position")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ Vector2( 0, 12 ) ]
+}
+tracks/4/type = "value"
+tracks/4/path = NodePath("Spike2:rotation_degrees")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ 0.0 ]
+}
+tracks/5/type = "value"
+tracks/5/path = NodePath("Spike2:scale")
+tracks/5/interp = 1
+tracks/5/loop_wrap = true
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ Vector2( 0.535714, 0.535714 ) ]
+}
+tracks/6/type = "value"
+tracks/6/path = NodePath("Spike:position")
+tracks/6/interp = 1
+tracks/6/loop_wrap = true
+tracks/6/imported = false
+tracks/6/enabled = true
+tracks/6/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ Vector2( -18, 23 ) ]
+}
+tracks/7/type = "value"
+tracks/7/path = NodePath("Spike:rotation_degrees")
+tracks/7/interp = 1
+tracks/7/loop_wrap = true
+tracks/7/imported = false
+tracks/7/enabled = true
+tracks/7/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ 0.0 ]
+}
+tracks/8/type = "value"
+tracks/8/path = NodePath("Spike:scale")
+tracks/8/interp = 1
+tracks/8/loop_wrap = true
+tracks/8/imported = false
+tracks/8/enabled = true
+tracks/8/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ Vector2( 0.535714, 0.535714 ) ]
+}
+tracks/9/type = "value"
+tracks/9/path = NodePath("Spike4:position")
+tracks/9/interp = 1
+tracks/9/loop_wrap = true
+tracks/9/imported = false
+tracks/9/enabled = true
+tracks/9/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ Vector2( 20, 19 ) ]
+}
+tracks/10/type = "value"
+tracks/10/path = NodePath("Spike4:rotation_degrees")
+tracks/10/interp = 1
+tracks/10/loop_wrap = true
+tracks/10/imported = false
+tracks/10/enabled = true
+tracks/10/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ 0.0 ]
+}
+tracks/11/type = "value"
+tracks/11/path = NodePath("Spike4:scale")
+tracks/11/interp = 1
+tracks/11/loop_wrap = true
+tracks/11/imported = false
+tracks/11/enabled = true
+tracks/11/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ Vector2( 0.535714, 0.535714 ) ]
+}
+
+[sub_resource type="Animation" id=3]
+resource_name = "m"
+tracks/0/type = "value"
+tracks/0/path = NodePath("Spike3:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 0.3, 0.6, 0.8, 1 ),
+"transitions": PoolRealArray( 0.5, 2, 0.5, 2, 1 ),
+"update": 0,
+"values": [ Vector2( 2, 22 ), Vector2( 3, 14 ), Vector2( 2, 28 ), Vector2( 4, 24.5 ), Vector2( 4, 28 ) ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Spike3:rotation_degrees")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0, 0.6, 1 ),
+"transitions": PoolRealArray( 1, 1, 1 ),
+"update": 0,
+"values": [ 107.488, 42.9952, 0.0 ]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("Spike3:scale")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/keys = {
+"times": PoolRealArray( 0, 0.3, 0.6, 0.8, 1 ),
+"transitions": PoolRealArray( 0.5, 2, 0.5, 2, 1 ),
+"update": 0,
+"values": [ Vector2( 0.535714, 0.535714 ), Vector2( 0.535714, 0.535714 ), Vector2( 0.680359, 0.478869 ), Vector2( 0.535714, 0.535714 ), Vector2( 0.535714, 0.535714 ) ]
+}
+tracks/3/type = "value"
+tracks/3/path = NodePath("Spike2:position")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/keys = {
+"times": PoolRealArray( 0, 0.3, 0.6, 0.8, 1 ),
+"transitions": PoolRealArray( 0.5, 2, 0.5, 2, 1 ),
+"update": 0,
+"values": [ Vector2( -2, 19 ), Vector2( -1, 4.5 ), Vector2( -2.98023e-08, 14 ), Vector2( 0, 10.5 ), Vector2( 0, 12 ) ]
+}
+tracks/4/type = "value"
+tracks/4/path = NodePath("Spike2:rotation_degrees")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/keys = {
+"times": PoolRealArray( 0, 0.6, 1 ),
+"transitions": PoolRealArray( 1, 1, 1 ),
+"update": 0,
+"values": [ 119.597, 47.8386, 0.0 ]
+}
+tracks/5/type = "value"
+tracks/5/path = NodePath("Spike2:scale")
+tracks/5/interp = 1
+tracks/5/loop_wrap = true
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/keys = {
+"times": PoolRealArray( 0, 0.3, 0.6, 0.8, 1 ),
+"transitions": PoolRealArray( 0.5, 2, 0.5, 2, 1 ),
+"update": 0,
+"values": [ Vector2( 0.535714, 0.535714 ), Vector2( 0.535714, 0.535714 ), Vector2( 0.697858, 0.490051 ), Vector2( 0.535714, 0.535714 ), Vector2( 0.535714, 0.535714 ) ]
+}
+tracks/6/type = "value"
+tracks/6/path = NodePath("Spike:position")
+tracks/6/interp = 1
+tracks/6/loop_wrap = true
+tracks/6/imported = false
+tracks/6/enabled = true
+tracks/6/keys = {
+"times": PoolRealArray( 0, 0.3, 0.6, 0.8, 1 ),
+"transitions": PoolRealArray( 0.5, 2, 0.5, 2, 1 ),
+"update": 0,
+"values": [ Vector2( -1, 20 ), Vector2( -9.5, 10.5 ), Vector2( -13, 23 ), Vector2( -16, 20.5 ), Vector2( -18, 23 ) ]
+}
+tracks/7/type = "value"
+tracks/7/path = NodePath("Spike:rotation_degrees")
+tracks/7/interp = 1
+tracks/7/loop_wrap = true
+tracks/7/imported = false
+tracks/7/enabled = true
+tracks/7/keys = {
+"times": PoolRealArray( 0, 0.6, 1 ),
+"transitions": PoolRealArray( 1, 1, 1 ),
+"update": 0,
+"values": [ -101.821, -40.7284, 0.0 ]
+}
+tracks/8/type = "value"
+tracks/8/path = NodePath("Spike:scale")
+tracks/8/interp = 1
+tracks/8/loop_wrap = true
+tracks/8/imported = false
+tracks/8/enabled = true
+tracks/8/keys = {
+"times": PoolRealArray( 0, 0.3, 0.6, 0.8, 1 ),
+"transitions": PoolRealArray( 0.5, 2, 0.5, 2, 1 ),
+"update": 0,
+"values": [ Vector2( 0.535714, 0.535714 ), Vector2( 0.535714, 0.535714 ), Vector2( 0.689992, 0.496092 ), Vector2( 0.535714, 0.535714 ), Vector2( 0.535714, 0.535714 ) ]
+}
+tracks/9/type = "value"
+tracks/9/path = NodePath("Spike4:position")
+tracks/9/interp = 1
+tracks/9/loop_wrap = true
+tracks/9/imported = false
+tracks/9/enabled = true
+tracks/9/keys = {
+"times": PoolRealArray( 0, 0.3, 0.6, 0.8, 1 ),
+"transitions": PoolRealArray( 0.5, 2, 0.5, 2, 1 ),
+"update": 0,
+"values": [ Vector2( 5, 17 ), Vector2( 12.5, 7 ), Vector2( 18, 20 ), Vector2( 18, 16.5 ), Vector2( 20, 19 ) ]
+}
+tracks/10/type = "value"
+tracks/10/path = NodePath("Spike4:rotation_degrees")
+tracks/10/interp = 1
+tracks/10/loop_wrap = true
+tracks/10/imported = false
+tracks/10/enabled = true
+tracks/10/keys = {
+"times": PoolRealArray( 0, 0.6, 1 ),
+"transitions": PoolRealArray( 1, 1, 1 ),
+"update": 0,
+"values": [ -126.888, -50.7553, 0.0 ]
+}
+tracks/11/type = "value"
+tracks/11/path = NodePath("Spike4:scale")
+tracks/11/interp = 1
+tracks/11/loop_wrap = true
+tracks/11/imported = false
+tracks/11/enabled = true
+tracks/11/keys = {
+"times": PoolRealArray( 0, 0.3, 0.6, 0.8, 1 ),
+"transitions": PoolRealArray( 0.5, 2, 0.5, 2, 1 ),
+"update": 0,
+"values": [ Vector2( 0.535714, 0.535714 ), Vector2( 0.535714, 0.535714 ), Vector2( 0.764181, 0.455753 ), Vector2( 0.535714, 0.535714 ), Vector2( 0.535714, 0.535714 ) ]
+}
+
+[node name="Node2D" type="Node2D"]
+modulate = Color( 1, 1, 1, 0.478431 )
+script = ExtResource( 3 )
+id = 1
+glyphName = "Ground Slime"
+effects = SubResource( 1 )
+extraStates = [ ExtResource( 4 ) ]
+
+[node name="Sprite" type="Sprite" parent="."]
+visible = false
+position = Vector2( 0, 21 )
+texture = ExtResource( 2 )
+
+[node name="Effects" type="Node" parent="."]
+
+[node name="Spike2" type="Sprite" parent="."]
+position = Vector2( 0, 12 )
+scale = Vector2( 0.535714, 0.535714 )
+texture = ExtResource( 1 )
+offset = Vector2( -2.47059, -5.11765 )
+
+[node name="Spike" type="Sprite" parent="."]
+position = Vector2( -18, 23 )
+scale = Vector2( 0.535714, 0.535714 )
+texture = ExtResource( 1 )
+offset = Vector2( -2.47059, -5.11765 )
+
+[node name="Spike4" type="Sprite" parent="."]
+position = Vector2( 20, 19 )
+scale = Vector2( 0.535714, 0.535714 )
+texture = ExtResource( 1 )
+offset = Vector2( -2.47059, -5.11765 )
+
+[node name="Spike3" type="Sprite" parent="."]
+position = Vector2( 4, 28 )
+scale = Vector2( 0.535714, 0.535714 )
+texture = ExtResource( 1 )
+offset = Vector2( -2.47059, -5.11765 )
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+autoplay = "m"
+anims/RESET = SubResource( 2 )
+anims/m = SubResource( 3 )

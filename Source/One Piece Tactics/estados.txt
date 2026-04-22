@@ -1,0 +1,41 @@
+01 Machado
+02 Espada
+03 Martelo
+04 Fúria
+05 Inspiração Bárdica
+06 Inspiração Ardente
+07 Queimadura
+08
+09
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26 Cristais
+27 Rubi
+28 Safíra
+29 Ametista
+30 Esmeralda
+31
+32
+33
+34
+35
+36
+37
+38 Bônus de Danos
+39 Penalidade de Resistência
+40 Bônus de Danos Temporário
+41 Penalidade de Resistência Temporária

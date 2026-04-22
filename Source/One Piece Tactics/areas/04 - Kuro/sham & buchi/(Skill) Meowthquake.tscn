@@ -1,0 +1,48 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://characters/001 - Luffy/skills/AoE.tscn" type="PackedScene" id=1]
+[ext_resource path="res://skills/HelperWindows/Push.tscn" type="PackedScene" id=2]
+[ext_resource path="res://skills/SkillScript.gd" type="Script" id=3]
+[ext_resource path="res://characters/001 - Luffy/skills/Cracks.tscn" type="PackedScene" id=4]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Node
+
+# targetArray = Array contendo as posições que esse feitiço atingiu
+#               A célula central será contida em um Array sozinha, para fácil identificação
+var skill
+func effects(targetArray):
+	skill = get_parent()
+
+	
+	BattleMechanics.playAnimEntity(skill.caster, \"Earth\")
+	yield(get_tree().create_timer(0.5),\"timeout\")
+	
+	BattleMechanics.playAnim(skill.visuals[1], skill.caster.posit)
+	BattleMechanics.dmgAtAoe(targetArray, {\"base\": 15, \"FF\": false}, skill.caster, skill.visuals[0], 0.1)
+	
+	yield(get_tree().create_timer(1),\"timeout\")
+	
+			
+	
+	
+	
+"
+
+[node name="Skill" type="Node2D"]
+script = ExtResource( 3 )
+skillName = "Meowthquake"
+base = 20
+apCost = 1
+rangeMin = 0
+rangeMax = 0
+linear = true
+sight = true
+aoeShape = 1
+aoeSize = 2
+usePerTurn = 1
+visuals = [ ExtResource( 1 ), ExtResource( 4 ) ]
+effects = SubResource( 1 )
+helpertext = [ ExtResource( 2 ) ]
+
+[node name="Effects" type="Node" parent="."]

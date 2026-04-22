@@ -1,0 +1,75 @@
+[gd_scene load_steps=9 format=2]
+
+[ext_resource path="res://skills/SkillScript.gd" type="Script" id=1]
+[ext_resource path="res://areas/03 - Buggy/Buggy/Shoot.tscn" type="PackedScene" id=2]
+[ext_resource path="res://skills/HelperWindows/Push.tscn" type="PackedScene" id=3]
+[ext_resource path="res://areas/03 - Buggy/Buggy/HandP2.tscn" type="PackedScene" id=4]
+[ext_resource path="res://areas/03 - Buggy/Buggy/HandP1.tscn" type="PackedScene" id=5]
+[ext_resource path="res://areas/03 - Buggy/Buggy/HandB.tscn" type="PackedScene" id=6]
+[ext_resource path="res://areas/03 - Buggy/Buggy/Shoot2.tscn" type="PackedScene" id=7]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Node
+
+# targetArray = Array contendo as posições que esse feitiço atingiu
+#               A célula central será contida em um Array sozinha, para fácil identificação
+var skill
+func effects(targetArray):
+	skill = get_parent()
+
+	
+	BattleMechanics.playAnimEntity(skill.caster, \"Atk\")
+	
+	yield(get_tree().create_timer(0.6),\"timeout\")
+	
+	BattleMechanics.playAnim(
+		skill.visuals[1 if skill.caster.direction in [Vector2(1,0),Vector2(0,1)] else 4],
+		skill.caster.posit,
+		false if skill.caster.direction in [Vector2(1,0),Vector2(-1,0)] else true,
+		\"ysort\" if skill.caster.direction in [Vector2(1,0),Vector2(0,1)] else \"under\")
+	
+	yield(BattleMechanics.shootProjectile(
+		skill.visuals[2 if skill.caster.direction in [Vector2(1,0),Vector2(0,1)] else 3], 
+		skill.caster.posit,
+		targetArray[0], 
+		0.02,
+		Vector2(0,0),
+		Vector2(0,0),
+		false,
+		false if skill.caster.direction in [Vector2(1,0),Vector2(-1,0)] else true
+		)
+		,\"completed\")
+	
+	var tgt = BattleMechanics.getEntityAt(targetArray[0])
+	if tgt:
+		BattleMechanics.dealDmg([15,\"n\"],tgt,skill.caster)
+	
+	yield(BattleMechanics.shootProjectile(
+		skill.visuals[0], 
+		targetArray[0], 
+		skill.caster.posit
+		)
+		,\"completed\")
+		
+	BattleMechanics.bounceTgt(skill.caster)
+	BattleMechanics.playAnimEntity(skill.caster, \"HandBack\")
+	yield(get_tree().create_timer(1),\"timeout\")
+	
+			
+	
+	
+	
+"
+
+[node name="Skill" type="Node2D"]
+script = ExtResource( 1 )
+skillName = "Chop Chop Cannon"
+apCost = 1
+rangeMax = 4
+sight = true
+usePerTgt = 1
+visuals = [ ExtResource( 4 ), ExtResource( 2 ), ExtResource( 5 ), ExtResource( 6 ), ExtResource( 7 ) ]
+effects = SubResource( 1 )
+helpertext = [ ExtResource( 3 ) ]
+
+[node name="Effects" type="Node" parent="."]

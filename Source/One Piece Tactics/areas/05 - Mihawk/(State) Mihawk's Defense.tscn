@@ -1,0 +1,220 @@
+[gd_scene load_steps=17 format=2]
+
+[ext_resource path="res://states/StateScript.gd" type="Script" id=1]
+[ext_resource path="res://areas/05 - Mihawk/inv.png" type="Texture" id=2]
+[ext_resource path="res://Roboto-Bold.ttf" type="DynamicFontData" id=3]
+[ext_resource path="res://states/StatePreview.tscn" type="PackedScene" id=4]
+[ext_resource path="res://areas/04 - Kuro/kuro/(State) Captain Kuro 2.tscn" type="PackedScene" id=5]
+[ext_resource path="res://skills/Recursos Comuns/glow2.png" type="Texture" id=6]
+[ext_resource path="res://areas/05 - Mihawk/hex.png" type="Texture" id=7]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Node
+
+var state
+var porter
+
+func stateSetup():
+	state = get_parent()
+	porter = state.get_parent().get_parent()
+
+	porter.connect(\"dmg_taken\",self,\"dmg\")
+	
+func dmg(_dmg, _attacker, before):
+	if before:
+		BattleMechanics.dmgHolder[porter.name][\"base\"] = 0
+"
+
+[sub_resource type="DynamicFont" id=2]
+outline_size = 3
+outline_color = Color( 0.215686, 0.215686, 0.215686, 1 )
+font_data = ExtResource( 3 )
+
+[sub_resource type="Animation" id=3]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/path = NodePath("Node2D/Glow2:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ Vector2( 0, -5 ) ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Node2D/Glow2:rotation_degrees")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ 0.0 ]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("Node2D/Glow2:scale")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ Vector2( 1, 1 ) ]
+}
+tracks/3/type = "value"
+tracks/3/path = NodePath("Node2D/Glow2:modulate")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ Color( 1, 1, 1, 1 ) ]
+}
+
+[sub_resource type="Animation" id=4]
+resource_name = "m"
+length = 2.0
+loop = true
+tracks/0/type = "value"
+tracks/0/path = NodePath("Node2D/Glow2:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( -2 ),
+"update": 0,
+"values": [ Vector2( 0, -13 ) ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Node2D/Glow2:rotation_degrees")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0, 0.8 ),
+"transitions": PoolRealArray( -2, -2 ),
+"update": 0,
+"values": [ 0.0, 0.0 ]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("Node2D/Glow2:scale")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/keys = {
+"times": PoolRealArray( 0, 0.8 ),
+"transitions": PoolRealArray( -2, -2 ),
+"update": 0,
+"values": [ Vector2( 1.54305, 1.54305 ), Vector2( 1.73135, 1.73135 ) ]
+}
+tracks/3/type = "value"
+tracks/3/path = NodePath("Node2D/Glow2:modulate")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/keys = {
+"times": PoolRealArray( 0, 1.1 ),
+"transitions": PoolRealArray( -2, -2 ),
+"update": 0,
+"values": [ Color( 1, 1, 1, 0.262745 ), Color( 0.556863, 0.937255, 1, 0.741176 ) ]
+}
+
+[sub_resource type="Gradient" id=5]
+offsets = PoolRealArray( 0.0104712, 0.219895, 1 )
+colors = PoolColorArray( 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0 )
+
+[sub_resource type="GradientTexture" id=6]
+gradient = SubResource( 5 )
+
+[sub_resource type="Curve" id=7]
+_data = [ Vector2( 0, 0.709402 ), 0.0, 0.658944, 0, 0, Vector2( 1, 1 ), 0.0, 0.0, 0, 0 ]
+
+[sub_resource type="CurveTexture" id=8]
+curve = SubResource( 7 )
+
+[sub_resource type="ParticlesMaterial" id=9]
+lifetime_randomness = 0.77
+emission_shape = 1
+emission_sphere_radius = 14.67
+flag_disable_z = true
+gravity = Vector3( 0, 0, 0 )
+orbit_velocity = 0.0
+orbit_velocity_random = 0.0
+scale = 0.5
+scale_random = 1.0
+scale_curve = SubResource( 8 )
+color_ramp = SubResource( 6 )
+
+[node name="State" type="Node2D"]
+z_as_relative = false
+script = ExtResource( 1 )
+stateName = "Invulnerable"
+description = "[b]Invulnerable[/b]"
+effects = SubResource( 1 )
+extraStates = [ ExtResource( 5 ) ]
+appearOver = true
+maxStack = 1
+lvlMlt = 10
+
+[node name="Effects" type="Node" parent="."]
+
+[node name="Icon" type="TextureRect" parent="."]
+visible = false
+margin_right = 32.0
+margin_bottom = 32.0
+mouse_filter = 0
+texture = ExtResource( 2 )
+
+[node name="LVl" type="Label" parent="Icon"]
+margin_left = 21.0
+margin_top = 17.0
+margin_right = 30.0
+margin_bottom = 36.0
+custom_fonts/font = SubResource( 2 )
+text = "1"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Window" type="Node2D" parent="Icon"]
+
+[node name="Panel" parent="Icon/Window" instance=ExtResource( 4 )]
+visible = false
+margin_left = 32.0
+margin_top = -60.0
+margin_right = 238.0
+margin_bottom = -7.0
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+autoplay = "m"
+anims/RESET = SubResource( 3 )
+anims/m = SubResource( 4 )
+
+[node name="Node2D" type="Node2D" parent="."]
+position = Vector2( 0, -17 )
+scale = Vector2( 1.26965, 1.26965 )
+
+[node name="Glow2" type="Sprite" parent="Node2D"]
+position = Vector2( 0, -5 )
+texture = ExtResource( 6 )
+
+[node name="Particles2D" type="Particles2D" parent="Node2D/Glow2"]
+amount = 10
+lifetime = 6.0
+process_material = SubResource( 9 )
+texture = ExtResource( 7 )

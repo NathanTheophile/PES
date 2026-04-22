@@ -1,0 +1,65 @@
+[gd_scene load_steps=7 format=2]
+
+[ext_resource path="res://skills/SkillScript.gd" type="Script" id=1]
+[ext_resource path="res://skills/(Area) - Invasão dos Golens/Descarga Cristalizada/CrystalPrepare.tscn" type="PackedScene" id=2]
+[ext_resource path="res://skills/(Area) - Invasão dos Golens/Descarga Cristalizada/CrystalPrepare2.tscn" type="PackedScene" id=3]
+[ext_resource path="res://skills/old/039 - Crystal Leap/Crystal2.tscn" type="PackedScene" id=4]
+[ext_resource path="res://enemies/Invasão dos Golens/Gema Instável/(Enemy) Gema Instável.tscn" type="PackedScene" id=5]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Node
+
+# targetArray = Array contendo as posições que esse feitiço atingiu
+#               A célula central será contida em um Array sozinha, para fácil identificação
+var skill
+func effects(targetArray):
+	skill = get_parent()
+	
+	
+	BattleMechanics.playAnimEntity(skill.caster, \"Attack\")
+	yield(get_tree().create_timer(0.1),\"timeout\")
+	BattleMechanics.playAnim(skill.visuals[0],skill.caster.posit,false,\"under\")
+	BattleMechanics.playAnim(skill.visuals[2],skill.caster.posit)
+	yield(get_tree().create_timer(1.1),\"timeout\")
+	
+	var threshold = skill.caster.hp * 0.05
+	var remaining = floor(skill.caster.hp_loss / threshold) + 1
+	if remaining > 0:
+		for _i in remaining:
+			randomize()
+			var randEnt = BattleMechanics.area.entities.get_children()
+			randEnt = randEnt[wrapi(randi(),0,randEnt.size())]
+			
+			var cell = BattleMechanics.getCellInRadius(randEnt.posit, remaining+1, true) 
+			var summon = BattleMechanics.summonMonster(skill.states[0], cell, skill.caster)
+			
+			BattleMechanics.playAnimEntity(summon, \"Surge\")
+			summon.get_node(\"Crystals\").assume(skill.caster.get_node(\"Crystals\").currentElm)
+			skill.caster.get_node(\"Crystals\").currentSummons.append(summon)
+	
+		
+	
+	
+
+	
+	
+
+
+	
+	
+"
+
+[node name="Skill" type="Node2D"]
+script = ExtResource( 1 )
+skillName = "Cristalização em Massa"
+description = "Deals [color=#f09ee5]5 air damage[/color]. "
+rangeMin = 0
+rangeMax = 0
+sight = true
+usePerTgt = 1
+tgtTypeEntity = true
+visuals = [ ExtResource( 2 ), ExtResource( 4 ), ExtResource( 3 ) ]
+effects = SubResource( 1 )
+states = [ ExtResource( 5 ) ]
+
+[node name="Effects" type="Node" parent="."]

@@ -1,0 +1,78 @@
+[gd_scene load_steps=9 format=2]
+
+[ext_resource path="res://skills/SkillScript.gd" type="Script" id=1]
+[ext_resource path="res://areas/03 - Buggy/Buggy/Buzz.tscn" type="PackedScene" id=2]
+[ext_resource path="res://skills/HelperWindows/Push.tscn" type="PackedScene" id=3]
+[ext_resource path="res://areas/03 - Buggy/Buggy/BuzzP.tscn" type="PackedScene" id=4]
+[ext_resource path="res://areas/03 - Buggy/Buggy/BuzzS.tscn" type="PackedScene" id=5]
+[ext_resource path="res://areas/03 - Buggy/Buggy/BodyP.tscn" type="PackedScene" id=6]
+[ext_resource path="res://areas/03 - Buggy/Buggy/BodyP2.tscn" type="PackedScene" id=7]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Node
+
+# targetArray = Array contendo as posições que esse feitiço atingiu
+#               A célula central será contida em um Array sozinha, para fácil identificação
+var skill
+func effects(targetArray):
+	skill = get_parent()
+
+	
+	BattleMechanics.playAnimEntity(skill.caster, \"Buzz\")
+	
+	yield(get_tree().create_timer(0.6),\"timeout\")
+	
+	var c
+	for i in targetArray:
+		if i is Array:
+			BattleMechanics.playAnim(skill.visuals[2],skill.caster.posit)
+			BattleMechanics.shootProjectile(skill.visuals[1],skill.caster.posit, i[0])
+			c = i[0]
+			break
+	
+	yield(get_tree().create_timer(1),\"timeout\")
+	
+	BattleMechanics.shootProjectile(
+		skill.visuals[3 if skill.caster.direction in [Vector2(1,0),Vector2(0,1)] else 4],
+		skill.caster.posit, 
+		c, 
+		1,
+		Vector2(0,0),
+		Vector2(0,0),
+		true,
+		false if skill.caster.direction in [Vector2(1,0), Vector2(-1,0)] else true
+		)
+	BattleMechanics.teleport(skill.caster,c,skill.caster)
+	BattleMechanics.playAnim(skill.visuals[0], c,false,\"ysort\")
+	
+	for _j in 5:
+		for i in targetArray:
+			if i is Array:
+				
+				continue
+			
+			var tgt = BattleMechanics.getEntityAt(i)
+			if tgt and tgt.player:
+				BattleMechanics.dealDmg([4,\"n\"],tgt,skill.caster)
+		yield(get_tree().create_timer(0.199),\"timeout\")
+	
+	BattleMechanics.playAnimEntity(skill.caster, \"LegsBack\")
+	BattleMechanics.bounceTgt(skill.caster)
+	yield(get_tree().create_timer(1),\"timeout\")
+"
+
+[node name="Skill" type="Node2D"]
+script = ExtResource( 1 )
+skillName = "Chop Chop Buzzsaw"
+apCost = 1
+rangeMin = 3
+rangeMax = 3
+linear = true
+aoeShape = 1
+aoeSize = 2
+cooldown = 3
+visuals = [ ExtResource( 2 ), ExtResource( 4 ), ExtResource( 5 ), ExtResource( 6 ), ExtResource( 7 ) ]
+effects = SubResource( 1 )
+helpertext = [ ExtResource( 3 ) ]
+
+[node name="Effects" type="Node" parent="."]

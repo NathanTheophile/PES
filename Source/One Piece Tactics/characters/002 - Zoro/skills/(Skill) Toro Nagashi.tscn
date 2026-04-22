@@ -1,0 +1,59 @@
+[gd_scene load_steps=8 format=2]
+
+[ext_resource path="res://skills/SkillScript.gd" type="Script" id=1]
+[ext_resource path="res://skills/Recursos Comuns/Hit.tscn" type="PackedScene" id=2]
+[ext_resource path="res://skills/icons/def.png" type="Texture" id=3]
+[ext_resource path="res://characters/002 - Zoro/skills/tripleslash.tscn" type="PackedScene" id=4]
+[ext_resource path="res://skills/icons/buff.png" type="Texture" id=5]
+[ext_resource path="res://characters/002 - Zoro/skills/(State) Toro Nagashi.tscn" type="PackedScene" id=6]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Node
+
+# targetArray = Array contendo as posições que esse feitiço atingiu
+#               A célula central será contida em um Array sozinha, para fácil identificação
+var skill
+func effects(targetArray):
+	skill = get_parent()
+	var d = skill.caster.direction
+	
+	BattleMechanics.playAnimEntity(skill.caster, \"Defend\")
+	
+	yield(get_tree().create_timer(0.59),\"timeout\")
+	AM.play(skill.caster.audioEX[4],{\"randp\": true})
+	yield(get_tree().create_timer(0.4),\"timeout\")
+	BattleMechanics.addState(skill.states[0],skill.caster,1)
+	BattleMechanics.playAnimEntity(skill.caster, \"DefendIdle\")
+	skill.caster.ap_used = skill.caster.ap
+	skill.caster.mp_used = skill.caster.mp
+	BattleMechanics.updateSkillBtns()
+	skill.caster.get_node(\"HPBar\").updateHP()
+	BattleMechanics.area.updateEntityDetails(skill.caster)
+	
+	
+	
+"
+
+[node name="Skill" type="Node2D"]
+script = ExtResource( 1 )
+skillName = "Toro Nagashi"
+description = "If Zoro's HP <= 50%: This costs [b]1 AP[/b] [img]res://areas/ui/apIconSmall.png[/img] less.
+End Zoro's turn after using this. Until next turn:
+
+Reduce the next damage Zoro receives by 50%.
+- After that, Zoro gains [b]+1 AP[/b] [img]res://areas/ui/apIconSmall.png[/img] for next turn."
+icon1 = ExtResource( 3 )
+icon2 = ExtResource( 5 )
+base = 20
+apCost = 2
+element = 2
+rangeMin = 0
+rangeMax = 0
+linear = true
+sight = true
+cooldown = 2
+visuals = [ ExtResource( 4 ), ExtResource( 2 ) ]
+effects = SubResource( 1 )
+states = [ ExtResource( 6 ) ]
+
+[node name="Effects" type="Node" parent="."]
