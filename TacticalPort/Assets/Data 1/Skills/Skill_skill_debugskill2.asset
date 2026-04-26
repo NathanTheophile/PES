@@ -16,12 +16,15 @@ MonoBehaviour:
   _DisplayName: Skill_debugskill2
   _Description: 
   _TargetType: 1
-  _EffectType: 4
+  _LegacyEffectType: 2
+  _PrimaryEffectType: 0
+  _AdditionalEffectType: 1
+  _HasMigratedEffectSetup: 1
   _Range: 4
   _RangeMin: 2
   _RangeMax: 4
   _Linear: 0
-  _TargetAlignment: 2
+  _TargetAlignment: 0
   _RequiresLineOfSight: 1
   _CanAffectCaster: 1
   _AoeShape: 0
@@ -31,7 +34,7 @@ MonoBehaviour:
   _CooldownTurns: 0
   _Power: 20
   _ActionPointCost: 2
-  _PushDistance: 1
+  _PushDistance: 2
   _SummonUnit: {fileID: 0}
   _SummonTeamRule: 0
   _GlyphDurationTurns: 1

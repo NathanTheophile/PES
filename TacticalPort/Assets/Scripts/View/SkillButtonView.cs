@@ -3,6 +3,7 @@ using TacticalPort.Data;
 using TacticalPort.Shared;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
@@ -15,7 +16,8 @@ namespace TacticalPort.View
         [SerializeField] private Button _Button;
         [SerializeField] private GameObject _PanelTooltip;
         [SerializeField] private TMP_Text _TxtSkillName;
-        [SerializeField] private TMP_Text _TxtEffectType;
+        [FormerlySerializedAs("_TxtEffectType")]
+        [SerializeField] private TMP_Text _TxtAdditionalEffect;
         [SerializeField] private TMP_Text _TxtActionPointCostAndRange;
         [SerializeField] private TMP_Text _TxtPower;
         [SerializeField] private TMP_Text _TxtDescription;
@@ -88,9 +90,9 @@ namespace TacticalPort.View
         private void Refresh()
         {
             SetLabel(_TxtSkillName, ResolveSkillNameText());
-            SetLabel(_TxtEffectType, ResolveEffectTypeText());
+            SetTooltipLine(_TxtAdditionalEffect, ResolveAdditionalEffectText());
             SetLabel(_TxtActionPointCostAndRange, ResolveActionPointCostAndRangeText());
-            SetLabel(_TxtPower, ResolvePowerText());
+            SetTooltipLine(_TxtPower, ResolvePowerText());
             SetLabel(_TxtDescription, ResolveDescriptionText());
             RefreshTooltipLayout();
 
@@ -106,12 +108,20 @@ namespace TacticalPort.View
             return $"{_Skill.DisplayName} ({_Skill.Id})";
         }
 
-        private string ResolveEffectTypeText()
+        private string ResolveAdditionalEffectText()
         {
             if (_Skill == null)
                 return string.Empty;
 
-            return _Skill.EffectType.ToString();
+            return _Skill.AdditionalEffectType switch
+            {
+                SkillAdditionalEffectType.Push => $"Push {_Skill.PushDistance}",
+                SkillAdditionalEffectType.Teleport => "Teleport",
+                SkillAdditionalEffectType.SwitchPositions => "Switch Position",
+                SkillAdditionalEffectType.Summon => _Skill.SummonUnit != null ? $"Summon {_Skill.SummonUnit.DisplayName}" : "Summon",
+                SkillAdditionalEffectType.CreateGlyph => $"Create Glyph ({_Skill.GlyphDurationTurns}t)",
+                _ => string.Empty
+            };
         }
 
         private string ResolveActionPointCostAndRangeText()
@@ -127,16 +137,16 @@ namespace TacticalPort.View
             if (_Skill == null)
                 return string.Empty;
 
-            switch (_Skill.EffectType)
+            switch (_Skill.PrimaryEffectType)
             {
-                case SkillEffectType.Damage:
+                case SkillPrimaryEffectType.Damage:
                     return $"Deals {_Skill.Power}";
 
-                case SkillEffectType.Heal:
+                case SkillPrimaryEffectType.Heal:
                     return $"Heals {_Skill.Power}";
 
                 default:
-                    return _Skill.Power.ToString();
+                    return string.Empty;
             }
         }
 
@@ -201,7 +211,7 @@ namespace TacticalPort.View
                 return;
 
             _TxtSkillName ??= FindTooltipLabel("Txt_SkillName");
-            _TxtEffectType ??= FindTooltipLabel("Txt_EffectType");
+            _TxtAdditionalEffect ??= FindTooltipLabel("Txt_AdditionalEffect") ?? FindTooltipLabel("Txt_EffectType");
             _TxtActionPointCostAndRange ??= FindTooltipLabel("Txt_ActionPointCostAndRange");
             _TxtPower ??= FindTooltipLabel("Txt_Power");
             _TxtDescription ??= FindTooltipLabel("Txt_Description");
@@ -220,7 +230,7 @@ namespace TacticalPort.View
             lIsValid &= ValidateReference(_Button, nameof(_Button));
             lIsValid &= ValidateReference(_PanelTooltip, nameof(_PanelTooltip));
             lIsValid &= ValidateReference(_TxtSkillName, nameof(_TxtSkillName));
-            lIsValid &= ValidateReference(_TxtEffectType, nameof(_TxtEffectType));
+            lIsValid &= ValidateReference(_TxtAdditionalEffect, nameof(_TxtAdditionalEffect));
             lIsValid &= ValidateReference(_TxtActionPointCostAndRange, nameof(_TxtActionPointCostAndRange));
             lIsValid &= ValidateReference(_TxtPower, nameof(_TxtPower));
             lIsValid &= ValidateReference(_TxtDescription, nameof(_TxtDescription));
@@ -241,6 +251,15 @@ namespace TacticalPort.View
         {
             if (pLabel != null)
                 pLabel.text = pValue ?? string.Empty;
+        }
+
+        private static void SetTooltipLine(TMP_Text pLabel, string pValue)
+        {
+            if (pLabel == null)
+                return;
+
+            pLabel.text = pValue ?? string.Empty;
+            pLabel.gameObject.SetActive(!string.IsNullOrWhiteSpace(pValue));
         }
 
         #endregion

@@ -9,6 +9,7 @@ namespace TacticalPort.Data
 
         public SerializableGridCoord Coordinate = new SerializableGridCoord(0, 0);
         public bool IsWalkable = true;
+        public bool BlocksLineOfSight;
         public int MovementCost = 1;
 
         #endregion
@@ -19,6 +20,7 @@ namespace TacticalPort.Data
         {
             Coordinate = new SerializableGridCoord(Coordinate.X, Coordinate.Y),
             IsWalkable = IsWalkable,
+            BlocksLineOfSight = BlocksLineOfSight,
             MovementCost = MovementCost
         };
 

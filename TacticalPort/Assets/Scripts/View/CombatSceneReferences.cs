@@ -9,6 +9,7 @@ namespace TacticalPort.View
 
         [SerializeField] private BoardView _BoardView;
         [SerializeField] private SceneBoardAuthoring _SceneBoardAuthoring;
+        [SerializeField] private TilemapBoardAuthoring _TilemapBoardAuthoring;
         [SerializeField] private BoardCursorView _BoardCursorView;
         [SerializeField] private HUDManager _HudManager;
         [SerializeField] private Transform _UnitRoot;
@@ -20,7 +21,6 @@ namespace TacticalPort.View
         #region _____________________________| ACCESSORS
 
         public BoardView BoardView => _BoardView;
-        public SceneBoardAuthoring SceneBoardAuthoring => _SceneBoardAuthoring;
         public BoardCursorView BoardCursorView => _BoardCursorView;
         public HUDManager HudManager => _HudManager;
         public Transform UnitRoot => _UnitRoot != null ? _UnitRoot : transform;
@@ -35,6 +35,13 @@ namespace TacticalPort.View
 
         private BattleScenarioDefinition ResolveScenarioOverride()
         {
+            if (_TilemapBoardAuthoring != null)
+            {
+                BattleScenarioDefinition lTilemapScenario = _TilemapBoardAuthoring.BuildScenario();
+                if (lTilemapScenario != null)
+                    return lTilemapScenario;
+            }
+
             if (_SceneBoardAuthoring != null)
             {
                 BattleScenarioDefinition lBoardScenario = _SceneBoardAuthoring.BuildScenario();
@@ -47,9 +54,13 @@ namespace TacticalPort.View
 
         private void CacheMissingReferences()
         {
+            if (_TilemapBoardAuthoring == null && _BoardView != null)
+                _TilemapBoardAuthoring = _BoardView.GetComponent<TilemapBoardAuthoring>();
+
             if (_SceneBoardAuthoring == null && _BoardView != null)
                 _SceneBoardAuthoring = _BoardView.GetComponent<SceneBoardAuthoring>();
 
+            _TilemapBoardAuthoring ??= GetComponentInChildren<TilemapBoardAuthoring>(true);
             _SceneBoardAuthoring ??= GetComponentInChildren<SceneBoardAuthoring>(true);
         }
     }

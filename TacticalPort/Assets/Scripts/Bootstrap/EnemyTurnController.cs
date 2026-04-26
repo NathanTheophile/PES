@@ -290,12 +290,12 @@ namespace TacticalPort.Bootstrap
 
         private static bool IsOffensiveSkill(SkillDefinition pSkill)
         {
-            return pSkill != null && pSkill.EffectType == SkillEffectType.Damage;
+            return pSkill != null && pSkill.PrimaryEffectType == SkillPrimaryEffectType.Damage;
         }
 
         private static bool IsHealingSkill(SkillDefinition pSkill)
         {
-            return pSkill != null && pSkill.EffectType == SkillEffectType.Heal;
+            return pSkill != null && pSkill.PrimaryEffectType == SkillPrimaryEffectType.Heal;
         }
 
         private static bool IsTargetableEnemyUnit(BattleUnitRuntime pActor, BattleUnitRuntime pCandidateUnit)

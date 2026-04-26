@@ -9,6 +9,8 @@ namespace TacticalPort.Core.Services
 {
     public sealed class SimpleSkillExecutor : ISkillExecutor
     {
+        private const int PushCollisionDamagePerBlockedStep = 5;
+
         private sealed class ResolvedSkillTarget
         {
             public GridCoord TargetCell;
@@ -190,7 +192,7 @@ namespace TacticalPort.Core.Services
                 return false;
             }
 
-            if (!MatchesAlignment(pActor.Position, pTargetCell, pSkill.TargetAlignment))
+            if (!GridLineOfSightUtility.MatchesAlignment(pActor.Position, pTargetCell, pSkill.TargetAlignment))
             {
                 pFailure = BattleActionResult.Failed(BattleActionType.Skill, ResolveAlignmentFailureMessage(pSkill.TargetAlignment));
                 return false;
@@ -213,21 +215,19 @@ namespace TacticalPort.Core.Services
             SkillExecutionContext pContext,
             out BattleActionResult pFailure)
         {
-            switch (pSkill.EffectType)
+            bool lRequiresAffectedUnits = pSkill.PrimaryEffectType == SkillPrimaryEffectType.Damage
+                || pSkill.PrimaryEffectType == SkillPrimaryEffectType.Heal
+                || pSkill.AdditionalEffectType == SkillAdditionalEffectType.Push;
+
+            if (lRequiresAffectedUnits && pResolvedTarget.AffectedUnits.Count == 0)
             {
-                case SkillEffectType.Damage:
-                case SkillEffectType.Heal:
-                case SkillEffectType.Push:
-                    if (pResolvedTarget.AffectedUnits.Count == 0)
-                    {
-                        pFailure = BattleActionResult.Failed(BattleActionType.Skill, "No unit is affected by this skill.");
-                        return false;
-                    }
+                pFailure = BattleActionResult.Failed(BattleActionType.Skill, "No unit is affected by this skill.");
+                return false;
+            }
 
-                    pFailure = null;
-                    return true;
-
-                case SkillEffectType.SwitchPositions:
+            switch (pSkill.AdditionalEffectType)
+            {
+                case SkillAdditionalEffectType.SwitchPositions:
                     if (pResolvedTarget.PrimaryTargetUnit == null || pResolvedTarget.PrimaryTargetUnit.Id == pActor.Id)
                     {
                         pFailure = BattleActionResult.Failed(BattleActionType.Skill, "A valid target unit is required to switch positions.");
@@ -237,7 +237,7 @@ namespace TacticalPort.Core.Services
                     pFailure = null;
                     return true;
 
-                case SkillEffectType.Teleport:
+                case SkillAdditionalEffectType.Teleport:
                     if (!pContext.GridService.CanUnitOccupy(pActor.Id, pResolvedTarget.TargetCell))
                     {
                         pFailure = BattleActionResult.Failed(BattleActionType.Skill, "Destination cell is not valid for teleportation.");
@@ -247,7 +247,7 @@ namespace TacticalPort.Core.Services
                     pFailure = null;
                     return true;
 
-                case SkillEffectType.Summon:
+                case SkillAdditionalEffectType.Summon:
                     if (pSkill.SummonUnit == null)
                     {
                         pFailure = BattleActionResult.Failed(BattleActionType.Skill, "Summon skill is missing a unit definition.");
@@ -263,13 +263,13 @@ namespace TacticalPort.Core.Services
                     pFailure = null;
                     return true;
 
-                case SkillEffectType.CreateGlyph:
+                case SkillAdditionalEffectType.CreateGlyph:
                     pFailure = null;
                     return true;
 
                 default:
-                    pFailure = BattleActionResult.Failed(BattleActionType.Skill, "Unsupported skill effect.");
-                    return false;
+                    pFailure = null;
+                    return true;
             }
         }
 
@@ -279,32 +279,43 @@ namespace TacticalPort.Core.Services
             ResolvedSkillTarget pResolvedTarget,
             SkillExecutionContext pContext)
         {
-            switch (pSkill.EffectType)
+            List<BattleActionResult> lResults = new List<BattleActionResult>();
+
+            switch (pSkill.PrimaryEffectType)
             {
-                case SkillEffectType.Damage:
-                    return ApplyDamage(pActor, pSkill, pResolvedTarget);
+                case SkillPrimaryEffectType.Damage:
+                    lResults.Add(ApplyDamage(pActor, pSkill, pResolvedTarget));
+                    break;
 
-                case SkillEffectType.Heal:
-                    return ApplyHeal(pActor, pSkill, pResolvedTarget);
-
-                case SkillEffectType.Push:
-                    return ApplyPush(pActor, pSkill, pResolvedTarget, pContext);
-
-                case SkillEffectType.Teleport:
-                    return ApplyTeleport(pActor, pResolvedTarget, pContext);
-
-                case SkillEffectType.SwitchPositions:
-                    return ApplySwitch(pActor, pResolvedTarget, pContext);
-
-                case SkillEffectType.Summon:
-                    return ApplySummon(pActor, pSkill, pResolvedTarget, pContext);
-
-                case SkillEffectType.CreateGlyph:
-                    return ApplyGlyph(pActor, pSkill, pResolvedTarget, pContext);
-
-                default:
-                    return BattleActionResult.Failed(BattleActionType.Skill, "Unsupported skill effect.");
+                case SkillPrimaryEffectType.Heal:
+                    lResults.Add(ApplyHeal(pActor, pSkill, pResolvedTarget));
+                    break;
             }
+
+            switch (pSkill.AdditionalEffectType)
+            {
+                case SkillAdditionalEffectType.Push:
+                    lResults.Add(ApplyPush(pActor, pSkill, pResolvedTarget, pContext));
+                    break;
+
+                case SkillAdditionalEffectType.Teleport:
+                    lResults.Add(ApplyTeleport(pActor, pResolvedTarget, pContext));
+                    break;
+
+                case SkillAdditionalEffectType.SwitchPositions:
+                    lResults.Add(ApplySwitch(pActor, pResolvedTarget, pContext));
+                    break;
+
+                case SkillAdditionalEffectType.Summon:
+                    lResults.Add(ApplySummon(pActor, pSkill, pResolvedTarget, pContext));
+                    break;
+
+                case SkillAdditionalEffectType.CreateGlyph:
+                    lResults.Add(ApplyGlyph(pActor, pSkill, pResolvedTarget, pContext));
+                    break;
+            }
+
+            return CombineEffectResults(pActor, lResults);
         }
 
         private static BattleActionResult ApplyDamage(BattleUnitRuntime pActor, SkillDefinition pSkill, ResolvedSkillTarget pResolvedTarget)
@@ -359,23 +370,26 @@ namespace TacticalPort.Core.Services
             ResolvedSkillTarget pResolvedTarget,
             SkillExecutionContext pContext)
         {
+            int lProcessedTargets = 0;
             int lMovedUnits = 0;
             int lDamagedUnits = 0;
             int lTotalCollisionDamage = 0;
-            List<BattleUnitId> lAffectedUnitIds = new List<BattleUnitId> { pActor.Id };
+            HashSet<BattleUnitId> lAffectedUnitIds = new HashSet<BattleUnitId> { pActor.Id };
+            int lPushDamageBonus = pActor?.Definition != null ? pActor.Definition.PushDamageBonus : 0;
 
             foreach (BattleUnitRuntime lTarget in pResolvedTarget.AffectedUnits)
             {
                 if (lTarget == null || !lTarget.IsAlive || lTarget.Id == pActor.Id)
                     continue;
 
+                lProcessedTargets++;
                 GridCoord lPushDirection = ResolvePushDirection(pActor.Position, lTarget.Position);
                 if (lPushDirection.X == 0 && lPushDirection.Y == 0)
                     continue;
 
                 PushResolution lResolution = ResolvePushDestination(lTarget, lPushDirection, pSkill.PushDistance, pContext);
                 int lCollisionDamage = lResolution.BlockedSteps > 0
-                    ? lResolution.BlockedSteps + (pActor != null && pActor.Definition != null ? pActor.Definition.PushDamageBonus : 0)
+                    ? lResolution.BlockedSteps * (PushCollisionDamagePerBlockedStep + lPushDamageBonus)
                     : 0;
                 if (lCollisionDamage > 0)
                 {
@@ -385,6 +399,21 @@ namespace TacticalPort.Core.Services
                         lDamagedUnits++;
                         lTotalCollisionDamage += lResolvedDamage;
                         lAffectedUnitIds.Add(lTarget.Id);
+                    }
+
+                    for (int lIndex = 0; lIndex < lResolution.BlockingUnitIds.Count; lIndex++)
+                    {
+                        BattleUnitId lBlockingUnitId = lResolution.BlockingUnitIds[lIndex];
+                        if (!pContext.TryGetUnit(lBlockingUnitId, out BattleUnitRuntime lBlockingUnit) || lBlockingUnit == null || !lBlockingUnit.IsAlive)
+                            continue;
+
+                        int lBlockerDamage = lBlockingUnit.ApplyDamage(lCollisionDamage);
+                        if (lBlockerDamage <= 0)
+                            continue;
+
+                        lDamagedUnits++;
+                        lTotalCollisionDamage += lBlockerDamage;
+                        lAffectedUnitIds.Add(lBlockingUnit.Id);
                     }
                 }
 
@@ -398,10 +427,12 @@ namespace TacticalPort.Core.Services
                 lAffectedUnitIds.Add(lTarget.Id);
             }
 
-            if (lMovedUnits == 0 && lDamagedUnits == 0)
+            if (lProcessedTargets == 0)
                 return BattleActionResult.Failed(BattleActionType.Skill, "Push could not move any target.");
 
-            string lMessage = $"{pActor.Definition.DisplayName} pushed {lMovedUnits} unit(s).";
+            string lMessage = lMovedUnits > 0
+                ? $"{pActor.Definition.DisplayName} pushed {lMovedUnits} unit(s)."
+                : $"{pActor.Definition.DisplayName} slammed the target(s) against an obstacle.";
             if (lDamagedUnits > 0)
                 lMessage += $" Collision dealt {lTotalCollisionDamage} damage across {lDamagedUnits} unit(s).";
 
@@ -541,7 +572,7 @@ namespace TacticalPort.Core.Services
                     if (!pContext.GridService.IsInside(lCandidate))
                         continue;
 
-                    if (!IsInsideAreaShape(pSkill.AoeShape, lOffsetX, lOffsetY, lSize))
+                    if (!GridLineOfSightUtility.IsInsideAreaShape(pSkill.AoeShape, lOffsetX, lOffsetY, lSize))
                         continue;
 
                     pCells.Add(lCandidate);
@@ -626,6 +657,7 @@ namespace TacticalPort.Core.Services
         {
             public GridCoord Destination;
             public int BlockedSteps;
+            public List<BattleUnitId> BlockingUnitIds = new List<BattleUnitId>();
         }
 
         private static PushResolution ResolvePushDestination(BattleUnitRuntime pTarget, GridCoord pDirection, int pDistance, SkillExecutionContext pContext)
@@ -633,11 +665,12 @@ namespace TacticalPort.Core.Services
             GridCoord lCurrent = pTarget.Position;
             int lMaxDistance = Math.Max(0, pDistance);
             int lBlockedSteps = 0;
+            HashSet<BattleUnitId> lBlockingUnitIds = new HashSet<BattleUnitId>();
 
             for (int lStep = 0; lStep < lMaxDistance; lStep++)
             {
                 GridCoord lCandidate = new GridCoord(lCurrent.X + pDirection.X, lCurrent.Y + pDirection.Y);
-                if (!pContext.GridService.CanUnitOccupy(pTarget.Id, lCandidate))
+                if (!CanOccupyDuringPush(pContext, pTarget.Id, pTarget.OccupiedCellOffsets, lCandidate, lBlockingUnitIds))
                 {
                     lBlockedSteps = lMaxDistance - lStep;
                     break;
@@ -649,8 +682,41 @@ namespace TacticalPort.Core.Services
             return new PushResolution
             {
                 Destination = lCurrent,
-                BlockedSteps = lBlockedSteps
+                BlockedSteps = lBlockedSteps,
+                BlockingUnitIds = new List<BattleUnitId>(lBlockingUnitIds)
             };
+        }
+
+        private static bool CanOccupyDuringPush(
+            SkillExecutionContext pContext,
+            BattleUnitId pUnitId,
+            IReadOnlyList<GridCoord> pFootprintOffsets,
+            GridCoord pAnchor,
+            ISet<BattleUnitId> pBlockingUnitIds)
+        {
+            if (pContext == null || pContext.GridService == null)
+                return false;
+
+            IReadOnlyList<GridCoord> lOffsets = pFootprintOffsets;
+            if (lOffsets == null || lOffsets.Count == 0)
+                lOffsets = new[] { new GridCoord(0, 0) };
+
+            for (int lIndex = 0; lIndex < lOffsets.Count; lIndex++)
+            {
+                GridCoord lOffset = lOffsets[lIndex];
+                GridCoord lCell = new GridCoord(pAnchor.X + lOffset.X, pAnchor.Y + lOffset.Y);
+
+                if (!pContext.GridService.IsInside(lCell) || !pContext.GridService.IsWalkable(lCell))
+                    return false;
+
+                if (!pContext.GridService.TryGetOccupant(lCell, out BattleUnitId lOccupantId) || lOccupantId == pUnitId)
+                    continue;
+
+                pBlockingUnitIds?.Add(lOccupantId);
+                return false;
+            }
+
+            return true;
         }
 
         private static int ResolveDirectionalDamageModifier(BattleUnitRuntime pActor, BattleUnitRuntime pTarget, SkillDefinition pSkill)
@@ -692,27 +758,19 @@ namespace TacticalPort.Core.Services
         {
             int lDeltaX = pTarget.X - pOrigin.X;
             int lDeltaY = pTarget.Y - pOrigin.Y;
+            int lAbsX = Math.Abs(lDeltaX);
+            int lAbsY = Math.Abs(lDeltaY);
 
             if (lDeltaX == 0 && lDeltaY == 0)
                 return new GridCoord(0, 0);
 
-            return new GridCoord(Math.Sign(lDeltaX), Math.Sign(lDeltaY));
-        }
+            if (lAbsX == lAbsY)
+                return new GridCoord(Math.Sign(lDeltaX), Math.Sign(lDeltaY));
 
-        private static bool MatchesAlignment(GridCoord pOrigin, GridCoord pTarget, SkillTargetAlignment pAlignment)
-        {
-            if (pOrigin == pTarget || pAlignment == SkillTargetAlignment.Any)
-                return true;
+            if (lAbsX > lAbsY)
+                return new GridCoord(Math.Sign(lDeltaX), 0);
 
-            int lDeltaX = Math.Abs(pTarget.X - pOrigin.X);
-            int lDeltaY = Math.Abs(pTarget.Y - pOrigin.Y);
-
-            return pAlignment switch
-            {
-                SkillTargetAlignment.Orthogonal => pOrigin.X == pTarget.X || pOrigin.Y == pTarget.Y,
-                SkillTargetAlignment.Diagonal => lDeltaX == lDeltaY,
-                _ => true
-            };
+            return new GridCoord(0, Math.Sign(lDeltaY));
         }
 
         private static string ResolveAlignmentFailureMessage(SkillTargetAlignment pAlignment)
@@ -727,58 +785,48 @@ namespace TacticalPort.Core.Services
 
         private static bool HasLineOfSight(GridCoord pOrigin, GridCoord pTarget, SkillExecutionContext pContext)
         {
-            int lX0 = pOrigin.X;
-            int lY0 = pOrigin.Y;
-            int lX1 = pTarget.X;
-            int lY1 = pTarget.Y;
-            int lDeltaX = Math.Abs(lX1 - lX0);
-            int lDeltaY = Math.Abs(lY1 - lY0);
-            int lStepX = lX0 < lX1 ? 1 : -1;
-            int lStepY = lY0 < lY1 ? 1 : -1;
-            int lError = lDeltaX - lDeltaY;
-            int lX = lX0;
-            int lY = lY0;
-
-            while (lX != lX1 || lY != lY1)
-            {
-                int lDoubleError = lError * 2;
-
-                if (lDoubleError > -lDeltaY)
-                {
-                    lError -= lDeltaY;
-                    lX += lStepX;
-                }
-
-                if (lDoubleError < lDeltaX)
-                {
-                    lError += lDeltaX;
-                    lY += lStepY;
-                }
-
-                if (lX == lX1 && lY == lY1)
-                    break;
-
-                GridCoord lCell = new GridCoord(lX, lY);
-                if (!pContext.GridService.IsInside(lCell) || !pContext.GridService.IsWalkable(lCell) || pContext.GridService.IsOccupied(lCell))
-                    return false;
-            }
-
-            return true;
+            return GridLineOfSightUtility.HasLineOfSight(
+                pOrigin,
+                pTarget,
+                pCell => !pContext.GridService.IsInside(pCell)
+                    || pContext.GridService.BlocksLineOfSight(pCell)
+                    || pContext.GridService.IsOccupied(pCell));
         }
 
-        private static bool IsInsideAreaShape(SkillAoeShape pShape, int pOffsetX, int pOffsetY, int pSize)
+        private static BattleActionResult CombineEffectResults(BattleUnitRuntime pActor, List<BattleActionResult> pResults)
         {
-            switch (pShape)
+            if (pResults == null || pResults.Count == 0)
+                return BattleActionResult.Succeeded(BattleActionType.Skill, $"{pActor.Definition.DisplayName} used a skill.", new[] { pActor.Id });
+
+            HashSet<BattleUnitId> lAffectedIds = new HashSet<BattleUnitId>();
+            List<string> lMessages = new List<string>();
+
+            foreach (BattleActionResult lResult in pResults)
             {
-                case SkillAoeShape.Circle:
-                    return Math.Abs(pOffsetX) + Math.Abs(pOffsetY) <= pSize;
+                if (lResult == null || !lResult.IsSuccess)
+                    return lResult ?? BattleActionResult.Failed(BattleActionType.Skill, "Skill execution failed.");
 
-                case SkillAoeShape.Cross:
-                    return (pOffsetX == 0 || pOffsetY == 0) && Math.Abs(pOffsetX) + Math.Abs(pOffsetY) <= pSize;
+                if (!string.IsNullOrWhiteSpace(lResult.Message))
+                    lMessages.Add(lResult.Message);
 
-                default:
-                    return pOffsetX == 0 && pOffsetY == 0;
+                if (lResult.AffectedUnitIds == null)
+                    continue;
+
+                foreach (BattleUnitId lAffectedId in lResult.AffectedUnitIds)
+                {
+                    if (lAffectedId.IsValid)
+                        lAffectedIds.Add(lAffectedId);
+                }
             }
+
+            if (lAffectedIds.Count == 0)
+                lAffectedIds.Add(pActor.Id);
+
+            string lMessage = lMessages.Count > 0
+                ? string.Join(" ", lMessages)
+                : $"{pActor.Definition.DisplayName} used a skill.";
+
+            return BattleActionResult.Succeeded(BattleActionType.Skill, lMessage, lAffectedIds);
         }
 
         #endregion

@@ -13,6 +13,7 @@ namespace TacticalPort.Core.Interfaces
         void Initialize(BattleScenarioDefinition pScenario);
         bool IsInside(GridCoord coordinate);
         bool IsWalkable(GridCoord coordinate);
+        bool BlocksLineOfSight(GridCoord coordinate);
         int GetMovementCost(GridCoord coordinate);
         bool IsOccupied(GridCoord coordinate);
         bool TryGetOccupant(GridCoord coordinate, out BattleUnitId unitId);

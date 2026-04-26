@@ -15,13 +15,6 @@ namespace TacticalPort.View
 
         #endregion
 
-        #region _____________________________| ACCESSORS
-
-        public SceneBattleScenarioDefinition Scenario => _Scenario;
-        public bool HasCells => GetComponentsInChildren<SceneBoardCell>(true).Length > 0;
-
-        #endregion
-
         private void OnValidate() => _RuntimeScenario = null;
 
         public BattleScenarioDefinition BuildScenario()
@@ -106,6 +99,7 @@ namespace TacticalPort.View
                 {
                     Coordinate = new SerializableGridCoord(lCoord.X, lCoord.Y),
                     IsWalkable = lCell.IsWalkable,
+                    BlocksLineOfSight = lCell.BlocksLineOfSight,
                     MovementCost = Mathf.Max(1, lCell.MovementCost)
                 });
 

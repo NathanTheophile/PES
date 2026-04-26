@@ -13,7 +13,8 @@ namespace TacticalPort.EditorTools
         private string _DisplayName = "New Skill";
         private string _Description = string.Empty;
         private SkillTargetType _TargetType = SkillTargetType.Unit;
-        private SkillEffectType _EffectType = SkillEffectType.Damage;
+        private SkillPrimaryEffectType _PrimaryEffectType = SkillPrimaryEffectType.Damage;
+        private SkillAdditionalEffectType _AdditionalEffectType = SkillAdditionalEffectType.None;
         private int _RangeMin = 0;
         private int _RangeMax = 1;
         private SkillTargetAlignment _TargetAlignment = SkillTargetAlignment.Any;
@@ -63,7 +64,8 @@ namespace TacticalPort.EditorTools
             GUILayout.Space(6f);
             EditorGUILayout.LabelField("Rules", EditorStyles.boldLabel);
             _TargetType = (SkillTargetType)EditorGUILayout.EnumPopup("Target Type", _TargetType);
-            _EffectType = (SkillEffectType)EditorGUILayout.EnumPopup("Effect Type", _EffectType);
+            _PrimaryEffectType = (SkillPrimaryEffectType)EditorGUILayout.EnumPopup("Effect Type", _PrimaryEffectType);
+            _AdditionalEffectType = (SkillAdditionalEffectType)EditorGUILayout.EnumPopup("Additional Effect", _AdditionalEffectType);
             _RangeMin = Mathf.Max(0, EditorGUILayout.IntField("Range Min", _RangeMin));
             _RangeMax = Mathf.Max(_RangeMin, EditorGUILayout.IntField("Range Max", _RangeMax));
             _TargetAlignment = (SkillTargetAlignment)EditorGUILayout.EnumPopup("Target Alignment", _TargetAlignment);
@@ -96,26 +98,26 @@ namespace TacticalPort.EditorTools
             GUILayout.Space(6f);
             EditorGUILayout.LabelField("Advanced Combat", EditorStyles.boldLabel);
 
-            if (_EffectType == SkillEffectType.Push)
+            if (_AdditionalEffectType == SkillAdditionalEffectType.Push)
                 _PushDistance = Mathf.Max(1, EditorGUILayout.IntField("Push Distance", _PushDistance));
-            else if (_EffectType == SkillEffectType.Teleport)
+            else if (_AdditionalEffectType == SkillAdditionalEffectType.Teleport)
                 EditorGUILayout.HelpBox("Teleport has no extra parameters for now.", MessageType.None);
-            else if (_EffectType == SkillEffectType.SwitchPositions)
+            else if (_AdditionalEffectType == SkillAdditionalEffectType.SwitchPositions)
                 EditorGUILayout.HelpBox("Switch Positions has no extra parameters for now.", MessageType.None);
 
-            if (_EffectType == SkillEffectType.Summon)
+            if (_AdditionalEffectType == SkillAdditionalEffectType.Summon)
             {
                 _SummonUnit = (BattleUnitDefinition)EditorGUILayout.ObjectField("Summon Unit", _SummonUnit, typeof(BattleUnitDefinition), false);
                 _SummonTeamRule = (SkillSummonTeamRule)EditorGUILayout.EnumPopup("Summon Team Rule", _SummonTeamRule);
             }
 
-            if (_EffectType == SkillEffectType.CreateGlyph)
+            if (_AdditionalEffectType == SkillAdditionalEffectType.CreateGlyph)
             {
                 _GlyphDurationTurns = Mathf.Max(1, EditorGUILayout.IntField("Glyph Duration", _GlyphDurationTurns));
                 _GlyphTargetRule = (SkillGlyphTargetRule)EditorGUILayout.EnumPopup("Glyph Target Rule", _GlyphTargetRule);
             }
 
-            if (_EffectType == SkillEffectType.Damage)
+            if (_PrimaryEffectType == SkillPrimaryEffectType.Damage)
             {
                 _UseDirectionalModifiers = EditorGUILayout.Toggle("Directional Modifiers", _UseDirectionalModifiers);
                 if (_UseDirectionalModifiers)
@@ -148,7 +150,10 @@ namespace TacticalPort.EditorTools
             lSerializedObject.FindProperty("_DisplayName").stringValue = string.IsNullOrWhiteSpace(_DisplayName) ? lId : _DisplayName.Trim();
             lSerializedObject.FindProperty("_Description").stringValue = _Description ?? string.Empty;
             lSerializedObject.FindProperty("_TargetType").enumValueIndex = (int)_TargetType;
-            lSerializedObject.FindProperty("_EffectType").enumValueIndex = (int)_EffectType;
+            lSerializedObject.FindProperty("_LegacyEffectType").enumValueIndex = _PrimaryEffectType == SkillPrimaryEffectType.Heal ? (int)SkillEffectType.Heal : (int)SkillEffectType.Damage;
+            lSerializedObject.FindProperty("_PrimaryEffectType").enumValueIndex = (int)_PrimaryEffectType;
+            lSerializedObject.FindProperty("_AdditionalEffectType").enumValueIndex = (int)_AdditionalEffectType;
+            lSerializedObject.FindProperty("_HasMigratedEffectSetup").boolValue = true;
             lSerializedObject.FindProperty("_Range").intValue = Mathf.Max(0, _RangeMax);
             lSerializedObject.FindProperty("_RangeMin").intValue = Mathf.Max(0, _RangeMin);
             lSerializedObject.FindProperty("_RangeMax").intValue = Mathf.Max(_RangeMin, _RangeMax);
