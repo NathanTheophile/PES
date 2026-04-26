@@ -3,20 +3,19 @@ using TacticalPort.Core.Runtime;
 using TacticalPort.Data;
 using TacticalPort.Shared;
 using UnityEngine;
+using UnityEngine.Tilemaps;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace TacticalPort.View
 {
     public sealed class BoardView : MonoBehaviour
     {
-        #region _____________________________| VALUES
-
         [Header("Layout")]
         [SerializeField] private Vector3 _Origin;
         [SerializeField] private Vector2 _CellWorldSize = new Vector2(1f, 0.5f);
         [SerializeField] private int _SortingStep = 10;
-        [SerializeField] private bool _ApplyCellVisualTransform = true;
-        [SerializeField] private float _CellVisualRotationZ = 45f;
-        [SerializeField] private Vector3 _CellVisualScale = new Vector3(0.5f, 0.18f, 1f);
 
         [Header("Display")]
         [SerializeField] private Transform _CellRoot;
@@ -34,22 +33,17 @@ namespace TacticalPort.View
 
         private readonly Dictionary<GridCoord, BattleGridCellDefinition> _CellsByCoord = new Dictionary<GridCoord, BattleGridCellDefinition>();
         private readonly Dictionary<GridCoord, SpriteRenderer> _RenderersByCoord = new Dictionary<GridCoord, SpriteRenderer>();
+        private readonly Dictionary<GridCoord, Vector3Int> _TilePositionsByCoord = new Dictionary<GridCoord, Vector3Int>();
         private readonly Dictionary<GridCoord, Color> _OccupiedColorsByCoord = new Dictionary<GridCoord, Color>();
         private readonly HashSet<GridCoord> _ReachableCells = new HashSet<GridCoord>();
         private readonly HashSet<GridCoord> _PreviewCells = new HashSet<GridCoord>();
         private BattleScenarioDefinition _Scenario;
+        private TilemapBoardAuthoring _TilemapBoardAuthoring;
+        private Tilemap _Tilemap;
         private bool _HasHoveredCell;
         private GridCoord _HoveredCell;
 
-        #endregion
-
-        #region _____________________________| ACCESSORS
-
         public BattleScenarioDefinition Scenario => _Scenario;
-
-        #endregion
-
-        #region _____________________________| UNITY
 
         private void Awake()
         {
@@ -60,12 +54,21 @@ namespace TacticalPort.View
         private void OnValidate()
         {
             CacheMissingReferences();
+#if UNITY_EDITOR
+            if (!Application.isPlaying)
+            {
+                EditorApplication.delayCall += () =>
+                {
+                    if (this == null)
+                        return;
+
+                    RebuildBoard();
+                };
+                return;
+            }
+#endif
             RebuildBoard();
         }
-
-        #endregion
-
-        #region _____________________________| BOARD
 
         public void Configure(BattleScenarioDefinition pValue)
         {
@@ -75,18 +78,20 @@ namespace TacticalPort.View
 
         public Vector3 GetWorldPosition(GridCoord pCoord)
         {
+            if (_TilemapBoardAuthoring != null && _TilemapBoardAuthoring.ContainsCell(pCoord))
+                return _TilemapBoardAuthoring.GetWorldPosition(pCoord);
+
             float lHalfWidth = _CellWorldSize.x * 0.5f;
             float lHalfHeight = _CellWorldSize.y * 0.5f;
-
-            return _Origin + new Vector3(
-                (pCoord.X - pCoord.Y) * lHalfWidth,
-                (pCoord.X + pCoord.Y) * lHalfHeight,
-                0f);
+            return _Origin + new Vector3((pCoord.X - pCoord.Y) * lHalfWidth, (pCoord.X + pCoord.Y) * lHalfHeight, 0f);
         }
 
         public bool TryGetGridCoord(Vector3 pWorldPosition, out GridCoord pCoord)
         {
             pCoord = default;
+
+            if (_TilemapBoardAuthoring != null && _TilemapBoardAuthoring.TryGetGridCoord(pWorldPosition, out pCoord))
+                return true;
 
             if (_Scenario == null)
                 return false;
@@ -99,7 +104,6 @@ namespace TacticalPort.View
             Vector3 lLocalPosition = pWorldPosition - _Origin;
             float lNormalizedX = lLocalPosition.x / lHalfWidth;
             float lNormalizedY = lLocalPosition.y / lHalfHeight;
-
             GridCoord lCandidateCoord = new GridCoord(
                 Mathf.RoundToInt((lNormalizedX + lNormalizedY) * 0.5f),
                 Mathf.RoundToInt((lNormalizedY - lNormalizedX) * 0.5f));
@@ -119,10 +123,21 @@ namespace TacticalPort.View
 
         public bool ContainsCell(GridCoord pCoord) => _CellsByCoord.ContainsKey(pCoord);
 
+        public bool TryGetCellDefinition(GridCoord pCoord, out BattleGridCellDefinition pCellDefinition)
+        {
+            if (_CellsByCoord.TryGetValue(pCoord, out BattleGridCellDefinition lCell))
+            {
+                pCellDefinition = lCell;
+                return true;
+            }
+
+            pCellDefinition = null;
+            return false;
+        }
+
         public void SetReachableCells(IReadOnlyCollection<GridCoord> pReachableCells)
         {
             _ReachableCells.Clear();
-
             if (pReachableCells != null)
             {
                 foreach (GridCoord lCoord in pReachableCells)
@@ -138,7 +153,6 @@ namespace TacticalPort.View
         public void SetOccupiedCells(IReadOnlyCollection<BattleUnitRuntime> pUnits, BattleUnitId pActiveUnitId)
         {
             _OccupiedColorsByCoord.Clear();
-
             if (pUnits != null)
             {
                 foreach (BattleUnitRuntime lUnit in pUnits)
@@ -146,9 +160,9 @@ namespace TacticalPort.View
                     if (lUnit == null || !lUnit.IsAlive)
                         continue;
 
-                    Color lOccupancyColor = ResolveOccupiedColor(lUnit, pActiveUnitId);
+                    Color lColor = ResolveOccupiedColor(lUnit, pActiveUnitId);
                     foreach (GridCoord lCell in lUnit.EnumerateOccupiedCells())
-                        _OccupiedColorsByCoord[lCell] = lOccupancyColor;
+                        _OccupiedColorsByCoord[lCell] = lColor;
                 }
             }
 
@@ -158,7 +172,6 @@ namespace TacticalPort.View
         public void SetPreviewCells(IReadOnlyCollection<GridCoord> pPreviewCells)
         {
             _PreviewCells.Clear();
-
             if (pPreviewCells != null)
             {
                 foreach (GridCoord lCoord in pPreviewCells)
@@ -190,6 +203,13 @@ namespace TacticalPort.View
         public void RebuildBoard()
         {
             ClearBoardData();
+            CacheMissingReferences();
+
+            if (TryBuildTilemapBoard())
+            {
+                RefreshCellStates();
+                return;
+            }
 
             foreach (SceneBoardCell lCell in EnumerateSceneCells())
             {
@@ -198,12 +218,11 @@ namespace TacticalPort.View
 
                 GridCoord lCoord = lCell.GridCoord;
                 lCell.transform.position = GetWorldPosition(lCoord);
-                ApplyCellVisualTransform(lCell.transform);
-
                 _CellsByCoord[lCoord] = new BattleGridCellDefinition
                 {
                     Coordinate = new SerializableGridCoord(lCoord.X, lCoord.Y),
                     IsWalkable = lCell.IsWalkable,
+                    BlocksLineOfSight = lCell.BlocksLineOfSight,
                     MovementCost = lCell.MovementCost
                 };
 
@@ -211,52 +230,35 @@ namespace TacticalPort.View
                 if (lRenderer == null)
                     continue;
 
-                lRenderer.sortingOrder = ResolveSortingOrder(lCoord);
+                lRenderer.sortingOrder = -((lCoord.X + lCoord.Y) * Mathf.Max(1, _SortingStep));
                 _RenderersByCoord[lCoord] = lRenderer;
             }
 
             RefreshCellStates();
         }
 
-        #endregion
-
-        #region _____________________________| HELPERS
-
-        public void SyncCellTransform(SceneBoardCell pCell)
-        {
-            if (pCell == null)
-                return;
-
-            pCell.transform.position = GetWorldPosition(pCell.GridCoord);
-            ApplyCellVisualTransform(pCell.transform);
-
-            SpriteRenderer lRenderer = pCell.GetComponentInChildren<SpriteRenderer>(true);
-            if (lRenderer != null)
-                lRenderer.sortingOrder = ResolveSortingOrder(pCell.GridCoord);
-        }
-
         private void ClearBoardData()
         {
+            if (_Tilemap != null)
+            {
+                foreach (Vector3Int lCell in _TilePositionsByCoord.Values)
+                    _Tilemap.SetColor(lCell, Color.white);
+            }
+
             _CellsByCoord.Clear();
             _RenderersByCoord.Clear();
+            _TilePositionsByCoord.Clear();
             _OccupiedColorsByCoord.Clear();
             _ReachableCells.Clear();
             _PreviewCells.Clear();
             _HasHoveredCell = false;
+            _Tilemap = null;
         }
 
         private void CacheMissingReferences()
         {
             _CellRoot ??= transform;
-        }
-
-        private void ApplyCellVisualTransform(Transform pCellTransform)
-        {
-            if (!_ApplyCellVisualTransform || pCellTransform == null)
-                return;
-
-            pCellTransform.localRotation = Quaternion.Euler(0f, 0f, _CellVisualRotationZ);
-            pCellTransform.localScale = _CellVisualScale;
+            _TilemapBoardAuthoring ??= GetComponent<TilemapBoardAuthoring>() ?? GetComponentInChildren<TilemapBoardAuthoring>(true);
         }
 
         private IEnumerable<SceneBoardCell> EnumerateSceneCells()
@@ -265,13 +267,17 @@ namespace TacticalPort.View
             return lRoot.GetComponentsInChildren<SceneBoardCell>(true);
         }
 
-        private int ResolveSortingOrder(GridCoord pCoord)
-        {
-            return -((pCoord.X + pCoord.Y) * Mathf.Max(1, _SortingStep));
-        }
-
         private void RefreshCellStates()
         {
+            if (_Tilemap != null)
+            {
+                foreach (KeyValuePair<GridCoord, Vector3Int> lEntry in _TilePositionsByCoord)
+                {
+                    if (_CellsByCoord.TryGetValue(lEntry.Key, out BattleGridCellDefinition lCell))
+                        _Tilemap.SetColor(lEntry.Value, ResolveCellColor(lEntry.Key, lCell));
+                }
+            }
+
             foreach (KeyValuePair<GridCoord, SpriteRenderer> lEntry in _RenderersByCoord)
             {
                 if (lEntry.Value == null || !_CellsByCoord.TryGetValue(lEntry.Key, out BattleGridCellDefinition lCell))
@@ -289,19 +295,14 @@ namespace TacticalPort.View
 
             if (lIsHovered && lIsReachable)
                 return _HoveredReachableColor;
-
             if (lIsHovered && lIsPreviewed)
                 return _HoveredPreviewColor;
-
             if (lIsHovered)
                 return pCell.IsWalkable ? _HoveredColor : _HoveredBlockedColor;
-
             if (lIsPreviewed)
                 return _PreviewColor;
-
             if (lIsReachable)
                 return _ReachableColor;
-
             if (_OccupiedColorsByCoord.TryGetValue(pCoord, out Color lOccupiedColor))
                 return lOccupiedColor;
 
@@ -313,11 +314,33 @@ namespace TacticalPort.View
             if (pUnit != null && pUnit.Id == pActiveUnitId)
                 return _ActiveOccupiedColor;
 
-            return pUnit != null && pUnit.Team == BattleTeam.Enemy
-                ? _EnemyOccupiedColor
-                : _PlayerOccupiedColor;
+            return pUnit != null && pUnit.Team == BattleTeam.Enemy ? _EnemyOccupiedColor : _PlayerOccupiedColor;
         }
 
-        #endregion
+        private bool TryBuildTilemapBoard()
+        {
+            if (_TilemapBoardAuthoring == null || _TilemapBoardAuthoring.FloorTilemap == null)
+                return false;
+
+            _Tilemap = _TilemapBoardAuthoring.FloorTilemap;
+            foreach (GridCoord lCoord in _TilemapBoardAuthoring.EnumeratePaintedCoordinates())
+            {
+                if (!_TilemapBoardAuthoring.TryGetCellDefinition(lCoord, out BattleGridCellDefinition lCellDefinition))
+                    continue;
+                if (!_TilemapBoardAuthoring.TryGetAuthoredCell(lCoord, out Vector3Int lTilePosition))
+                    continue;
+
+                _CellsByCoord[lCoord] = lCellDefinition;
+#if UNITY_EDITOR
+                if (Application.isPlaying)
+                    _Tilemap.SetTileFlags(lTilePosition, TileFlags.None);
+#else
+                _Tilemap.SetTileFlags(lTilePosition, TileFlags.None);
+#endif
+                _TilePositionsByCoord[lCoord] = lTilePosition;
+            }
+
+            return _CellsByCoord.Count > 0;
+        }
     }
 }

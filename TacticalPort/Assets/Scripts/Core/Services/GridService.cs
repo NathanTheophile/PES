@@ -67,6 +67,14 @@ namespace TacticalPort.Core.Services
             return _CellsByCoordinate.TryGetValue(pCoordinate, out BattleGridCellDefinition lCell) ? lCell.IsWalkable : true;
         }
 
+        public bool BlocksLineOfSight(GridCoord pCoordinate)
+        {
+            if (!IsInside(pCoordinate))
+                return true;
+
+            return _CellsByCoordinate.TryGetValue(pCoordinate, out BattleGridCellDefinition lCell) && lCell.BlocksLineOfSight;
+        }
+
         public int GetMovementCost(GridCoord pCoordinate)
         {
             if (!IsWalkable(pCoordinate))

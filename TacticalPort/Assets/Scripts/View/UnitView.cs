@@ -1,6 +1,8 @@
+using System.Collections;
 using TacticalPort.Core.Runtime;
 using TacticalPort.Data;
 using TacticalPort.Shared;
+using TMPro;
 using UnityEngine;
 
 namespace TacticalPort.View
@@ -12,8 +14,11 @@ namespace TacticalPort.View
         [SerializeField] private SpriteRenderer _SpriteRenderer;
         [SerializeField] private Color _DefeatedTint = new Color(0.45f, 0.45f, 0.45f, 0.8f);
         [SerializeField] private int _BodySortingOrderOffset = 20;
-        [SerializeField] private bool _ScaleWithFootprint = false;
-        [SerializeField] private Vector2 _FootprintScaleMultiplier = new Vector2(1f, 1f);
+        [SerializeField] private RectTransform _FeedbackRoot;
+        [SerializeField] private TMP_Text _ValuePopupPrefab;
+        [SerializeField] private Color _DamagePopupColor = new Color(0.86f, 0.15f, 0.07f, 1f);
+        [SerializeField] private Color _HealPopupColor = new Color(0.19f, 0.84f, 0.34f, 1f);
+        [SerializeField] private float _PopupLifetimeSeconds = 2f;
 
         private BattleUnitRuntime _Runtime;
         private BattleUnitDefinition _Definition;
@@ -48,12 +53,23 @@ namespace TacticalPort.View
 
         public void Bind(BattleUnitRuntime pRuntime, BattleUnitDefinition pDefinition, BoardView pBoardView)
         {
+            if (_Runtime != null)
+                _Runtime.ValueChanged -= HandleValueChanged;
+
             _Runtime = pRuntime;
             _Definition = pDefinition;
             _BoardView = pBoardView;
 
             CacheMissingReferences(true);
+            if (_Runtime != null)
+                _Runtime.ValueChanged += HandleValueChanged;
             Refresh();
+        }
+
+        private void OnDestroy()
+        {
+            if (_Runtime != null)
+                _Runtime.ValueChanged -= HandleValueChanged;
         }
 
         #endregion
@@ -73,7 +89,7 @@ namespace TacticalPort.View
                 _SpriteRenderer.enabled = true;
                 _SpriteRenderer.color = _Runtime.IsAlive ? (_Definition != null ? _Definition.Tint : Color.white) : _DefeatedTint;
                 _SpriteRenderer.sortingOrder = ResolveSortingOrder(_BodySortingOrderOffset);
-                _SpriteRenderer.transform.localScale = ResolveSpriteScale();
+                _SpriteRenderer.transform.localScale = _BaseSpriteLocalScale;
             }
         }
 
@@ -87,6 +103,7 @@ namespace TacticalPort.View
                 _SpriteRenderer = null;
 
             _SpriteRenderer ??= ResolveBodyRenderer();
+            _FeedbackRoot ??= transform.Find("UI_Feedbacks") as RectTransform;
 
             if (_SpriteRenderer == null && pLogError)
                 Debug.LogError("UnitView requires a SpriteRenderer on the root, on a child named 'BodyRenderer', or somewhere under the UnitView hierarchy.", this);
@@ -119,19 +136,6 @@ namespace TacticalPort.View
             return lAccumulated / lCellCount;
         }
 
-        private Vector3 ResolveSpriteScale()
-        {
-            if (!_ScaleWithFootprint || _Definition == null)
-                return _BaseSpriteLocalScale;
-
-            float lScaleX = Mathf.Max(1f, _Definition.FootprintWidth * Mathf.Max(0.1f, _FootprintScaleMultiplier.x));
-            float lScaleY = Mathf.Max(1f, _Definition.FootprintHeight * Mathf.Max(0.1f, _FootprintScaleMultiplier.y));
-            return new Vector3(
-                _BaseSpriteLocalScale.x * lScaleX,
-                _BaseSpriteLocalScale.y * lScaleY,
-                _BaseSpriteLocalScale.z);
-        }
-
         private SpriteRenderer ResolveBodyRenderer()
         {
             SpriteRenderer lRootRenderer = GetComponent<SpriteRenderer>();
@@ -157,6 +161,25 @@ namespace TacticalPort.View
             pRenderer != null
             && pRenderer.transform != null
             && (pRenderer.transform == transform || pRenderer.transform.IsChildOf(transform));
+
+        private void HandleValueChanged(int pAmount, bool pIsHeal)
+        {
+            if (pAmount <= 0 || _FeedbackRoot == null || _ValuePopupPrefab == null)
+                return;
+
+            TMP_Text lPopup = Instantiate(_ValuePopupPrefab, _FeedbackRoot);
+            lPopup.text = pIsHeal ? $"+ {pAmount}" : $"- {pAmount}";
+            lPopup.color = pIsHeal ? _HealPopupColor : _DamagePopupColor;
+            StartCoroutine(DestroyPopupAfterDelay(lPopup.gameObject));
+        }
+
+        private IEnumerator DestroyPopupAfterDelay(GameObject pPopup)
+        {
+            yield return new WaitForSeconds(Mathf.Max(0.1f, _PopupLifetimeSeconds));
+
+            if (pPopup != null)
+                Destroy(pPopup);
+        }
 
         #endregion
     }

@@ -147,6 +147,7 @@ namespace TacticalPort.Data
                     {
                         Coordinate = new SerializableGridCoord(lX, lY),
                         IsWalkable = true,
+                        BlocksLineOfSight = false,
                         MovementCost = DefaultMovementCost
                     };
                 }

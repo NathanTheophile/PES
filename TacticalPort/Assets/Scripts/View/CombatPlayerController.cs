@@ -510,7 +510,7 @@ namespace TacticalPort.View
             {
                 for (int lOffsetX = -lSize; lOffsetX <= lSize; lOffsetX++)
                 {
-                    if (!IsPreviewCellInsideShape(pSkill.AoeShape, lOffsetX, lOffsetY, lSize))
+                    if (!GridLineOfSightUtility.IsInsideAreaShape(pSkill.AoeShape, lOffsetX, lOffsetY, lSize))
                         continue;
 
                     GridCoord lCandidate = new GridCoord(lOrigin.X + lOffsetX, lOrigin.Y + lOffsetY);
@@ -537,24 +537,6 @@ namespace TacticalPort.View
 
                 default:
                     return pActiveUnit != null ? pActiveUnit.Position : default;
-            }
-        }
-
-        private static bool IsPreviewCellInsideShape(SkillAoeShape pShape, int pOffsetX, int pOffsetY, int pSize)
-        {
-            if (pShape == SkillAoeShape.Single || pSize <= 0)
-                return pOffsetX == 0 && pOffsetY == 0;
-
-            switch (pShape)
-            {
-                case SkillAoeShape.Circle:
-                    return Mathf.Abs(pOffsetX) + Mathf.Abs(pOffsetY) <= pSize;
-
-                case SkillAoeShape.Cross:
-                    return (pOffsetX == 0 || pOffsetY == 0) && Mathf.Abs(pOffsetX) + Mathf.Abs(pOffsetY) <= pSize;
-
-                default:
-                    return pOffsetX == 0 && pOffsetY == 0;
             }
         }
 
@@ -636,7 +618,7 @@ namespace TacticalPort.View
             if (lDistance < lRangeMin || lDistance > lRangeMax)
                 return false;
 
-            if (!MatchesAlignment(pActiveUnit.Position, pTargetCell, pSkill.TargetAlignment))
+            if (!GridLineOfSightUtility.MatchesAlignment(pActiveUnit.Position, pTargetCell, pSkill.TargetAlignment))
                 return false;
 
             if (!TryGetBoardCellDefinition(pTargetCell, out BattleGridCellDefinition lCellDefinition) || !lCellDefinition.IsWalkable)
@@ -650,94 +632,28 @@ namespace TacticalPort.View
 
         private bool TryGetBoardCellDefinition(GridCoord pCell, out BattleGridCellDefinition pCellDefinition)
         {
+            if (_BoardView != null)
+                return _BoardView.TryGetCellDefinition(pCell, out pCellDefinition);
+
             pCellDefinition = null;
-
-            if (_BoardView?.Scenario == null)
-                return false;
-
-            foreach (BattleGridCellDefinition lCell in _BoardView.Scenario.EnumerateCells())
-            {
-                if (lCell == null || lCell.Coordinate.ToRuntime() != pCell)
-                    continue;
-
-                pCellDefinition = lCell;
-                return true;
-            }
-
             return false;
         }
 
         private bool HasLineOfSight(GridCoord pOrigin, GridCoord pTarget)
         {
-            if (_BoardView == null || _BoardView.Scenario == null)
+            if (_BoardView == null)
                 return false;
 
-            Dictionary<GridCoord, BattleGridCellDefinition> lCellsByCoord = new Dictionary<GridCoord, BattleGridCellDefinition>();
-            foreach (BattleGridCellDefinition lCell in _BoardView.Scenario.EnumerateCells())
-            {
-                if (lCell == null)
-                    continue;
-
-                lCellsByCoord[lCell.Coordinate.ToRuntime()] = lCell;
-            }
-
-            int lX0 = pOrigin.X;
-            int lY0 = pOrigin.Y;
-            int lX1 = pTarget.X;
-            int lY1 = pTarget.Y;
-            int lDeltaX = Mathf.Abs(lX1 - lX0);
-            int lDeltaY = Mathf.Abs(lY1 - lY0);
-            int lStepX = lX0 < lX1 ? 1 : -1;
-            int lStepY = lY0 < lY1 ? 1 : -1;
-            int lError = lDeltaX - lDeltaY;
-            int lX = lX0;
-            int lY = lY0;
-
-            while (lX != lX1 || lY != lY1)
-            {
-                int lDoubleError = lError * 2;
-
-                if (lDoubleError > -lDeltaY)
+            return GridLineOfSightUtility.HasLineOfSight(
+                pOrigin,
+                pTarget,
+                pCell =>
                 {
-                    lError -= lDeltaY;
-                    lX += lStepX;
-                }
+                    if (!TryGetBoardCellDefinition(pCell, out BattleGridCellDefinition lCell))
+                        return true;
 
-                if (lDoubleError < lDeltaX)
-                {
-                    lError += lDeltaX;
-                    lY += lStepY;
-                }
-
-                if (lX == lX1 && lY == lY1)
-                    break;
-
-                GridCoord lCellCoord = new GridCoord(lX, lY);
-                if (!lCellsByCoord.TryGetValue(lCellCoord, out BattleGridCellDefinition lCell)
-                    || !lCell.IsWalkable
-                    || TryResolveAliveUnitAtCell(lCellCoord, out _))
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        private static bool MatchesAlignment(GridCoord pOrigin, GridCoord pTarget, SkillTargetAlignment pAlignment)
-        {
-            if (pOrigin == pTarget || pAlignment == SkillTargetAlignment.Any)
-                return true;
-
-            int lDeltaX = Mathf.Abs(pTarget.X - pOrigin.X);
-            int lDeltaY = Mathf.Abs(pTarget.Y - pOrigin.Y);
-
-            return pAlignment switch
-            {
-                SkillTargetAlignment.Orthogonal => pOrigin.X == pTarget.X || pOrigin.Y == pTarget.Y,
-                SkillTargetAlignment.Diagonal => lDeltaX == lDeltaY,
-                _ => true
-            };
+                    return lCell.BlocksLineOfSight || TryResolveAliveUnitAtCell(pCell, out _);
+                });
         }
 
         private bool CanRun() => _Bootstrap != null

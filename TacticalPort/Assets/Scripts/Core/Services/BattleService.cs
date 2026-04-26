@@ -100,6 +100,7 @@ namespace TacticalPort.Core.Services
                 return false;
             }
 
+            ApplyStartTurnEffects();
             Phase = BattlePhase.AwaitingAction;
             return true;
         }
@@ -135,7 +136,7 @@ namespace TacticalPort.Core.Services
             if (!lUnit.TrySpendMovement(lPath.TotalCost))
                 return BattleActionResult.Failed(BattleActionType.Move, "Unit does not have enough movement.");
 
-            string lMessage = AppendCellEffectMessage("Movement applied.", ResolveEnterCellEffectMessage(lUnit));
+            string lMessage = "Movement applied.";
             RefreshPhaseStates(new[] { pUnitId });
             CleanupDefeatedUnits();
             CompleteTurnIfActiveUnitIsGone();
@@ -348,7 +349,6 @@ namespace TacticalPort.Core.Services
 
             pUnit.SetPosition(pDestination);
             pUnit.FaceDirection(new GridCoord(pDestination.X - lOrigin.X, pDestination.Y - lOrigin.Y));
-            ApplyEnterCellEffects(pUnit);
             return true;
         }
 
@@ -384,8 +384,6 @@ namespace TacticalPort.Core.Services
             pSecondUnit.SetPosition(lFirstPosition);
             pFirstUnit.FaceTowards(lSecondPosition);
             pSecondUnit.FaceTowards(lFirstPosition);
-            ApplyEnterCellEffects(pFirstUnit);
-            ApplyEnterCellEffects(pSecondUnit);
             return true;
         }
 
@@ -409,7 +407,6 @@ namespace TacticalPort.Core.Services
             _UnitsById[lUnitId] = lRuntime;
             RefreshPhaseStates(lRuntime);
             _TurnSystem.AddUnit(lRuntime);
-            ApplyEnterCellEffects(lRuntime);
             return lRuntime;
         }
 
@@ -431,50 +428,26 @@ namespace TacticalPort.Core.Services
             }
         }
 
-        private void ApplyEnterCellEffects(BattleUnitRuntime pUnit)
+        private void ApplyStartTurnEffects()
         {
-            if (pUnit == null || !pUnit.IsAlive)
+            if (!TryResolveActiveUnit(out BattleUnitRuntime lActiveUnit) || lActiveUnit == null || !lActiveUnit.IsAlive)
                 return;
 
-            foreach (GridCoord lCell in _GridService.GetOccupiedCells(pUnit.Id))
+            foreach (GridCoord lCell in _GridService.GetOccupiedCells(lActiveUnit.Id))
             {
                 foreach (GridGlyphRuntime lGlyph in _GridService.GetGlyphsAt(lCell))
                 {
-                    if (lGlyph == null || !lGlyph.CanAffect(pUnit))
+                    if (lGlyph == null || !lGlyph.CanAffect(lActiveUnit))
                         continue;
 
-                    pUnit.ApplyDamage(lGlyph.Power);
-                }
-            }
-        }
-
-        private string ResolveEnterCellEffectMessage(BattleUnitRuntime pUnit)
-        {
-            if (pUnit == null)
-                return string.Empty;
-
-            int lGlyphCount = 0;
-            foreach (GridCoord lCell in _GridService.GetOccupiedCells(pUnit.Id))
-            {
-                foreach (GridGlyphRuntime lGlyph in _GridService.GetGlyphsAt(lCell))
-                {
-                    if (lGlyph != null && lGlyph.CanAffect(pUnit))
-                        lGlyphCount++;
+                    lActiveUnit.ApplyDamage(lGlyph.Power);
                 }
             }
 
-            return lGlyphCount > 0 ? $"{pUnit.Definition.DisplayName} triggered {lGlyphCount} glyph(s)." : string.Empty;
-        }
-
-        private static string AppendCellEffectMessage(string pBaseMessage, string pCellEffectMessage)
-        {
-            if (string.IsNullOrWhiteSpace(pCellEffectMessage))
-                return pBaseMessage ?? string.Empty;
-
-            if (string.IsNullOrWhiteSpace(pBaseMessage))
-                return pCellEffectMessage;
-
-            return $"{pBaseMessage} {pCellEffectMessage}";
+            RefreshPhaseStates(new[] { lActiveUnit.Id });
+            CleanupDefeatedUnits();
+            CompleteTurnIfActiveUnitIsGone();
+            EvaluateOutcome();
         }
 
         private void CleanupDefeatedUnits()

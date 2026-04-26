@@ -53,6 +53,7 @@ namespace TacticalPort.Core.Runtime
         public IReadOnlyList<SkillDefinition> Skills => _Skills;
         public IReadOnlyList<GridCoord> OccupiedCellOffsets => _OccupiedCellOffsets;
         public IReadOnlyList<BattleStateRuntime> ActiveStates => _ActiveStates;
+        public event Action<int, bool> ValueChanged;
 
         #endregion
 
@@ -245,6 +246,8 @@ namespace TacticalPort.Core.Runtime
 
             int lApplied = Math.Min(CurrentHealth, lResolvedAmount);
             CurrentHealth -= lApplied;
+            if (lApplied > 0)
+                ValueChanged?.Invoke(lApplied, false);
             return lApplied;
         }
 
@@ -256,6 +259,8 @@ namespace TacticalPort.Core.Runtime
             int lMissingHealth = Math.Max(0, Definition.MaxHealth - CurrentHealth);
             int lRestored = Math.Min(lMissingHealth, pAmount);
             CurrentHealth += lRestored;
+            if (lRestored > 0)
+                ValueChanged?.Invoke(lRestored, true);
             return lRestored;
         }
 
@@ -548,7 +553,8 @@ namespace TacticalPort.Core.Runtime
                 "basic_attack",
                 "Basic Attack",
                 SkillTargetType.Unit,
-                SkillEffectType.Damage,
+                SkillPrimaryEffectType.Damage,
+                SkillAdditionalEffectType.None,
                 1,
                 3,
                 1,
