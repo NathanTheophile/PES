@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f40c21058987b94b8a7de74797fdb53, type: 3}
+  m_Name: Skill_debugskill1
+  m_EditorClassIdentifier: Assembly-CSharp::TacticalPort.Data.SkillDefinition
+  _Id: debugskill1
+  _DisplayName: DebugSkill1
+  _Description: 
+  _TargetType: 1
+  _LegacyEffectType: 0
+  _PrimaryEffectType: 1
+  _AdditionalEffectType: 0
+  _HasMigratedEffectSetup: 1
+  _Range: 7
+  _RangeMin: 1
+  _RangeMax: 7
+  _Linear: 1
+  _TargetAlignment: 0
+  _RequiresLineOfSight: 1
+  _CanAffectCaster: 1
+  _AoeShape: 2
+  _AoeSize: 2
+  _UsePerTurn: 1
+  _UsePerTarget: 0
+  _CooldownTurns: 0
+  _Power: 10
+  _ActionPointCost: 3
+  _PushDistance: 1
+  _SummonUnit: {fileID: 0}
+  _SummonTeamRule: 0
+  _GlyphDurationTurns: 1
+  _GlyphTargetRule: 2
+  _UseDirectionalModifiers: 0
+  _FrontDamageModifier: 0
+  _SideDamageModifier: 0
+  _BackDamageModifier: 0
+  _Icon: {fileID: 0}

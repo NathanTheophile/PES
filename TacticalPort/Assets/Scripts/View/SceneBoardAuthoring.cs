@@ -9,7 +9,7 @@ namespace TacticalPort.View
     {
         #region _____________________________| VALUES
 
-        [SerializeField] private SceneBattleScenarioDefinition _Scenario = new SceneBattleScenarioDefinition();
+        [SerializeField] private SceneScenarioDefinition _Scenario = new SceneScenarioDefinition();
 
         private BattleScenarioDefinition _RuntimeScenario;
 
@@ -80,11 +80,11 @@ namespace TacticalPort.View
 
         private BattleScenarioDefinition CreateRuntimeScenario(IReadOnlyList<SceneBoardCell> pCells)
         {
-            List<BattleGridCellDefinition> lCells = new List<BattleGridCellDefinition>(pCells.Count);
-            List<BattleUnitSpawnDefinition> lUnits = new List<BattleUnitSpawnDefinition>();
+            List<CellDefinition> lCells = new List<CellDefinition>(pCells.Count);
+            List<UnitSpawnDefinition> lUnits = new List<UnitSpawnDefinition>();
             int lWidth = 1;
             int lHeight = 1;
-            SceneBattleScenarioDefinition lScenarioMetadata = _Scenario ?? new SceneBattleScenarioDefinition();
+            SceneScenarioDefinition lScenarioMetadata = _Scenario ?? new SceneScenarioDefinition();
             int lDefaultMovementCost = lScenarioMetadata.DefaultMovementCost;
 
             for (int lIndex = 0; lIndex < pCells.Count; lIndex++)
@@ -95,7 +95,7 @@ namespace TacticalPort.View
                 lWidth = Mathf.Max(lWidth, lCoord.X + 1);
                 lHeight = Mathf.Max(lHeight, lCoord.Y + 1);
 
-                lCells.Add(new BattleGridCellDefinition
+                lCells.Add(new CellDefinition
                 {
                     Coordinate = new SerializableGridCoord(lCoord.X, lCoord.Y),
                     IsWalkable = lCell.IsWalkable,
@@ -105,7 +105,7 @@ namespace TacticalPort.View
 
                 if (lCell.OccupantDefinition != null)
                 {
-                    lUnits.Add(new BattleUnitSpawnDefinition
+                    lUnits.Add(new UnitSpawnDefinition
                     {
                         Unit = lCell.OccupantDefinition,
                         StartCoordinate = new SerializableGridCoord(lCoord.X, lCoord.Y)

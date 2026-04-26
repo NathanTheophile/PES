@@ -10,10 +10,10 @@ namespace TacticalPort.Core.Runtime
     {
         #region _____________________________| VALUES
 
-        private readonly IReadOnlyDictionary<BattleUnitId, BattleUnitRuntime> _UnitsById;
-        private readonly Func<BattleUnitRuntime, GridCoord, bool> _TryRelocateUnit;
-        private readonly Func<BattleUnitRuntime, BattleUnitRuntime, bool> _TrySwapUnits;
-        private readonly Func<BattleUnitDefinition, SkillSummonTeamRule, BattleUnitRuntime, GridCoord, BattleUnitRuntime> _TrySummonUnit;
+        private readonly IReadOnlyDictionary<UnitId, UnitRuntime> _UnitsById;
+        private readonly Func<UnitRuntime, GridCoord, bool> _TryRelocateUnit;
+        private readonly Func<UnitRuntime, UnitRuntime, bool> _TrySwapUnits;
+        private readonly Func<UnitDefinition, SkillSummonTeamRule, UnitRuntime, GridCoord, UnitRuntime> _TrySummonUnit;
         private readonly Action<GridGlyphRuntime> _AddGlyph;
 
         #endregion
@@ -22,10 +22,10 @@ namespace TacticalPort.Core.Runtime
 
         public SkillExecutionContext(
             IGridService pGridService,
-            IReadOnlyDictionary<BattleUnitId, BattleUnitRuntime> pUnitsById,
-            Func<BattleUnitRuntime, GridCoord, bool> pTryRelocateUnit,
-            Func<BattleUnitRuntime, BattleUnitRuntime, bool> pTrySwapUnits,
-            Func<BattleUnitDefinition, SkillSummonTeamRule, BattleUnitRuntime, GridCoord, BattleUnitRuntime> pTrySummonUnit,
+            IReadOnlyDictionary<UnitId, UnitRuntime> pUnitsById,
+            Func<UnitRuntime, GridCoord, bool> pTryRelocateUnit,
+            Func<UnitRuntime, UnitRuntime, bool> pTrySwapUnits,
+            Func<UnitDefinition, SkillSummonTeamRule, UnitRuntime, GridCoord, UnitRuntime> pTrySummonUnit,
             Action<GridGlyphRuntime> pAddGlyph)
         {
             GridService = pGridService;
@@ -46,19 +46,19 @@ namespace TacticalPort.Core.Runtime
 
         #region _____________________________| HELPERS
 
-        public bool TryGetUnit(BattleUnitId pUnitId, out BattleUnitRuntime pUnit) => _UnitsById.TryGetValue(pUnitId, out pUnit);
+        public bool TryGetUnit(UnitId pUnitId, out UnitRuntime pUnit) => _UnitsById.TryGetValue(pUnitId, out pUnit);
 
-        public bool TryRelocateUnit(BattleUnitRuntime pUnit, GridCoord pDestination)
+        public bool TryRelocateUnit(UnitRuntime pUnit, GridCoord pDestination)
         {
             return _TryRelocateUnit != null && _TryRelocateUnit.Invoke(pUnit, pDestination);
         }
 
-        public bool TrySwapUnits(BattleUnitRuntime pFirstUnit, BattleUnitRuntime pSecondUnit)
+        public bool TrySwapUnits(UnitRuntime pFirstUnit, UnitRuntime pSecondUnit)
         {
             return _TrySwapUnits != null && _TrySwapUnits.Invoke(pFirstUnit, pSecondUnit);
         }
 
-        public BattleUnitRuntime TrySummonUnit(BattleUnitDefinition pDefinition, SkillSummonTeamRule pTeamRule, BattleUnitRuntime pSummoner, GridCoord pDestination)
+        public UnitRuntime TrySummonUnit(UnitDefinition pDefinition, SkillSummonTeamRule pTeamRule, UnitRuntime pSummoner, GridCoord pDestination)
         {
             return _TrySummonUnit != null ? _TrySummonUnit.Invoke(pDefinition, pTeamRule, pSummoner, pDestination) : null;
         }

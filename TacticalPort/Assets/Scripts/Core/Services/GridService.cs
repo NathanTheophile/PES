@@ -11,10 +11,10 @@ namespace TacticalPort.Core.Services
     {
         #region _____________________________| VALUES
 
-        private readonly Dictionary<GridCoord, BattleGridCellDefinition> _CellsByCoordinate = new Dictionary<GridCoord, BattleGridCellDefinition>();
-        private readonly Dictionary<GridCoord, BattleUnitId> _OccupantsByCoordinate = new Dictionary<GridCoord, BattleUnitId>();
-        private readonly Dictionary<BattleUnitId, GridCoord> _CoordinatesByUnit = new Dictionary<BattleUnitId, GridCoord>();
-        private readonly Dictionary<BattleUnitId, List<GridCoord>> _FootprintsByUnit = new Dictionary<BattleUnitId, List<GridCoord>>();
+        private readonly Dictionary<GridCoord, CellDefinition> _CellsByCoordinate = new Dictionary<GridCoord, CellDefinition>();
+        private readonly Dictionary<GridCoord, UnitId> _OccupantsByCoordinate = new Dictionary<GridCoord, UnitId>();
+        private readonly Dictionary<UnitId, GridCoord> _CoordinatesByUnit = new Dictionary<UnitId, GridCoord>();
+        private readonly Dictionary<UnitId, List<GridCoord>> _FootprintsByUnit = new Dictionary<UnitId, List<GridCoord>>();
         private readonly Dictionary<GridCoord, List<GridGlyphRuntime>> _GlyphsByCoordinate = new Dictionary<GridCoord, List<GridGlyphRuntime>>();
         private BattleScenarioDefinition _Scenario;
 
@@ -44,7 +44,7 @@ namespace TacticalPort.Core.Services
             _FootprintsByUnit.Clear();
             _GlyphsByCoordinate.Clear();
 
-            foreach (BattleGridCellDefinition lCell in pScenario.EnumerateCells())
+            foreach (CellDefinition lCell in pScenario.EnumerateCells())
             {
                 if (lCell == null)
                     continue;
@@ -64,7 +64,7 @@ namespace TacticalPort.Core.Services
             if (!IsInside(pCoordinate))
                 return false;
 
-            return _CellsByCoordinate.TryGetValue(pCoordinate, out BattleGridCellDefinition lCell) ? lCell.IsWalkable : true;
+            return _CellsByCoordinate.TryGetValue(pCoordinate, out CellDefinition lCell) ? lCell.IsWalkable : true;
         }
 
         public bool BlocksLineOfSight(GridCoord pCoordinate)
@@ -72,7 +72,7 @@ namespace TacticalPort.Core.Services
             if (!IsInside(pCoordinate))
                 return true;
 
-            return _CellsByCoordinate.TryGetValue(pCoordinate, out BattleGridCellDefinition lCell) && lCell.BlocksLineOfSight;
+            return _CellsByCoordinate.TryGetValue(pCoordinate, out CellDefinition lCell) && lCell.BlocksLineOfSight;
         }
 
         public int GetMovementCost(GridCoord pCoordinate)
@@ -80,31 +80,31 @@ namespace TacticalPort.Core.Services
             if (!IsWalkable(pCoordinate))
                 return int.MaxValue;
 
-            if (_CellsByCoordinate.TryGetValue(pCoordinate, out BattleGridCellDefinition lCell))
+            if (_CellsByCoordinate.TryGetValue(pCoordinate, out CellDefinition lCell))
                 return Math.Max(1, lCell.MovementCost > 0 ? lCell.MovementCost : _Scenario.DefaultMovementCost);
 
             return _Scenario != null ? Math.Max(1, _Scenario.DefaultMovementCost) : 1;
         }
 
         public bool IsOccupied(GridCoord pCoordinate) => _OccupantsByCoordinate.ContainsKey(pCoordinate);
-        public bool TryGetOccupant(GridCoord pCoordinate, out BattleUnitId pUnitId) => _OccupantsByCoordinate.TryGetValue(pCoordinate, out pUnitId);
-        public bool TryGetUnitPosition(BattleUnitId pUnitId, out GridCoord pCoordinate) => _CoordinatesByUnit.TryGetValue(pUnitId, out pCoordinate);
+        public bool TryGetOccupant(GridCoord pCoordinate, out UnitId pUnitId) => _OccupantsByCoordinate.TryGetValue(pCoordinate, out pUnitId);
+        public bool TryGetUnitPosition(UnitId pUnitId, out GridCoord pCoordinate) => _CoordinatesByUnit.TryGetValue(pUnitId, out pCoordinate);
 
-        public bool CanUnitOccupy(BattleUnitId pUnitId, GridCoord pCoordinate)
+        public bool CanUnitOccupy(UnitId pUnitId, GridCoord pCoordinate)
         {
             foreach (GridCoord lCell in EnumerateOccupiedCells(pUnitId, pCoordinate))
             {
                 if (!IsWalkable(lCell))
                     return false;
 
-                if (_OccupantsByCoordinate.TryGetValue(lCell, out BattleUnitId lOccupant) && lOccupant != pUnitId)
+                if (_OccupantsByCoordinate.TryGetValue(lCell, out UnitId lOccupant) && lOccupant != pUnitId)
                     return false;
             }
 
             return true;
         }
 
-        public IReadOnlyCollection<GridCoord> GetOccupiedCells(BattleUnitId pUnitId)
+        public IReadOnlyCollection<GridCoord> GetOccupiedCells(UnitId pUnitId)
         {
             if (!_CoordinatesByUnit.TryGetValue(pUnitId, out GridCoord lCoordinate))
                 return Array.Empty<GridCoord>();
@@ -137,7 +137,7 @@ namespace TacticalPort.Core.Services
 
         #region _____________________________| OCCUPANCY
 
-        public void RegisterUnitFootprint(BattleUnitId pUnitId, IReadOnlyCollection<GridCoord> pOccupiedCellOffsets)
+        public void RegisterUnitFootprint(UnitId pUnitId, IReadOnlyCollection<GridCoord> pOccupiedCellOffsets)
         {
             List<GridCoord> lOffsets = new List<GridCoord>();
 
@@ -157,7 +157,7 @@ namespace TacticalPort.Core.Services
             _FootprintsByUnit[pUnitId] = lOffsets;
         }
 
-        public bool TryPlaceUnit(BattleUnitId pUnitId, GridCoord pCoordinate)
+        public bool TryPlaceUnit(UnitId pUnitId, GridCoord pCoordinate)
         {
             if (!pUnitId.IsValid || _CoordinatesByUnit.ContainsKey(pUnitId) || !CanUnitOccupy(pUnitId, pCoordinate))
                 return false;
@@ -169,7 +169,7 @@ namespace TacticalPort.Core.Services
             return true;
         }
 
-        public bool TryMoveUnit(BattleUnitId pUnitId, GridCoord pDestination)
+        public bool TryMoveUnit(UnitId pUnitId, GridCoord pDestination)
         {
             if (!pUnitId.IsValid || !_CoordinatesByUnit.TryGetValue(pUnitId, out GridCoord lOrigin) || !CanUnitOccupy(pUnitId, pDestination))
                 return false;
@@ -184,7 +184,7 @@ namespace TacticalPort.Core.Services
             return true;
         }
 
-        public bool RemoveUnit(BattleUnitId pUnitId)
+        public bool RemoveUnit(UnitId pUnitId)
         {
             if (!_CoordinatesByUnit.TryGetValue(pUnitId, out GridCoord lCoordinate))
                 return false;
@@ -255,7 +255,7 @@ namespace TacticalPort.Core.Services
 
         #region _____________________________| HELPERS
 
-        private IEnumerable<GridCoord> EnumerateOccupiedCells(BattleUnitId pUnitId, GridCoord pAnchor)
+        private IEnumerable<GridCoord> EnumerateOccupiedCells(UnitId pUnitId, GridCoord pAnchor)
         {
             if (!_FootprintsByUnit.TryGetValue(pUnitId, out List<GridCoord> lOffsets) || lOffsets == null || lOffsets.Count == 0)
             {

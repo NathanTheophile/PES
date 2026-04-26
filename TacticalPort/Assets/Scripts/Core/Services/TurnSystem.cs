@@ -10,7 +10,7 @@ namespace TacticalPort.Core.Services
     {
         #region _____________________________| VALUES
 
-        private readonly List<BattleUnitRuntime> _TurnOrder = new List<BattleUnitRuntime>();
+        private readonly List<UnitRuntime> _TurnOrder = new List<UnitRuntime>();
         private int _CurrentIndex = -1;
 
         #endregion
@@ -24,7 +24,7 @@ namespace TacticalPort.Core.Services
 
         #region _____________________________| SETUP
 
-        public void Initialize(IEnumerable<BattleUnitRuntime> pUnits)
+        public void Initialize(IEnumerable<UnitRuntime> pUnits)
         {
             _TurnOrder.Clear();
             _TurnOrder.AddRange(
@@ -69,7 +69,7 @@ namespace TacticalPort.Core.Services
                 RoundIndex = 1;
             }
 
-            BattleUnitRuntime lActiveUnit = _TurnOrder[_CurrentIndex];
+            UnitRuntime lActiveUnit = _TurnOrder[_CurrentIndex];
             lActiveUnit.BeginTurn();
 
             CurrentTurn = new BattleTurnContext(RoundIndex, _CurrentIndex + 1, lActiveUnit.Id);
@@ -82,7 +82,7 @@ namespace TacticalPort.Core.Services
             if (CurrentTurn == null)
                 return;
 
-            BattleUnitId lActiveUnitId = CurrentTurn.UnitId;
+            UnitId lActiveUnitId = CurrentTurn.UnitId;
 
             for (int lIndex = 0; lIndex < _TurnOrder.Count; lIndex++)
             {
@@ -96,7 +96,7 @@ namespace TacticalPort.Core.Services
             CurrentTurn = null;
         }
 
-        public void AddUnit(BattleUnitRuntime pUnit)
+        public void AddUnit(UnitRuntime pUnit)
         {
             if (pUnit == null || !pUnit.IsAlive)
                 return;
@@ -110,7 +110,7 @@ namespace TacticalPort.Core.Services
             InsertSorted(pUnit);
         }
 
-        public void RemoveUnit(BattleUnitId pUnitId)
+        public void RemoveUnit(UnitId pUnitId)
         {
             bool lRemovedActiveUnit = CurrentTurn != null && CurrentTurn.UnitId == pUnitId;
 
@@ -147,13 +147,13 @@ namespace TacticalPort.Core.Services
             }
         }
 
-        private void InsertSorted(BattleUnitRuntime pUnit)
+        private void InsertSorted(UnitRuntime pUnit)
         {
             int lInsertIndex = _TurnOrder.Count;
 
             for (int lIndex = 0; lIndex < _TurnOrder.Count; lIndex++)
             {
-                BattleUnitRuntime lExistingUnit = _TurnOrder[lIndex];
+                UnitRuntime lExistingUnit = _TurnOrder[lIndex];
                 if (lExistingUnit.Definition.Initiative > pUnit.Definition.Initiative)
                     continue;
 

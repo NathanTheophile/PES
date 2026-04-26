@@ -14,22 +14,22 @@ namespace TacticalPort.Core.Services
         private sealed class ResolvedSkillTarget
         {
             public GridCoord TargetCell;
-            public BattleUnitRuntime PrimaryTargetUnit;
+            public UnitRuntime PrimaryTargetUnit;
             public List<GridCoord> AffectedCells = new List<GridCoord>();
-            public List<BattleUnitRuntime> AffectedUnits = new List<BattleUnitRuntime>();
+            public List<UnitRuntime> AffectedUnits = new List<UnitRuntime>();
             public List<string> UsageTargetKeys = new List<string>();
         }
 
         #region _____________________________| SKILLS
 
-        public BattleActionResult Validate(BattleUnitRuntime pActor, SkillDefinition pSkill, SkillTarget pTarget, SkillExecutionContext pContext)
+        public BattleActionResult Validate(UnitRuntime pActor, SkillDefinition pSkill, SkillTarget pTarget, SkillExecutionContext pContext)
         {
             return TryResolveTarget(pActor, pSkill, pTarget, pContext, out ResolvedSkillTarget lResolvedTarget, out BattleActionResult lValidation)
                 ? BattleActionResult.Succeeded(BattleActionType.Skill, "Skill can be used.", ResolveAffectedUnitIds(pActor, lResolvedTarget))
                 : lValidation;
         }
 
-        public BattleActionResult Execute(BattleUnitRuntime pActor, SkillDefinition pSkill, SkillTarget pTarget, SkillExecutionContext pContext)
+        public BattleActionResult Execute(UnitRuntime pActor, SkillDefinition pSkill, SkillTarget pTarget, SkillExecutionContext pContext)
         {
             if (!TryResolveTarget(pActor, pSkill, pTarget, pContext, out ResolvedSkillTarget lResolvedTarget, out BattleActionResult lValidation))
                 return lValidation;
@@ -49,7 +49,7 @@ namespace TacticalPort.Core.Services
         #region _____________________________| HELPERS
 
         private static bool TryResolveTarget(
-            BattleUnitRuntime pActor,
+            UnitRuntime pActor,
             SkillDefinition pSkill,
             SkillTarget pTarget,
             SkillExecutionContext pContext,
@@ -99,7 +99,7 @@ namespace TacticalPort.Core.Services
         }
 
         private static BattleActionResult ValidateBaseInputs(
-            BattleUnitRuntime pActor,
+            UnitRuntime pActor,
             SkillDefinition pSkill,
             SkillTarget pTarget,
             SkillExecutionContext pContext)
@@ -126,7 +126,7 @@ namespace TacticalPort.Core.Services
         }
 
         private static bool TryResolvePrimaryTarget(
-            BattleUnitRuntime pActor,
+            UnitRuntime pActor,
             SkillDefinition pSkill,
             SkillTarget pTarget,
             SkillExecutionContext pContext,
@@ -144,7 +144,7 @@ namespace TacticalPort.Core.Services
                     return true;
 
                 case SkillTargetType.Unit:
-                    if (!pContext.TryGetUnit(pTarget.UnitId, out BattleUnitRuntime lTargetUnit) || !lTargetUnit.IsAlive)
+                    if (!pContext.TryGetUnit(pTarget.UnitId, out UnitRuntime lTargetUnit) || !lTargetUnit.IsAlive)
                     {
                         pFailure = BattleActionResult.Failed(BattleActionType.Skill, "Target unit is invalid.");
                         return false;
@@ -174,7 +174,7 @@ namespace TacticalPort.Core.Services
         }
 
         private static bool ValidateTargetGeometry(
-            BattleUnitRuntime pActor,
+            UnitRuntime pActor,
             SkillDefinition pSkill,
             GridCoord pTargetCell,
             SkillExecutionContext pContext,
@@ -209,7 +209,7 @@ namespace TacticalPort.Core.Services
         }
 
         private static bool ValidateEffectSpecificTargeting(
-            BattleUnitRuntime pActor,
+            UnitRuntime pActor,
             SkillDefinition pSkill,
             ResolvedSkillTarget pResolvedTarget,
             SkillExecutionContext pContext,
@@ -274,7 +274,7 @@ namespace TacticalPort.Core.Services
         }
 
         private static BattleActionResult ApplyEffect(
-            BattleUnitRuntime pActor,
+            UnitRuntime pActor,
             SkillDefinition pSkill,
             ResolvedSkillTarget pResolvedTarget,
             SkillExecutionContext pContext)
@@ -318,13 +318,13 @@ namespace TacticalPort.Core.Services
             return CombineEffectResults(pActor, lResults);
         }
 
-        private static BattleActionResult ApplyDamage(BattleUnitRuntime pActor, SkillDefinition pSkill, ResolvedSkillTarget pResolvedTarget)
+        private static BattleActionResult ApplyDamage(UnitRuntime pActor, SkillDefinition pSkill, ResolvedSkillTarget pResolvedTarget)
         {
             int lAffectedUnitCount = 0;
             int lTotalValue = 0;
-            List<BattleUnitId> lAffectedUnitIds = new List<BattleUnitId> { pActor.Id };
+            List<UnitId> lAffectedUnitIds = new List<UnitId> { pActor.Id };
 
-            foreach (BattleUnitRuntime lTarget in pResolvedTarget.AffectedUnits)
+            foreach (UnitRuntime lTarget in pResolvedTarget.AffectedUnits)
             {
                 if (lTarget == null || !lTarget.IsAlive)
                     continue;
@@ -342,13 +342,13 @@ namespace TacticalPort.Core.Services
                 lAffectedUnitIds);
         }
 
-        private static BattleActionResult ApplyHeal(BattleUnitRuntime pActor, SkillDefinition pSkill, ResolvedSkillTarget pResolvedTarget)
+        private static BattleActionResult ApplyHeal(UnitRuntime pActor, SkillDefinition pSkill, ResolvedSkillTarget pResolvedTarget)
         {
             int lAffectedUnitCount = 0;
             int lTotalValue = 0;
-            List<BattleUnitId> lAffectedUnitIds = new List<BattleUnitId> { pActor.Id };
+            List<UnitId> lAffectedUnitIds = new List<UnitId> { pActor.Id };
 
-            foreach (BattleUnitRuntime lTarget in pResolvedTarget.AffectedUnits)
+            foreach (UnitRuntime lTarget in pResolvedTarget.AffectedUnits)
             {
                 if (lTarget == null || !lTarget.IsAlive)
                     continue;
@@ -365,7 +365,7 @@ namespace TacticalPort.Core.Services
         }
 
         private static BattleActionResult ApplyPush(
-            BattleUnitRuntime pActor,
+            UnitRuntime pActor,
             SkillDefinition pSkill,
             ResolvedSkillTarget pResolvedTarget,
             SkillExecutionContext pContext)
@@ -374,10 +374,10 @@ namespace TacticalPort.Core.Services
             int lMovedUnits = 0;
             int lDamagedUnits = 0;
             int lTotalCollisionDamage = 0;
-            HashSet<BattleUnitId> lAffectedUnitIds = new HashSet<BattleUnitId> { pActor.Id };
+            HashSet<UnitId> lAffectedUnitIds = new HashSet<UnitId> { pActor.Id };
             int lPushDamageBonus = pActor?.Definition != null ? pActor.Definition.PushDamageBonus : 0;
 
-            foreach (BattleUnitRuntime lTarget in pResolvedTarget.AffectedUnits)
+            foreach (UnitRuntime lTarget in pResolvedTarget.AffectedUnits)
             {
                 if (lTarget == null || !lTarget.IsAlive || lTarget.Id == pActor.Id)
                     continue;
@@ -403,8 +403,8 @@ namespace TacticalPort.Core.Services
 
                     for (int lIndex = 0; lIndex < lResolution.BlockingUnitIds.Count; lIndex++)
                     {
-                        BattleUnitId lBlockingUnitId = lResolution.BlockingUnitIds[lIndex];
-                        if (!pContext.TryGetUnit(lBlockingUnitId, out BattleUnitRuntime lBlockingUnit) || lBlockingUnit == null || !lBlockingUnit.IsAlive)
+                        UnitId lBlockingUnitId = lResolution.BlockingUnitIds[lIndex];
+                        if (!pContext.TryGetUnit(lBlockingUnitId, out UnitRuntime lBlockingUnit) || lBlockingUnit == null || !lBlockingUnit.IsAlive)
                             continue;
 
                         int lBlockerDamage = lBlockingUnit.ApplyDamage(lCollisionDamage);
@@ -443,7 +443,7 @@ namespace TacticalPort.Core.Services
         }
 
         private static BattleActionResult ApplyTeleport(
-            BattleUnitRuntime pActor,
+            UnitRuntime pActor,
             ResolvedSkillTarget pResolvedTarget,
             SkillExecutionContext pContext)
         {
@@ -457,7 +457,7 @@ namespace TacticalPort.Core.Services
         }
 
         private static BattleActionResult ApplySwitch(
-            BattleUnitRuntime pActor,
+            UnitRuntime pActor,
             ResolvedSkillTarget pResolvedTarget,
             SkillExecutionContext pContext)
         {
@@ -471,12 +471,12 @@ namespace TacticalPort.Core.Services
         }
 
         private static BattleActionResult ApplySummon(
-            BattleUnitRuntime pActor,
+            UnitRuntime pActor,
             SkillDefinition pSkill,
             ResolvedSkillTarget pResolvedTarget,
             SkillExecutionContext pContext)
         {
-            BattleUnitRuntime lSummonedUnit = pContext.TrySummonUnit(pSkill.SummonUnit, pSkill.SummonTeamRule, pActor, pResolvedTarget.TargetCell);
+            UnitRuntime lSummonedUnit = pContext.TrySummonUnit(pSkill.SummonUnit, pSkill.SummonTeamRule, pActor, pResolvedTarget.TargetCell);
             if (lSummonedUnit == null)
                 return BattleActionResult.Failed(BattleActionType.Skill, "Summon failed.");
 
@@ -487,7 +487,7 @@ namespace TacticalPort.Core.Services
         }
 
         private static BattleActionResult ApplyGlyph(
-            BattleUnitRuntime pActor,
+            UnitRuntime pActor,
             SkillDefinition pSkill,
             ResolvedSkillTarget pResolvedTarget,
             SkillExecutionContext pContext)
@@ -514,7 +514,7 @@ namespace TacticalPort.Core.Services
         }
 
         private static string ResolveEffectMessage(
-            BattleUnitRuntime pActor,
+            UnitRuntime pActor,
             ResolvedSkillTarget pResolvedTarget,
             int pAffectedUnitCount,
             int pTotalValue,
@@ -527,15 +527,15 @@ namespace TacticalPort.Core.Services
             return $"{pActor.Definition.DisplayName} {pVerb} {pTotalValue} {pResourceLabel} across {pAffectedUnitCount} unit(s).";
         }
 
-        private static IEnumerable<BattleUnitId> ResolveAffectedUnitIds(BattleUnitRuntime pActor, ResolvedSkillTarget pResolvedTarget)
+        private static IEnumerable<UnitId> ResolveAffectedUnitIds(UnitRuntime pActor, ResolvedSkillTarget pResolvedTarget)
         {
-            HashSet<BattleUnitId> lAffectedIds = new HashSet<BattleUnitId> { pActor.Id };
+            HashSet<UnitId> lAffectedIds = new HashSet<UnitId> { pActor.Id };
 
             if (pResolvedTarget != null)
             {
                 for (int lIndex = 0; lIndex < pResolvedTarget.AffectedUnits.Count; lIndex++)
                 {
-                    BattleUnitRuntime lUnit = pResolvedTarget.AffectedUnits[lIndex];
+                    UnitRuntime lUnit = pResolvedTarget.AffectedUnits[lIndex];
                     if (lUnit != null && lUnit.Id.IsValid)
                         lAffectedIds.Add(lUnit.Id);
                 }
@@ -581,22 +581,22 @@ namespace TacticalPort.Core.Services
         }
 
         private static void PopulateAffectedUnits(
-            BattleUnitRuntime pActor,
+            UnitRuntime pActor,
             SkillDefinition pSkill,
             SkillExecutionContext pContext,
             IEnumerable<GridCoord> pCells,
-            ICollection<BattleUnitRuntime> pUnits)
+            ICollection<UnitRuntime> pUnits)
         {
             if (pCells == null || pUnits == null)
                 return;
 
             pUnits.Clear();
-            HashSet<BattleUnitId> lVisitedUnits = new HashSet<BattleUnitId>();
+            HashSet<UnitId> lVisitedUnits = new HashSet<UnitId>();
 
             foreach (GridCoord lCell in pCells)
             {
-                if (!pContext.GridService.TryGetOccupant(lCell, out BattleUnitId lOccupantId)
-                    || !pContext.TryGetUnit(lOccupantId, out BattleUnitRuntime lUnit)
+                if (!pContext.GridService.TryGetOccupant(lCell, out UnitId lOccupantId)
+                    || !pContext.TryGetUnit(lOccupantId, out UnitRuntime lUnit)
                     || lUnit == null
                     || !lUnit.IsAlive
                     || (!pSkill.CanAffectCaster && pActor != null && lUnit.Id == pActor.Id)
@@ -609,14 +609,14 @@ namespace TacticalPort.Core.Services
             }
         }
 
-        private static void PopulateUsageTargetKeys(BattleUnitRuntime pActor, SkillTarget pTarget, ResolvedSkillTarget pResolvedTarget)
+        private static void PopulateUsageTargetKeys(UnitRuntime pActor, SkillTarget pTarget, ResolvedSkillTarget pResolvedTarget)
         {
             pResolvedTarget.UsageTargetKeys.Clear();
 
             HashSet<string> lKeys = new HashSet<string>();
             for (int lIndex = 0; lIndex < pResolvedTarget.AffectedUnits.Count; lIndex++)
             {
-                BattleUnitRuntime lUnit = pResolvedTarget.AffectedUnits[lIndex];
+                UnitRuntime lUnit = pResolvedTarget.AffectedUnits[lIndex];
                 if (lUnit != null)
                     lKeys.Add($"unit:{lUnit.Id.Value}");
             }
@@ -643,10 +643,10 @@ namespace TacticalPort.Core.Services
                 pResolvedTarget.UsageTargetKeys.Add(lKey);
         }
 
-        private static BattleUnitRuntime TryResolveOccupantAtCell(SkillExecutionContext pContext, GridCoord pCell)
+        private static UnitRuntime TryResolveOccupantAtCell(SkillExecutionContext pContext, GridCoord pCell)
         {
-            return pContext.GridService.TryGetOccupant(pCell, out BattleUnitId lOccupantId)
-                && pContext.TryGetUnit(lOccupantId, out BattleUnitRuntime lOccupant)
+            return pContext.GridService.TryGetOccupant(pCell, out UnitId lOccupantId)
+                && pContext.TryGetUnit(lOccupantId, out UnitRuntime lOccupant)
                 && lOccupant != null
                 && lOccupant.IsAlive
                 ? lOccupant
@@ -657,15 +657,15 @@ namespace TacticalPort.Core.Services
         {
             public GridCoord Destination;
             public int BlockedSteps;
-            public List<BattleUnitId> BlockingUnitIds = new List<BattleUnitId>();
+            public List<UnitId> BlockingUnitIds = new List<UnitId>();
         }
 
-        private static PushResolution ResolvePushDestination(BattleUnitRuntime pTarget, GridCoord pDirection, int pDistance, SkillExecutionContext pContext)
+        private static PushResolution ResolvePushDestination(UnitRuntime pTarget, GridCoord pDirection, int pDistance, SkillExecutionContext pContext)
         {
             GridCoord lCurrent = pTarget.Position;
             int lMaxDistance = Math.Max(0, pDistance);
             int lBlockedSteps = 0;
-            HashSet<BattleUnitId> lBlockingUnitIds = new HashSet<BattleUnitId>();
+            HashSet<UnitId> lBlockingUnitIds = new HashSet<UnitId>();
 
             for (int lStep = 0; lStep < lMaxDistance; lStep++)
             {
@@ -683,16 +683,16 @@ namespace TacticalPort.Core.Services
             {
                 Destination = lCurrent,
                 BlockedSteps = lBlockedSteps,
-                BlockingUnitIds = new List<BattleUnitId>(lBlockingUnitIds)
+                BlockingUnitIds = new List<UnitId>(lBlockingUnitIds)
             };
         }
 
         private static bool CanOccupyDuringPush(
             SkillExecutionContext pContext,
-            BattleUnitId pUnitId,
+            UnitId pUnitId,
             IReadOnlyList<GridCoord> pFootprintOffsets,
             GridCoord pAnchor,
-            ISet<BattleUnitId> pBlockingUnitIds)
+            ISet<UnitId> pBlockingUnitIds)
         {
             if (pContext == null || pContext.GridService == null)
                 return false;
@@ -709,7 +709,7 @@ namespace TacticalPort.Core.Services
                 if (!pContext.GridService.IsInside(lCell) || !pContext.GridService.IsWalkable(lCell))
                     return false;
 
-                if (!pContext.GridService.TryGetOccupant(lCell, out BattleUnitId lOccupantId) || lOccupantId == pUnitId)
+                if (!pContext.GridService.TryGetOccupant(lCell, out UnitId lOccupantId) || lOccupantId == pUnitId)
                     continue;
 
                 pBlockingUnitIds?.Add(lOccupantId);
@@ -719,7 +719,7 @@ namespace TacticalPort.Core.Services
             return true;
         }
 
-        private static int ResolveDirectionalDamageModifier(BattleUnitRuntime pActor, BattleUnitRuntime pTarget, SkillDefinition pSkill)
+        private static int ResolveDirectionalDamageModifier(UnitRuntime pActor, UnitRuntime pTarget, SkillDefinition pSkill)
         {
             if (pActor == null || pTarget == null || pSkill == null || !pSkill.UseDirectionalModifiers)
                 return 0;
@@ -793,12 +793,12 @@ namespace TacticalPort.Core.Services
                     || pContext.GridService.IsOccupied(pCell));
         }
 
-        private static BattleActionResult CombineEffectResults(BattleUnitRuntime pActor, List<BattleActionResult> pResults)
+        private static BattleActionResult CombineEffectResults(UnitRuntime pActor, List<BattleActionResult> pResults)
         {
             if (pResults == null || pResults.Count == 0)
                 return BattleActionResult.Succeeded(BattleActionType.Skill, $"{pActor.Definition.DisplayName} used a skill.", new[] { pActor.Id });
 
-            HashSet<BattleUnitId> lAffectedIds = new HashSet<BattleUnitId>();
+            HashSet<UnitId> lAffectedIds = new HashSet<UnitId>();
             List<string> lMessages = new List<string>();
 
             foreach (BattleActionResult lResult in pResults)
@@ -812,7 +812,7 @@ namespace TacticalPort.Core.Services
                 if (lResult.AffectedUnitIds == null)
                     continue;
 
-                foreach (BattleUnitId lAffectedId in lResult.AffectedUnitIds)
+                foreach (UnitId lAffectedId in lResult.AffectedUnitIds)
                 {
                     if (lAffectedId.IsValid)
                         lAffectedIds.Add(lAffectedId);

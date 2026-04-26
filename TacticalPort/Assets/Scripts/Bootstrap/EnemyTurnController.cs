@@ -14,7 +14,7 @@ namespace TacticalPort.Bootstrap
 
         private bool _HasPendingTurn;
         private bool _HasExecutedTurn;
-        private BattleUnitId _PendingUnitId;
+        private UnitId _PendingUnitId;
         private float _RemainingDelaySeconds;
 
         #endregion
@@ -42,7 +42,7 @@ namespace TacticalPort.Bootstrap
             if (_Bootstrap.BattleService.Outcome != BattleOutcome.None || _Bootstrap.BattleService.Phase != BattlePhase.AwaitingAction)
                 return;
 
-            if (!_Bootstrap.TryGetActiveUnit(out BattleUnitRuntime lActiveUnit) || lActiveUnit.Team != BattleTeam.Enemy)
+            if (!_Bootstrap.TryGetActiveUnit(out UnitRuntime lActiveUnit) || lActiveUnit.Team != Team.Enemy)
             {
                 ClearPendingTurn();
                 return;
@@ -66,7 +66,7 @@ namespace TacticalPort.Bootstrap
 
         #region _____________________________| ACTIONS
 
-        private void PlayActiveTurn(BattleUnitRuntime pActiveUnit)
+        private void PlayActiveTurn(UnitRuntime pActiveUnit)
         {
             BattleActionResult lActionResult = TryUseOffensiveSkill(pActiveUnit);
 
@@ -85,17 +85,17 @@ namespace TacticalPort.Bootstrap
             CompleteTurn($"{pActiveUnit.Definition.DisplayName} ends turn with no valid action.");
         }
 
-        private BattleActionResult TryUseOffensiveSkill(BattleUnitRuntime pActiveUnit)
+        private BattleActionResult TryUseOffensiveSkill(UnitRuntime pActiveUnit)
         {
             if (pActiveUnit == null)
                 return null;
 
             SkillDefinition lBestSkill = null;
-            BattleUnitRuntime lBestTarget = null;
+            UnitRuntime lBestTarget = null;
             int lBestDistance = int.MaxValue;
             int lBestPower = int.MinValue;
 
-            foreach (BattleUnitRuntime lCandidateUnit in _Bootstrap.BattleService.Units)
+            foreach (UnitRuntime lCandidateUnit in _Bootstrap.BattleService.Units)
             {
                 if (!IsTargetableEnemyUnit(pActiveUnit, lCandidateUnit))
                     continue;
@@ -131,16 +131,16 @@ namespace TacticalPort.Bootstrap
             return _Bootstrap.UseActiveUnitSkill(new SkillId(lBestSkill.Id), CreateSkillTarget(pActiveUnit, lBestSkill, lBestTarget));
         }
 
-        private BattleActionResult TryUseHealingSkill(BattleUnitRuntime pActiveUnit)
+        private BattleActionResult TryUseHealingSkill(UnitRuntime pActiveUnit)
         {
             if (pActiveUnit == null)
                 return null;
 
             SkillDefinition lBestSkill = null;
-            BattleUnitRuntime lBestTarget = null;
+            UnitRuntime lBestTarget = null;
             int lBestMissingHealth = 0;
 
-            foreach (BattleUnitRuntime lCandidateUnit in _Bootstrap.BattleService.Units)
+            foreach (UnitRuntime lCandidateUnit in _Bootstrap.BattleService.Units)
             {
                 if (!IsTargetableAllyUnit(pActiveUnit, lCandidateUnit))
                     continue;
@@ -177,12 +177,12 @@ namespace TacticalPort.Bootstrap
             return _Bootstrap.UseActiveUnitSkill(new SkillId(lBestSkill.Id), CreateSkillTarget(pActiveUnit, lBestSkill, lBestTarget));
         }
 
-        private BattleActionResult TryMoveTowardClosestPlayer(BattleUnitRuntime pActiveUnit)
+        private BattleActionResult TryMoveTowardClosestPlayer(UnitRuntime pActiveUnit)
         {
             if (pActiveUnit == null)
                 return null;
 
-            BattleUnitRuntime lClosestPlayer = FindClosestUnit(pActiveUnit.Position, BattleTeam.Player);
+            UnitRuntime lClosestPlayer = FindClosestUnit(pActiveUnit.Position, Team.Player);
             if (lClosestPlayer == null)
                 return null;
 
@@ -230,7 +230,7 @@ namespace TacticalPort.Bootstrap
 
         #region _____________________________| HELPERS
 
-        private void BeginPendingTurn(BattleUnitId pUnitId)
+        private void BeginPendingTurn(UnitId pUnitId)
         {
             _HasPendingTurn = true;
             _HasExecutedTurn = false;
@@ -242,16 +242,16 @@ namespace TacticalPort.Bootstrap
         {
             _HasPendingTurn = false;
             _HasExecutedTurn = false;
-            _PendingUnitId = BattleUnitId.None;
+            _PendingUnitId = UnitId.None;
             _RemainingDelaySeconds = 0f;
         }
 
-        private BattleUnitRuntime FindClosestUnit(GridCoord pOrigin, BattleTeam pTeam)
+        private UnitRuntime FindClosestUnit(GridCoord pOrigin, Team pTeam)
         {
-            BattleUnitRuntime lClosestUnit = null;
+            UnitRuntime lClosestUnit = null;
             int lBestDistance = int.MaxValue;
 
-            foreach (BattleUnitRuntime lCandidateUnit in _Bootstrap.BattleService.Units)
+            foreach (UnitRuntime lCandidateUnit in _Bootstrap.BattleService.Units)
             {
                 if (lCandidateUnit == null || !lCandidateUnit.IsAlive || lCandidateUnit.Team != pTeam)
                     continue;
@@ -267,7 +267,7 @@ namespace TacticalPort.Bootstrap
             return lClosestUnit;
         }
 
-        private static SkillTarget CreateSkillTarget(BattleUnitRuntime pActor, SkillDefinition pSkill, BattleUnitRuntime pTargetUnit)
+        private static SkillTarget CreateSkillTarget(UnitRuntime pActor, SkillDefinition pSkill, UnitRuntime pTargetUnit)
         {
             if (pSkill == null || pTargetUnit == null)
                 return null;
@@ -298,16 +298,16 @@ namespace TacticalPort.Bootstrap
             return pSkill != null && pSkill.PrimaryEffectType == SkillPrimaryEffectType.Heal;
         }
 
-        private static bool IsTargetableEnemyUnit(BattleUnitRuntime pActor, BattleUnitRuntime pCandidateUnit)
+        private static bool IsTargetableEnemyUnit(UnitRuntime pActor, UnitRuntime pCandidateUnit)
         {
             return pActor != null
                 && pCandidateUnit != null
                 && pCandidateUnit.IsAlive
-                && pCandidateUnit.Team == BattleTeam.Player
+                && pCandidateUnit.Team == Team.Player
                 && pCandidateUnit.Id != pActor.Id;
         }
 
-        private static bool IsTargetableAllyUnit(BattleUnitRuntime pActor, BattleUnitRuntime pCandidateUnit)
+        private static bool IsTargetableAllyUnit(UnitRuntime pActor, UnitRuntime pCandidateUnit)
         {
             return pActor != null
                 && pCandidateUnit != null

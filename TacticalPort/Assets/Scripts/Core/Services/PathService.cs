@@ -24,7 +24,7 @@ namespace TacticalPort.Core.Services
 
         #region _____________________________| PATHING
 
-        public PathResult FindPath(GridCoord pOrigin, GridCoord pDestination, int pMaxCost, BattleUnitId pMovingUnitId)
+        public PathResult FindPath(GridCoord pOrigin, GridCoord pDestination, int pMaxCost, UnitId pMovingUnitId)
         {
             if (!_GridService.IsWalkable(pOrigin) || !_GridService.IsWalkable(pDestination))
                 return PathResult.Failed("Origin or destination is not walkable.");
@@ -72,7 +72,7 @@ namespace TacticalPort.Core.Services
             return PathResult.Succeeded(ReconstructPath(pOrigin, pDestination, lCameFrom), lTotalCost);
         }
 
-        public IReadOnlyCollection<GridCoord> GetReachableCells(GridCoord pOrigin, int pMaxCost, BattleUnitId pMovingUnitId)
+        public IReadOnlyCollection<GridCoord> GetReachableCells(GridCoord pOrigin, int pMaxCost, UnitId pMovingUnitId)
         {
             List<GridCoord> lFrontier = new List<GridCoord> { pOrigin };
             Dictionary<GridCoord, int> lCosts = new Dictionary<GridCoord, int> { [pOrigin] = 0 };
@@ -106,7 +106,7 @@ namespace TacticalPort.Core.Services
 
         #region _____________________________| HELPERS
 
-        private bool CanOccupy(GridCoord pCoordinate, BattleUnitId pMovingUnitId) =>
+        private bool CanOccupy(GridCoord pCoordinate, UnitId pMovingUnitId) =>
             _GridService.CanUnitOccupy(pMovingUnitId, pCoordinate);
 
         private static GridCoord PopLowestCost(IList<GridCoord> pFrontier, IReadOnlyDictionary<GridCoord, int> pCosts)

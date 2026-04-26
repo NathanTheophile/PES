@@ -20,7 +20,7 @@ namespace TacticalPort.View
         private readonly HashSet<GridCoord> _ReachableCells = new HashSet<GridCoord>();
         private bool _HasHoveredCell;
         private GridCoord _HoveredCell;
-        private BattleUnitId _CachedActiveUnitId = BattleUnitId.None;
+        private UnitId _CachedActiveUnitId = UnitId.None;
         private SkillDefinition _SelectedSkill;
         private SkillId _SelectedSkillId = SkillId.None;
 
@@ -124,7 +124,7 @@ namespace TacticalPort.View
 
         private void TrySelectSkill(int pSkillSlotIndex)
         {
-            if (!TryGetPlayerActiveUnit("Skills are disabled", out BattleUnitRuntime lActiveUnit))
+            if (!TryGetPlayerActiveUnit("Skills are disabled", out UnitRuntime lActiveUnit))
                 return;
 
             if (pSkillSlotIndex < 0 || pSkillSlotIndex >= lActiveUnit.Skills.Count)
@@ -165,7 +165,7 @@ namespace TacticalPort.View
 
         private void TryUseSelectedSkill()
         {
-            if (!TryGetPlayerActiveUnit("Skills are disabled", out BattleUnitRuntime lActiveUnit))
+            if (!TryGetPlayerActiveUnit("Skills are disabled", out UnitRuntime lActiveUnit))
                 return;
 
             if (!HasSelectedSkill())
@@ -260,7 +260,7 @@ namespace TacticalPort.View
         {
             HashSet<GridCoord> lLatestReachableCells = new HashSet<GridCoord>();
 
-            if (HasSelectedSkill() && _Bootstrap.TryGetActiveUnit(out BattleUnitRuntime lActiveUnit))
+            if (HasSelectedSkill() && _Bootstrap.TryGetActiveUnit(out UnitRuntime lActiveUnit))
             {
                 foreach (GridCoord lCoord in EnumerateSkillHighlightCells(lActiveUnit, _SelectedSkill))
                     lLatestReachableCells.Add(lCoord);
@@ -282,7 +282,7 @@ namespace TacticalPort.View
             _BoardView.SetReachableCells(_ReachableCells);
         }
 
-        private void SyncPreviewCells(BattleUnitRuntime pActiveUnit)
+        private void SyncPreviewCells(UnitRuntime pActiveUnit)
         {
             if (_BoardView == null)
                 return;
@@ -330,9 +330,9 @@ namespace TacticalPort.View
 
         private void SyncActiveUnitState()
         {
-            if (!_Bootstrap.TryGetActiveUnit(out BattleUnitRuntime lActiveUnit))
+            if (!_Bootstrap.TryGetActiveUnit(out UnitRuntime lActiveUnit))
             {
-                _CachedActiveUnitId = BattleUnitId.None;
+                _CachedActiveUnitId = UnitId.None;
                 CancelSkillSelection(null);
                 return;
             }
@@ -343,7 +343,7 @@ namespace TacticalPort.View
                 CancelSkillSelection(null);
             }
 
-            if (lActiveUnit.Team != BattleTeam.Player)
+            if (lActiveUnit.Team != Team.Player)
             {
                 CancelSkillSelection(null);
                 return;
@@ -398,7 +398,7 @@ namespace TacticalPort.View
             lBoardCursorView.SetTarget(_HoveredCell, lHasSelectedSkill);
         }
 
-        private bool TryBuildSelectedSkillTarget(BattleUnitRuntime pActiveUnit, out SkillTarget pTarget, out string pFailureReason)
+        private bool TryBuildSelectedSkillTarget(UnitRuntime pActiveUnit, out SkillTarget pTarget, out string pFailureReason)
         {
             pTarget = null;
             pFailureReason = string.Empty;
@@ -422,7 +422,7 @@ namespace TacticalPort.View
                         return false;
                     }
 
-                    if (!TryResolveAliveUnitAtCell(_HoveredCell, out BattleUnitRuntime lHoveredUnit))
+                    if (!TryResolveAliveUnitAtCell(_HoveredCell, out UnitRuntime lHoveredUnit))
                     {
                         pFailureReason = "No valid unit is under the cursor.";
                         return false;
@@ -447,7 +447,7 @@ namespace TacticalPort.View
             }
         }
 
-        private IEnumerable<GridCoord> EnumerateSkillHighlightCells(BattleUnitRuntime pActiveUnit, SkillDefinition pSkill)
+        private IEnumerable<GridCoord> EnumerateSkillHighlightCells(UnitRuntime pActiveUnit, SkillDefinition pSkill)
         {
             if (pActiveUnit == null || pSkill == null || _BoardView == null || _BoardView.Scenario == null)
                 yield break;
@@ -460,7 +460,7 @@ namespace TacticalPort.View
 
                 case SkillTargetType.Unit:
                 case SkillTargetType.Cell:
-                    foreach (BattleGridCellDefinition lCell in _BoardView.Scenario.EnumerateCells())
+                    foreach (CellDefinition lCell in _BoardView.Scenario.EnumerateCells())
                     {
                         GridCoord lCoord = lCell.Coordinate.ToRuntime();
                         if (IsSkillCellInRange(pActiveUnit, pSkill, lCoord))
@@ -471,7 +471,7 @@ namespace TacticalPort.View
             }
         }
 
-        private bool TryBuildPreviewSkillTarget(BattleUnitRuntime pActiveUnit, out SkillTarget pTarget)
+        private bool TryBuildPreviewSkillTarget(UnitRuntime pActiveUnit, out SkillTarget pTarget)
         {
             pTarget = null;
 
@@ -485,7 +485,7 @@ namespace TacticalPort.View
                     return true;
 
                 case SkillTargetType.Unit:
-                    return TryResolveAliveUnitAtCell(_HoveredCell, out BattleUnitRuntime lHoveredUnit)
+                    return TryResolveAliveUnitAtCell(_HoveredCell, out UnitRuntime lHoveredUnit)
                         && (pTarget = SkillTarget.ForUnit(lHoveredUnit.Id)) != null;
 
                 case SkillTargetType.Cell:
@@ -497,7 +497,7 @@ namespace TacticalPort.View
             }
         }
 
-        private IReadOnlyCollection<GridCoord> BuildSkillPreviewCells(BattleUnitRuntime pActiveUnit, SkillDefinition pSkill, SkillTarget pTarget)
+        private IReadOnlyCollection<GridCoord> BuildSkillPreviewCells(UnitRuntime pActiveUnit, SkillDefinition pSkill, SkillTarget pTarget)
         {
             List<GridCoord> lCells = new List<GridCoord>();
             if (pActiveUnit == null || pSkill == null || pTarget == null || _BoardView == null)
@@ -522,7 +522,7 @@ namespace TacticalPort.View
             return lCells;
         }
 
-        private static GridCoord ResolveSkillPreviewOrigin(BattleUnitRuntime pActiveUnit, SkillTarget pTarget, GridCoord pHoveredCell)
+        private static GridCoord ResolveSkillPreviewOrigin(UnitRuntime pActiveUnit, SkillTarget pTarget, GridCoord pHoveredCell)
         {
             switch (pTarget.TargetType)
             {
@@ -540,14 +540,14 @@ namespace TacticalPort.View
             }
         }
 
-        private bool TryResolveAliveUnitAtCell(GridCoord pCell, out BattleUnitRuntime pUnit)
+        private bool TryResolveAliveUnitAtCell(GridCoord pCell, out UnitRuntime pUnit)
         {
             pUnit = null;
 
             if (_Bootstrap?.BattleService == null)
                 return false;
 
-            foreach (BattleUnitRuntime lUnit in _Bootstrap.BattleService.Units)
+            foreach (UnitRuntime lUnit in _Bootstrap.BattleService.Units)
             {
                 if (lUnit == null || !lUnit.IsAlive)
                     continue;
@@ -564,10 +564,10 @@ namespace TacticalPort.View
 
         private string ResolveSkillModeMessage()
         {
-            if (!_Bootstrap.TryGetActiveUnit(out BattleUnitRuntime lActiveUnit))
+            if (!_Bootstrap.TryGetActiveUnit(out UnitRuntime lActiveUnit))
                 return "Mode: Waiting for an active unit.";
 
-            if (lActiveUnit.Team != BattleTeam.Player)
+            if (lActiveUnit.Team != Team.Player)
                 return $"Mode: Enemy turn for {lActiveUnit.Definition.DisplayName}.";
 
             if (!HasSelectedSkill())
@@ -591,7 +591,7 @@ namespace TacticalPort.View
             if (!_HasHoveredCell)
                 return "Hover a valid target.";
 
-            if (TryResolveAliveUnitAtCell(_HoveredCell, out BattleUnitRuntime lHoveredUnit))
+            if (TryResolveAliveUnitAtCell(_HoveredCell, out UnitRuntime lHoveredUnit))
                 return $"Hover: {lHoveredUnit.Definition.DisplayName} {_HoveredCell}.";
 
             return $"Hover: cell {_HoveredCell}.";
@@ -607,7 +607,7 @@ namespace TacticalPort.View
                 : $"{pSkill.RangeMin}-{pSkill.RangeMax}";
         }
 
-        private bool IsSkillCellInRange(BattleUnitRuntime pActiveUnit, SkillDefinition pSkill, GridCoord pTargetCell)
+        private bool IsSkillCellInRange(UnitRuntime pActiveUnit, SkillDefinition pSkill, GridCoord pTargetCell)
         {
             if (pActiveUnit == null || pSkill == null)
                 return false;
@@ -621,7 +621,7 @@ namespace TacticalPort.View
             if (!GridLineOfSightUtility.MatchesAlignment(pActiveUnit.Position, pTargetCell, pSkill.TargetAlignment))
                 return false;
 
-            if (!TryGetBoardCellDefinition(pTargetCell, out BattleGridCellDefinition lCellDefinition) || !lCellDefinition.IsWalkable)
+            if (!TryGetBoardCellDefinition(pTargetCell, out CellDefinition lCellDefinition) || !lCellDefinition.IsWalkable)
                 return false;
 
             if (pSkill.RequiresLineOfSight && pActiveUnit.Position != pTargetCell && !HasLineOfSight(pActiveUnit.Position, pTargetCell))
@@ -630,7 +630,7 @@ namespace TacticalPort.View
             return true;
         }
 
-        private bool TryGetBoardCellDefinition(GridCoord pCell, out BattleGridCellDefinition pCellDefinition)
+        private bool TryGetBoardCellDefinition(GridCoord pCell, out CellDefinition pCellDefinition)
         {
             if (_BoardView != null)
                 return _BoardView.TryGetCellDefinition(pCell, out pCellDefinition);
@@ -649,7 +649,7 @@ namespace TacticalPort.View
                 pTarget,
                 pCell =>
                 {
-                    if (!TryGetBoardCellDefinition(pCell, out BattleGridCellDefinition lCell))
+                    if (!TryGetBoardCellDefinition(pCell, out CellDefinition lCell))
                         return true;
 
                     return lCell.BlocksLineOfSight || TryResolveAliveUnitAtCell(pCell, out _);
@@ -668,13 +668,13 @@ namespace TacticalPort.View
             SyncEndTurnAvailability();
             SyncSkillAvailability();
             UpdateHoveredCell(pMouseScreenPosition);
-            _Bootstrap.TryGetActiveUnit(out BattleUnitRuntime lActiveUnit);
+            _Bootstrap.TryGetActiveUnit(out UnitRuntime lActiveUnit);
             SyncPreviewCells(lActiveUnit);
             SyncSkillMode();
             RefreshHoverCursor();
         }
 
-        private bool TryGetPlayerActiveUnit(string pEnemyTurnMessage, out BattleUnitRuntime pActiveUnit)
+        private bool TryGetPlayerActiveUnit(string pEnemyTurnMessage, out UnitRuntime pActiveUnit)
         {
             pActiveUnit = null;
 
@@ -684,7 +684,7 @@ namespace TacticalPort.View
                 return false;
             }
 
-            if (pActiveUnit.Team == BattleTeam.Player)
+            if (pActiveUnit.Team == Team.Player)
                 return true;
 
             SetStatus($"{pEnemyTurnMessage} during {pActiveUnit.Definition.DisplayName}'s turn.");
@@ -696,8 +696,8 @@ namespace TacticalPort.View
             && _Bootstrap.CurrentTurn != null
             && _Bootstrap.BattleService != null
             && _Bootstrap.BattleService.Outcome == BattleOutcome.None
-            && _Bootstrap.TryGetActiveUnit(out BattleUnitRuntime lActiveUnit)
-            && lActiveUnit.Team == BattleTeam.Player;
+            && _Bootstrap.TryGetActiveUnit(out UnitRuntime lActiveUnit)
+            && lActiveUnit.Team == Team.Player;
 
         private bool IsPointerOverUi() => EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
 

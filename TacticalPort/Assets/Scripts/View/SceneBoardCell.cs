@@ -12,7 +12,7 @@ namespace TacticalPort.View
         [SerializeField] private bool _IsWalkable = true;
         [SerializeField] private bool _BlocksLineOfSight;
         [SerializeField, Min(1)] private int _MovementCost = 1;
-        [SerializeField] private BattleUnitDefinition _OccupantDefinition;
+        [SerializeField] private UnitDefinition _OccupantDefinition;
 
         #endregion
 
@@ -22,7 +22,7 @@ namespace TacticalPort.View
         public bool IsWalkable => _IsWalkable;
         public bool BlocksLineOfSight => _BlocksLineOfSight || !_IsWalkable;
         public int MovementCost => Mathf.Max(1, _MovementCost);
-        public BattleUnitDefinition OccupantDefinition => _OccupantDefinition;
+        public UnitDefinition OccupantDefinition => _OccupantDefinition;
 
         #endregion
 

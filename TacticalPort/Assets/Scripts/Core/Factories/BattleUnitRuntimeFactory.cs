@@ -5,9 +5,9 @@ using TacticalPort.Shared;
 
 namespace TacticalPort.Core.Factories
 {
-    public static class BattleUnitRuntimeFactory
+    public static class UnitRuntimeFactory
     {
-        public static BattleUnitRuntime Create(BattleUnitId pId, BattleUnitSpawnDefinition pSpawn)
+        public static UnitRuntime Create(UnitId pId, UnitSpawnDefinition pSpawn)
         {
             if (pSpawn == null)
                 throw new ArgumentNullException(nameof(pSpawn));
@@ -15,7 +15,7 @@ namespace TacticalPort.Core.Factories
             if (pSpawn.Unit == null)
                 throw new InvalidOperationException("Spawn definition requires a unit definition.");
 
-            return new BattleUnitRuntime(pId, pSpawn.Unit, pSpawn.StartCoordinate.ToRuntime());
+            return new UnitRuntime(pId, pSpawn.Unit, pSpawn.StartCoordinate.ToRuntime());
         }
     }
 }

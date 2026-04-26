@@ -32,17 +32,15 @@ namespace TacticalPort.Data
         EnemiesOnly = 2
     }
 
-    [CreateAssetMenu(fileName = "SkillDefinition", menuName = "TacticalPort/Data/Skill Definition")]
+    [CreateAssetMenu(fileName = "SkillDefinition", menuName = "Project/Data/Skill Definition")]
     public sealed class SkillDefinition : ScriptableObject
     {
         #region _____________________________| VALUES
 
-        [Header("Identity")]
         [SerializeField] private string _Id = string.Empty;
         [SerializeField] private string _DisplayName = string.Empty;
         [SerializeField, TextArea] private string _Description = string.Empty;
 
-        [Header("Rules")]
         [SerializeField] private SkillTargetType _TargetType = SkillTargetType.Unit;
         [FormerlySerializedAs("_EffectType")]
         [SerializeField, HideInInspector] private SkillEffectType _LegacyEffectType = SkillEffectType.Damage;
@@ -63,10 +61,8 @@ namespace TacticalPort.Data
         [SerializeField, Min(0)] private int _CooldownTurns = 0;
         [SerializeField, Min(0)] private int _Power = 1;
         [SerializeField, Min(0)] private int _ActionPointCost = 1;
-
-        [Header("Advanced Combat")]
         [SerializeField, Min(0)] private int _PushDistance = 0;
-        [SerializeField] private BattleUnitDefinition _SummonUnit;
+        [SerializeField] private UnitDefinition _SummonUnit;
         [SerializeField] private SkillSummonTeamRule _SummonTeamRule = SkillSummonTeamRule.Definition;
         [SerializeField, Min(1)] private int _GlyphDurationTurns = 1;
         [SerializeField] private SkillGlyphTargetRule _GlyphTargetRule = SkillGlyphTargetRule.EnemiesOnly;
@@ -74,8 +70,6 @@ namespace TacticalPort.Data
         [SerializeField] private int _FrontDamageModifier = 0;
         [SerializeField] private int _SideDamageModifier = 0;
         [SerializeField] private int _BackDamageModifier = 0;
-
-        [Header("Presentation")]
         [SerializeField] private Sprite _Icon;
 
         #endregion
@@ -105,7 +99,7 @@ namespace TacticalPort.Data
         public int Power => Mathf.Max(0, _Power);
         public int ActionPointCost => Mathf.Max(0, _ActionPointCost);
         public int PushDistance => Mathf.Max(0, _PushDistance > 0 ? _PushDistance : _Power);
-        public BattleUnitDefinition SummonUnit => _SummonUnit;
+        public UnitDefinition SummonUnit => _SummonUnit;
         public SkillSummonTeamRule SummonTeamRule => _SummonTeamRule;
         public int GlyphDurationTurns => Mathf.Max(1, _GlyphDurationTurns);
         public SkillGlyphTargetRule GlyphTargetRule => _GlyphTargetRule;
