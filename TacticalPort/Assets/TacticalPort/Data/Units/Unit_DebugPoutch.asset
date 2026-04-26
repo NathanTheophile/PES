@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 282ce8e1fc4de754fae88d05b6b0928d, type: 3}
+  m_Name: Unit_DebugPoutch
+  m_EditorClassIdentifier: Assembly-CSharp::TacticalPort.Data.BattleUnitDefinition
+  _Id: Unit_DebugPoutch
+  _DisplayName: Poutch
+  _Description: 
+  _Team: 2
+  _MaxHealth: 50
+  _MoveRange: 0
+  _ActionPointsPerTurn: 0
+  _Initiative: 0
+  _FootprintWidth: 1
+  _FootprintHeight: 1
+  _Skills: []
+  _BaseStates:
+  - _State: {fileID: 11400000, guid: 3ebff099d145c4144b01ad1c82f320b6, type: 2}
+    _Stacks: 0
+  _PhaseStates: []
+  _UnitViewPrefab: {fileID: 6292429647394850086, guid: 60114851700ded341b477fe2d2632b76, type: 3}
+  _Portrait: {fileID: 0}
+  _Tint: {r: 0.52035785, g: 1, b: 0, a: 1}
