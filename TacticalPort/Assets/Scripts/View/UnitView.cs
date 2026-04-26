@@ -20,8 +20,8 @@ namespace TacticalPort.View
         [SerializeField] private Color _HealPopupColor = new Color(0.19f, 0.84f, 0.34f, 1f);
         [SerializeField] private float _PopupLifetimeSeconds = 2f;
 
-        private BattleUnitRuntime _Runtime;
-        private BattleUnitDefinition _Definition;
+        private UnitRuntime _Runtime;
+        private UnitDefinition _Definition;
         private BoardView _BoardView;
         private Vector3 _BaseSpriteLocalScale = Vector3.one;
 
@@ -29,7 +29,7 @@ namespace TacticalPort.View
 
         #region _____________________________| ACCESSORS
 
-        public BattleUnitId UnitId => _Runtime != null ? _Runtime.Id : BattleUnitId.None;
+        public UnitId UnitId => _Runtime != null ? _Runtime.Id : UnitId.None;
 
         #endregion
 
@@ -51,7 +51,7 @@ namespace TacticalPort.View
 
         #region _____________________________| BINDING
 
-        public void Bind(BattleUnitRuntime pRuntime, BattleUnitDefinition pDefinition, BoardView pBoardView)
+        public void Bind(UnitRuntime pRuntime, UnitDefinition pDefinition, BoardView pBoardView)
         {
             if (_Runtime != null)
                 _Runtime.ValueChanged -= HandleValueChanged;

@@ -6,8 +6,8 @@ namespace TacticalPort.Core.Runtime
     public sealed class GridGlyphRuntime
     {
         public GridGlyphRuntime(
-            BattleUnitId pSourceUnitId,
-            BattleTeam pSourceTeam,
+            UnitId pSourceUnitId,
+            Team pSourceTeam,
             GridCoord pCell,
             int pPower,
             int pRemainingTurns,
@@ -23,8 +23,8 @@ namespace TacticalPort.Core.Runtime
             SourceSkillId = pSourceSkillId ?? string.Empty;
         }
 
-        public BattleUnitId SourceUnitId { get; }
-        public BattleTeam SourceTeam { get; }
+        public UnitId SourceUnitId { get; }
+        public Team SourceTeam { get; }
         public GridCoord Cell { get; }
         public int Power { get; }
         public int RemainingTurns { get; private set; }
@@ -32,7 +32,7 @@ namespace TacticalPort.Core.Runtime
         public string SourceSkillId { get; }
         public bool IsExpired => RemainingTurns <= 0;
 
-        public bool CanAffect(BattleUnitRuntime pUnit)
+        public bool CanAffect(UnitRuntime pUnit)
         {
             if (pUnit == null || !pUnit.IsAlive)
                 return false;

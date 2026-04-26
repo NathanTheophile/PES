@@ -10,25 +10,25 @@ namespace TacticalPort.Core.Runtime
         #region _____________________________| FACTORIES
 
         public static BattleActionResult Failed(BattleActionType pActionType, string pMessage) =>
-            new BattleActionResult(false, pActionType, pMessage, Array.Empty<BattleUnitId>(), Array.Empty<GridCoord>());
+            new BattleActionResult(false, pActionType, pMessage, Array.Empty<UnitId>(), Array.Empty<GridCoord>());
 
         public static BattleActionResult Succeeded(
             BattleActionType pActionType,
             string pMessage,
-            IEnumerable<BattleUnitId> pAffectedUnitIds = null,
+            IEnumerable<UnitId> pAffectedUnitIds = null,
             IEnumerable<GridCoord> pTraversedPath = null) =>
             new BattleActionResult(
                 true,
                 pActionType,
                 pMessage,
-                pAffectedUnitIds?.ToArray() ?? Array.Empty<BattleUnitId>(),
+                pAffectedUnitIds?.ToArray() ?? Array.Empty<UnitId>(),
                 pTraversedPath?.ToArray() ?? Array.Empty<GridCoord>());
 
         private BattleActionResult(
             bool pIsSuccess,
             BattleActionType pActionType,
             string pMessage,
-            IReadOnlyList<BattleUnitId> pAffectedUnitIds,
+            IReadOnlyList<UnitId> pAffectedUnitIds,
             IReadOnlyList<GridCoord> pTraversedPath)
         {
             IsSuccess = pIsSuccess;
@@ -45,7 +45,7 @@ namespace TacticalPort.Core.Runtime
         public bool IsSuccess { get; }
         public BattleActionType ActionType { get; }
         public string Message { get; }
-        public IReadOnlyList<BattleUnitId> AffectedUnitIds { get; }
+        public IReadOnlyList<UnitId> AffectedUnitIds { get; }
         public IReadOnlyList<GridCoord> TraversedPath { get; }
 
         #endregion

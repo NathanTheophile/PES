@@ -5,11 +5,11 @@ using TacticalPort.Shared;
 
 namespace TacticalPort.Core.Runtime
 {
-    public sealed class BattleUnitRuntime
+    public sealed class UnitRuntime
     {
         #region _____________________________| INIT
 
-        public BattleUnitRuntime(BattleUnitId pId, BattleUnitDefinition pDefinition, GridCoord pPosition)
+        public UnitRuntime(UnitId pId, UnitDefinition pDefinition, GridCoord pPosition)
         {
             if (pDefinition == null)
                 throw new ArgumentNullException(nameof(pDefinition));
@@ -41,9 +41,9 @@ namespace TacticalPort.Core.Runtime
 
         #region _____________________________| ACCESSORS
 
-        public BattleUnitId Id { get; }
-        public BattleUnitDefinition Definition { get; }
-        public BattleTeam Team => Definition.Team;
+        public UnitId Id { get; }
+        public UnitDefinition Definition { get; }
+        public Team Team => Definition.Team;
         public GridCoord Position { get; private set; }
         public GridCoord FacingDirection { get; private set; }
         public int CurrentHealth { get; private set; }
@@ -533,7 +533,7 @@ namespace TacticalPort.Core.Runtime
             return $"{ResolveSkillKey(pSkill)}::{pTargetKey}";
         }
 
-        private static List<SkillDefinition> BuildRuntimeSkills(BattleUnitDefinition pDefinition)
+        private static List<SkillDefinition> BuildRuntimeSkills(UnitDefinition pDefinition)
         {
             List<SkillDefinition> lSkills = new List<SkillDefinition>();
 
@@ -563,7 +563,7 @@ namespace TacticalPort.Core.Runtime
             return lSkills;
         }
 
-        private static List<GridCoord> BuildOccupiedCellOffsets(BattleUnitDefinition pDefinition)
+        private static List<GridCoord> BuildOccupiedCellOffsets(UnitDefinition pDefinition)
         {
             int lWidth = pDefinition != null ? pDefinition.FootprintWidth : 1;
             int lHeight = pDefinition != null ? pDefinition.FootprintHeight : 1;
@@ -599,7 +599,7 @@ namespace TacticalPort.Core.Runtime
 
             for (int lIndex = 0; lIndex < Definition.BaseStates.Count; lIndex++)
             {
-                BattleUnitStateEntry lEntry = Definition.BaseStates[lIndex];
+                UnitStateEntry lEntry = Definition.BaseStates[lIndex];
                 if (lEntry?.State == null)
                     continue;
 

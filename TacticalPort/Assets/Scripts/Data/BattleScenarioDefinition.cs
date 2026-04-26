@@ -4,10 +4,10 @@ using UnityEngine;
 
 namespace TacticalPort.Data
 {
-    [CreateAssetMenu(fileName = "BattleScenarioDefinition", menuName = "TacticalPort/Data/Battle Scenario Definition")]
+    [CreateAssetMenu(fileName = "ScenarioDefinition", menuName = "Project/Data/ScenarioDefinition")]
     public sealed class BattleScenarioDefinition : ScriptableObject
     {
-        #region _____________________________| VALUES
+        #region _____________________________/ VALUES
 
         [Header("Identity")]
         [SerializeField] private string _ScenarioId = string.Empty;
@@ -17,22 +17,22 @@ namespace TacticalPort.Data
         [SerializeField, Min(1)] private int _Width = 8;
         [SerializeField, Min(1)] private int _Height = 8;
         [SerializeField, Min(1)] private int _DefaultMovementCost = 1;
-        [SerializeField] private List<BattleGridCellDefinition> _Cells = new List<BattleGridCellDefinition>();
+        [SerializeField] private List<CellDefinition> _Cells = new List<CellDefinition>();
 
         [Header("Units")]
-        [SerializeField] private List<BattleUnitSpawnDefinition> _Units = new List<BattleUnitSpawnDefinition>();
+        [SerializeField] private List<UnitSpawnDefinition> _Units = new List<UnitSpawnDefinition>();
 
         #endregion
 
-        #region _____________________________| ACCESSORS
+        #region _____________________________/ ACCESSORS
 
         public string ScenarioId => _ScenarioId;
         public string DisplayName => string.IsNullOrWhiteSpace(_DisplayName) ? name : _DisplayName;
         public int Width => Mathf.Max(1, _Width);
         public int Height => Mathf.Max(1, _Height);
         public int DefaultMovementCost => Mathf.Max(1, _DefaultMovementCost);
-        public IReadOnlyList<BattleGridCellDefinition> Cells => _Cells;
-        public IReadOnlyList<BattleUnitSpawnDefinition> Units => _Units;
+        public IReadOnlyList<CellDefinition> Cells => _Cells;
+        public IReadOnlyList<UnitSpawnDefinition> Units => _Units;
 
         #endregion
 
@@ -44,8 +44,8 @@ namespace TacticalPort.Data
             int pWidth,
             int pHeight,
             int pDefaultMovementCost,
-            IReadOnlyList<BattleGridCellDefinition> pCells,
-            IReadOnlyList<BattleUnitSpawnDefinition> pUnits)
+            IReadOnlyList<CellDefinition> pCells,
+            IReadOnlyList<UnitSpawnDefinition> pUnits)
         {
             BattleScenarioDefinition lScenario = CreateInstance<BattleScenarioDefinition>();
             lScenario.hideFlags = HideFlags.DontSave;
@@ -55,12 +55,12 @@ namespace TacticalPort.Data
             lScenario._Width = Mathf.Max(1, pWidth);
             lScenario._Height = Mathf.Max(1, pHeight);
             lScenario._DefaultMovementCost = Mathf.Max(1, pDefaultMovementCost);
-            lScenario._Cells = new List<BattleGridCellDefinition>();
-            lScenario._Units = new List<BattleUnitSpawnDefinition>();
+            lScenario._Cells = new List<CellDefinition>();
+            lScenario._Units = new List<UnitSpawnDefinition>();
 
             if (pCells != null)
             {
-                foreach (BattleGridCellDefinition lCell in pCells)
+                foreach (CellDefinition lCell in pCells)
                 {
                     if (lCell != null)
                         lScenario._Cells.Add(lCell.Clone());
@@ -69,7 +69,7 @@ namespace TacticalPort.Data
 
             if (pUnits != null)
             {
-                foreach (BattleUnitSpawnDefinition lUnit in pUnits)
+                foreach (UnitSpawnDefinition lUnit in pUnits)
                 {
                     if (lUnit != null)
                         lScenario._Units.Add(lUnit.Clone());
@@ -93,7 +93,7 @@ namespace TacticalPort.Data
 
             for (int lIndex = 0; lIndex < _Units.Count; lIndex++)
             {
-                BattleUnitSpawnDefinition lSpawn = _Units[lIndex];
+                UnitSpawnDefinition lSpawn = _Units[lIndex];
                 if (lSpawn == null || lSpawn.Unit == null)
                 {
                     pFailureReason = $"Scenario spawn #{lIndex + 1} is missing a unit definition.";
@@ -105,7 +105,7 @@ namespace TacticalPort.Data
             return true;
         }
 
-        public bool TryGetSpawn(BattleUnitId pUnitId, out BattleUnitSpawnDefinition pSpawn)
+        public bool TryGetSpawn(UnitId pUnitId, out UnitSpawnDefinition pSpawn)
         {
             int lSpawnIndex = pUnitId.Value - 1;
 
@@ -119,11 +119,11 @@ namespace TacticalPort.Data
             return false;
         }
 
-        public IEnumerable<BattleGridCellDefinition> EnumerateCells()
+        public IEnumerable<CellDefinition> EnumerateCells()
         {
-            Dictionary<GridCoord, BattleGridCellDefinition> lOverridesByCoord = new Dictionary<GridCoord, BattleGridCellDefinition>();
+            Dictionary<GridCoord, CellDefinition> lOverridesByCoord = new Dictionary<GridCoord, CellDefinition>();
 
-            foreach (BattleGridCellDefinition lCell in _Cells)
+            foreach (CellDefinition lCell in _Cells)
             {
                 if (lCell == null)
                     continue;
@@ -137,13 +137,13 @@ namespace TacticalPort.Data
                 {
                     GridCoord lCoord = new GridCoord(lX, lY);
 
-                    if (lOverridesByCoord.TryGetValue(lCoord, out BattleGridCellDefinition lCell))
+                    if (lOverridesByCoord.TryGetValue(lCoord, out CellDefinition lCell))
                     {
                         yield return lCell;
                         continue;
                     }
 
-                    yield return new BattleGridCellDefinition
+                    yield return new CellDefinition
                     {
                         Coordinate = new SerializableGridCoord(lX, lY),
                         IsWalkable = true,

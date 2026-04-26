@@ -17,7 +17,7 @@ namespace TacticalPort.Core.Services
         private readonly IPathService _PathService;
         private readonly ITurnSystem _TurnSystem;
         private readonly ISkillExecutor _SkillExecutor;
-        private readonly Dictionary<BattleUnitId, BattleUnitRuntime> _UnitsById = new Dictionary<BattleUnitId, BattleUnitRuntime>();
+        private readonly Dictionary<UnitId, UnitRuntime> _UnitsById = new Dictionary<UnitId, UnitRuntime>();
         private int _NextUnitIdValue = 1;
 
         #endregion
@@ -42,9 +42,9 @@ namespace TacticalPort.Core.Services
         public BattlePhase Phase { get; private set; }
         public BattleOutcome Outcome { get; private set; }
         public BattleTurnContext CurrentTurn => _TurnSystem.CurrentTurn;
-        public BattleUnitRuntime ActiveUnit => TryResolveActiveUnit(out BattleUnitRuntime lUnit) ? lUnit : null;
+        public UnitRuntime ActiveUnit => TryResolveActiveUnit(out UnitRuntime lUnit) ? lUnit : null;
         public bool HasActiveTurn => CurrentTurn != null && ActiveUnit != null;
-        public IReadOnlyCollection<BattleUnitRuntime> Units => _UnitsById.Values;
+        public IReadOnlyCollection<UnitRuntime> Units => _UnitsById.Values;
 
         #endregion
 
@@ -64,8 +64,8 @@ namespace TacticalPort.Core.Services
 
             for (int lIndex = 0; lIndex < pScenario.Units.Count; lIndex++)
             {
-                BattleUnitId lUnitId = new BattleUnitId(lIndex + 1);
-                BattleUnitRuntime lRuntime = BattleUnitRuntimeFactory.Create(lUnitId, pScenario.Units[lIndex]);
+                UnitId lUnitId = new UnitId(lIndex + 1);
+                UnitRuntime lRuntime = UnitRuntimeFactory.Create(lUnitId, pScenario.Units[lIndex]);
 
                 _GridService.RegisterUnitFootprint(lUnitId, lRuntime.OccupiedCellOffsets);
                 if (!_GridService.TryPlaceUnit(lUnitId, lRuntime.Position))
@@ -105,15 +105,15 @@ namespace TacticalPort.Core.Services
             return true;
         }
 
-        public IReadOnlyCollection<GridCoord> GetReachableCells(BattleUnitId pUnitId)
+        public IReadOnlyCollection<GridCoord> GetReachableCells(UnitId pUnitId)
         {
-            if (!_UnitsById.TryGetValue(pUnitId, out BattleUnitRuntime lUnit) || !lUnit.IsAlive)
+            if (!_UnitsById.TryGetValue(pUnitId, out UnitRuntime lUnit) || !lUnit.IsAlive)
                 return Array.Empty<GridCoord>();
 
             return _PathService.GetReachableCells(lUnit.Position, lUnit.RemainingMovement, pUnitId);
         }
 
-        public BattleActionResult ValidateSkill(BattleUnitId pUnitId, SkillId pSkillId, SkillTarget pTarget)
+        public BattleActionResult ValidateSkill(UnitId pUnitId, SkillId pSkillId, SkillTarget pTarget)
         {
             if (!TryResolveSkillRequest(pUnitId, pSkillId, pTarget, out _, out _, out _, out BattleActionResult lError))
                 return lError;
@@ -121,9 +121,9 @@ namespace TacticalPort.Core.Services
             return lError;
         }
 
-        public BattleActionResult MoveUnit(BattleUnitId pUnitId, GridCoord pDestination)
+        public BattleActionResult MoveUnit(UnitId pUnitId, GridCoord pDestination)
         {
-            if (!CanControlCurrentUnit(pUnitId, BattleActionType.Move, out BattleUnitRuntime lUnit, out BattleActionResult lError))
+            if (!CanControlCurrentUnit(pUnitId, BattleActionType.Move, out UnitRuntime lUnit, out BattleActionResult lError))
                 return lError;
 
             PathResult lPath = _PathService.FindPath(lUnit.Position, pDestination, lUnit.RemainingMovement, pUnitId);
@@ -146,9 +146,9 @@ namespace TacticalPort.Core.Services
             return BattleActionResult.Succeeded(BattleActionType.Move, lMessage, new[] { pUnitId }, lPath.Steps);
         }
 
-        public BattleActionResult UseSkill(BattleUnitId pUnitId, SkillId pSkillId, SkillTarget pTarget)
+        public BattleActionResult UseSkill(UnitId pUnitId, SkillId pSkillId, SkillTarget pTarget)
         {
-            if (!TryResolveSkillRequest(pUnitId, pSkillId, pTarget, out BattleUnitRuntime lUnit, out SkillDefinition lSkill, out SkillExecutionContext lContext, out BattleActionResult lError))
+            if (!TryResolveSkillRequest(pUnitId, pSkillId, pTarget, out UnitRuntime lUnit, out SkillDefinition lSkill, out SkillExecutionContext lContext, out BattleActionResult lError))
                 return lError;
 
             Phase = BattlePhase.ResolvingAction;
@@ -169,7 +169,7 @@ namespace TacticalPort.Core.Services
             return lResult;
         }
 
-        public BattleActionResult EndTurn(BattleUnitId pUnitId)
+        public BattleActionResult EndTurn(UnitId pUnitId)
         {
             if (CurrentTurn == null || CurrentTurn.UnitId != pUnitId)
                 return BattleActionResult.Failed(BattleActionType.EndTurn, "Unit does not own the active turn.");
@@ -185,21 +185,21 @@ namespace TacticalPort.Core.Services
             return BattleActionResult.Succeeded(BattleActionType.EndTurn, "Turn completed.", new[] { pUnitId });
         }
 
-        public bool IsUnitActive(BattleUnitId pUnitId) => CurrentTurn != null && CurrentTurn.UnitId == pUnitId;
-        public bool TryGetActiveUnit(out BattleUnitRuntime pUnit) => TryResolveActiveUnit(out pUnit);
-        public bool TryGetUnit(BattleUnitId pUnitId, out BattleUnitRuntime pUnit) => _UnitsById.TryGetValue(pUnitId, out pUnit);
+        public bool IsUnitActive(UnitId pUnitId) => CurrentTurn != null && CurrentTurn.UnitId == pUnitId;
+        public bool TryGetActiveUnit(out UnitRuntime pUnit) => TryResolveActiveUnit(out pUnit);
+        public bool TryGetUnit(UnitId pUnitId, out UnitRuntime pUnit) => _UnitsById.TryGetValue(pUnitId, out pUnit);
 
-        public bool TryApplyState(BattleUnitId pUnitId, StateDefinition pState, int pStacks = 1, int pDurationTurns = -1)
+        public bool TryApplyState(UnitId pUnitId, StateDefinition pState, int pStacks = 1, int pDurationTurns = -1)
         {
-            if (!_UnitsById.TryGetValue(pUnitId, out BattleUnitRuntime lUnit) || !lUnit.IsAlive)
+            if (!_UnitsById.TryGetValue(pUnitId, out UnitRuntime lUnit) || !lUnit.IsAlive)
                 return false;
 
             return lUnit.TryApplyState(pState, pStacks, pDurationTurns);
         }
 
-        public bool TryRemoveState(BattleUnitId pUnitId, StateDefinition pState)
+        public bool TryRemoveState(UnitId pUnitId, StateDefinition pState)
         {
-            if (!_UnitsById.TryGetValue(pUnitId, out BattleUnitRuntime lUnit))
+            if (!_UnitsById.TryGetValue(pUnitId, out UnitRuntime lUnit))
                 return false;
 
             return lUnit.RemoveTemporaryState(pState);
@@ -211,34 +211,34 @@ namespace TacticalPort.Core.Services
 
         private void RefreshAllPhaseStates()
         {
-            foreach (BattleUnitRuntime lUnit in _UnitsById.Values)
+            foreach (UnitRuntime lUnit in _UnitsById.Values)
                 RefreshPhaseStates(lUnit);
         }
 
-        private void RefreshPhaseStates(IEnumerable<BattleUnitId> pUnitIds)
+        private void RefreshPhaseStates(IEnumerable<UnitId> pUnitIds)
         {
             if (pUnitIds == null)
                 return;
 
-            HashSet<BattleUnitId> lUniqueIds = new HashSet<BattleUnitId>();
-            foreach (BattleUnitId lUnitId in pUnitIds)
+            HashSet<UnitId> lUniqueIds = new HashSet<UnitId>();
+            foreach (UnitId lUnitId in pUnitIds)
             {
                 if (!lUniqueIds.Add(lUnitId))
                     continue;
 
-                if (_UnitsById.TryGetValue(lUnitId, out BattleUnitRuntime lUnit))
+                if (_UnitsById.TryGetValue(lUnitId, out UnitRuntime lUnit))
                     RefreshPhaseStates(lUnit);
             }
         }
 
-        private void RefreshPhaseStates(BattleUnitRuntime pUnit)
+        private void RefreshPhaseStates(UnitRuntime pUnit)
         {
             if (pUnit?.Definition?.PhaseStates == null)
                 return;
 
             for (int lIndex = 0; lIndex < pUnit.Definition.PhaseStates.Count; lIndex++)
             {
-                BattleUnitPhaseStateDefinition lPhaseState = pUnit.Definition.PhaseStates[lIndex];
+                UnitPhaseStateDefinition lPhaseState = pUnit.Definition.PhaseStates[lIndex];
                 string lPhaseKey = $"phase::{lIndex}";
 
                 if (ShouldPhaseStateBeActive(pUnit, lPhaseState))
@@ -252,9 +252,9 @@ namespace TacticalPort.Core.Services
         }
 
         private bool CanControlCurrentUnit(
-            BattleUnitId pUnitId,
+            UnitId pUnitId,
             BattleActionType pActionType,
-            out BattleUnitRuntime pUnit,
+            out UnitRuntime pUnit,
             out BattleActionResult pError)
         {
             if (Outcome != BattleOutcome.None)
@@ -287,7 +287,7 @@ namespace TacticalPort.Core.Services
             return true;
         }
 
-        private bool TryResolveActiveUnit(out BattleUnitRuntime pUnit)
+        private bool TryResolveActiveUnit(out UnitRuntime pUnit)
         {
             if (CurrentTurn == null)
             {
@@ -299,10 +299,10 @@ namespace TacticalPort.Core.Services
         }
 
         private bool TryResolveSkillRequest(
-            BattleUnitId pUnitId,
+            UnitId pUnitId,
             SkillId pSkillId,
             SkillTarget pTarget,
-            out BattleUnitRuntime pUnit,
+            out UnitRuntime pUnit,
             out SkillDefinition pSkill,
             out SkillExecutionContext pContext,
             out BattleActionResult pError)
@@ -338,7 +338,7 @@ namespace TacticalPort.Core.Services
             return pError.IsSuccess;
         }
 
-        private bool TryRelocateUnit(BattleUnitRuntime pUnit, GridCoord pDestination)
+        private bool TryRelocateUnit(UnitRuntime pUnit, GridCoord pDestination)
         {
             if (pUnit == null || !pUnit.IsAlive)
                 return false;
@@ -352,7 +352,7 @@ namespace TacticalPort.Core.Services
             return true;
         }
 
-        private bool TrySwapUnits(BattleUnitRuntime pFirstUnit, BattleUnitRuntime pSecondUnit)
+        private bool TrySwapUnits(UnitRuntime pFirstUnit, UnitRuntime pSecondUnit)
         {
             if (pFirstUnit == null || pSecondUnit == null || !pFirstUnit.IsAlive || !pSecondUnit.IsAlive)
                 return false;
@@ -387,18 +387,18 @@ namespace TacticalPort.Core.Services
             return true;
         }
 
-        private BattleUnitRuntime TrySummonUnit(BattleUnitDefinition pDefinition, SkillSummonTeamRule pTeamRule, BattleUnitRuntime pSummoner, GridCoord pDestination)
+        private UnitRuntime TrySummonUnit(UnitDefinition pDefinition, SkillSummonTeamRule pTeamRule, UnitRuntime pSummoner, GridCoord pDestination)
         {
             if (pDefinition == null || !_GridService.IsInside(pDestination))
                 return null;
 
-            BattleTeam? lTeamOverride = ResolveSummonTeamOverride(pDefinition, pTeamRule, pSummoner);
-            BattleUnitDefinition lRuntimeDefinition = lTeamOverride.HasValue && lTeamOverride.Value != pDefinition.Team
-                ? BattleUnitDefinition.CreateRuntimeClone(pDefinition, lTeamOverride)
+            Team? lTeamOverride = ResolveSummonTeamOverride(pDefinition, pTeamRule, pSummoner);
+            UnitDefinition lRuntimeDefinition = lTeamOverride.HasValue && lTeamOverride.Value != pDefinition.Team
+                ? UnitDefinition.CreateRuntimeClone(pDefinition, lTeamOverride)
                 : pDefinition;
 
-            BattleUnitId lUnitId = new BattleUnitId(_NextUnitIdValue++);
-            BattleUnitRuntime lRuntime = new BattleUnitRuntime(lUnitId, lRuntimeDefinition, pDestination);
+            UnitId lUnitId = new UnitId(_NextUnitIdValue++);
+            UnitRuntime lRuntime = new UnitRuntime(lUnitId, lRuntimeDefinition, pDestination);
             _GridService.RegisterUnitFootprint(lUnitId, lRuntime.OccupiedCellOffsets);
 
             if (!_GridService.TryPlaceUnit(lUnitId, pDestination))
@@ -410,7 +410,7 @@ namespace TacticalPort.Core.Services
             return lRuntime;
         }
 
-        private static BattleTeam? ResolveSummonTeamOverride(BattleUnitDefinition pDefinition, SkillSummonTeamRule pTeamRule, BattleUnitRuntime pSummoner)
+        private static Team? ResolveSummonTeamOverride(UnitDefinition pDefinition, SkillSummonTeamRule pTeamRule, UnitRuntime pSummoner)
         {
             switch (pTeamRule)
             {
@@ -421,16 +421,16 @@ namespace TacticalPort.Core.Services
                     if (pSummoner == null)
                         return pDefinition.Team;
 
-                    return pSummoner.Team == BattleTeam.Player ? BattleTeam.Enemy : BattleTeam.Player;
+                    return pSummoner.Team == Team.Player ? Team.Enemy : Team.Player;
 
                 default:
-                    return pDefinition != null ? pDefinition.Team : BattleTeam.Neutral;
+                    return pDefinition != null ? pDefinition.Team : Team.Neutral;
             }
         }
 
         private void ApplyStartTurnEffects()
         {
-            if (!TryResolveActiveUnit(out BattleUnitRuntime lActiveUnit) || lActiveUnit == null || !lActiveUnit.IsAlive)
+            if (!TryResolveActiveUnit(out UnitRuntime lActiveUnit) || lActiveUnit == null || !lActiveUnit.IsAlive)
                 return;
 
             foreach (GridCoord lCell in _GridService.GetOccupiedCells(lActiveUnit.Id))
@@ -452,7 +452,7 @@ namespace TacticalPort.Core.Services
 
         private void CleanupDefeatedUnits()
         {
-            foreach (BattleUnitRuntime lDefeatedUnit in _UnitsById.Values.Where(unit => !unit.IsAlive).ToArray())
+            foreach (UnitRuntime lDefeatedUnit in _UnitsById.Values.Where(unit => !unit.IsAlive).ToArray())
             {
                 _GridService.RemoveUnit(lDefeatedUnit.Id);
                 _TurnSystem.RemoveUnit(lDefeatedUnit.Id);
@@ -472,8 +472,8 @@ namespace TacticalPort.Core.Services
 
         private void EvaluateOutcome()
         {
-            bool lAnyPlayersAlive = _UnitsById.Values.Any(unit => unit.IsAlive && unit.Team == BattleTeam.Player);
-            bool lAnyEnemiesAlive = _UnitsById.Values.Any(unit => unit.IsAlive && unit.Team == BattleTeam.Enemy);
+            bool lAnyPlayersAlive = _UnitsById.Values.Any(unit => unit.IsAlive && unit.Team == Team.Player);
+            bool lAnyEnemiesAlive = _UnitsById.Values.Any(unit => unit.IsAlive && unit.Team == Team.Enemy);
 
             if (!lAnyPlayersAlive && !lAnyEnemiesAlive)
                 Outcome = BattleOutcome.Draw;
@@ -491,7 +491,7 @@ namespace TacticalPort.Core.Services
             }
         }
 
-        private static bool ShouldPhaseStateBeActive(BattleUnitRuntime pUnit, BattleUnitPhaseStateDefinition pPhaseState)
+        private static bool ShouldPhaseStateBeActive(UnitRuntime pUnit, UnitPhaseStateDefinition pPhaseState)
         {
             if (pUnit == null || pPhaseState?.State == null || !pUnit.IsAlive)
                 return false;

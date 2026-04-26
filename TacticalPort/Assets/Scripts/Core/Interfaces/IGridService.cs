@@ -16,16 +16,16 @@ namespace TacticalPort.Core.Interfaces
         bool BlocksLineOfSight(GridCoord coordinate);
         int GetMovementCost(GridCoord coordinate);
         bool IsOccupied(GridCoord coordinate);
-        bool TryGetOccupant(GridCoord coordinate, out BattleUnitId unitId);
-        bool TryGetUnitPosition(BattleUnitId unitId, out GridCoord coordinate);
-        bool CanUnitOccupy(BattleUnitId unitId, GridCoord coordinate);
-        IReadOnlyCollection<GridCoord> GetOccupiedCells(BattleUnitId unitId);
+        bool TryGetOccupant(GridCoord coordinate, out UnitId unitId);
+        bool TryGetUnitPosition(UnitId unitId, out GridCoord coordinate);
+        bool CanUnitOccupy(UnitId unitId, GridCoord coordinate);
+        IReadOnlyCollection<GridCoord> GetOccupiedCells(UnitId unitId);
         IReadOnlyCollection<GridGlyphRuntime> GetGlyphsAt(GridCoord coordinate);
         IReadOnlyCollection<GridCoord> GetNeighbours(GridCoord coordinate);
-        void RegisterUnitFootprint(BattleUnitId unitId, IReadOnlyCollection<GridCoord> occupiedCellOffsets);
-        bool TryPlaceUnit(BattleUnitId unitId, GridCoord coordinate);
-        bool TryMoveUnit(BattleUnitId unitId, GridCoord destination);
-        bool RemoveUnit(BattleUnitId unitId);
+        void RegisterUnitFootprint(UnitId unitId, IReadOnlyCollection<GridCoord> occupiedCellOffsets);
+        bool TryPlaceUnit(UnitId unitId, GridCoord coordinate);
+        bool TryMoveUnit(UnitId unitId, GridCoord destination);
+        bool RemoveUnit(UnitId unitId);
         void AddOrReplaceGlyph(GridGlyphRuntime glyph);
         void AdvancePersistentEffects();
     }

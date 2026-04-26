@@ -21,7 +21,7 @@ namespace TacticalPort.Bootstrap
         [SerializeField] private bool _RefreshPresentationEachFrame = true;
         [SerializeField, Min(0f)] private float _EnemyTurnDelaySeconds = 0.15f;
 
-        private readonly Dictionary<BattleUnitId, UnitView> _UnitViews = new Dictionary<BattleUnitId, UnitView>();
+        private readonly Dictionary<UnitId, UnitView> _UnitViews = new Dictionary<UnitId, UnitView>();
         private IBattleService _BattleService;
         private EnemyTurnController _EnemyTurnController;
         private bool _IsBootstrapped;
@@ -33,7 +33,7 @@ namespace TacticalPort.Bootstrap
         public IBattleService BattleService => _BattleService;
         public bool IsBootstrapped => _IsBootstrapped;
         public BattleTurnContext CurrentTurn => _BattleService != null ? _BattleService.CurrentTurn : null;
-        public BattleUnitRuntime ActiveUnit => _BattleService != null ? _BattleService.ActiveUnit : null;
+        public UnitRuntime ActiveUnit => _BattleService != null ? _BattleService.ActiveUnit : null;
         public HUDManager HudManager => _SceneReferences != null ? _SceneReferences.HudManager : null;
         public BoardCursorView BoardCursorView => _SceneReferences != null ? _SceneReferences.BoardCursorView : null;
 
@@ -113,7 +113,7 @@ namespace TacticalPort.Bootstrap
             return true;
         }
 
-        public bool TryGetActiveUnit(out BattleUnitRuntime pUnit)
+        public bool TryGetActiveUnit(out UnitRuntime pUnit)
         {
             pUnit = ActiveUnit;
             return pUnit != null;
@@ -121,7 +121,7 @@ namespace TacticalPort.Bootstrap
 
         public IReadOnlyCollection<GridCoord> GetReachableCellsForActiveUnit()
         {
-            if (_BattleService == null || !_BattleService.TryGetActiveUnit(out BattleUnitRuntime lUnit))
+            if (_BattleService == null || !_BattleService.TryGetActiveUnit(out UnitRuntime lUnit))
                 return System.Array.Empty<GridCoord>();
 
             return _BattleService.GetReachableCells(lUnit.Id);
@@ -129,7 +129,7 @@ namespace TacticalPort.Bootstrap
 
         public BattleActionResult ValidateActiveSkill(SkillId pSkillId, SkillTarget pTarget)
         {
-            if (_BattleService == null || !_BattleService.TryGetActiveUnit(out BattleUnitRuntime lUnit))
+            if (_BattleService == null || !_BattleService.TryGetActiveUnit(out UnitRuntime lUnit))
                 return BattleActionResult.Failed(BattleActionType.Skill, "No active unit is available.");
 
             return _BattleService.ValidateSkill(lUnit.Id, pSkillId, pTarget);
@@ -137,7 +137,7 @@ namespace TacticalPort.Bootstrap
 
         public BattleActionResult MoveActiveUnit(GridCoord pDestination)
         {
-            if (_BattleService == null || !_BattleService.TryGetActiveUnit(out BattleUnitRuntime lUnit))
+            if (_BattleService == null || !_BattleService.TryGetActiveUnit(out UnitRuntime lUnit))
                 return BattleActionResult.Failed(BattleActionType.Move, "No active unit is available.");
 
             BattleActionResult lResult = _BattleService.MoveUnit(lUnit.Id, pDestination);
@@ -147,7 +147,7 @@ namespace TacticalPort.Bootstrap
 
         public BattleActionResult UseActiveUnitSkill(SkillId pSkillId, SkillTarget pTarget)
         {
-            if (_BattleService == null || !_BattleService.TryGetActiveUnit(out BattleUnitRuntime lUnit))
+            if (_BattleService == null || !_BattleService.TryGetActiveUnit(out UnitRuntime lUnit))
                 return BattleActionResult.Failed(BattleActionType.Skill, "No active unit is available.");
 
             BattleActionResult lResult = _BattleService.UseSkill(lUnit.Id, pSkillId, pTarget);
@@ -157,7 +157,7 @@ namespace TacticalPort.Bootstrap
 
         public BattleActionResult EndActiveTurn(string pStatusOverride = null)
         {
-            if (_BattleService == null || !_BattleService.TryGetActiveUnit(out BattleUnitRuntime lUnit))
+            if (_BattleService == null || !_BattleService.TryGetActiveUnit(out UnitRuntime lUnit))
                 return BattleActionResult.Failed(BattleActionType.EndTurn, "No active unit is available.");
 
             BattleActionResult lResult = _BattleService.EndTurn(lUnit.Id);
@@ -176,7 +176,7 @@ namespace TacticalPort.Bootstrap
                 return;
 
             SyncRuntimeUnitViews();
-            _SceneReferences?.BoardView?.SetOccupiedCells(_BattleService.Units, _BattleService.ActiveUnit != null ? _BattleService.ActiveUnit.Id : BattleUnitId.None);
+            _SceneReferences?.BoardView?.SetOccupiedCells(_BattleService.Units, _BattleService.ActiveUnit != null ? _BattleService.ActiveUnit.Id : UnitId.None);
 
             foreach (UnitView lUnitView in _UnitViews.Values)
             {
@@ -203,11 +203,11 @@ namespace TacticalPort.Bootstrap
 
             for (int lIndex = 0; lIndex < pActiveScenario.Units.Count; lIndex++)
             {
-                BattleUnitId lUnitId = new BattleUnitId(lIndex + 1);
+                UnitId lUnitId = new UnitId(lIndex + 1);
                 if (!_BattleService.TryGetUnit(lUnitId, out var lRuntimeUnit))
                     continue;
 
-                if (!pActiveScenario.TryGetSpawn(lUnitId, out BattleUnitSpawnDefinition lSpawn) || lSpawn == null)
+                if (!pActiveScenario.TryGetSpawn(lUnitId, out UnitSpawnDefinition lSpawn) || lSpawn == null)
                     continue;
 
                 UnitView lPrefab = ResolvePrefab(lSpawn.Unit);
@@ -225,7 +225,7 @@ namespace TacticalPort.Bootstrap
             }
         }
 
-        private UnitView ResolvePrefab(BattleUnitDefinition pUnitDefinition)
+        private UnitView ResolvePrefab(UnitDefinition pUnitDefinition)
         {
             if (pUnitDefinition != null && pUnitDefinition.UnitViewPrefab != null)
                 return pUnitDefinition.UnitViewPrefab;
@@ -279,7 +279,7 @@ namespace TacticalPort.Bootstrap
             if (_BattleService == null)
                 return;
 
-            foreach (BattleUnitRuntime lRuntimeUnit in _BattleService.Units)
+            foreach (UnitRuntime lRuntimeUnit in _BattleService.Units)
             {
                 if (lRuntimeUnit == null || _UnitViews.ContainsKey(lRuntimeUnit.Id))
                     continue;
@@ -317,9 +317,9 @@ namespace TacticalPort.Bootstrap
             _SceneReferences.HudManager?.SetStatus(pStatusOverride);
         }
 
-        private string ResolveUnitLabel(BattleUnitId pUnitId)
+        private string ResolveUnitLabel(UnitId pUnitId)
         {
-            if (_BattleService != null && _BattleService.TryGetUnit(pUnitId, out BattleUnitRuntime lUnit))
+            if (_BattleService != null && _BattleService.TryGetUnit(pUnitId, out UnitRuntime lUnit))
                 return lUnit.Definition.DisplayName;
 
             return pUnitId.ToString();
@@ -329,7 +329,7 @@ namespace TacticalPort.Bootstrap
         {
             string lScenarioName = pScenario != null ? pScenario.DisplayName : "Unknown";
 
-            if (_BattleService != null && _BattleService.TryGetActiveUnit(out BattleUnitRuntime lUnit))
+            if (_BattleService != null && _BattleService.TryGetActiveUnit(out UnitRuntime lUnit))
                 return $"Scenario '{lScenarioName}' initialized. Active turn: {lUnit.Definition.DisplayName}.";
 
             return $"Scenario '{lScenarioName}' initialized.";

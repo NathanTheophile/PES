@@ -7,20 +7,18 @@ namespace TacticalPort.Data
     {
         #region _____________________________| VALUES
 
-        [Header("Identity")]
         [SerializeField] private string _Id = string.Empty;
         [SerializeField] private string _DisplayName = string.Empty;
         [SerializeField, TextArea] private string _Description = string.Empty;
 
-        [Header("Rules")]
         [SerializeField, Min(0)] private int _DurationTurns = 0;
         [SerializeField, Min(1)] private int _MaxStacks = 1;
         [SerializeField] private bool _IsPassiveMarker;
 
-        [Header("Modifiers")]
         [SerializeField] private int _DamageModifierPerStack = 0;
         [SerializeField, Min(0)] private int _DamageReductionPerStack = 0;
         [SerializeField] private int _RangeModifierPerStack = 0;
+        [SerializeField] private Sprite _Icon;
 
         #endregion
 

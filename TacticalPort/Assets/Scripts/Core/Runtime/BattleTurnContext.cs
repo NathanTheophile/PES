@@ -6,7 +6,7 @@ namespace TacticalPort.Core.Runtime
     {
         #region _____________________________| INIT
 
-        public BattleTurnContext(int pRoundIndex, int pTurnIndex, BattleUnitId pUnitId)
+        public BattleTurnContext(int pRoundIndex, int pTurnIndex, UnitId pUnitId)
         {
             RoundIndex = pRoundIndex;
             TurnIndex = pTurnIndex;
@@ -19,7 +19,7 @@ namespace TacticalPort.Core.Runtime
 
         public int RoundIndex { get; }
         public int TurnIndex { get; }
-        public BattleUnitId UnitId { get; }
+        public UnitId UnitId { get; }
 
         #endregion
     }

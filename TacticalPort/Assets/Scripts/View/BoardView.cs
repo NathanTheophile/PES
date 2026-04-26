@@ -31,14 +31,14 @@ namespace TacticalPort.View
         [SerializeField] private Color _HoveredReachableColor = new Color(0.37f, 0.9f, 1f, 1f);
         [SerializeField] private Color _HoveredPreviewColor = new Color(1f, 0.78f, 0.37f, 1f);
 
-        private readonly Dictionary<GridCoord, BattleGridCellDefinition> _CellsByCoord = new Dictionary<GridCoord, BattleGridCellDefinition>();
+        private readonly Dictionary<GridCoord, CellDefinition> _CellsByCoord = new Dictionary<GridCoord, CellDefinition>();
         private readonly Dictionary<GridCoord, SpriteRenderer> _RenderersByCoord = new Dictionary<GridCoord, SpriteRenderer>();
         private readonly Dictionary<GridCoord, Vector3Int> _TilePositionsByCoord = new Dictionary<GridCoord, Vector3Int>();
         private readonly Dictionary<GridCoord, Color> _OccupiedColorsByCoord = new Dictionary<GridCoord, Color>();
         private readonly HashSet<GridCoord> _ReachableCells = new HashSet<GridCoord>();
         private readonly HashSet<GridCoord> _PreviewCells = new HashSet<GridCoord>();
         private BattleScenarioDefinition _Scenario;
-        private TilemapBoardAuthoring _TilemapBoardAuthoring;
+        private BoardAuthoring _TilemapBoardAuthoring;
         private Tilemap _Tilemap;
         private bool _HasHoveredCell;
         private GridCoord _HoveredCell;
@@ -123,9 +123,9 @@ namespace TacticalPort.View
 
         public bool ContainsCell(GridCoord pCoord) => _CellsByCoord.ContainsKey(pCoord);
 
-        public bool TryGetCellDefinition(GridCoord pCoord, out BattleGridCellDefinition pCellDefinition)
+        public bool TryGetCellDefinition(GridCoord pCoord, out CellDefinition pCellDefinition)
         {
-            if (_CellsByCoord.TryGetValue(pCoord, out BattleGridCellDefinition lCell))
+            if (_CellsByCoord.TryGetValue(pCoord, out CellDefinition lCell))
             {
                 pCellDefinition = lCell;
                 return true;
@@ -150,12 +150,12 @@ namespace TacticalPort.View
             RefreshCellStates();
         }
 
-        public void SetOccupiedCells(IReadOnlyCollection<BattleUnitRuntime> pUnits, BattleUnitId pActiveUnitId)
+        public void SetOccupiedCells(IReadOnlyCollection<UnitRuntime> pUnits, UnitId pActiveUnitId)
         {
             _OccupiedColorsByCoord.Clear();
             if (pUnits != null)
             {
-                foreach (BattleUnitRuntime lUnit in pUnits)
+                foreach (UnitRuntime lUnit in pUnits)
                 {
                     if (lUnit == null || !lUnit.IsAlive)
                         continue;
@@ -218,7 +218,7 @@ namespace TacticalPort.View
 
                 GridCoord lCoord = lCell.GridCoord;
                 lCell.transform.position = GetWorldPosition(lCoord);
-                _CellsByCoord[lCoord] = new BattleGridCellDefinition
+                _CellsByCoord[lCoord] = new CellDefinition
                 {
                     Coordinate = new SerializableGridCoord(lCoord.X, lCoord.Y),
                     IsWalkable = lCell.IsWalkable,
@@ -258,7 +258,7 @@ namespace TacticalPort.View
         private void CacheMissingReferences()
         {
             _CellRoot ??= transform;
-            _TilemapBoardAuthoring ??= GetComponent<TilemapBoardAuthoring>() ?? GetComponentInChildren<TilemapBoardAuthoring>(true);
+            _TilemapBoardAuthoring ??= GetComponent<BoardAuthoring>() ?? GetComponentInChildren<BoardAuthoring>(true);
         }
 
         private IEnumerable<SceneBoardCell> EnumerateSceneCells()
@@ -273,21 +273,21 @@ namespace TacticalPort.View
             {
                 foreach (KeyValuePair<GridCoord, Vector3Int> lEntry in _TilePositionsByCoord)
                 {
-                    if (_CellsByCoord.TryGetValue(lEntry.Key, out BattleGridCellDefinition lCell))
+                    if (_CellsByCoord.TryGetValue(lEntry.Key, out CellDefinition lCell))
                         _Tilemap.SetColor(lEntry.Value, ResolveCellColor(lEntry.Key, lCell));
                 }
             }
 
             foreach (KeyValuePair<GridCoord, SpriteRenderer> lEntry in _RenderersByCoord)
             {
-                if (lEntry.Value == null || !_CellsByCoord.TryGetValue(lEntry.Key, out BattleGridCellDefinition lCell))
+                if (lEntry.Value == null || !_CellsByCoord.TryGetValue(lEntry.Key, out CellDefinition lCell))
                     continue;
 
                 lEntry.Value.color = ResolveCellColor(lEntry.Key, lCell);
             }
         }
 
-        private Color ResolveCellColor(GridCoord pCoord, BattleGridCellDefinition pCell)
+        private Color ResolveCellColor(GridCoord pCoord, CellDefinition pCell)
         {
             bool lIsReachable = _ReachableCells.Contains(pCoord);
             bool lIsPreviewed = _PreviewCells.Contains(pCoord);
@@ -309,12 +309,12 @@ namespace TacticalPort.View
             return pCell.IsWalkable ? _WalkableColor : _BlockedColor;
         }
 
-        private Color ResolveOccupiedColor(BattleUnitRuntime pUnit, BattleUnitId pActiveUnitId)
+        private Color ResolveOccupiedColor(UnitRuntime pUnit, UnitId pActiveUnitId)
         {
             if (pUnit != null && pUnit.Id == pActiveUnitId)
                 return _ActiveOccupiedColor;
 
-            return pUnit != null && pUnit.Team == BattleTeam.Enemy ? _EnemyOccupiedColor : _PlayerOccupiedColor;
+            return pUnit != null && pUnit.Team == Team.Enemy ? _EnemyOccupiedColor : _PlayerOccupiedColor;
         }
 
         private bool TryBuildTilemapBoard()
@@ -325,7 +325,7 @@ namespace TacticalPort.View
             _Tilemap = _TilemapBoardAuthoring.FloorTilemap;
             foreach (GridCoord lCoord in _TilemapBoardAuthoring.EnumeratePaintedCoordinates())
             {
-                if (!_TilemapBoardAuthoring.TryGetCellDefinition(lCoord, out BattleGridCellDefinition lCellDefinition))
+                if (!_TilemapBoardAuthoring.TryGetCellDefinition(lCoord, out CellDefinition lCellDefinition))
                     continue;
                 if (!_TilemapBoardAuthoring.TryGetAuthoredCell(lCoord, out Vector3Int lTilePosition))
                     continue;

@@ -7,7 +7,7 @@ namespace TacticalPort.Core.Runtime
     {
         #region _____________________________| INIT
 
-        private SkillTarget(SkillTargetType pTargetType, GridCoord pCell, BattleUnitId pUnitId)
+        private SkillTarget(SkillTargetType pTargetType, GridCoord pCell, UnitId pUnitId)
         {
             TargetType = pTargetType;
             Cell = pCell;
@@ -20,15 +20,15 @@ namespace TacticalPort.Core.Runtime
 
         public SkillTargetType TargetType { get; }
         public GridCoord Cell { get; }
-        public BattleUnitId UnitId { get; }
+        public UnitId UnitId { get; }
 
         #endregion
 
         #region _____________________________| FACTORIES
 
-        public static SkillTarget ForSelf(BattleUnitId pUnitId) => new SkillTarget(SkillTargetType.Self, new GridCoord(0, 0), pUnitId);
-        public static SkillTarget ForUnit(BattleUnitId pUnitId) => new SkillTarget(SkillTargetType.Unit, new GridCoord(0, 0), pUnitId);
-        public static SkillTarget ForCell(GridCoord pCell) => new SkillTarget(SkillTargetType.Cell, pCell, BattleUnitId.None);
+        public static SkillTarget ForSelf(UnitId pUnitId) => new SkillTarget(SkillTargetType.Self, new GridCoord(0, 0), pUnitId);
+        public static SkillTarget ForUnit(UnitId pUnitId) => new SkillTarget(SkillTargetType.Unit, new GridCoord(0, 0), pUnitId);
+        public static SkillTarget ForCell(GridCoord pCell) => new SkillTarget(SkillTargetType.Cell, pCell, UnitId.None);
 
         #endregion
 

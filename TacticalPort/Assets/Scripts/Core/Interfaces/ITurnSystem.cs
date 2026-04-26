@@ -9,10 +9,10 @@ namespace TacticalPort.Core.Interfaces
         BattleTurnContext CurrentTurn { get; }
         int RoundIndex { get; }
 
-        void Initialize(IEnumerable<BattleUnitRuntime> units);
+        void Initialize(IEnumerable<UnitRuntime> units);
         bool TryStartNextTurn(out BattleTurnContext turnContext);
         void CompleteCurrentTurn();
-        void AddUnit(BattleUnitRuntime unit);
-        void RemoveUnit(BattleUnitId unitId);
+        void AddUnit(UnitRuntime unit);
+        void RemoveUnit(UnitId unitId);
     }
 }

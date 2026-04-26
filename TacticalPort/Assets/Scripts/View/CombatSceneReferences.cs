@@ -9,7 +9,7 @@ namespace TacticalPort.View
 
         [SerializeField] private BoardView _BoardView;
         [SerializeField] private SceneBoardAuthoring _SceneBoardAuthoring;
-        [SerializeField] private TilemapBoardAuthoring _TilemapBoardAuthoring;
+        [SerializeField] private BoardAuthoring _TilemapBoardAuthoring;
         [SerializeField] private BoardCursorView _BoardCursorView;
         [SerializeField] private HUDManager _HudManager;
         [SerializeField] private Transform _UnitRoot;
@@ -55,12 +55,12 @@ namespace TacticalPort.View
         private void CacheMissingReferences()
         {
             if (_TilemapBoardAuthoring == null && _BoardView != null)
-                _TilemapBoardAuthoring = _BoardView.GetComponent<TilemapBoardAuthoring>();
+                _TilemapBoardAuthoring = _BoardView.GetComponent<BoardAuthoring>();
 
             if (_SceneBoardAuthoring == null && _BoardView != null)
                 _SceneBoardAuthoring = _BoardView.GetComponent<SceneBoardAuthoring>();
 
-            _TilemapBoardAuthoring ??= GetComponentInChildren<TilemapBoardAuthoring>(true);
+            _TilemapBoardAuthoring ??= GetComponentInChildren<BoardAuthoring>(true);
             _SceneBoardAuthoring ??= GetComponentInChildren<SceneBoardAuthoring>(true);
         }
     }

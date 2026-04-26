@@ -10,19 +10,19 @@ namespace TacticalPort.Core.Interfaces
         BattlePhase Phase { get; }
         BattleOutcome Outcome { get; }
         BattleTurnContext CurrentTurn { get; }
-        BattleUnitRuntime ActiveUnit { get; }
+        UnitRuntime ActiveUnit { get; }
         bool HasActiveTurn { get; }
-        IReadOnlyCollection<BattleUnitRuntime> Units { get; }
+        IReadOnlyCollection<UnitRuntime> Units { get; }
 
         void Initialize(BattleScenarioDefinition pScenario);
         bool TryStartNextTurn(out BattleTurnContext turnContext);
-        IReadOnlyCollection<GridCoord> GetReachableCells(BattleUnitId unitId);
-        BattleActionResult ValidateSkill(BattleUnitId unitId, SkillId skillId, SkillTarget target);
-        BattleActionResult MoveUnit(BattleUnitId unitId, GridCoord destination);
-        BattleActionResult UseSkill(BattleUnitId unitId, SkillId skillId, SkillTarget target);
-        BattleActionResult EndTurn(BattleUnitId unitId);
-        bool IsUnitActive(BattleUnitId unitId);
-        bool TryGetActiveUnit(out BattleUnitRuntime unit);
-        bool TryGetUnit(BattleUnitId unitId, out BattleUnitRuntime unit);
+        IReadOnlyCollection<GridCoord> GetReachableCells(UnitId unitId);
+        BattleActionResult ValidateSkill(UnitId unitId, SkillId skillId, SkillTarget target);
+        BattleActionResult MoveUnit(UnitId unitId, GridCoord destination);
+        BattleActionResult UseSkill(UnitId unitId, SkillId skillId, SkillTarget target);
+        BattleActionResult EndTurn(UnitId unitId);
+        bool IsUnitActive(UnitId unitId);
+        bool TryGetActiveUnit(out UnitRuntime unit);
+        bool TryGetUnit(UnitId unitId, out UnitRuntime unit);
     }
 }

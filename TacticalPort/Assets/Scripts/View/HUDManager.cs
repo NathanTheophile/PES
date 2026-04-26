@@ -39,7 +39,7 @@ namespace TacticalPort.View
         private Action<int> _OnSkillButtonClicked;
         private Action _OnCancelSkillButtonClicked;
         private Action _OnEndTurnButtonClicked;
-        private BattleUnitId _DisplayedSkillUnitId = BattleUnitId.None;
+        private UnitId _DisplayedSkillUnitId = UnitId.None;
 
         #endregion
 
@@ -107,7 +107,7 @@ namespace TacticalPort.View
 
         public void Refresh()
         {
-            BattleUnitRuntime lActiveUnit = null;
+            UnitRuntime lActiveUnit = null;
             if (_BattleService != null)
                 _BattleService.TryGetActiveUnit(out lActiveUnit);
 
@@ -148,7 +148,7 @@ namespace TacticalPort.View
             return $"Round {lTurn.RoundIndex} / Turn {lTurn.TurnIndex}";
         }
 
-        private void SetUnitStats(BattleUnitRuntime pUnit)
+        private void SetUnitStats(UnitRuntime pUnit)
         {
             if (pUnit == null)
             {
@@ -165,11 +165,11 @@ namespace TacticalPort.View
 
         private void RefreshSkillArea()
         {
-            if (!TryResolveDisplayedSkills(out BattleUnitRuntime lActiveUnit, out IReadOnlyList<SkillDefinition> lSkills))
+            if (!TryResolveDisplayedSkills(out UnitRuntime lActiveUnit, out IReadOnlyList<SkillDefinition> lSkills))
             {
                 SetSkillBarVisible(false);
                 ClearRuntimeSkillButtons();
-                _DisplayedSkillUnitId = BattleUnitId.None;
+                _DisplayedSkillUnitId = UnitId.None;
                 _DisplayedSkills.Clear();
                 RefreshActionButtons();
                 return;
@@ -184,7 +184,7 @@ namespace TacticalPort.View
             RefreshActionButtons();
         }
 
-        private bool TryResolveDisplayedSkills(out BattleUnitRuntime pUnit, out IReadOnlyList<SkillDefinition> pSkills)
+        private bool TryResolveDisplayedSkills(out UnitRuntime pUnit, out IReadOnlyList<SkillDefinition> pSkills)
         {
             pUnit = null;
             pSkills = null;
@@ -192,14 +192,14 @@ namespace TacticalPort.View
             if (_BattleService == null || !_BattleService.TryGetActiveUnit(out pUnit) || pUnit == null)
                 return false;
 
-            if (pUnit.Team != BattleTeam.Player || pUnit.Skills == null || pUnit.Skills.Count == 0)
+            if (pUnit.Team != Team.Player || pUnit.Skills == null || pUnit.Skills.Count == 0)
                 return false;
 
             pSkills = pUnit.Skills;
             return true;
         }
 
-        private bool ShouldRebuildSkillButtons(BattleUnitRuntime pUnit, IReadOnlyList<SkillDefinition> pSkills)
+        private bool ShouldRebuildSkillButtons(UnitRuntime pUnit, IReadOnlyList<SkillDefinition> pSkills)
         {
             if (_DisplayedSkillUnitId != pUnit.Id)
                 return true;
@@ -216,7 +216,7 @@ namespace TacticalPort.View
             return false;
         }
 
-        private void RebuildSkillButtons(BattleUnitRuntime pUnit, IReadOnlyList<SkillDefinition> pSkills)
+        private void RebuildSkillButtons(UnitRuntime pUnit, IReadOnlyList<SkillDefinition> pSkills)
         {
             ClearRuntimeSkillButtons();
             _DisplayedSkills.Clear();
