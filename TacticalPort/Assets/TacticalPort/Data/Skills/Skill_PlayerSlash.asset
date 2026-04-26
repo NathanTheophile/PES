@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f40c21058987b94b8a7de74797fdb53, type: 3}
+  m_Name: Skill_PlayerSlash
+  m_EditorClassIdentifier: 
+  _Id: player_slash
+  _DisplayName: Slash
+  _Description: Simple melee damage skill for the sample scene.
+  _TargetType: 1
+  _EffectType: 0
+  _Range: 1
+  _Power: 5
+  _ActionPointCost: 1
+  _Icon: {fileID: 0}

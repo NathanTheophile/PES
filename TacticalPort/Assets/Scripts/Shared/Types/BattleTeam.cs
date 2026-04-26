@@ -1,0 +1,9 @@
+namespace TacticalPort.Shared
+{
+    public enum BattleTeam
+    {
+        Neutral = 0,
+        Player = 1,
+        Enemy = 2
+    }
+}
