@@ -21,6 +21,7 @@ namespace TacticalPort.View
         [SerializeField] private TMP_Text _TxtActionPointCostAndRange;
         [SerializeField] private TMP_Text _TxtPower;
         [SerializeField] private TMP_Text _TxtDescription;
+        [SerializeField] private CanvasGroup _CanvasGroup;
 
         private SkillDefinition _Skill;
         private Action _OnClick;
@@ -96,8 +97,16 @@ namespace TacticalPort.View
             SetLabel(_TxtDescription, ResolveDescriptionText());
             RefreshTooltipLayout();
 
+            bool lIsButtonInteractable = _Skill != null && _IsInteractable;
             if (_Button != null)
-                _Button.interactable = _Skill != null && _IsInteractable;
+                _Button.interactable = lIsButtonInteractable;
+
+            if (_CanvasGroup != null)
+            {
+                _CanvasGroup.alpha = lIsButtonInteractable ? 1f : 0.7f;
+                _CanvasGroup.interactable = lIsButtonInteractable;
+                _CanvasGroup.blocksRaycasts = lIsButtonInteractable;
+            }
         }
 
         private string ResolveSkillNameText()
@@ -202,6 +211,10 @@ namespace TacticalPort.View
         private void CacheMissingReferences()
         {
             _Button ??= GetComponent<Button>();
+            _CanvasGroup ??= GetComponent<CanvasGroup>();
+
+            if (_CanvasGroup == null && Application.isPlaying)
+                _CanvasGroup = gameObject.AddComponent<CanvasGroup>();
 
             Transform lTooltipTransform = transform.Find("Panel_Tooltip");
             if (_PanelTooltip == null && lTooltipTransform != null)

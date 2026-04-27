@@ -239,13 +239,21 @@ namespace TacticalPort.View
 
         private void RefreshRuntimeSkillButtons()
         {
+            UnitRuntime lActiveUnit = null;
+            if (_BattleService != null)
+                _BattleService.TryGetActiveUnit(out lActiveUnit);
+
             for (int lIndex = 0; lIndex < _RuntimeSkillButtons.Count; lIndex++)
             {
                 SkillButtonView lButtonView = _RuntimeSkillButtons[lIndex];
                 if (lButtonView == null)
                     continue;
 
-                lButtonView.SetInteractable(_CanUseSkills);
+                SkillDefinition lSkill = lIndex >= 0 && lIndex < _DisplayedSkills.Count
+                    ? _DisplayedSkills[lIndex]
+                    : null;
+
+                lButtonView.SetInteractable(IsSkillInteractable(lActiveUnit, lSkill));
             }
         }
 
@@ -266,6 +274,20 @@ namespace TacticalPort.View
         {
             SetButtonInteractable(_BtnCancelSkill, _CanCancelSkill);
             SetButtonInteractable(_BtnEndTurn, _IsEndTurnAvailable);
+        }
+
+        private bool IsSkillInteractable(UnitRuntime pUnit, SkillDefinition pSkill)
+        {
+            if (!_CanUseSkills || pUnit == null || pSkill == null)
+                return false;
+
+            if (!pUnit.CanSpendActionPoints(pSkill.ActionPointCost))
+                return false;
+
+            if (pUnit.GetRemainingCooldown(pSkill) > 0)
+                return false;
+
+            return pSkill.UsePerTurn <= 0 || pUnit.GetSkillUsesThisTurn(pSkill) < pSkill.UsePerTurn;
         }
 
         private void SetSkillBarVisible(bool pIsVisible)

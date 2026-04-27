@@ -272,20 +272,29 @@ namespace TacticalPort.Bootstrap
             if (pSkill == null || pTargetUnit == null)
                 return null;
 
-            switch (pSkill.TargetType)
+            GridCoord lBestCell = pTargetUnit.Position;
+            int lBestDistance = int.MaxValue;
+
+            foreach (GridCoord lCandidateCell in pTargetUnit.EnumerateOccupiedCells())
             {
-                case SkillTargetType.Self:
-                    return pActor != null && pTargetUnit.Id == pActor.Id ? SkillTarget.ForSelf(pActor.Id) : null;
+                if (pActor == null)
+                    return SkillTarget.ForCell(lCandidateCell);
 
-                case SkillTargetType.Unit:
-                    return SkillTarget.ForUnit(pTargetUnit.Id);
+                int lDistance = pActor.Position.ManhattanDistanceTo(lCandidateCell);
+                if (lDistance > pActor.GetSkillRangeMax(pSkill))
+                    continue;
 
-                case SkillTargetType.Cell:
-                    return SkillTarget.ForCell(pTargetUnit.Position);
+                if (!GridLineOfSightUtility.MatchesAlignment(pActor.Position, lCandidateCell, pSkill.TargetAlignment))
+                    continue;
 
-                default:
-                    return null;
+                if (lDistance >= lBestDistance)
+                    continue;
+
+                lBestDistance = lDistance;
+                lBestCell = lCandidateCell;
             }
+
+            return SkillTarget.ForCell(lBestCell);
         }
 
         private static bool IsOffensiveSkill(SkillDefinition pSkill)

@@ -696,6 +696,7 @@ GameObject:
   - component: {fileID: 702169694288302987}
   - component: {fileID: 9198914064425899147}
   - component: {fileID: 2606848079123456791}
+  - component: {fileID: 7439599663133080121}
   m_Layer: 5
   m_Name: UI_Btn_Skill
   m_TagString: Untagged
@@ -820,10 +821,23 @@ MonoBehaviour:
   _Button: {fileID: 9198914064425899147}
   _PanelTooltip: {fileID: 639894448079969760}
   _TxtSkillName: {fileID: 1168811684729298938}
-  _TxtEffectType: {fileID: 6638367367294732460}
+  _TxtAdditionalEffect: {fileID: 6638367367294732460}
   _TxtActionPointCostAndRange: {fileID: 6576506516242514871}
   _TxtPower: {fileID: 5239139389352315182}
   _TxtDescription: {fileID: 3249254687074339792}
+  _CanvasGroup: {fileID: 7439599663133080121}
+--- !u!225 &7439599663133080121
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8832288903925841370}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &9109912296294918484
 GameObject:
   m_ObjectHideFlags: 0

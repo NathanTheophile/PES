@@ -15,7 +15,7 @@ MonoBehaviour:
   _Id: debugskill1
   _DisplayName: DebugSkill1
   _Description: 
-  _TargetType: 1
+  _TargetType: 2
   _LegacyEffectType: 0
   _PrimaryEffectType: 1
   _AdditionalEffectType: 0
@@ -26,7 +26,7 @@ MonoBehaviour:
   _Linear: 1
   _TargetAlignment: 0
   _RequiresLineOfSight: 1
-  _CanAffectCaster: 1
+  _CanAffectCaster: 0
   _AoeShape: 2
   _AoeSize: 2
   _UsePerTurn: 1

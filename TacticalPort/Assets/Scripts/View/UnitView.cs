@@ -13,6 +13,7 @@ namespace TacticalPort.View
 
         [SerializeField] private SpriteRenderer _SpriteRenderer;
         [SerializeField] private Color _DefeatedTint = new Color(0.45f, 0.45f, 0.45f, 0.8f);
+        [SerializeField] private int _BaseSortingOrder = 1000;
         [SerializeField] private int _BodySortingOrderOffset = 20;
         [SerializeField] private RectTransform _FeedbackRoot;
         [SerializeField] private TMP_Text _ValuePopupPrefab;
@@ -114,7 +115,7 @@ namespace TacticalPort.View
             if (_Runtime == null)
                 return pOffset;
 
-            return -((_Runtime.Position.X + _Runtime.Position.Y) * 10) + pOffset;
+            return _BaseSortingOrder - ((_Runtime.Position.X + _Runtime.Position.Y) * 10) + pOffset;
         }
 
         private Vector3 ResolveWorldPosition()

@@ -21,6 +21,7 @@ namespace TacticalPort.Core.Interfaces
         bool CanUnitOccupy(UnitId unitId, GridCoord coordinate);
         IReadOnlyCollection<GridCoord> GetOccupiedCells(UnitId unitId);
         IReadOnlyCollection<GridGlyphRuntime> GetGlyphsAt(GridCoord coordinate);
+        IReadOnlyCollection<GridGlyphRuntime> GetAllGlyphs();
         IReadOnlyCollection<GridCoord> GetNeighbours(GridCoord coordinate);
         void RegisterUnitFootprint(UnitId unitId, IReadOnlyCollection<GridCoord> occupiedCellOffsets);
         bool TryPlaceUnit(UnitId unitId, GridCoord coordinate);

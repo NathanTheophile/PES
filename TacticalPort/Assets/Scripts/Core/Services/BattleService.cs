@@ -188,6 +188,7 @@ namespace TacticalPort.Core.Services
         public bool IsUnitActive(UnitId pUnitId) => CurrentTurn != null && CurrentTurn.UnitId == pUnitId;
         public bool TryGetActiveUnit(out UnitRuntime pUnit) => TryResolveActiveUnit(out pUnit);
         public bool TryGetUnit(UnitId pUnitId, out UnitRuntime pUnit) => _UnitsById.TryGetValue(pUnitId, out pUnit);
+        public IReadOnlyCollection<GridGlyphRuntime> GetActiveGlyphs() => _GridService.GetAllGlyphs();
 
         public bool TryApplyState(UnitId pUnitId, StateDefinition pState, int pStacks = 1, int pDurationTurns = -1)
         {
@@ -433,11 +434,18 @@ namespace TacticalPort.Core.Services
             if (!TryResolveActiveUnit(out UnitRuntime lActiveUnit) || lActiveUnit == null || !lActiveUnit.IsAlive)
                 return;
 
+            HashSet<string> lProcessedGlyphGroups = new HashSet<string>();
             foreach (GridCoord lCell in _GridService.GetOccupiedCells(lActiveUnit.Id))
             {
                 foreach (GridGlyphRuntime lGlyph in _GridService.GetGlyphsAt(lCell))
                 {
                     if (lGlyph == null || !lGlyph.CanAffect(lActiveUnit))
+                        continue;
+
+                    string lGlyphGroupId = string.IsNullOrWhiteSpace(lGlyph.GlyphGroupId)
+                        ? $"{lGlyph.SourceSkillId}:{lGlyph.Cell.X}:{lGlyph.Cell.Y}"
+                        : lGlyph.GlyphGroupId;
+                    if (!lProcessedGlyphGroups.Add(lGlyphGroupId))
                         continue;
 
                     lActiveUnit.ApplyDamage(lGlyph.Power);

@@ -177,6 +177,7 @@ namespace TacticalPort.Bootstrap
 
             SyncRuntimeUnitViews();
             _SceneReferences?.BoardView?.SetOccupiedCells(_BattleService.Units, _BattleService.ActiveUnit != null ? _BattleService.ActiveUnit.Id : UnitId.None);
+            _SceneReferences?.BoardView?.SetGlyphCells(_BattleService.GetActiveGlyphs());
 
             foreach (UnitView lUnitView in _UnitViews.Values)
             {

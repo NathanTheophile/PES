@@ -12,7 +12,8 @@ namespace TacticalPort.Core.Runtime
             int pPower,
             int pRemainingTurns,
             SkillGlyphTargetRule pTargetRule,
-            string pSourceSkillId)
+            string pSourceSkillId,
+            string pGlyphGroupId = null)
         {
             SourceUnitId = pSourceUnitId;
             SourceTeam = pSourceTeam;
@@ -21,6 +22,7 @@ namespace TacticalPort.Core.Runtime
             RemainingTurns = pRemainingTurns <= 0 ? 1 : pRemainingTurns;
             TargetRule = pTargetRule;
             SourceSkillId = pSourceSkillId ?? string.Empty;
+            GlyphGroupId = string.IsNullOrWhiteSpace(pGlyphGroupId) ? SourceSkillId : pGlyphGroupId;
         }
 
         public UnitId SourceUnitId { get; }
@@ -30,6 +32,7 @@ namespace TacticalPort.Core.Runtime
         public int RemainingTurns { get; private set; }
         public SkillGlyphTargetRule TargetRule { get; }
         public string SourceSkillId { get; }
+        public string GlyphGroupId { get; }
         public bool IsExpired => RemainingTurns <= 0;
 
         public bool CanAffect(UnitRuntime pUnit)

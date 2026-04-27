@@ -34,7 +34,7 @@ namespace TacticalPort.Core.Services
             if (!TryResolveTarget(pActor, pSkill, pTarget, pContext, out ResolvedSkillTarget lResolvedTarget, out BattleActionResult lValidation))
                 return lValidation;
 
-            if (pSkill.TargetType != SkillTargetType.Self)
+            if (pActor.Position != lResolvedTarget.TargetCell)
                 pActor.FaceTowards(lResolvedTarget.TargetCell);
 
             BattleActionResult lResult = ApplyEffect(pActor, pSkill, lResolvedTarget, pContext);
@@ -70,7 +70,7 @@ namespace TacticalPort.Core.Services
                 return false;
             }
 
-            if (!ValidateTargetGeometry(pActor, pSkill, lResolvedTarget.TargetCell, pContext, out pFailure))
+            if (!ValidateTargetGeometry(pActor, pSkill, lResolvedTarget, pContext, out pFailure))
             {
                 pResolvedTarget = null;
                 return false;
@@ -78,7 +78,7 @@ namespace TacticalPort.Core.Services
 
             PopulateAffectedCells(pSkill, lResolvedTarget.TargetCell, pContext, lResolvedTarget.AffectedCells);
             PopulateAffectedUnits(pActor, pSkill, pContext, lResolvedTarget.AffectedCells, lResolvedTarget.AffectedUnits);
-            PopulateUsageTargetKeys(pActor, pTarget, lResolvedTarget);
+            PopulateUsageTargetKeys(pActor, lResolvedTarget);
 
             if (!ValidateEffectSpecificTargeting(pActor, pSkill, lResolvedTarget, pContext, out pFailure))
             {
@@ -119,9 +119,6 @@ namespace TacticalPort.Core.Services
             if (pActor.RemainingActionPoints < pSkill.ActionPointCost)
                 return BattleActionResult.Failed(BattleActionType.Skill, "Not enough action points.");
 
-            if (pTarget.TargetType != pSkill.TargetType)
-                return BattleActionResult.Failed(BattleActionType.Skill, "Target type is incompatible with the skill.");
-
             return BattleActionResult.Succeeded(BattleActionType.Skill, "Skill inputs are valid.", new[] { pActor.Id });
         }
 
@@ -135,51 +132,26 @@ namespace TacticalPort.Core.Services
         {
             pResolvedTarget = new ResolvedSkillTarget();
 
-            switch (pSkill.TargetType)
+            if (!pContext.GridService.IsInside(pTarget.Cell))
             {
-                case SkillTargetType.Self:
-                    pResolvedTarget.PrimaryTargetUnit = pActor;
-                    pResolvedTarget.TargetCell = pActor.Position;
-                    pFailure = null;
-                    return true;
-
-                case SkillTargetType.Unit:
-                    if (!pContext.TryGetUnit(pTarget.UnitId, out UnitRuntime lTargetUnit) || !lTargetUnit.IsAlive)
-                    {
-                        pFailure = BattleActionResult.Failed(BattleActionType.Skill, "Target unit is invalid.");
-                        return false;
-                    }
-
-                    pResolvedTarget.PrimaryTargetUnit = lTargetUnit;
-                    pResolvedTarget.TargetCell = lTargetUnit.Position;
-                    pFailure = null;
-                    return true;
-
-                case SkillTargetType.Cell:
-                    if (!pContext.GridService.IsInside(pTarget.Cell))
-                    {
-                        pFailure = BattleActionResult.Failed(BattleActionType.Skill, "Target cell is outside the board.");
-                        return false;
-                    }
-
-                    pResolvedTarget.TargetCell = pTarget.Cell;
-                    pResolvedTarget.PrimaryTargetUnit = TryResolveOccupantAtCell(pContext, pTarget.Cell);
-                    pFailure = null;
-                    return true;
-
-                default:
-                    pFailure = BattleActionResult.Failed(BattleActionType.Skill, "Unsupported skill target type.");
-                    return false;
+                pFailure = BattleActionResult.Failed(BattleActionType.Skill, "Target cell is outside the board.");
+                return false;
             }
+
+            pResolvedTarget.TargetCell = pTarget.Cell;
+            pResolvedTarget.PrimaryTargetUnit = TryResolveOccupantAtCell(pContext, pTarget.Cell);
+            pFailure = null;
+            return true;
         }
 
         private static bool ValidateTargetGeometry(
             UnitRuntime pActor,
             SkillDefinition pSkill,
-            GridCoord pTargetCell,
+            ResolvedSkillTarget pResolvedTarget,
             SkillExecutionContext pContext,
             out BattleActionResult pFailure)
         {
+            GridCoord pTargetCell = pResolvedTarget.TargetCell;
             int lDistance = pActor.Position.ManhattanDistanceTo(pTargetCell);
             int lRangeMin = pActor.GetSkillRangeMin(pSkill);
             int lRangeMax = pActor.GetSkillRangeMax(pSkill);
@@ -198,7 +170,9 @@ namespace TacticalPort.Core.Services
                 return false;
             }
 
-            if (pSkill.RequiresLineOfSight && pActor.Position != pTargetCell && !HasLineOfSight(pActor.Position, pTargetCell, pContext))
+            if (pSkill.RequiresLineOfSight
+                && pActor.Position != pTargetCell
+                && !HasLineOfSight(pActor, pTargetCell, pResolvedTarget.PrimaryTargetUnit, pContext))
             {
                 pFailure = BattleActionResult.Failed(BattleActionType.Skill, "Target is not in line of sight.");
                 return false;
@@ -314,6 +288,9 @@ namespace TacticalPort.Core.Services
                     lResults.Add(ApplyGlyph(pActor, pSkill, pResolvedTarget, pContext));
                     break;
             }
+
+            if (pSkill.AppliedState != null)
+                lResults.Add(ApplyState(pActor, pSkill, pResolvedTarget));
 
             return CombineEffectResults(pActor, lResults);
         }
@@ -492,6 +469,7 @@ namespace TacticalPort.Core.Services
             ResolvedSkillTarget pResolvedTarget,
             SkillExecutionContext pContext)
         {
+            string lGlyphGroupId = $"{pActor.Id.Value}:{pSkill.Id}:{pResolvedTarget.TargetCell.X}:{pResolvedTarget.TargetCell.Y}";
             int lGlyphCount = 0;
             foreach (GridCoord lCell in pResolvedTarget.AffectedCells)
             {
@@ -503,7 +481,8 @@ namespace TacticalPort.Core.Services
                     pSkill.Power,
                     pSkill.GlyphDurationTurns,
                     pSkill.GlyphTargetRule,
-                    lGlyphSkillId));
+                    lGlyphSkillId,
+                    lGlyphGroupId));
                 lGlyphCount++;
             }
 
@@ -511,6 +490,33 @@ namespace TacticalPort.Core.Services
                 BattleActionType.Skill,
                 $"{pActor.Definition.DisplayName} placed {lGlyphCount} glyph(s).",
                 new[] { pActor.Id });
+        }
+
+        private static BattleActionResult ApplyState(UnitRuntime pActor, SkillDefinition pSkill, ResolvedSkillTarget pResolvedTarget)
+        {
+            int lAffectedCount = 0;
+            HashSet<UnitId> lAffectedUnitIds = new HashSet<UnitId> { pActor.Id };
+
+            foreach (UnitRuntime lTarget in pResolvedTarget.AffectedUnits)
+            {
+                if (lTarget == null || !lTarget.IsAlive)
+                    continue;
+
+                if (!lTarget.TryApplyState(pSkill.AppliedState, pSkill.AppliedStateStacks, pSkill.AppliedStateDurationTurns))
+                    continue;
+
+                lAffectedCount++;
+                lAffectedUnitIds.Add(lTarget.Id);
+            }
+
+            string lMessage = lAffectedCount > 0
+                ? $"{pActor.Definition.DisplayName} applied {pSkill.AppliedState.DisplayName} to {lAffectedCount} unit(s)."
+                : string.Empty;
+
+            return BattleActionResult.Succeeded(
+                BattleActionType.Skill,
+                lMessage,
+                lAffectedUnitIds);
         }
 
         private static string ResolveEffectMessage(
@@ -609,7 +615,7 @@ namespace TacticalPort.Core.Services
             }
         }
 
-        private static void PopulateUsageTargetKeys(UnitRuntime pActor, SkillTarget pTarget, ResolvedSkillTarget pResolvedTarget)
+        private static void PopulateUsageTargetKeys(UnitRuntime pActor, ResolvedSkillTarget pResolvedTarget)
         {
             pResolvedTarget.UsageTargetKeys.Clear();
 
@@ -623,20 +629,10 @@ namespace TacticalPort.Core.Services
 
             if (lKeys.Count == 0)
             {
-                switch (pTarget.TargetType)
-                {
-                    case SkillTargetType.Self:
-                        lKeys.Add($"unit:{pActor.Id.Value}");
-                        break;
-
-                    case SkillTargetType.Unit:
-                        lKeys.Add($"unit:{pTarget.UnitId.Value}");
-                        break;
-
-                    case SkillTargetType.Cell:
-                        lKeys.Add($"cell:{pTarget.Cell.X}:{pTarget.Cell.Y}");
-                        break;
-                }
+                if (pResolvedTarget.PrimaryTargetUnit != null)
+                    lKeys.Add($"unit:{pResolvedTarget.PrimaryTargetUnit.Id.Value}");
+                else
+                    lKeys.Add($"cell:{pResolvedTarget.TargetCell.X}:{pResolvedTarget.TargetCell.Y}");
             }
 
             foreach (string lKey in lKeys)
@@ -783,14 +779,27 @@ namespace TacticalPort.Core.Services
             };
         }
 
-        private static bool HasLineOfSight(GridCoord pOrigin, GridCoord pTarget, SkillExecutionContext pContext)
+        private static bool HasLineOfSight(UnitRuntime pActor, GridCoord pTarget, UnitRuntime pTargetUnit, SkillExecutionContext pContext)
         {
             return GridLineOfSightUtility.HasLineOfSight(
-                pOrigin,
+                pActor.Position,
                 pTarget,
-                pCell => !pContext.GridService.IsInside(pCell)
-                    || pContext.GridService.BlocksLineOfSight(pCell)
-                    || pContext.GridService.IsOccupied(pCell));
+                pCell =>
+                {
+                    if (!pContext.GridService.IsInside(pCell) || pContext.GridService.BlocksLineOfSight(pCell))
+                        return true;
+
+                    if (!pContext.GridService.TryGetOccupant(pCell, out UnitId lOccupantId))
+                        return false;
+
+                    if (lOccupantId == pActor.Id)
+                        return false;
+
+                    if (pTargetUnit != null && lOccupantId == pTargetUnit.Id)
+                        return pCell != pTarget;
+
+                    return true;
+                });
         }
 
         private static BattleActionResult CombineEffectResults(UnitRuntime pActor, List<BattleActionResult> pResults)

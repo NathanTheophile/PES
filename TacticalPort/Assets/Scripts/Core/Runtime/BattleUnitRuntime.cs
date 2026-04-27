@@ -72,8 +72,8 @@ namespace TacticalPort.Core.Runtime
                 return;
             }
 
-            RemainingMovement = Math.Max(0, Definition.MoveRange);
-            RemainingActionPoints = Math.Max(0, Definition.ActionPointsPerTurn);
+            RemainingMovement = Math.Max(0, Definition.MoveRange + GetMovementModifier());
+            RemainingActionPoints = Math.Max(0, Definition.ActionPointsPerTurn + GetActionPointModifier());
         }
 
         public void EndTurn()
@@ -213,6 +213,36 @@ namespace TacticalPort.Core.Runtime
             return lModifier;
         }
 
+        public int GetActionPointModifier()
+        {
+            int lModifier = 0;
+
+            foreach (BattleStateRuntime lState in _ActiveStates)
+            {
+                if (lState?.Definition == null)
+                    continue;
+
+                lModifier += lState.Definition.ActionPointModifierPerStack * lState.Stacks;
+            }
+
+            return lModifier;
+        }
+
+        public int GetMovementModifier()
+        {
+            int lModifier = 0;
+
+            foreach (BattleStateRuntime lState in _ActiveStates)
+            {
+                if (lState?.Definition == null)
+                    continue;
+
+                lModifier += lState.Definition.MovementModifierPerStack * lState.Stacks;
+            }
+
+            return lModifier;
+        }
+
         public int GetSkillRangeMax(SkillDefinition pSkill)
         {
             if (pSkill == null)
@@ -279,10 +309,12 @@ namespace TacticalPort.Core.Runtime
             if (lExistingState != null)
             {
                 lExistingState.Reconfigure(pState, pStacks, 0, true);
+                ClampTurnResourcesToCurrentMax();
                 return;
             }
 
             _ActiveStates.Add(new BattleStateRuntime(pStateKey, pState, pStacks, 0, true));
+            ClampTurnResourcesToCurrentMax();
         }
 
         public bool TryApplyState(StateDefinition pState, int pStacks = 1, int pDurationTurns = -1)
@@ -297,10 +329,12 @@ namespace TacticalPort.Core.Runtime
             {
                 lExistingState.AddStacks(pStacks);
                 lExistingState.SetRemainingTurns(lResolvedDuration);
+                ClampTurnResourcesToCurrentMax();
                 return true;
             }
 
             _ActiveStates.Add(new BattleStateRuntime(lStateKey, pState, pStacks, lResolvedDuration, false));
+            ClampTurnResourcesToCurrentMax();
             return true;
         }
 
@@ -323,6 +357,7 @@ namespace TacticalPort.Core.Runtime
                     continue;
 
                 _ActiveStates.RemoveAt(lIndex);
+                ClampTurnResourcesToCurrentMax();
                 return true;
             }
 
@@ -516,6 +551,19 @@ namespace TacticalPort.Core.Runtime
             }
         }
 
+        private void ClampTurnResourcesToCurrentMax()
+        {
+            if (!IsAlive)
+            {
+                RemainingMovement = 0;
+                RemainingActionPoints = 0;
+                return;
+            }
+
+            RemainingMovement = Math.Max(0, Math.Min(RemainingMovement, Definition.MoveRange + GetMovementModifier()));
+            RemainingActionPoints = Math.Max(0, Math.Min(RemainingActionPoints, Definition.ActionPointsPerTurn + GetActionPointModifier()));
+        }
+
         private static string ResolveTemporaryStateKey(StateDefinition pState)
         {
             return pState != null && !string.IsNullOrWhiteSpace(pState.Id)
@@ -552,7 +600,6 @@ namespace TacticalPort.Core.Runtime
             lSkills.Add(SkillDefinition.CreateRuntime(
                 "basic_attack",
                 "Basic Attack",
-                SkillTargetType.Unit,
                 SkillPrimaryEffectType.Damage,
                 SkillAdditionalEffectType.None,
                 1,

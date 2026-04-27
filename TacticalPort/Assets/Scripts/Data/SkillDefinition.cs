@@ -41,7 +41,7 @@ namespace TacticalPort.Data
         [SerializeField] private string _DisplayName = string.Empty;
         [SerializeField, TextArea] private string _Description = string.Empty;
 
-        [SerializeField] private SkillTargetType _TargetType = SkillTargetType.Unit;
+        [SerializeField, HideInInspector] private SkillTargetType _TargetType = SkillTargetType.Cell;
         [FormerlySerializedAs("_EffectType")]
         [SerializeField, HideInInspector] private SkillEffectType _LegacyEffectType = SkillEffectType.Damage;
         [SerializeField] private SkillPrimaryEffectType _PrimaryEffectType = SkillPrimaryEffectType.Damage;
@@ -66,6 +66,9 @@ namespace TacticalPort.Data
         [SerializeField] private SkillSummonTeamRule _SummonTeamRule = SkillSummonTeamRule.Definition;
         [SerializeField, Min(1)] private int _GlyphDurationTurns = 1;
         [SerializeField] private SkillGlyphTargetRule _GlyphTargetRule = SkillGlyphTargetRule.EnemiesOnly;
+        [SerializeField] private StateDefinition _AppliedState;
+        [SerializeField, Min(1)] private int _AppliedStateStacks = 1;
+        [SerializeField] private int _AppliedStateDurationTurns = -1;
         [SerializeField] private bool _UseDirectionalModifiers;
         [SerializeField] private int _FrontDamageModifier = 0;
         [SerializeField] private int _SideDamageModifier = 0;
@@ -79,7 +82,7 @@ namespace TacticalPort.Data
         public string Id => string.IsNullOrWhiteSpace(_Id) ? name : _Id;
         public string DisplayName => string.IsNullOrWhiteSpace(_DisplayName) ? name : _DisplayName;
         public string Description => _Description;
-        public SkillTargetType TargetType => _TargetType;
+        public SkillTargetType TargetType => SkillTargetType.Cell;
         public SkillPrimaryEffectType PrimaryEffectType => ResolvePrimaryEffectType();
         public SkillAdditionalEffectType AdditionalEffectType => ResolveAdditionalEffectType();
         public int Range => RangeMax;
@@ -103,6 +106,9 @@ namespace TacticalPort.Data
         public SkillSummonTeamRule SummonTeamRule => _SummonTeamRule;
         public int GlyphDurationTurns => Mathf.Max(1, _GlyphDurationTurns);
         public SkillGlyphTargetRule GlyphTargetRule => _GlyphTargetRule;
+        public StateDefinition AppliedState => _AppliedState;
+        public int AppliedStateStacks => Mathf.Max(1, _AppliedStateStacks);
+        public int AppliedStateDurationTurns => _AppliedStateDurationTurns;
         public bool UseDirectionalModifiers => _UseDirectionalModifiers && PrimaryEffectType == SkillPrimaryEffectType.Damage;
         public int FrontDamageModifier => _FrontDamageModifier;
         public int SideDamageModifier => _SideDamageModifier;
@@ -115,6 +121,9 @@ namespace TacticalPort.Data
 
         private void OnValidate()
         {
+            if (_TargetType != SkillTargetType.Cell)
+                _TargetType = SkillTargetType.Cell;
+
             if (_HasMigratedEffectSetup)
                 return;
 
@@ -166,7 +175,6 @@ namespace TacticalPort.Data
         public static SkillDefinition CreateRuntime(
             string pId,
             string pDisplayName,
-            SkillTargetType pTargetType,
             SkillPrimaryEffectType pPrimaryEffectType,
             SkillAdditionalEffectType pAdditionalEffectType,
             int pRange,
@@ -188,7 +196,7 @@ namespace TacticalPort.Data
             lDefinition._Id = string.IsNullOrWhiteSpace(pId) ? lDefinition.name.ToLowerInvariant().Replace(" ", "_") : pId;
             lDefinition._DisplayName = string.IsNullOrWhiteSpace(pDisplayName) ? lDefinition._Id : pDisplayName;
             lDefinition._Description = pDescription ?? string.Empty;
-            lDefinition._TargetType = pTargetType;
+            lDefinition._TargetType = SkillTargetType.Cell;
             lDefinition._LegacyEffectType = pPrimaryEffectType == SkillPrimaryEffectType.Heal ? SkillEffectType.Heal : SkillEffectType.Damage;
             lDefinition._PrimaryEffectType = pPrimaryEffectType;
             lDefinition._AdditionalEffectType = pAdditionalEffectType;
@@ -212,6 +220,9 @@ namespace TacticalPort.Data
             lDefinition._SummonTeamRule = SkillSummonTeamRule.Definition;
             lDefinition._GlyphDurationTurns = 1;
             lDefinition._GlyphTargetRule = SkillGlyphTargetRule.EnemiesOnly;
+            lDefinition._AppliedState = null;
+            lDefinition._AppliedStateStacks = 1;
+            lDefinition._AppliedStateDurationTurns = -1;
             lDefinition._UseDirectionalModifiers = false;
             lDefinition._FrontDamageModifier = 0;
             lDefinition._SideDamageModifier = 0;
