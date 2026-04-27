@@ -24,5 +24,6 @@ namespace TacticalPort.Core.Interfaces
         bool IsUnitActive(UnitId unitId);
         bool TryGetActiveUnit(out UnitRuntime unit);
         bool TryGetUnit(UnitId unitId, out UnitRuntime unit);
+        IReadOnlyCollection<GridGlyphRuntime> GetActiveGlyphs();
     }
 }

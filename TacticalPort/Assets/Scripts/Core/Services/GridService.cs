@@ -120,6 +120,26 @@ namespace TacticalPort.Core.Services
             return lGlyphs.AsReadOnly();
         }
 
+        public IReadOnlyCollection<GridGlyphRuntime> GetAllGlyphs()
+        {
+            List<GridGlyphRuntime> lGlyphs = new List<GridGlyphRuntime>();
+
+            foreach (List<GridGlyphRuntime> lGlyphList in _GlyphsByCoordinate.Values)
+            {
+                if (lGlyphList == null || lGlyphList.Count == 0)
+                    continue;
+
+                for (int lIndex = 0; lIndex < lGlyphList.Count; lIndex++)
+                {
+                    GridGlyphRuntime lGlyph = lGlyphList[lIndex];
+                    if (lGlyph != null)
+                        lGlyphs.Add(lGlyph);
+                }
+            }
+
+            return lGlyphs;
+        }
+
         public IReadOnlyCollection<GridCoord> GetNeighbours(GridCoord pCoordinate)
         {
             List<GridCoord> lNeighbours = new List<GridCoord>();

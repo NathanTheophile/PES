@@ -610,6 +610,7 @@ MonoBehaviour:
     IsWalkable: 1
     BlocksLineOfSight: 0
     MovementCost: 1
+    IsSpawner: 0
     OccupantDefinition: {fileID: 11400000, guid: 3b4dc8815ea77444ea15542968a7feee, type: 2}
   - Coordinate:
       _X: 7
@@ -617,6 +618,7 @@ MonoBehaviour:
     IsWalkable: 1
     BlocksLineOfSight: 0
     MovementCost: 1
+    IsSpawner: 0
     OccupantDefinition: {fileID: 11400000, guid: 495a11b998269bc4e8c99e5986bb76f2, type: 2}
   - Coordinate:
       _X: 3
@@ -624,6 +626,7 @@ MonoBehaviour:
     IsWalkable: 0
     BlocksLineOfSight: 1
     MovementCost: 1
+    IsSpawner: 0
     OccupantDefinition: {fileID: 0}
   - Coordinate:
       _X: 3
@@ -631,6 +634,7 @@ MonoBehaviour:
     IsWalkable: 0
     BlocksLineOfSight: 1
     MovementCost: 1
+    IsSpawner: 0
     OccupantDefinition: {fileID: 0}
   - Coordinate:
       _X: 2
@@ -638,6 +642,7 @@ MonoBehaviour:
     IsWalkable: 0
     BlocksLineOfSight: 0
     MovementCost: 1
+    IsSpawner: 0
     OccupantDefinition: {fileID: 0}
   - Coordinate:
       _X: 2
@@ -645,6 +650,7 @@ MonoBehaviour:
     IsWalkable: 0
     BlocksLineOfSight: 0
     MovementCost: 1
+    IsSpawner: 0
     OccupantDefinition: {fileID: 0}
   - Coordinate:
       _X: 5
@@ -652,6 +658,7 @@ MonoBehaviour:
     IsWalkable: 0
     BlocksLineOfSight: 0
     MovementCost: 1
+    IsSpawner: 0
     OccupantDefinition: {fileID: 0}
   - Coordinate:
       _X: 5
@@ -659,6 +666,7 @@ MonoBehaviour:
     IsWalkable: 0
     BlocksLineOfSight: 0
     MovementCost: 1
+    IsSpawner: 0
     OccupantDefinition: {fileID: 0}
   - Coordinate:
       _X: 6
@@ -666,6 +674,7 @@ MonoBehaviour:
     IsWalkable: 0
     BlocksLineOfSight: 1
     MovementCost: 1
+    IsSpawner: 0
     OccupantDefinition: {fileID: 0}
   - Coordinate:
       _X: 6
@@ -673,6 +682,7 @@ MonoBehaviour:
     IsWalkable: 0
     BlocksLineOfSight: 0
     MovementCost: 1
+    IsSpawner: 0
     OccupantDefinition: {fileID: 0}
   - Coordinate:
       _X: 2
@@ -680,6 +690,7 @@ MonoBehaviour:
     IsWalkable: 0
     BlocksLineOfSight: 1
     MovementCost: 1
+    IsSpawner: 0
     OccupantDefinition: {fileID: 0}
   - Coordinate:
       _X: 3
@@ -687,6 +698,7 @@ MonoBehaviour:
     IsWalkable: 0
     BlocksLineOfSight: 1
     MovementCost: 1
+    IsSpawner: 0
     OccupantDefinition: {fileID: 0}
   - Coordinate:
       _X: 0
@@ -694,6 +706,7 @@ MonoBehaviour:
     IsWalkable: 0
     BlocksLineOfSight: 0
     MovementCost: 1
+    IsSpawner: 0
     OccupantDefinition: {fileID: 0}
   - Coordinate:
       _X: 7
@@ -701,6 +714,7 @@ MonoBehaviour:
     IsWalkable: 1
     BlocksLineOfSight: 0
     MovementCost: 1
+    IsSpawner: 0
     OccupantDefinition: {fileID: 11400000, guid: 495a11b998269bc4e8c99e5986bb76f2, type: 2}
   - Coordinate:
       _X: -3
@@ -708,7 +722,8 @@ MonoBehaviour:
     IsWalkable: 1
     BlocksLineOfSight: 0
     MovementCost: 1
-    OccupantDefinition: {fileID: 11400000, guid: 1cb81e40c9d52b74b8bda95b44f66e37, type: 2}
+    IsSpawner: 0
+    OccupantDefinition: {fileID: 11400000, guid: 3b4dc8815ea77444ea15542968a7feee, type: 2}
 --- !u!114 &88059985
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -742,17 +757,23 @@ MonoBehaviour:
   _CellWorldSize: {x: 1, y: 0.5}
   _SortingStep: 10
   _CellRoot: {fileID: 88059983}
+  _SkillPreviewRoot: {fileID: 88059983}
   _WalkableColor: {r: 1, g: 1, b: 1, a: 1}
   _BlockedColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  _SpawnerColor: {r: 0.26, g: 0.74, b: 0.34, a: 1}
   _PlayerOccupiedColor: {r: 0.27, g: 0.47, b: 0.85, a: 1}
   _EnemyOccupiedColor: {r: 0.86, g: 0.27, b: 0.27, a: 1}
   _ActiveOccupiedColor: {r: 1, g: 0.62, b: 0.12, a: 1}
   _ReachableColor: {r: 0.21, g: 0.57, b: 0.92, a: 1}
+  _BlockedReachableColor: {r: 0.21, g: 0.57, b: 0.92, a: 0.35}
   _PreviewColor: {r: 0.94, g: 0.58, b: 0.2, a: 1}
   _HoveredColor: {r: 0.98, g: 0.86, b: 0.34, a: 1}
   _HoveredBlockedColor: {r: 0.78, g: 0.44, b: 0.28, a: 1}
   _HoveredReachableColor: {r: 0.37, g: 0.9, b: 1, a: 1}
+  _HoveredBlockedReachableColor: {r: 0.37, g: 0.9, b: 1, a: 0.6}
   _HoveredPreviewColor: {r: 1, g: 0.78, b: 0.37, a: 1}
+  _SkillRangePreviewPrefab: {fileID: 0}
+  _SkillBlockedRangePreviewPrefab: {fileID: 0}
 --- !u!1 &243557056
 GameObject:
   m_ObjectHideFlags: 0

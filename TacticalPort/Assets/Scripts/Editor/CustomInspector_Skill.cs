@@ -31,7 +31,6 @@ namespace Com.IsartDigital.Editors
         #endregion
 
         #region _____________________________/ CASTING
-        private const string SKILL_TARGET_TYPE = "_TargetType";
         private const string SKILL_PRIMARY_EFFECT_TYPE = "_PrimaryEffectType";
         private const string SKILL_ADDITIONAL_EFFECT_TYPE = "_AdditionalEffectType";
 
@@ -64,6 +63,9 @@ namespace Com.IsartDigital.Editors
         private const string SKILL_SUMMON_TEAM_RULE = "_SummonTeamRule";
         private const string SKILL_GLYPH_DURATION_TURNS = "_GlyphDurationTurns";
         private const string SKILL_GLYPH_TARGET_RULE = "_GlyphTargetRule";
+        private const string SKILL_APPLIED_STATE = "_AppliedState";
+        private const string SKILL_APPLIED_STATE_STACKS = "_AppliedStateStacks";
+        private const string SKILL_APPLIED_STATE_DURATION_TURNS = "_AppliedStateDurationTurns";
 
         #endregion
         #endregion
@@ -118,9 +120,6 @@ namespace Com.IsartDigital.Editors
 
                     EditorGUILayout.LabelField("◆◆◆| DEFINITION |◆◆◆", EditorStyles.toolbarButton);
                     EditorGUILayout.Space(TITLE_SPACING);
-
-                    EditorGUILayout.PropertyField(serializedObject.FindProperty(SKILL_TARGET_TYPE));
-                    EditorGUILayout.Space(ITEM_SPACING);
 
                     EditorGUILayout.PropertyField(serializedObject.FindProperty(SKILL_PRIMARY_EFFECT_TYPE));
                     EditorGUILayout.Space(ITEM_SPACING);
@@ -219,6 +218,20 @@ namespace Com.IsartDigital.Editors
                     EditorGUILayout.Space(ITEM_SPACING);
 
                     EditorGUILayout.PropertyField(serializedObject.FindProperty(SKILL_GLYPH_TARGET_RULE));
+                    EditorGUILayout.Space(ITEM_SPACING);
+
+                    EditorGUILayout.Space(SECTION_SPACING);
+
+                    EditorGUILayout.LabelField("â—†â—†â—†| STATES |â—†â—†â—†", EditorStyles.toolbarButton);
+                    EditorGUILayout.Space(TITLE_SPACING);
+
+                    EditorGUILayout.PropertyField(serializedObject.FindProperty(SKILL_APPLIED_STATE));
+                    EditorGUILayout.Space(ITEM_SPACING);
+
+                    EditorGUILayout.PropertyField(serializedObject.FindProperty(SKILL_APPLIED_STATE_STACKS));
+                    EditorGUILayout.Space(ITEM_SPACING);
+
+                    EditorGUILayout.PropertyField(serializedObject.FindProperty(SKILL_APPLIED_STATE_DURATION_TURNS));
                     break;
             }
 

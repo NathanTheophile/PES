@@ -17,6 +17,8 @@ namespace TacticalPort.EditorTools
         private int _DamageModifierPerStack = 0;
         private int _DamageReductionPerStack = 0;
         private int _RangeModifierPerStack = 0;
+        private int _ActionPointModifierPerStack = 0;
+        private int _MovementModifierPerStack = 0;
 
         #endregion
 
@@ -52,6 +54,8 @@ namespace TacticalPort.EditorTools
             _DamageModifierPerStack = EditorGUILayout.IntField("Damage / Stack", _DamageModifierPerStack);
             _DamageReductionPerStack = Mathf.Max(0, EditorGUILayout.IntField("Reduction / Stack", _DamageReductionPerStack));
             _RangeModifierPerStack = EditorGUILayout.IntField("Range / Stack", _RangeModifierPerStack);
+            _ActionPointModifierPerStack = EditorGUILayout.IntField("AP / Stack", _ActionPointModifierPerStack);
+            _MovementModifierPerStack = EditorGUILayout.IntField("Move / Stack", _MovementModifierPerStack);
 
             if (Creator_FileSaver.DrawCreateButton("Create State Definition"))
                 CreateAsset();
@@ -76,6 +80,8 @@ namespace TacticalPort.EditorTools
             lSerializedObject.FindProperty("_DamageModifierPerStack").intValue = _DamageModifierPerStack;
             lSerializedObject.FindProperty("_DamageReductionPerStack").intValue = Mathf.Max(0, _DamageReductionPerStack);
             lSerializedObject.FindProperty("_RangeModifierPerStack").intValue = _RangeModifierPerStack;
+            lSerializedObject.FindProperty("_ActionPointModifierPerStack").intValue = _ActionPointModifierPerStack;
+            lSerializedObject.FindProperty("_MovementModifierPerStack").intValue = _MovementModifierPerStack;
 
             Creator_FileSaver.ApplyAndSave(lSerializedObject);
 

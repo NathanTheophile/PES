@@ -24,9 +24,7 @@ MonoBehaviour:
   _FootprintWidth: 3
   _FootprintHeight: 3
   _Skills: []
-  _BaseStates:
-  - _State: {fileID: 11400000, guid: 3ebff099d145c4144b01ad1c82f320b6, type: 2}
-    _Stacks: 0
+  _BaseStates: []
   _PhaseStates: []
   _UnitViewPrefab: {fileID: 6292429647394850086, guid: 60114851700ded341b477fe2d2632b76, type: 3}
   _Portrait: {fileID: 0}

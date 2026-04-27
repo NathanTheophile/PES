@@ -18,6 +18,8 @@ namespace TacticalPort.Data
         [SerializeField] private int _DamageModifierPerStack = 0;
         [SerializeField, Min(0)] private int _DamageReductionPerStack = 0;
         [SerializeField] private int _RangeModifierPerStack = 0;
+        [SerializeField] private int _ActionPointModifierPerStack = 0;
+        [SerializeField] private int _MovementModifierPerStack = 0;
         [SerializeField] private Sprite _Icon;
 
         #endregion
@@ -33,6 +35,8 @@ namespace TacticalPort.Data
         public int DamageModifierPerStack => _DamageModifierPerStack;
         public int DamageReductionPerStack => Mathf.Max(0, _DamageReductionPerStack);
         public int RangeModifierPerStack => _RangeModifierPerStack;
+        public int ActionPointModifierPerStack => _ActionPointModifierPerStack;
+        public int MovementModifierPerStack => _MovementModifierPerStack;
 
         #endregion
     }

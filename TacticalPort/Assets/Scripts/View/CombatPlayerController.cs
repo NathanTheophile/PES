@@ -18,6 +18,7 @@ namespace TacticalPort.View
         [SerializeField] private Camera _MainCamera;
 
         private readonly HashSet<GridCoord> _ReachableCells = new HashSet<GridCoord>();
+        private readonly HashSet<GridCoord> _BlockedReachableCells = new HashSet<GridCoord>();
         private bool _HasHoveredCell;
         private GridCoord _HoveredCell;
         private UnitId _CachedActiveUnitId = UnitId.None;
@@ -147,16 +148,6 @@ namespace TacticalPort.View
                 return;
             }
 
-            if (lSkill.TargetType == SkillTargetType.Self)
-            {
-                BattleActionResult lSelfResult = _Bootstrap.UseActiveUnitSkill(lSkillId, SkillTarget.ForSelf(lActiveUnit.Id));
-                if (lSelfResult.IsSuccess)
-                    CancelSkillSelection(null);
-
-                RefreshInteractionState();
-                return;
-            }
-
             _SelectedSkill = lSkill;
             _SelectedSkillId = lSkillId;
             RefreshInteractionState();
@@ -259,11 +250,11 @@ namespace TacticalPort.View
         private void SyncReachableCells()
         {
             HashSet<GridCoord> lLatestReachableCells = new HashSet<GridCoord>();
+            HashSet<GridCoord> lLatestBlockedReachableCells = new HashSet<GridCoord>();
 
             if (HasSelectedSkill() && _Bootstrap.TryGetActiveUnit(out UnitRuntime lActiveUnit))
             {
-                foreach (GridCoord lCoord in EnumerateSkillHighlightCells(lActiveUnit, _SelectedSkill))
-                    lLatestReachableCells.Add(lCoord);
+                EnumerateSkillHighlightCells(lActiveUnit, _SelectedSkill, lLatestReachableCells, lLatestBlockedReachableCells);
             }
             else
             {
@@ -271,15 +262,23 @@ namespace TacticalPort.View
                     lLatestReachableCells.Add(lCoord);
             }
 
-            if (_ReachableCells.SetEquals(lLatestReachableCells))
+            bool lReachableUnchanged = _ReachableCells.SetEquals(lLatestReachableCells);
+            bool lBlockedUnchanged = _BlockedReachableCells.SetEquals(lLatestBlockedReachableCells);
+            if (lReachableUnchanged && lBlockedUnchanged)
                 return;
 
             _ReachableCells.Clear();
+            _BlockedReachableCells.Clear();
 
             foreach (GridCoord lCoord in lLatestReachableCells)
                 _ReachableCells.Add(lCoord);
 
-            _BoardView.SetReachableCells(_ReachableCells);
+            foreach (GridCoord lCoord in lLatestBlockedReachableCells)
+                _BlockedReachableCells.Add(lCoord);
+
+            bool lHasSelectedSkill = HasSelectedSkill();
+            _BoardView.SetReachableCells(lHasSelectedSkill ? null : _ReachableCells);
+            _BoardView.SetSkillRangeCells(lHasSelectedSkill ? _ReachableCells : null, lHasSelectedSkill ? _BlockedReachableCells : null);
         }
 
         private void SyncPreviewCells(UnitRuntime pActiveUnit)
@@ -409,65 +408,35 @@ namespace TacticalPort.View
                 return false;
             }
 
-            switch (_SelectedSkill.TargetType)
+            if (!_HasHoveredCell)
             {
-                case SkillTargetType.Self:
-                    pTarget = SkillTarget.ForSelf(pActiveUnit.Id);
-                    return true;
-
-                case SkillTargetType.Unit:
-                    if (!_HasHoveredCell)
-                    {
-                        pFailureReason = "Point to a unit to use this skill.";
-                        return false;
-                    }
-
-                    if (!TryResolveAliveUnitAtCell(_HoveredCell, out UnitRuntime lHoveredUnit))
-                    {
-                        pFailureReason = "No valid unit is under the cursor.";
-                        return false;
-                    }
-
-                    pTarget = SkillTarget.ForUnit(lHoveredUnit.Id);
-                    return true;
-
-                case SkillTargetType.Cell:
-                    if (!_HasHoveredCell)
-                    {
-                        pFailureReason = "Point to a target cell to use this skill.";
-                        return false;
-                    }
-
-                    pTarget = SkillTarget.ForCell(_HoveredCell);
-                    return true;
-
-                default:
-                    pFailureReason = "This skill target type is not supported in the sample scene.";
-                    return false;
+                pFailureReason = "Point to a target cell to use this skill.";
+                return false;
             }
+
+            pTarget = SkillTarget.ForCell(_HoveredCell);
+            return true;
         }
 
-        private IEnumerable<GridCoord> EnumerateSkillHighlightCells(UnitRuntime pActiveUnit, SkillDefinition pSkill)
+        private void EnumerateSkillHighlightCells(
+            UnitRuntime pActiveUnit,
+            SkillDefinition pSkill,
+            ISet<GridCoord> pReachableCells,
+            ISet<GridCoord> pBlockedReachableCells)
         {
             if (pActiveUnit == null || pSkill == null || _BoardView == null || _BoardView.Scenario == null)
-                yield break;
+                return;
 
-            switch (pSkill.TargetType)
+            foreach (CellDefinition lCell in _BoardView.Scenario.EnumerateCells())
             {
-                case SkillTargetType.Self:
-                    yield return pActiveUnit.Position;
-                    yield break;
+                GridCoord lCoord = lCell.Coordinate.ToRuntime();
+                if (!TryClassifySkillCell(pActiveUnit, pSkill, lCoord, out bool lIsBlockedByLineOfSight))
+                    continue;
 
-                case SkillTargetType.Unit:
-                case SkillTargetType.Cell:
-                    foreach (CellDefinition lCell in _BoardView.Scenario.EnumerateCells())
-                    {
-                        GridCoord lCoord = lCell.Coordinate.ToRuntime();
-                        if (IsSkillCellInRange(pActiveUnit, pSkill, lCoord))
-                            yield return lCoord;
-                    }
-
-                    yield break;
+                if (lIsBlockedByLineOfSight)
+                    pBlockedReachableCells?.Add(lCoord);
+                else
+                    pReachableCells?.Add(lCoord);
             }
         }
 
@@ -478,23 +447,8 @@ namespace TacticalPort.View
             if (_SelectedSkill == null)
                 return false;
 
-            switch (_SelectedSkill.TargetType)
-            {
-                case SkillTargetType.Self:
-                    pTarget = SkillTarget.ForSelf(pActiveUnit.Id);
-                    return true;
-
-                case SkillTargetType.Unit:
-                    return TryResolveAliveUnitAtCell(_HoveredCell, out UnitRuntime lHoveredUnit)
-                        && (pTarget = SkillTarget.ForUnit(lHoveredUnit.Id)) != null;
-
-                case SkillTargetType.Cell:
-                    pTarget = SkillTarget.ForCell(_HoveredCell);
-                    return true;
-
-                default:
-                    return false;
-            }
+            pTarget = SkillTarget.ForCell(_HoveredCell);
+            return true;
         }
 
         private IReadOnlyCollection<GridCoord> BuildSkillPreviewCells(UnitRuntime pActiveUnit, SkillDefinition pSkill, SkillTarget pTarget)
@@ -524,20 +478,7 @@ namespace TacticalPort.View
 
         private static GridCoord ResolveSkillPreviewOrigin(UnitRuntime pActiveUnit, SkillTarget pTarget, GridCoord pHoveredCell)
         {
-            switch (pTarget.TargetType)
-            {
-                case SkillTargetType.Self:
-                    return pActiveUnit.Position;
-
-                case SkillTargetType.Unit:
-                    return pHoveredCell;
-
-                case SkillTargetType.Cell:
-                    return pTarget.Cell;
-
-                default:
-                    return pActiveUnit != null ? pActiveUnit.Position : default;
-            }
+            return pTarget != null ? pTarget.Cell : (pActiveUnit != null ? pActiveUnit.Position : default);
         }
 
         private bool TryResolveAliveUnitAtCell(GridCoord pCell, out UnitRuntime pUnit)
@@ -552,11 +493,14 @@ namespace TacticalPort.View
                 if (lUnit == null || !lUnit.IsAlive)
                     continue;
 
-                if (lUnit.Position != pCell)
-                    continue;
+                foreach (GridCoord lOccupiedCell in lUnit.EnumerateOccupiedCells())
+                {
+                    if (lOccupiedCell != pCell)
+                        continue;
 
-                pUnit = lUnit;
-                return true;
+                    pUnit = lUnit;
+                    return true;
+                }
             }
 
             return false;
@@ -573,18 +517,9 @@ namespace TacticalPort.View
             if (!HasSelectedSkill())
                 return "Mode: Move. Click a blue cell to move, or choose a skill.";
 
-            string lTargetLabel = ResolveTargetLabel(_SelectedSkill);
             string lHoveredLabel = ResolveHoveredLabel();
-            return $"Mode: {_SelectedSkill.DisplayName} [{lTargetLabel}] Range {ResolveRangeLabel(_SelectedSkill)}, AP {_SelectedSkill.ActionPointCost}. {lHoveredLabel} Right click or Esc to cancel.";
+            return $"Mode: {_SelectedSkill.DisplayName} Range {ResolveRangeLabel(_SelectedSkill)}, AP {_SelectedSkill.ActionPointCost}. {lHoveredLabel} Right click or Esc to cancel.";
         }
-
-        private string ResolveTargetLabel(SkillDefinition pSkill) => pSkill.TargetType switch
-        {
-            SkillTargetType.Unit => "Unit Target",
-            SkillTargetType.Cell => "Cell Target",
-            SkillTargetType.Self => "Self",
-            _ => "Unknown"
-        };
 
         private string ResolveHoveredLabel()
         {
@@ -607,8 +542,10 @@ namespace TacticalPort.View
                 : $"{pSkill.RangeMin}-{pSkill.RangeMax}";
         }
 
-        private bool IsSkillCellInRange(UnitRuntime pActiveUnit, SkillDefinition pSkill, GridCoord pTargetCell)
+        private bool TryClassifySkillCell(UnitRuntime pActiveUnit, SkillDefinition pSkill, GridCoord pTargetCell, out bool pIsBlockedByLineOfSight)
         {
+            pIsBlockedByLineOfSight = false;
+
             if (pActiveUnit == null || pSkill == null)
                 return false;
 
@@ -624,10 +561,44 @@ namespace TacticalPort.View
             if (!TryGetBoardCellDefinition(pTargetCell, out CellDefinition lCellDefinition) || !lCellDefinition.IsWalkable)
                 return false;
 
-            if (pSkill.RequiresLineOfSight && pActiveUnit.Position != pTargetCell && !HasLineOfSight(pActiveUnit.Position, pTargetCell))
+            if (!pSkill.RequiresLineOfSight || pActiveUnit.Position == pTargetCell)
+                return true;
+
+            TryResolveAliveUnitAtCell(pTargetCell, out UnitRuntime lTargetUnit);
+            if (HasLineOfSight(pActiveUnit, pTargetCell, lTargetUnit))
+                return true;
+
+            pIsBlockedByLineOfSight = true;
+            return true;
+        }
+
+        private bool HasLineOfSight(UnitRuntime pSourceUnit, GridCoord pTarget, UnitRuntime pTargetUnit = null)
+        {
+            if (_BoardView == null || pSourceUnit == null)
                 return false;
 
-            return true;
+            return GridLineOfSightUtility.HasLineOfSight(
+                pSourceUnit.Position,
+                pTarget,
+                pCell =>
+                {
+                    if (!TryGetBoardCellDefinition(pCell, out CellDefinition lCell))
+                        return true;
+
+                    if (lCell.BlocksLineOfSight)
+                        return true;
+
+                    if (!TryResolveAliveUnitAtCell(pCell, out UnitRuntime lBlockingUnit))
+                        return false;
+
+                    if (lBlockingUnit.Id == pSourceUnit.Id)
+                        return false;
+
+                    if (pTargetUnit != null && lBlockingUnit.Id == pTargetUnit.Id)
+                        return pCell != pTarget;
+
+                    return true;
+                });
         }
 
         private bool TryGetBoardCellDefinition(GridCoord pCell, out CellDefinition pCellDefinition)
@@ -637,23 +608,6 @@ namespace TacticalPort.View
 
             pCellDefinition = null;
             return false;
-        }
-
-        private bool HasLineOfSight(GridCoord pOrigin, GridCoord pTarget)
-        {
-            if (_BoardView == null)
-                return false;
-
-            return GridLineOfSightUtility.HasLineOfSight(
-                pOrigin,
-                pTarget,
-                pCell =>
-                {
-                    if (!TryGetBoardCellDefinition(pCell, out CellDefinition lCell))
-                        return true;
-
-                    return lCell.BlocksLineOfSight || TryResolveAliveUnitAtCell(pCell, out _);
-                });
         }
 
         private bool CanRun() => _Bootstrap != null

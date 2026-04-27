@@ -12,7 +12,6 @@ namespace TacticalPort.EditorTools
         private string _Id = string.Empty;
         private string _DisplayName = "New Skill";
         private string _Description = string.Empty;
-        private SkillTargetType _TargetType = SkillTargetType.Unit;
         private SkillPrimaryEffectType _PrimaryEffectType = SkillPrimaryEffectType.Damage;
         private SkillAdditionalEffectType _AdditionalEffectType = SkillAdditionalEffectType.None;
         private int _RangeMin = 0;
@@ -32,6 +31,9 @@ namespace TacticalPort.EditorTools
         private SkillSummonTeamRule _SummonTeamRule = SkillSummonTeamRule.Definition;
         private int _GlyphDurationTurns = 1;
         private SkillGlyphTargetRule _GlyphTargetRule = SkillGlyphTargetRule.EnemiesOnly;
+        private StateDefinition _AppliedState;
+        private int _AppliedStateStacks = 1;
+        private int _AppliedStateDurationTurns = -1;
         private bool _UseDirectionalModifiers;
         private int _FrontDamageModifier = 0;
         private int _SideDamageModifier = 0;
@@ -63,7 +65,6 @@ namespace TacticalPort.EditorTools
 
             GUILayout.Space(6f);
             EditorGUILayout.LabelField("Rules", EditorStyles.boldLabel);
-            _TargetType = (SkillTargetType)EditorGUILayout.EnumPopup("Target Type", _TargetType);
             _PrimaryEffectType = (SkillPrimaryEffectType)EditorGUILayout.EnumPopup("Effect Type", _PrimaryEffectType);
             _AdditionalEffectType = (SkillAdditionalEffectType)EditorGUILayout.EnumPopup("Additional Effect", _AdditionalEffectType);
             _RangeMin = Mathf.Max(0, EditorGUILayout.IntField("Range Min", _RangeMin));
@@ -117,6 +118,18 @@ namespace TacticalPort.EditorTools
                 _GlyphTargetRule = (SkillGlyphTargetRule)EditorGUILayout.EnumPopup("Glyph Target Rule", _GlyphTargetRule);
             }
 
+            _AppliedState = (StateDefinition)EditorGUILayout.ObjectField("Applied State", _AppliedState, typeof(StateDefinition), false);
+            if (_AppliedState != null)
+            {
+                _AppliedStateStacks = Mathf.Max(1, EditorGUILayout.IntField("State Stacks", _AppliedStateStacks));
+                _AppliedStateDurationTurns = EditorGUILayout.IntField("State Duration Override", _AppliedStateDurationTurns);
+            }
+            else
+            {
+                _AppliedStateStacks = 1;
+                _AppliedStateDurationTurns = -1;
+            }
+
             if (_PrimaryEffectType == SkillPrimaryEffectType.Damage)
             {
                 _UseDirectionalModifiers = EditorGUILayout.Toggle("Directional Modifiers", _UseDirectionalModifiers);
@@ -149,7 +162,7 @@ namespace TacticalPort.EditorTools
             lSerializedObject.FindProperty("_Id").stringValue = lId;
             lSerializedObject.FindProperty("_DisplayName").stringValue = string.IsNullOrWhiteSpace(_DisplayName) ? lId : _DisplayName.Trim();
             lSerializedObject.FindProperty("_Description").stringValue = _Description ?? string.Empty;
-            lSerializedObject.FindProperty("_TargetType").enumValueIndex = (int)_TargetType;
+            lSerializedObject.FindProperty("_TargetType").enumValueIndex = (int)SkillTargetType.Cell;
             lSerializedObject.FindProperty("_LegacyEffectType").enumValueIndex = _PrimaryEffectType == SkillPrimaryEffectType.Heal ? (int)SkillEffectType.Heal : (int)SkillEffectType.Damage;
             lSerializedObject.FindProperty("_PrimaryEffectType").enumValueIndex = (int)_PrimaryEffectType;
             lSerializedObject.FindProperty("_AdditionalEffectType").enumValueIndex = (int)_AdditionalEffectType;
@@ -173,6 +186,9 @@ namespace TacticalPort.EditorTools
             lSerializedObject.FindProperty("_SummonTeamRule").enumValueIndex = (int)_SummonTeamRule;
             lSerializedObject.FindProperty("_GlyphDurationTurns").intValue = Mathf.Max(1, _GlyphDurationTurns);
             lSerializedObject.FindProperty("_GlyphTargetRule").enumValueIndex = (int)_GlyphTargetRule;
+            lSerializedObject.FindProperty("_AppliedState").objectReferenceValue = _AppliedState;
+            lSerializedObject.FindProperty("_AppliedStateStacks").intValue = Mathf.Max(1, _AppliedStateStacks);
+            lSerializedObject.FindProperty("_AppliedStateDurationTurns").intValue = _AppliedStateDurationTurns;
             lSerializedObject.FindProperty("_UseDirectionalModifiers").boolValue = _UseDirectionalModifiers;
             lSerializedObject.FindProperty("_FrontDamageModifier").intValue = _FrontDamageModifier;
             lSerializedObject.FindProperty("_SideDamageModifier").intValue = _SideDamageModifier;

@@ -39,6 +39,8 @@ namespace Com.IsartDigital.Editors
         private const string STATE_DAMAGE_MODIFIER = "_DamageModifierPerStack";
         private const string STATE_DAMAGE_REDUCTION = "_DamageReductionPerStack";
         private const string STATE_RANGE_MODIFIER = "_RangeModifierPerStack";
+        private const string STATE_ACTION_POINT_MODIFIER = "_ActionPointModifierPerStack";
+        private const string STATE_MOVEMENT_MODIFIER = "_MovementModifierPerStack";
         #endregion
 
         #endregion
@@ -113,6 +115,12 @@ namespace Com.IsartDigital.Editors
                     EditorGUILayout.Space(ITEM_SPACING);
 
                     EditorGUILayout.PropertyField(serializedObject.FindProperty(STATE_RANGE_MODIFIER));
+                    EditorGUILayout.Space(ITEM_SPACING);
+
+                    EditorGUILayout.PropertyField(serializedObject.FindProperty(STATE_ACTION_POINT_MODIFIER));
+                    EditorGUILayout.Space(ITEM_SPACING);
+
+                    EditorGUILayout.PropertyField(serializedObject.FindProperty(STATE_MOVEMENT_MODIFIER));
                     break;
             }
 
