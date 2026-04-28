@@ -1,3 +1,9 @@
+#region _____________________________/ INFOS
+//  AUTHOR : Nathan THEOPHILE (2025)
+//  Engine : Unity
+//  Shared
+#endregion
+
 using System;
 
 namespace TacticalPort.Shared
@@ -5,44 +11,38 @@ namespace TacticalPort.Shared
     [Serializable]
     public readonly struct SkillId : IEquatable<SkillId>
     {
+        #region _____________________________/ VALUES
+
         public static SkillId None => new SkillId(string.Empty);
+
+        #endregion
+
+        #region _____________________________/ ACCESSORS
 
         public string Value { get; }
         public bool IsValid => !string.IsNullOrWhiteSpace(Value);
+
+        #endregion
+
+        #region _____________________________| INIT
 
         public SkillId(string value)
         {
             Value = value ?? string.Empty;
         }
 
-        public bool Equals(SkillId other)
-        {
-            return string.Equals(Value, other.Value, StringComparison.OrdinalIgnoreCase);
-        }
+        #endregion
 
-        public override bool Equals(object obj)
-        {
-            return obj is SkillId other && Equals(other);
-        }
+        #region _____________________________| HELPERS
 
-        public override int GetHashCode()
-        {
-            return StringComparer.OrdinalIgnoreCase.GetHashCode(Value ?? string.Empty);
-        }
+        public bool Equals(SkillId other) => string.Equals(Value, other.Value, StringComparison.OrdinalIgnoreCase);
+        public override bool Equals(object obj) => obj is SkillId other && Equals(other);
+        public override int GetHashCode() => StringComparer.OrdinalIgnoreCase.GetHashCode(Value ?? string.Empty);
+        public override string ToString() => Value ?? string.Empty;
 
-        public override string ToString()
-        {
-            return Value ?? string.Empty;
-        }
+        public static bool operator ==(SkillId left, SkillId right) => left.Equals(right);
+        public static bool operator !=(SkillId left, SkillId right) => !left.Equals(right);
 
-        public static bool operator ==(SkillId left, SkillId right)
-        {
-            return left.Equals(right);
-        }
-
-        public static bool operator !=(SkillId left, SkillId right)
-        {
-            return !left.Equals(right);
-        }
+        #endregion
     }
 }

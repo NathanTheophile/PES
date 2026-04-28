@@ -1,3 +1,9 @@
+#region _____________________________/ INFOS
+//  AUTHOR : Nathan THEOPHILE (2025)
+//  Engine : Unity
+//  Data
+#endregion
+
 using System;
 
 namespace TacticalPort.Data
@@ -5,7 +11,7 @@ namespace TacticalPort.Data
     [Serializable]
     public sealed class UnitSpawnDefinition
     {
-        #region _____________________________| VALUES
+        #region _____________________________/ VALUES
 
         public UnitDefinition Unit;
         public SerializableGridCoord StartCoordinate = new SerializableGridCoord(0, 0);

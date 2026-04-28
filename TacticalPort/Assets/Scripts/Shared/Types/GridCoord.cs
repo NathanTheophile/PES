@@ -1,3 +1,9 @@
+#region _____________________________/ INFOS
+//  AUTHOR : Nathan THEOPHILE (2025)
+//  Engine : Unity
+//  Shared
+#endregion
+
 using System;
 using System.Collections.Generic;
 
@@ -6,7 +12,7 @@ namespace TacticalPort.Shared
     [Serializable]
     public readonly struct GridCoord : IEquatable<GridCoord>
     {
-        #region _____________________________| VALUES
+        #region _____________________________/ VALUES
 
         public int X { get; }
         public int Y { get; }
@@ -23,7 +29,7 @@ namespace TacticalPort.Shared
 
         #endregion
 
-        #region _____________________________| HELPERS
+        #region _____________________________| CONVERT
 
         public int ManhattanDistanceTo(GridCoord pOther) => Math.Abs(X - pOther.X) + Math.Abs(Y - pOther.Y);
 
@@ -34,6 +40,10 @@ namespace TacticalPort.Shared
             yield return new GridCoord(X, Y + 1);
             yield return new GridCoord(X, Y - 1);
         }
+
+        #endregion
+
+        #region _____________________________| HELPERS
 
         public bool Equals(GridCoord pOther) => X == pOther.X && Y == pOther.Y;
         public override bool Equals(object pObject) => pObject is GridCoord lOther && Equals(lOther);

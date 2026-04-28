@@ -1,3 +1,9 @@
+#region _____________________________/ INFOS
+//  AUTHOR : Nathan THEOPHILE (2025)
+//  Engine : Unity
+//  Note : MY_CONST, myPublic, m_MyProtected, _MyPrivate, lMyLocal, MyFunc(), pMyParam, onMyEvent, OnMyCallback, MyStruct
+#endregion
+
 using TacticalPort.Data;
 using UnityEditor;
 using UnityEngine;
@@ -7,7 +13,7 @@ namespace Com.IsartDigital.Editors
     [CustomEditor(typeof(SkillDefinition))]
     public class CustomInspector_Skill : Editor
     {
-        #region Editor Settings
+        #region _____________________________/ EDITOR SETTINGS
 
         private const uint TITLE_SPACING = 8;
         private const uint ITEM_SPACING = 1;
@@ -20,7 +26,7 @@ namespace Com.IsartDigital.Editors
 
         #endregion
 
-        #region Object Properties
+        #region _____________________________/ OBJECT PROPERTIES
 
         #region _____________________________/ METADATA
         private const string SKILL_ID = "_Id";
@@ -43,6 +49,7 @@ namespace Com.IsartDigital.Editors
 
         private const string SKILL_AOE_SHAPE = "_AoeShape";
         private const string SKILL_AOE_SIZE = "_AoeSize";
+        private const string SKILL_AOE_DAMAGE_FALLOFF_PERCENT_PER_CELL = "_AoeDamageFalloffPercentPerCell";
 
         #endregion
 
@@ -68,9 +75,10 @@ namespace Com.IsartDigital.Editors
         private const string SKILL_APPLIED_STATE_DURATION_TURNS = "_AppliedStateDurationTurns";
 
         #endregion
+
         #endregion
 
-        #region Tab Management
+        #region _____________________________/ TAB MANAGEMENT
 
         private const string TAB_A_NAME = METADATA_HEADER;
         private const string TAB_B_NAME = CASTING_HEADER;
@@ -81,6 +89,8 @@ namespace Com.IsartDigital.Editors
         private string[] tabs = new string[] { TAB_A_NAME, TAB_B_NAME, TAB_C_NAME, TAB_D_NAME };
 
         #endregion
+
+        #region _____________________________| GUI
 
         public override void OnInspectorGUI()
         {
@@ -161,6 +171,11 @@ namespace Com.IsartDigital.Editors
                     EditorGUILayout.Space(ITEM_SPACING);
 
                     EditorGUILayout.PropertyField(serializedObject.FindProperty(SKILL_AOE_SIZE));
+                    EditorGUILayout.Space(ITEM_SPACING);
+
+                    EditorGUILayout.PropertyField(
+                        serializedObject.FindProperty(SKILL_AOE_DAMAGE_FALLOFF_PERCENT_PER_CELL),
+                        new GUIContent("AoE Damage Falloff % / Cell"));
                     break;
 
                 case 2:
@@ -175,7 +190,7 @@ namespace Com.IsartDigital.Editors
                     EditorGUILayout.PropertyField(serializedObject.FindProperty(SKILL_USE_PER_TURN));
                     EditorGUILayout.Space(ITEM_SPACING);
 
-                    EditorGUILayout.PropertyField(serializedObject.FindProperty(SKILL_USE_PER_TARGET));
+                    EditorGUILayout.PropertyField(serializedObject.FindProperty(SKILL_USE_PER_TARGET), new GUIContent("Use Per Target Per Turn"));
                     EditorGUILayout.Space(ITEM_SPACING);
 
                     EditorGUILayout.PropertyField(serializedObject.FindProperty(SKILL_COOLDOWN_TURNS));
@@ -237,5 +252,7 @@ namespace Com.IsartDigital.Editors
 
             serializedObject.ApplyModifiedProperties();
         }
+
+        #endregion
     }
 }

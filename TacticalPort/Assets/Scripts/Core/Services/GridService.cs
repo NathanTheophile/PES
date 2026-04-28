@@ -1,3 +1,9 @@
+#region _____________________________/ INFOS
+//  AUTHOR : Nathan THEOPHILE (2025)
+//  Engine : Unity
+//  Note : MY_CONST, myPublic, m_MyProtected, _MyPrivate, lMyLocal, MyFunc(), pMyParam, onMyEvent, OnMyCallback, MyStruct
+#endregion
+
 using System;
 using System.Collections.Generic;
 using TacticalPort.Core.Interfaces;
@@ -9,7 +15,7 @@ namespace TacticalPort.Core.Services
 {
     public sealed class GridService : IGridService
     {
-        #region _____________________________| VALUES
+        #region _____________________________/ VALUES
 
         private readonly Dictionary<GridCoord, CellDefinition> _CellsByCoordinate = new Dictionary<GridCoord, CellDefinition>();
         private readonly Dictionary<GridCoord, UnitId> _OccupantsByCoordinate = new Dictionary<GridCoord, UnitId>();
@@ -20,7 +26,7 @@ namespace TacticalPort.Core.Services
 
         #endregion
 
-        #region _____________________________| ACCESSORS
+        #region _____________________________/ ACCESSORS
 
         public int Width => _Scenario != null ? _Scenario.Width : 0;
         public int Height => _Scenario != null ? _Scenario.Height : 0;

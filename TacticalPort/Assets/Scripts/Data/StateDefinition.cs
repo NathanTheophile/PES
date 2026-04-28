@@ -1,3 +1,9 @@
+#region _____________________________/ INFOS
+//  AUTHOR : Nathan THEOPHILE (2025)
+//  Engine : Unity
+//  Data
+#endregion
+
 using UnityEngine;
 
 namespace TacticalPort.Data
@@ -5,7 +11,7 @@ namespace TacticalPort.Data
     [CreateAssetMenu(fileName = "StateDefinition", menuName = "TacticalPort/Data/State Definition")]
     public sealed class StateDefinition : ScriptableObject
     {
-        #region _____________________________| VALUES
+        #region _____________________________/ VALUES
 
         [SerializeField] private string _Id = string.Empty;
         [SerializeField] private string _DisplayName = string.Empty;
@@ -24,7 +30,7 @@ namespace TacticalPort.Data
 
         #endregion
 
-        #region _____________________________| ACCESSORS
+        #region _____________________________/ ACCESSORS
 
         public string Id => string.IsNullOrWhiteSpace(_Id) ? name : _Id;
         public string DisplayName => string.IsNullOrWhiteSpace(_DisplayName) ? name : _DisplayName;

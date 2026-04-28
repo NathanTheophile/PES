@@ -1,3 +1,9 @@
+#region _____________________________/ INFOS
+//  AUTHOR : Nathan THEOPHILE (2025)
+//  Engine : Unity
+//  Note : MY_CONST, myPublic, m_MyProtected, _MyPrivate, lMyLocal, MyFunc(), pMyParam, onMyEvent, OnMyCallback, MyStruct
+#endregion
+
 using System;
 using System.Collections.Generic;
 using TacticalPort.Data;
@@ -9,13 +15,14 @@ namespace TacticalPort.Core.Runtime
     {
         #region _____________________________| INIT
 
-        public UnitRuntime(UnitId pId, UnitDefinition pDefinition, GridCoord pPosition)
+        public UnitRuntime(UnitId pId, UnitDefinition pDefinition, GridCoord pPosition, Team? pTeamOverride = null)
         {
             if (pDefinition == null)
                 throw new ArgumentNullException(nameof(pDefinition));
 
             Id = pId;
             Definition = pDefinition;
+            _TeamOverride = pTeamOverride;
             Position = pPosition;
             _Skills = BuildRuntimeSkills(pDefinition);
             _OccupiedCellOffsets = BuildOccupiedCellOffsets(pDefinition);
@@ -28,7 +35,7 @@ namespace TacticalPort.Core.Runtime
 
         #endregion
 
-        #region _____________________________| VALUES
+        #region _____________________________/ VALUES
 
         private readonly List<SkillDefinition> _Skills;
         private readonly List<GridCoord> _OccupiedCellOffsets;
@@ -36,14 +43,15 @@ namespace TacticalPort.Core.Runtime
         private readonly Dictionary<string, int> _SkillCooldowns = new Dictionary<string, int>();
         private readonly Dictionary<string, int> _SkillUsesThisTurn = new Dictionary<string, int>();
         private readonly Dictionary<string, int> _SkillUsesByTarget = new Dictionary<string, int>();
+        private readonly Team? _TeamOverride;
 
         #endregion
 
-        #region _____________________________| ACCESSORS
+        #region _____________________________/ ACCESSORS
 
         public UnitId Id { get; }
         public UnitDefinition Definition { get; }
-        public Team Team => Definition.Team;
+        public Team Team => _TeamOverride ?? Definition.Team;
         public GridCoord Position { get; private set; }
         public GridCoord FacingDirection { get; private set; }
         public int CurrentHealth { get; private set; }
@@ -63,6 +71,7 @@ namespace TacticalPort.Core.Runtime
         {
             TickCooldowns();
             _SkillUsesThisTurn.Clear();
+            _SkillUsesByTarget.Clear();
             RemoveExpiredStates();
 
             if (!IsAlive)
@@ -148,10 +157,7 @@ namespace TacticalPort.Core.Runtime
 
         public bool HasState(StateDefinition pState) => pState != null && GetStateStacks(pState) > 0;
 
-        public bool HasPassiveMarker(StateDefinition pState)
-        {
-            return pState != null && pState.IsPassiveMarker && HasState(pState);
-        }
+        public bool HasPassiveMarker(StateDefinition pState) => pState != null && pState.IsPassiveMarker && HasState(pState);
 
         public int GetStateStacks(StateDefinition pState)
         {
@@ -243,13 +249,7 @@ namespace TacticalPort.Core.Runtime
             return lModifier;
         }
 
-        public int GetSkillRangeMax(SkillDefinition pSkill)
-        {
-            if (pSkill == null)
-                return 0;
-
-            return Math.Max(0, pSkill.RangeMax + GetRangeModifier());
-        }
+        public int GetSkillRangeMax(SkillDefinition pSkill) => pSkill != null ? Math.Max(0, pSkill.RangeMax + GetRangeModifier()) : 0;
 
         public int GetSkillRangeMin(SkillDefinition pSkill)
         {
@@ -260,10 +260,7 @@ namespace TacticalPort.Core.Runtime
             return Math.Max(0, Math.Min(pSkill.RangeMin, lRangeMax));
         }
 
-        public int ResolveOutgoingDamage(int pBaseDamage)
-        {
-            return Math.Max(0, pBaseDamage + GetDamageModifier());
-        }
+        public int ResolveOutgoingDamage(int pBaseDamage) => Math.Max(0, pBaseDamage + GetDamageModifier());
 
         public int ApplyDamage(int pAmount)
         {
@@ -338,13 +335,7 @@ namespace TacticalPort.Core.Runtime
             return true;
         }
 
-        public bool RemoveTemporaryState(StateDefinition pState)
-        {
-            if (pState == null)
-                return false;
-
-            return RemoveStateByKey(ResolveTemporaryStateKey(pState));
-        }
+        public bool RemoveTemporaryState(StateDefinition pState) => pState != null && RemoveStateByKey(ResolveTemporaryStateKey(pState));
 
         public bool RemoveStateByKey(string pStateKey)
         {
@@ -385,35 +376,22 @@ namespace TacticalPort.Core.Runtime
             return false;
         }
 
-        public int GetRemainingCooldown(SkillDefinition pSkill)
-        {
-            if (pSkill == null)
-                return 0;
-
-            return _SkillCooldowns.TryGetValue(ResolveSkillKey(pSkill), out int lRemainingTurns)
+        public int GetRemainingCooldown(SkillDefinition pSkill) =>
+            pSkill != null && _SkillCooldowns.TryGetValue(ResolveSkillKey(pSkill), out int lRemainingTurns)
                 ? Math.Max(0, lRemainingTurns)
                 : 0;
-        }
 
-        public int GetSkillUsesThisTurn(SkillDefinition pSkill)
-        {
-            if (pSkill == null)
-                return 0;
-
-            return _SkillUsesThisTurn.TryGetValue(ResolveSkillKey(pSkill), out int lCount)
+        public int GetSkillUsesThisTurn(SkillDefinition pSkill) =>
+            pSkill != null && _SkillUsesThisTurn.TryGetValue(ResolveSkillKey(pSkill), out int lCount)
                 ? Math.Max(0, lCount)
                 : 0;
-        }
 
-        public int GetSkillUsesOnTarget(SkillDefinition pSkill, string pTargetKey)
-        {
-            if (pSkill == null || string.IsNullOrWhiteSpace(pTargetKey))
-                return 0;
-
-            return _SkillUsesByTarget.TryGetValue(ResolveSkillTargetKey(pSkill, pTargetKey), out int lCount)
+        public int GetSkillUsesOnTarget(SkillDefinition pSkill, string pTargetKey) =>
+            pSkill != null
+            && !string.IsNullOrWhiteSpace(pTargetKey)
+            && _SkillUsesByTarget.TryGetValue(ResolveSkillTargetKey(pSkill, pTargetKey), out int lCount)
                 ? Math.Max(0, lCount)
                 : 0;
-        }
 
         public bool TryValidateSkillUsage(SkillDefinition pSkill, IEnumerable<string> pTargetKeys, out string pFailureReason)
         {
@@ -564,22 +542,13 @@ namespace TacticalPort.Core.Runtime
             RemainingActionPoints = Math.Max(0, Math.Min(RemainingActionPoints, Definition.ActionPointsPerTurn + GetActionPointModifier()));
         }
 
-        private static string ResolveTemporaryStateKey(StateDefinition pState)
-        {
-            return pState != null && !string.IsNullOrWhiteSpace(pState.Id)
-                ? $"temporary::{pState.Id}"
-                : "temporary::";
-        }
+        private static string ResolveTemporaryStateKey(StateDefinition pState) =>
+            pState != null && !string.IsNullOrWhiteSpace(pState.Id) ? $"temporary::{pState.Id}" : "temporary::";
 
-        private static string ResolveSkillKey(SkillDefinition pSkill)
-        {
-            return pSkill != null && !string.IsNullOrWhiteSpace(pSkill.Id) ? pSkill.Id : string.Empty;
-        }
+        private static string ResolveSkillKey(SkillDefinition pSkill) =>
+            pSkill != null && !string.IsNullOrWhiteSpace(pSkill.Id) ? pSkill.Id : string.Empty;
 
-        private static string ResolveSkillTargetKey(SkillDefinition pSkill, string pTargetKey)
-        {
-            return $"{ResolveSkillKey(pSkill)}::{pTargetKey}";
-        }
+        private static string ResolveSkillTargetKey(SkillDefinition pSkill, string pTargetKey) => $"{ResolveSkillKey(pSkill)}::{pTargetKey}";
 
         private static List<SkillDefinition> BuildRuntimeSkills(UnitDefinition pDefinition)
         {
@@ -593,19 +562,6 @@ namespace TacticalPort.Core.Runtime
                         lSkills.Add(lSkill);
                 }
             }
-
-            if (lSkills.Count > 0)
-                return lSkills;
-
-            lSkills.Add(SkillDefinition.CreateRuntime(
-                "basic_attack",
-                "Basic Attack",
-                SkillPrimaryEffectType.Damage,
-                SkillAdditionalEffectType.None,
-                1,
-                3,
-                1,
-                "Fallback attack used when a unit has no explicit skills."));
 
             return lSkills;
         }

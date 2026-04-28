@@ -1,3 +1,9 @@
+#region _____________________________/ INFOS
+//  AUTHOR : Nathan THEOPHILE (2025)
+//  Engine : Unity
+//  Note : MY_CONST, myPublic, m_MyProtected, _MyPrivate, lMyLocal, MyFunc(), pMyParam, onMyEvent, OnMyCallback, MyStruct
+#endregion
+
 using TacticalPort.Shared;
 using UnityEngine;
 
@@ -5,7 +11,7 @@ namespace TacticalPort.View
 {
     public sealed class BoardCursorView : MonoBehaviour
     {
-        #region _____________________________| VALUES
+        #region _____________________________/ VALUES
 
         [SerializeField] private BoardView _BoardView;
         [SerializeField] private Transform _CursorRoot;

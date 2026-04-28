@@ -1,3 +1,9 @@
+#region _____________________________/ INFOS
+//  AUTHOR : Nathan THEOPHILE (2025)
+//  Engine : Unity
+//  Data
+#endregion
+
 using System;
 using TacticalPort.Shared;
 using UnityEngine;
@@ -7,7 +13,7 @@ namespace TacticalPort.Data
     [Serializable]
     public struct SerializableGridCoord
     {
-        #region _____________________________| VALUES
+        #region _____________________________/ VALUES
 
         [SerializeField] private int _X;
         [SerializeField] private int _Y;
@@ -24,7 +30,7 @@ namespace TacticalPort.Data
 
         #endregion
 
-        #region _____________________________| ACCESSORS
+        #region _____________________________/ ACCESSORS
 
         public int X => _X;
         public int Y => _Y;

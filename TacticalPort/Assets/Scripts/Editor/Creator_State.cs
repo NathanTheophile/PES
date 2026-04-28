@@ -1,3 +1,9 @@
+#region _____________________________/ INFOS
+//  AUTHOR : Nathan THEOPHILE (2025)
+//  Engine : Unity
+//  Note : MY_CONST, myPublic, m_MyProtected, _MyPrivate, lMyLocal, MyFunc(), pMyParam, onMyEvent, OnMyCallback, MyStruct
+#endregion
+
 using TacticalPort.Data;
 using UnityEditor;
 using UnityEngine;
@@ -6,7 +12,7 @@ namespace TacticalPort.EditorTools
 {
     public sealed class Creator_State : EditorWindow
     {
-        #region _____________________________| VALUES
+        #region _____________________________/ VALUES
 
         private string _Id = string.Empty;
         private string _DisplayName = "New State";

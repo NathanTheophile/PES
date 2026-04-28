@@ -1,3 +1,9 @@
+#region _____________________________/ INFOS
+//  AUTHOR : Nathan THEOPHILE (2025)
+//  Engine : Unity
+//  Note : MY_CONST, myPublic, m_MyProtected, _MyPrivate, lMyLocal, MyFunc(), pMyParam, onMyEvent, OnMyCallback, MyStruct
+#endregion
+
 using System.Collections.Generic;
 using TacticalPort.Core.Factories;
 using TacticalPort.Core.Interfaces;
@@ -11,11 +17,12 @@ namespace TacticalPort.Bootstrap
 {
     public sealed class CombatBootstrap : MonoBehaviour
     {
-        #region _____________________________| VALUES
+        #region _____________________________/ VALUES
 
         [SerializeField] private BattleScenarioDefinition _Scenario;
         [SerializeField] private CombatSceneReferences _SceneReferences;
         [SerializeField] private bool _BootstrapOnStart = true;
+        [SerializeField] private bool _UsePlacementPhase = true;
         [SerializeField] private bool _StartFirstTurnOnBootstrap = true;
         [SerializeField] private bool _AutoAdvanceTurns = true;
         [SerializeField] private bool _RefreshPresentationEachFrame = true;
@@ -28,7 +35,7 @@ namespace TacticalPort.Bootstrap
 
         #endregion
 
-        #region _____________________________| ACCESSORS
+        #region _____________________________/ ACCESSORS
 
         public IBattleService BattleService => _BattleService;
         public bool IsBootstrapped => _IsBootstrapped;
@@ -36,8 +43,11 @@ namespace TacticalPort.Bootstrap
         public UnitRuntime ActiveUnit => _BattleService != null ? _BattleService.ActiveUnit : null;
         public HUDManager HudManager => _SceneReferences != null ? _SceneReferences.HudManager : null;
         public BoardCursorView BoardCursorView => _SceneReferences != null ? _SceneReferences.BoardCursorView : null;
+        public bool IsPlacementPhaseActive => _BattleService != null && _BattleService.Phase == BattlePhase.Placement;
 
         #endregion
+
+        #region _____________________________| UNITY
 
         private void Start()
         {
@@ -52,6 +62,10 @@ namespace TacticalPort.Bootstrap
             if (_RefreshPresentationEachFrame && _IsBootstrapped)
                 RefreshPresentation();
         }
+
+        #endregion
+
+        #region _____________________________| BOOTSTRAP
 
         public void BootstrapCombat()
         {
@@ -80,20 +94,35 @@ namespace TacticalPort.Bootstrap
             _BattleService.Initialize(lActiveScenario);
             _EnemyTurnController = new EnemyTurnController(this, _EnemyTurnDelaySeconds);
 
-            if (_StartFirstTurnOnBootstrap)
-                TryAdvanceBattle();
-
             if (_SceneReferences != null)
             {
                 _SceneReferences.BoardView?.Configure(lActiveScenario);
                 _SceneReferences.HudManager?.Bind(_BattleService);
-                _SceneReferences.HudManager?.SetStatus(ResolveBootstrapStatus(lActiveScenario));
             }
 
             RebuildUnitViews(lActiveScenario);
             _IsBootstrapped = true;
+
+            if (_UsePlacementPhase)
+            {
+                _BattleService.EnterPlacementPhase();
+                _SceneReferences.HudManager?.SetStatus("Placement phase: select a player unit, choose an empty spawn cell, then press Ready.");
+            }
+            else if (_StartFirstTurnOnBootstrap)
+            {
+                TryAdvanceBattle();
+            }
+            else
+            {
+                _SceneReferences.HudManager?.SetStatus(ResolveBootstrapStatus(lActiveScenario));
+            }
+
             RefreshPresentation();
         }
+
+        #endregion
+
+        #region _____________________________| ACTIONS
 
         public bool TryAdvanceBattle()
         {
@@ -111,6 +140,15 @@ namespace TacticalPort.Bootstrap
 
             RefreshPresentation();
             return true;
+        }
+
+        public bool StartCombatFromPlacement()
+        {
+            if (!IsPlacementPhaseActive)
+                return false;
+
+            _SceneReferences?.HudManager?.SetStatus("Combat started.");
+            return TryAdvanceBattle();
         }
 
         public bool TryGetActiveUnit(out UnitRuntime pUnit)
@@ -170,14 +208,51 @@ namespace TacticalPort.Bootstrap
             return lResult;
         }
 
+        public BattleActionResult RepositionUnitDuringPlacement(UnitId pUnitId, GridCoord pDestination)
+        {
+            if (!IsPlacementPhaseActive)
+                return BattleActionResult.Failed(BattleActionType.Placement, "Placement phase is not active.");
+
+            if (_BattleService == null || !_BattleService.TryGetUnit(pUnitId, out UnitRuntime lUnit) || lUnit == null || !lUnit.IsAlive)
+                return BattleActionResult.Failed(BattleActionType.Placement, "Selected unit is not available.");
+
+            if (lUnit.Team != Team.Player)
+                return BattleActionResult.Failed(BattleActionType.Placement, "Only player units can be placed.");
+
+            if (_SceneReferences?.BoardView == null || !_SceneReferences.BoardView.IsSpawnerCell(pDestination))
+                return BattleActionResult.Failed(BattleActionType.Placement, "Choose an empty spawn cell.");
+
+            foreach (UnitRuntime lRuntimeUnit in _BattleService.Units)
+            {
+                if (lRuntimeUnit == null || !lRuntimeUnit.IsAlive || lRuntimeUnit.Id == pUnitId)
+                    continue;
+
+                foreach (GridCoord lOccupiedCell in lRuntimeUnit.EnumerateOccupiedCells())
+                {
+                    if (lOccupiedCell == pDestination)
+                        return BattleActionResult.Failed(BattleActionType.Placement, "This spawn cell is already occupied.");
+                }
+            }
+
+            BattleActionResult lResult = _BattleService.RepositionUnitDuringPlacement(pUnitId, pDestination);
+            ApplyActionFeedback(lResult);
+            return lResult;
+        }
+
+        #endregion
+
+        #region _____________________________| DISPLAY
+
         public void RefreshPresentation()
         {
             if (!_IsBootstrapped || _BattleService == null)
                 return;
 
             SyncRuntimeUnitViews();
+            _SceneReferences?.BoardView?.SetSpawnerCellsVisible(IsPlacementPhaseActive);
             _SceneReferences?.BoardView?.SetOccupiedCells(_BattleService.Units, _BattleService.ActiveUnit != null ? _BattleService.ActiveUnit.Id : UnitId.None);
             _SceneReferences?.BoardView?.SetGlyphCells(_BattleService.GetActiveGlyphs());
+            _SceneReferences?.BoardView?.SetHazardCells(_BattleService.GetTelegraphedHazards());
 
             foreach (UnitView lUnitView in _UnitViews.Values)
             {
@@ -191,12 +266,12 @@ namespace TacticalPort.Bootstrap
             _SceneReferences?.HudManager?.Refresh();
         }
 
-        private BattleScenarioDefinition ResolveScenario()
-        {
-            if (_SceneReferences != null && _SceneReferences.ScenarioOverride != null)
-                return _SceneReferences.ScenarioOverride;
-            return _Scenario;
-        }
+        #endregion
+
+        #region _____________________________| HELPERS
+
+        private BattleScenarioDefinition ResolveScenario() =>
+            _SceneReferences != null ? _SceneReferences.ResolveScenario(_Scenario) : _Scenario;
 
         private void RebuildUnitViews(BattleScenarioDefinition pActiveScenario)
         {
@@ -226,16 +301,12 @@ namespace TacticalPort.Bootstrap
             }
         }
 
-        private UnitView ResolvePrefab(UnitDefinition pUnitDefinition)
-        {
-            if (pUnitDefinition != null && pUnitDefinition.UnitViewPrefab != null)
-                return pUnitDefinition.UnitViewPrefab;
-
-            if (_SceneReferences != null && _SceneReferences.DefaultUnitViewPrefab != null)
-                return _SceneReferences.DefaultUnitViewPrefab;
-
-            return null;
-        }
+        private UnitView ResolvePrefab(UnitDefinition pUnitDefinition) =>
+            pUnitDefinition != null && pUnitDefinition.UnitViewPrefab != null
+                ? pUnitDefinition.UnitViewPrefab
+                : _SceneReferences != null && _SceneReferences.DefaultUnitViewPrefab != null
+                    ? _SceneReferences.DefaultUnitViewPrefab
+                    : null;
 
         private void RefreshSelectionCursor()
         {
@@ -318,13 +389,10 @@ namespace TacticalPort.Bootstrap
             _SceneReferences.HudManager?.SetStatus(pStatusOverride);
         }
 
-        private string ResolveUnitLabel(UnitId pUnitId)
-        {
-            if (_BattleService != null && _BattleService.TryGetUnit(pUnitId, out UnitRuntime lUnit))
-                return lUnit.Definition.DisplayName;
-
-            return pUnitId.ToString();
-        }
+        private string ResolveUnitLabel(UnitId pUnitId) =>
+            _BattleService != null && _BattleService.TryGetUnit(pUnitId, out UnitRuntime lUnit)
+                ? lUnit.Definition.DisplayName
+                : pUnitId.ToString();
 
         private string ResolveBootstrapStatus(BattleScenarioDefinition pScenario)
         {
@@ -335,5 +403,7 @@ namespace TacticalPort.Bootstrap
 
             return $"Scenario '{lScenarioName}' initialized.";
         }
+
+        #endregion
     }
 }

@@ -1,3 +1,9 @@
+#region _____________________________/ INFOS
+//  AUTHOR : Nathan THEOPHILE (2025)
+//  Engine : Unity
+//  Note : MY_CONST, myPublic, m_MyProtected, _MyPrivate, lMyLocal, MyFunc(), pMyParam, onMyEvent, OnMyCallback, MyStruct
+#endregion
+
 using System.Collections.Generic;
 using TacticalPort.Data;
 using TacticalPort.Shared;
@@ -10,6 +16,8 @@ namespace TacticalPort.View
 {
     public sealed class TeamSelectionController : MonoBehaviour
     {
+        #region _____________________________/ TYPES
+
         [System.Serializable]
         private sealed class CharacterSlotView
         {
@@ -28,6 +36,10 @@ namespace TacticalPort.View
             public Button Button;
         }
 
+        #endregion
+
+        #region _____________________________/ VALUES
+
         [SerializeField] private List<UnitDefinition> _AvailableUnits = new List<UnitDefinition>();
         [SerializeField] private string _CombatSceneName = "S_Poutch";
 
@@ -40,6 +52,10 @@ namespace TacticalPort.View
         private Button _LaunchButton;
         private int _PendingSlotIndex = -1;
 
+        #endregion
+
+        #region _____________________________| UNITY
+
         private void Awake()
         {
             CacheReferences();
@@ -49,6 +65,10 @@ namespace TacticalPort.View
             SetGridVisible(false);
             HookButtons();
         }
+
+        #endregion
+
+        #region _____________________________| SETUP
 
         private void CacheReferences()
         {
@@ -150,6 +170,10 @@ namespace TacticalPort.View
             }
         }
 
+        #endregion
+
+        #region _____________________________| FLOW
+
         private void RefreshSlotViews()
         {
             for (int lIndex = 0; lIndex < _Slots.Count; lIndex++)
@@ -191,6 +215,10 @@ namespace TacticalPort.View
                 _GridPanel.SetActive(pVisible);
         }
 
+        #endregion
+
+        #region _____________________________| BINDING
+
         private void BindSlot(CharacterSlotView pSlot, UnitDefinition pDefinition)
         {
             if (pSlot == null)
@@ -203,7 +231,9 @@ namespace TacticalPort.View
             {
                 pSlot.Visual.sprite = ResolvePreviewSprite(pDefinition);
                 pSlot.Visual.preserveAspect = true;
-                pSlot.Visual.color = pDefinition != null && pSlot.Visual.sprite != null ? pDefinition.Tint : Color.white;
+                pSlot.Visual.enabled = pDefinition != null && pSlot.Visual.sprite != null;
+                if (pSlot.Visual.enabled)
+                    pSlot.Visual.color = pDefinition.Tint;
             }
         }
 
@@ -216,7 +246,7 @@ namespace TacticalPort.View
             {
                 pItem.Icon.sprite = pDefinition != null ? pDefinition.Portrait : null;
                 pItem.Icon.preserveAspect = true;
-                pItem.Icon.color = pDefinition != null && pItem.Icon.sprite != null ? Color.white : new Color(1f, 1f, 1f, 0f);
+                pItem.Icon.enabled = pDefinition != null && pItem.Icon.sprite != null;
             }
 
             if (pItem.Name != null)
@@ -232,19 +262,20 @@ namespace TacticalPort.View
             }
         }
 
-        private static CharacterGridItemView CreateGridItemView(RectTransform pRoot)
-        {
-            if (pRoot == null)
-                return null;
+        #endregion
 
-            return new CharacterGridItemView
+        #region _____________________________| HELPERS
+
+        private static CharacterGridItemView CreateGridItemView(RectTransform pRoot) =>
+            pRoot != null
+                ? new CharacterGridItemView
             {
                 Root = pRoot,
                 Icon = pRoot.Find("Image")?.GetComponent<Image>(),
                 Name = pRoot.Find("Text (TMP)")?.GetComponent<TMP_Text>(),
                 Button = pRoot.GetComponent<Button>() ?? pRoot.gameObject.AddComponent<Button>()
-            };
-        }
+            }
+                : null;
 
         private static Sprite ResolvePreviewSprite(UnitDefinition pDefinition)
         {
@@ -283,5 +314,7 @@ namespace TacticalPort.View
 
             return lUnits;
         }
+
+        #endregion
     }
 }
