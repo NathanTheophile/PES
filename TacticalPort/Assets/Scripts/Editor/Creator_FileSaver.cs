@@ -1,3 +1,9 @@
+#region _____________________________/ INFOS
+//  AUTHOR : Nathan THEOPHILE (2025)
+//  Engine : Unity
+//  Note : MY_CONST, myPublic, m_MyProtected, _MyPrivate, lMyLocal, MyFunc(), pMyParam, onMyEvent, OnMyCallback, MyStruct
+#endregion
+
 using System.IO;
 using UnityEditor;
 using UnityEngine;
@@ -6,11 +12,12 @@ namespace TacticalPort.EditorTools
 {
     internal static class Creator_FileSaver
     {
-        #region _____________________________| CONSTANTS
+        #region _____________________________/ CONSTANTS
 
         public const string SkillsFolder = "Assets/Data/Skills";
         public const string StatesFolder = "Assets/Data/States";
         public const string UnitsFolder = "Assets/Data/Units";
+        public const string EnemyAiProfilesFolder = "Assets/Data/EnemyAiProfiles";
 
         #endregion
 
@@ -109,4 +116,5 @@ namespace TacticalPort.EditorTools
 
         #endregion
     }
+
 }

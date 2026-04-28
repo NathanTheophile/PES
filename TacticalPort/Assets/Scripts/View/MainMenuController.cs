@@ -1,3 +1,9 @@
+#region _____________________________/ INFOS
+//  AUTHOR : Nathan THEOPHILE (2025)
+//  Engine : Unity
+//  Note : MY_CONST, myPublic, m_MyProtected, _MyPrivate, lMyLocal, MyFunc(), pMyParam, onMyEvent, OnMyCallback, MyStruct
+#endregion
+
 using TacticalPort.Shared;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -7,9 +13,15 @@ namespace TacticalPort.View
 {
     public sealed class MainMenuController : MonoBehaviour
     {
+        #region _____________________________/ VALUES
+
         [SerializeField] private string _TeamSelectionSceneName = "S_TeamSelection";
 
         private Button _PlayTestButton;
+
+        #endregion
+
+        #region _____________________________| UNITY
 
         private void Awake()
         {
@@ -22,6 +34,10 @@ namespace TacticalPort.View
                 _PlayTestButton.onClick.AddListener(LoadTeamSelectionScene);
             }
         }
+
+        #endregion
+
+        #region _____________________________| HELPERS
 
         private void CacheReferences()
         {
@@ -38,5 +54,7 @@ namespace TacticalPort.View
             if (!string.IsNullOrWhiteSpace(_TeamSelectionSceneName))
                 SceneManager.LoadScene(_TeamSelectionSceneName);
         }
+
+        #endregion
     }
 }

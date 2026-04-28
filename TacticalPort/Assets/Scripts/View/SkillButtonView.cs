@@ -1,3 +1,9 @@
+#region _____________________________/ INFOS
+//  AUTHOR : Nathan THEOPHILE (2025)
+//  Engine : Unity
+//  Note : MY_CONST, myPublic, m_MyProtected, _MyPrivate, lMyLocal, MyFunc(), pMyParam, onMyEvent, OnMyCallback, MyStruct
+#endregion
+
 using System;
 using TacticalPort.Data;
 using TacticalPort.Shared;
@@ -11,7 +17,7 @@ namespace TacticalPort.View
 {
     public sealed class SkillButtonView : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
-        #region _____________________________| VALUES
+        #region _____________________________/ VALUES
 
         [SerializeField] private Button _Button;
         [SerializeField] private GameObject _PanelTooltip;
@@ -109,13 +115,7 @@ namespace TacticalPort.View
             }
         }
 
-        private string ResolveSkillNameText()
-        {
-            if (_Skill == null)
-                return string.Empty;
-
-            return $"{_Skill.DisplayName} ({_Skill.Id})";
-        }
+        private string ResolveSkillNameText() => _Skill != null ? $"{_Skill.DisplayName} ({_Skill.Id})" : string.Empty;
 
         private string ResolveAdditionalEffectText()
         {
@@ -133,13 +133,7 @@ namespace TacticalPort.View
             };
         }
 
-        private string ResolveActionPointCostAndRangeText()
-        {
-            if (_Skill == null)
-                return string.Empty;
-
-            return $"AP {_Skill.ActionPointCost} - Range {_Skill.Range}";
-        }
+        private string ResolveActionPointCostAndRangeText() => _Skill != null ? $"AP {_Skill.ActionPointCost} - Range {_Skill.Range}" : string.Empty;
 
         private string ResolvePowerText()
         {
@@ -149,7 +143,9 @@ namespace TacticalPort.View
             switch (_Skill.PrimaryEffectType)
             {
                 case SkillPrimaryEffectType.Damage:
-                    return $"Deals {_Skill.Power}";
+                    return _Skill.AoeDamageFalloffPercentPerCell > 0
+                        ? $"Deals {_Skill.Power} (-{_Skill.AoeDamageFalloffPercentPerCell}%/cell)"
+                        : $"Deals {_Skill.Power}";
 
                 case SkillPrimaryEffectType.Heal:
                     return $"Heals {_Skill.Power}";
@@ -159,13 +155,7 @@ namespace TacticalPort.View
             }
         }
 
-        private string ResolveDescriptionText()
-        {
-            if (_Skill == null)
-                return string.Empty;
-
-            return _Skill.Description;
-        }
+        private string ResolveDescriptionText() => _Skill != null ? _Skill.Description : string.Empty;
 
         private void ShowTooltip()
         {
@@ -230,11 +220,8 @@ namespace TacticalPort.View
             _TxtDescription ??= FindTooltipLabel("Txt_Description");
         }
 
-        private TMP_Text FindTooltipLabel(string pChildName)
-        {
-            Transform lChild = _PanelTooltip.transform.Find(pChildName);
-            return lChild != null ? lChild.GetComponent<TMP_Text>() : null;
-        }
+        private TMP_Text FindTooltipLabel(string pChildName) =>
+            _PanelTooltip.transform.Find(pChildName) is Transform lChild ? lChild.GetComponent<TMP_Text>() : null;
 
         private bool ValidateReferences()
         {

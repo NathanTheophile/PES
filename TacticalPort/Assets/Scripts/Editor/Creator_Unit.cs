@@ -1,3 +1,9 @@
+#region _____________________________/ INFOS
+//  AUTHOR : Nathan THEOPHILE (2025)
+//  Engine : Unity
+//  Note : MY_CONST, myPublic, m_MyProtected, _MyPrivate, lMyLocal, MyFunc(), pMyParam, onMyEvent, OnMyCallback, MyStruct
+#endregion
+
 using System.Collections.Generic;
 using TacticalPort.Data;
 using TacticalPort.Shared;
@@ -9,7 +15,7 @@ namespace TacticalPort.EditorTools
 {
     public sealed class Creator_Unit : EditorWindow
     {
-        #region _____________________________| VALUES
+        #region _____________________________/ VALUES
 
         [SerializeField] private string _Id = string.Empty;
         [SerializeField] private string _DisplayName = "New Unit";
@@ -25,11 +31,16 @@ namespace TacticalPort.EditorTools
         [SerializeField] private UnitView _UnitViewPrefab;
         [SerializeField] private Sprite _Portrait;
         [SerializeField] private Color _Tint = Color.white;
+        [SerializeField] private EnemyAiProfileDefinition _EnemyAiProfile;
         [SerializeField] private List<SkillDefinition> _Skills = new List<SkillDefinition>();
         [SerializeField] private List<UnitStateEntry> _BaseStates = new List<UnitStateEntry>();
         [SerializeField] private List<UnitPhaseStateDefinition> _PhaseStates = new List<UnitPhaseStateDefinition>();
 
         private SerializedObject _SerializedObject;
+        private UnitDefinition _AiOverrideBuffer;
+        private SerializedObject _AiOverrideSerializedObject;
+
+        private const string SkillAiOverridesPropertyName = "_SkillAiOverrides";
 
         #endregion
 
@@ -76,6 +87,12 @@ namespace TacticalPort.EditorTools
 
             GUILayout.Space(6f);
             DrawSkills();
+
+            GUILayout.Space(6f);
+            EditorGUILayout.LabelField("AI", EditorStyles.boldLabel);
+            _EnemyAiProfile = (EnemyAiProfileDefinition)EditorGUILayout.ObjectField("AI Profile", _EnemyAiProfile, typeof(EnemyAiProfileDefinition), false);
+            DrawSkillAiOverrides();
+
             GUILayout.Space(6f);
             DrawStateEntries("_BaseStates", "Base States", "Add Base State", "State");
             GUILayout.Space(6f);
@@ -106,6 +123,32 @@ namespace TacticalPort.EditorTools
 
             if (GUILayout.Button("Add Skill"))
                 _Skills.Add(null);
+        }
+
+        private void DrawSkillAiOverrides()
+        {
+            EnsureAiOverrideBuffer();
+            _AiOverrideSerializedObject?.Update();
+
+            SerializedProperty lOverridesProperty = _AiOverrideSerializedObject?.FindProperty(SkillAiOverridesPropertyName);
+            if (lOverridesProperty == null)
+            {
+                EditorGUILayout.HelpBox("Per-skill AI overrides will appear here once UnitDefinition exposes _SkillAiOverrides. Skills are still configured only in the Skills section above.", MessageType.Info);
+                return;
+            }
+
+            EditorGUILayout.Space(3f);
+            EditorGUILayout.LabelField("Skill AI Overrides", EditorStyles.boldLabel);
+            EditorGUILayout.HelpBox("Optional overrides are generated from this unit's Skills list, so each skill is selected only once.", MessageType.Info);
+
+            if (GUILayout.Button("Sync AI Overrides From Skills"))
+                SkillAiOverrideEditorUtility.SyncFromSkills(lOverridesProperty, _Skills);
+
+            SkillAiOverrideEditorUtility.DrawSkillBoundOverrides(
+                lOverridesProperty,
+                _Skills,
+                "Add skills above before configuring per-skill AI overrides.");
+            _AiOverrideSerializedObject.ApplyModifiedPropertiesWithoutUndo();
         }
 
         private void DrawStateEntries(string pPropertyName, string pLabel, string pAddButtonLabel, string pEntryLabel)
@@ -156,6 +199,7 @@ namespace TacticalPort.EditorTools
             lSerializedObject.FindProperty("_UnitViewPrefab").objectReferenceValue = _UnitViewPrefab;
             lSerializedObject.FindProperty("_Portrait").objectReferenceValue = _Portrait;
             lSerializedObject.FindProperty("_Tint").colorValue = _Tint;
+            lSerializedObject.FindProperty("_EnemyAiProfile").objectReferenceValue = _EnemyAiProfile;
 
             SerializedProperty lSkillsProperty = lSerializedObject.FindProperty("_Skills");
             lSkillsProperty.arraySize = _Skills.Count;
@@ -164,6 +208,7 @@ namespace TacticalPort.EditorTools
 
             CopySerializableEntries(lSerializedObject.FindProperty("_BaseStates"), _SerializedObject.FindProperty("_BaseStates"));
             CopySerializableEntries(lSerializedObject.FindProperty("_PhaseStates"), _SerializedObject.FindProperty("_PhaseStates"));
+            CopySerializableEntries(lSerializedObject.FindProperty(SkillAiOverridesPropertyName), _AiOverrideSerializedObject?.FindProperty(SkillAiOverridesPropertyName));
 
             Creator_FileSaver.ApplyAndSave(lSerializedObject);
 
@@ -174,9 +219,32 @@ namespace TacticalPort.EditorTools
 
         private static void CopySerializableEntries(SerializedProperty pTargetProperty, SerializedProperty pSourceProperty)
         {
+            if (pTargetProperty == null || pSourceProperty == null)
+                return;
+
             pTargetProperty.arraySize = pSourceProperty.arraySize;
             for (int lIndex = 0; lIndex < pSourceProperty.arraySize; lIndex++)
                 pTargetProperty.GetArrayElementAtIndex(lIndex).boxedValue = pSourceProperty.GetArrayElementAtIndex(lIndex).boxedValue;
+        }
+
+        private void EnsureAiOverrideBuffer()
+        {
+            if (_AiOverrideBuffer != null)
+                return;
+
+            _AiOverrideBuffer = CreateInstance<UnitDefinition>();
+            _AiOverrideBuffer.hideFlags = HideFlags.HideAndDontSave;
+            _AiOverrideSerializedObject = new SerializedObject(_AiOverrideBuffer);
+        }
+
+        private void OnDestroy()
+        {
+            if (_AiOverrideBuffer == null)
+                return;
+
+            DestroyImmediate(_AiOverrideBuffer);
+            _AiOverrideBuffer = null;
+            _AiOverrideSerializedObject = null;
         }
 
         #endregion

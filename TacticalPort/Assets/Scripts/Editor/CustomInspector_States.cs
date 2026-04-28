@@ -1,3 +1,9 @@
+#region _____________________________/ INFOS
+//  AUTHOR : Nathan THEOPHILE (2025)
+//  Engine : Unity
+//  Note : MY_CONST, myPublic, m_MyProtected, _MyPrivate, lMyLocal, MyFunc(), pMyParam, onMyEvent, OnMyCallback, MyStruct
+#endregion
+
 using TacticalPort.Data;
 using UnityEditor;
 using UnityEngine;
@@ -7,7 +13,7 @@ namespace Com.IsartDigital.Editors
     [CustomEditor(typeof(StateDefinition))]
     public class CustomInspector_StateDefinition : Editor
     {
-        #region Editor Settings
+        #region _____________________________/ EDITOR SETTINGS
 
         private const uint TITLE_SPACING = 8;
         private const uint ITEM_SPACING = 1;
@@ -19,7 +25,7 @@ namespace Com.IsartDigital.Editors
 
         #endregion
 
-        #region Object Properties
+        #region _____________________________/ OBJECT PROPERTIES
 
         #region _____________________________/ METADATA
         private const string STATE_ID = "_Id";
@@ -45,7 +51,7 @@ namespace Com.IsartDigital.Editors
 
         #endregion
 
-        #region Tab Management
+        #region _____________________________/ TAB MANAGEMENT
 
         private const string TAB_A_NAME = METADATA_HEADER;
         private const string TAB_B_NAME = RULES_HEADER;
@@ -55,6 +61,8 @@ namespace Com.IsartDigital.Editors
         private string[] tabs = new string[] { TAB_A_NAME, TAB_B_NAME, TAB_C_NAME };
 
         #endregion
+
+        #region _____________________________| GUI
 
         public override void OnInspectorGUI()
         {
@@ -126,5 +134,7 @@ namespace Com.IsartDigital.Editors
 
             serializedObject.ApplyModifiedProperties();
         }
+
+        #endregion
     }
 }

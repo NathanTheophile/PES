@@ -1,3 +1,10 @@
+#region _____________________________/ INFOS
+//  AUTHOR : Nathan THEOPHILE (2025)
+//  Engine : Unity
+//  Note : MY_CONST, myPublic, m_MyProtected, _MyPrivate, lMyLocal, MyFunc(), pMyParam, onMyEvent, OnMyCallback, MyStruct
+#endregion
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using TacticalPort.Core.Interfaces;
@@ -8,14 +15,15 @@ namespace TacticalPort.Core.Services
 {
     public sealed class TurnSystem : ITurnSystem
     {
-        #region _____________________________| VALUES
+        #region _____________________________/ VALUES
 
         private readonly List<UnitRuntime> _TurnOrder = new List<UnitRuntime>();
+        private readonly Dictionary<UnitId, int> _LastInsertionIndexByAnchor = new Dictionary<UnitId, int>();
         private int _CurrentIndex = -1;
 
         #endregion
 
-        #region _____________________________| ACCESSORS
+        #region _____________________________/ ACCESSORS
 
         public BattleTurnContext CurrentTurn { get; private set; }
         public int RoundIndex { get; private set; }
@@ -27,6 +35,7 @@ namespace TacticalPort.Core.Services
         public void Initialize(IEnumerable<UnitRuntime> pUnits)
         {
             _TurnOrder.Clear();
+            _LastInsertionIndexByAnchor.Clear();
             _TurnOrder.AddRange(
                 pUnits
                     .Where(unit => unit != null && unit.IsAlive)
@@ -96,14 +105,14 @@ namespace TacticalPort.Core.Services
             CurrentTurn = null;
         }
 
-        public void AddUnit(UnitRuntime pUnit)
+        public void AddUnit(UnitRuntime pUnit, UnitId pAfterUnitId = default)
         {
             if (pUnit == null || !pUnit.IsAlive)
                 return;
 
             if (CurrentTurn != null)
             {
-                _TurnOrder.Add(pUnit);
+                InsertAfterAnchorOrAppend(pUnit, pAfterUnitId);
                 return;
             }
 
@@ -113,6 +122,7 @@ namespace TacticalPort.Core.Services
         public void RemoveUnit(UnitId pUnitId)
         {
             bool lRemovedActiveUnit = CurrentTurn != null && CurrentTurn.UnitId == pUnitId;
+            _LastInsertionIndexByAnchor.Remove(pUnitId);
 
             for (int lIndex = 0; lIndex < _TurnOrder.Count; lIndex++)
             {
@@ -120,6 +130,7 @@ namespace TacticalPort.Core.Services
                     continue;
 
                 _TurnOrder.RemoveAt(lIndex);
+                ReindexInsertionCursorsAfterRemove(lIndex);
                 if (lIndex <= _CurrentIndex)
                     _CurrentIndex--;
 
@@ -165,6 +176,67 @@ namespace TacticalPort.Core.Services
             }
 
             _TurnOrder.Insert(lInsertIndex, pUnit);
+            ReindexInsertionCursorsAfterInsert(lInsertIndex);
+        }
+
+        private void InsertAfterAnchorOrAppend(UnitRuntime pUnit, UnitId pAfterUnitId)
+        {
+            int lInsertIndex = _TurnOrder.Count;
+            if (pAfterUnitId.IsValid)
+            {
+                int lAnchorIndex = FindUnitIndex(pAfterUnitId);
+                if (lAnchorIndex >= 0)
+                {
+                    lInsertIndex = lAnchorIndex + 1;
+                    if (_LastInsertionIndexByAnchor.TryGetValue(pAfterUnitId, out int lLastInsertIndex) && lLastInsertIndex >= lAnchorIndex)
+                        lInsertIndex = Math.Min(_TurnOrder.Count, lLastInsertIndex + 1);
+                }
+            }
+
+            _TurnOrder.Insert(lInsertIndex, pUnit);
+            ReindexInsertionCursorsAfterInsert(lInsertIndex);
+
+            if (pAfterUnitId.IsValid)
+                _LastInsertionIndexByAnchor[pAfterUnitId] = lInsertIndex;
+
+            if (lInsertIndex <= _CurrentIndex)
+                _CurrentIndex++;
+        }
+
+        private int FindUnitIndex(UnitId pUnitId)
+        {
+            for (int lIndex = 0; lIndex < _TurnOrder.Count; lIndex++)
+            {
+                if (_TurnOrder[lIndex].Id == pUnitId)
+                    return lIndex;
+            }
+
+            return -1;
+        }
+
+        private void ReindexInsertionCursorsAfterInsert(int pInsertedIndex)
+        {
+            List<UnitId> lKeys = new List<UnitId>(_LastInsertionIndexByAnchor.Keys);
+            for (int lIndex = 0; lIndex < lKeys.Count; lIndex++)
+            {
+                UnitId lKey = lKeys[lIndex];
+                if (_LastInsertionIndexByAnchor[lKey] >= pInsertedIndex)
+                    _LastInsertionIndexByAnchor[lKey]++;
+            }
+        }
+
+        private void ReindexInsertionCursorsAfterRemove(int pRemovedIndex)
+        {
+            List<UnitId> lKeys = new List<UnitId>(_LastInsertionIndexByAnchor.Keys);
+            for (int lIndex = 0; lIndex < lKeys.Count; lIndex++)
+            {
+                UnitId lKey = lKeys[lIndex];
+                int lStoredIndex = _LastInsertionIndexByAnchor[lKey];
+                if (lStoredIndex == pRemovedIndex)
+                    _LastInsertionIndexByAnchor.Remove(lKey);
+                else if (lStoredIndex > pRemovedIndex)
+                    _LastInsertionIndexByAnchor[lKey] = lStoredIndex - 1;
+            }
         }
 
         #endregion

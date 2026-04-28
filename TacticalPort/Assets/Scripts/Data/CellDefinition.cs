@@ -1,3 +1,9 @@
+#region _____________________________/ INFOS
+//  AUTHOR : Nathan THEOPHILE (2025)
+//  Engine : Unity
+//  Data
+#endregion
+
 using System;
 
 namespace TacticalPort.Data
@@ -5,7 +11,7 @@ namespace TacticalPort.Data
     [Serializable]
     public sealed class CellDefinition
     {
-        #region _____________________________| VALUES
+        #region _____________________________/ VALUES
 
         public SerializableGridCoord Coordinate = new SerializableGridCoord(0, 0);
         public bool IsWalkable = true;

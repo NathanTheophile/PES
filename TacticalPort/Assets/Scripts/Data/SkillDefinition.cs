@@ -1,3 +1,9 @@
+#region _____________________________/ INFOS
+//  AUTHOR : Nathan THEOPHILE (2025)
+//  Engine : Unity
+//  Data
+#endregion
+
 using TacticalPort.Shared;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -8,7 +14,13 @@ namespace TacticalPort.Data
     {
         Single = 0,
         Circle = 1,
-        Cross = 2
+        Cross = 2,
+        Square = 3,
+        X = 4,
+        HorizontalLine = 5,
+        VerticalLine = 6,
+        Cone = 7,
+        ConeReverse = 8
     }
 
     public enum SkillTargetAlignment
@@ -35,13 +47,12 @@ namespace TacticalPort.Data
     [CreateAssetMenu(fileName = "SkillDefinition", menuName = "Project/Data/Skill Definition")]
     public sealed class SkillDefinition : ScriptableObject
     {
-        #region _____________________________| VALUES
+        #region _____________________________/ VALUES
 
         [SerializeField] private string _Id = string.Empty;
         [SerializeField] private string _DisplayName = string.Empty;
         [SerializeField, TextArea] private string _Description = string.Empty;
 
-        [SerializeField, HideInInspector] private SkillTargetType _TargetType = SkillTargetType.Cell;
         [FormerlySerializedAs("_EffectType")]
         [SerializeField, HideInInspector] private SkillEffectType _LegacyEffectType = SkillEffectType.Damage;
         [SerializeField] private SkillPrimaryEffectType _PrimaryEffectType = SkillPrimaryEffectType.Damage;
@@ -56,6 +67,7 @@ namespace TacticalPort.Data
         [SerializeField] private bool _CanAffectCaster = true;
         [SerializeField] private SkillAoeShape _AoeShape = SkillAoeShape.Single;
         [SerializeField, Min(0)] private int _AoeSize = 0;
+        [SerializeField, Range(0, 100)] private int _AoeDamageFalloffPercentPerCell = 20;
         [SerializeField, Min(0)] private int _UsePerTurn = 0;
         [SerializeField, Min(0)] private int _UsePerTarget = 0;
         [SerializeField, Min(0)] private int _CooldownTurns = 0;
@@ -77,12 +89,11 @@ namespace TacticalPort.Data
 
         #endregion
 
-        #region _____________________________| ACCESSORS
+        #region _____________________________/ ACCESSORS
 
         public string Id => string.IsNullOrWhiteSpace(_Id) ? name : _Id;
         public string DisplayName => string.IsNullOrWhiteSpace(_DisplayName) ? name : _DisplayName;
         public string Description => _Description;
-        public SkillTargetType TargetType => SkillTargetType.Cell;
         public SkillPrimaryEffectType PrimaryEffectType => ResolvePrimaryEffectType();
         public SkillAdditionalEffectType AdditionalEffectType => ResolveAdditionalEffectType();
         public int Range => RangeMax;
@@ -96,6 +107,7 @@ namespace TacticalPort.Data
         public bool CanAffectCaster => _CanAffectCaster;
         public SkillAoeShape AoeShape => _AoeShape;
         public int AoeSize => Mathf.Max(0, _AoeShape == SkillAoeShape.Single ? 0 : _AoeSize);
+        public int AoeDamageFalloffPercentPerCell => _AoeShape == SkillAoeShape.Single ? 0 : Mathf.Clamp(_AoeDamageFalloffPercentPerCell, 0, 100);
         public int UsePerTurn => Mathf.Max(0, _UsePerTurn);
         public int UsePerTarget => Mathf.Max(0, _UsePerTarget);
         public int CooldownTurns => Mathf.Max(0, _CooldownTurns);
@@ -121,9 +133,6 @@ namespace TacticalPort.Data
 
         private void OnValidate()
         {
-            if (_TargetType != SkillTargetType.Cell)
-                _TargetType = SkillTargetType.Cell;
-
             if (_HasMigratedEffectSetup)
                 return;
 
@@ -170,89 +179,21 @@ namespace TacticalPort.Data
 
         #endregion
 
-        #region _____________________________| FACTORIES
-
-        public static SkillDefinition CreateRuntime(
-            string pId,
-            string pDisplayName,
-            SkillPrimaryEffectType pPrimaryEffectType,
-            SkillAdditionalEffectType pAdditionalEffectType,
-            int pRange,
-            int pPower,
-            int pActionPointCost,
-            string pDescription = "",
-            int pRangeMin = 0,
-            bool pLinear = false,
-            bool pRequiresLineOfSight = false,
-            SkillAoeShape pAoeShape = SkillAoeShape.Single,
-            int pAoeSize = 0,
-            int pUsePerTurn = 0,
-            int pUsePerTarget = 0,
-            int pCooldownTurns = 0)
-        {
-            SkillDefinition lDefinition = CreateInstance<SkillDefinition>();
-            lDefinition.hideFlags = HideFlags.DontSave;
-            lDefinition.name = string.IsNullOrWhiteSpace(pDisplayName) ? "SkillRuntimeDefinition" : pDisplayName;
-            lDefinition._Id = string.IsNullOrWhiteSpace(pId) ? lDefinition.name.ToLowerInvariant().Replace(" ", "_") : pId;
-            lDefinition._DisplayName = string.IsNullOrWhiteSpace(pDisplayName) ? lDefinition._Id : pDisplayName;
-            lDefinition._Description = pDescription ?? string.Empty;
-            lDefinition._TargetType = SkillTargetType.Cell;
-            lDefinition._LegacyEffectType = pPrimaryEffectType == SkillPrimaryEffectType.Heal ? SkillEffectType.Heal : SkillEffectType.Damage;
-            lDefinition._PrimaryEffectType = pPrimaryEffectType;
-            lDefinition._AdditionalEffectType = pAdditionalEffectType;
-            lDefinition._HasMigratedEffectSetup = true;
-            lDefinition._Range = Mathf.Max(0, pRange);
-            lDefinition._RangeMin = Mathf.Clamp(pRangeMin, 0, Mathf.Max(0, pRange));
-            lDefinition._RangeMax = Mathf.Max(0, pRange);
-            lDefinition._Linear = pLinear;
-            lDefinition._TargetAlignment = pLinear ? SkillTargetAlignment.Orthogonal : SkillTargetAlignment.Any;
-            lDefinition._RequiresLineOfSight = pRequiresLineOfSight;
-            lDefinition._CanAffectCaster = true;
-            lDefinition._AoeShape = pAoeShape;
-            lDefinition._AoeSize = Mathf.Max(0, pAoeShape == SkillAoeShape.Single ? 0 : pAoeSize);
-            lDefinition._UsePerTurn = Mathf.Max(0, pUsePerTurn);
-            lDefinition._UsePerTarget = Mathf.Max(0, pUsePerTarget);
-            lDefinition._CooldownTurns = Mathf.Max(0, pCooldownTurns);
-            lDefinition._Power = Mathf.Max(0, pPower);
-            lDefinition._ActionPointCost = Mathf.Max(0, pActionPointCost);
-            lDefinition._PushDistance = Mathf.Max(0, pPower);
-            lDefinition._SummonUnit = null;
-            lDefinition._SummonTeamRule = SkillSummonTeamRule.Definition;
-            lDefinition._GlyphDurationTurns = 1;
-            lDefinition._GlyphTargetRule = SkillGlyphTargetRule.EnemiesOnly;
-            lDefinition._AppliedState = null;
-            lDefinition._AppliedStateStacks = 1;
-            lDefinition._AppliedStateDurationTurns = -1;
-            lDefinition._UseDirectionalModifiers = false;
-            lDefinition._FrontDamageModifier = 0;
-            lDefinition._SideDamageModifier = 0;
-            lDefinition._BackDamageModifier = 0;
-            lDefinition._Icon = null;
-            return lDefinition;
-        }
-
-        #endregion
-
         #region _____________________________| HELPERS
 
-        private SkillPrimaryEffectType ResolvePrimaryEffectType()
-        {
-            if (_HasMigratedEffectSetup)
-                return _PrimaryEffectType;
+        private SkillPrimaryEffectType ResolvePrimaryEffectType() =>
+            _HasMigratedEffectSetup
+                ? _PrimaryEffectType
+                : _LegacyEffectType == SkillEffectType.Heal
+                    ? SkillPrimaryEffectType.Heal
+                    : _LegacyEffectType == SkillEffectType.Damage
+                        ? SkillPrimaryEffectType.Damage
+                        : SkillPrimaryEffectType.None;
 
-            return _LegacyEffectType == SkillEffectType.Heal
-                ? SkillPrimaryEffectType.Heal
-                : _LegacyEffectType == SkillEffectType.Damage
-                    ? SkillPrimaryEffectType.Damage
-                    : SkillPrimaryEffectType.None;
-        }
-
-        private SkillAdditionalEffectType ResolveAdditionalEffectType()
-        {
-            if (_HasMigratedEffectSetup)
-                return _AdditionalEffectType;
-
-            return _LegacyEffectType switch
+        private SkillAdditionalEffectType ResolveAdditionalEffectType() =>
+            _HasMigratedEffectSetup
+                ? _AdditionalEffectType
+                : _LegacyEffectType switch
             {
                 SkillEffectType.Push => SkillAdditionalEffectType.Push,
                 SkillEffectType.Teleport => SkillAdditionalEffectType.Teleport,
@@ -261,7 +202,6 @@ namespace TacticalPort.Data
                 SkillEffectType.CreateGlyph => SkillAdditionalEffectType.CreateGlyph,
                 _ => SkillAdditionalEffectType.None
             };
-        }
 
         #endregion
     }

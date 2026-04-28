@@ -1,3 +1,9 @@
+#region _____________________________/ INFOS
+//  AUTHOR : Nathan THEOPHILE (2025)
+//  Engine : Unity
+//  Data
+#endregion
+
 using System.Collections.Generic;
 using TacticalPort.Shared;
 using TacticalPort.View;
@@ -22,7 +28,13 @@ namespace TacticalPort.Data
         [SerializeField, Min(0)] private int _PushDamageBonus = 0;
         [SerializeField, Min(1)] private int _FootprintWidth = 1;
         [SerializeField, Min(1)] private int _FootprintHeight = 1;
+        [SerializeField] private EnemyAiTargetPriority _EnemyAiTargetPriority = EnemyAiTargetPriority.WeakFirst;
+        [SerializeField] private EnemyAiMovementPolicy _EnemyAiMovementPolicy = EnemyAiMovementPolicy.Auto;
+        [SerializeField, Min(0)] private int _EnemyAiPreferredDistance = 0;
+        [SerializeField, Min(0)] private int _EnemyAiThreatRadius = 0;
+        [SerializeField] private EnemyAiProfileDefinition _EnemyAiProfile;
         [SerializeField] private List<SkillDefinition> _Skills = new List<SkillDefinition>();
+        [SerializeField] private List<UnitSkillAiOverride> _SkillAiOverrides = new List<UnitSkillAiOverride>();
         [SerializeField] private List<UnitStateEntry> _BaseStates = new List<UnitStateEntry>();
         [SerializeField] private List<UnitPhaseStateDefinition> _PhaseStates = new List<UnitPhaseStateDefinition>();
 
@@ -46,7 +58,20 @@ namespace TacticalPort.Data
         public int FootprintWidth => Mathf.Max(1, _FootprintWidth);
         public int FootprintHeight => Mathf.Max(1, _FootprintHeight);
         public bool IsBig => FootprintWidth > 1 || FootprintHeight > 1;
+        public EnemyAiTargetPriority EnemyAiTargetPriority => _EnemyAiProfile != null ? _EnemyAiProfile.TargetPriority : _EnemyAiTargetPriority;
+        public EnemyAiMovementPolicy EnemyAiMovementPolicy => _EnemyAiProfile != null ? _EnemyAiProfile.MovementPolicy : _EnemyAiMovementPolicy;
+        public int EnemyAiPreferredDistance => _EnemyAiProfile != null ? _EnemyAiProfile.PreferredDistance : Mathf.Max(0, _EnemyAiPreferredDistance);
+        public int EnemyAiThreatRadius => _EnemyAiProfile != null ? _EnemyAiProfile.ThreatRadius : Mathf.Max(0, _EnemyAiThreatRadius);
+        public bool EnemyAiKiteAfterSuccessfulAction => _EnemyAiProfile != null && _EnemyAiProfile.KiteAfterSuccessfulAction;
+        public int EnemyAiDamageWeight => _EnemyAiProfile != null ? _EnemyAiProfile.DamageWeight : 100;
+        public int EnemyAiHealWeight => _EnemyAiProfile != null ? _EnemyAiProfile.HealWeight : 100;
+        public int EnemyAiKillConfirmWeight => _EnemyAiProfile != null ? _EnemyAiProfile.KillConfirmWeight : 100;
+        public int EnemyAiAoeWeight => _EnemyAiProfile != null ? _EnemyAiProfile.AoeWeight : 100;
+        public int EnemyAiSafetyWeight => _EnemyAiProfile != null ? _EnemyAiProfile.SafetyWeight : 100;
+        public bool EnemyAiDebugDecisions => _EnemyAiProfile != null && _EnemyAiProfile.DebugDecisions;
+        public EnemyAiProfileDefinition EnemyAiProfile => _EnemyAiProfile;
         public IReadOnlyList<SkillDefinition> Skills => _Skills;
+        public IReadOnlyList<UnitSkillAiOverride> SkillAiOverrides => _SkillAiOverrides;
         public IReadOnlyList<UnitStateEntry> BaseStates => _BaseStates;
         public IReadOnlyList<UnitPhaseStateDefinition> PhaseStates => _PhaseStates;
         public UnitView UnitViewPrefab => _UnitViewPrefab;
@@ -76,7 +101,13 @@ namespace TacticalPort.Data
             lDefinition._PushDamageBonus = pSource.PushDamageBonus;
             lDefinition._FootprintWidth = pSource.FootprintWidth;
             lDefinition._FootprintHeight = pSource.FootprintHeight;
+            lDefinition._EnemyAiTargetPriority = pSource.EnemyAiTargetPriority;
+            lDefinition._EnemyAiMovementPolicy = pSource.EnemyAiMovementPolicy;
+            lDefinition._EnemyAiPreferredDistance = pSource.EnemyAiPreferredDistance;
+            lDefinition._EnemyAiThreatRadius = pSource.EnemyAiThreatRadius;
+            lDefinition._EnemyAiProfile = pSource.EnemyAiProfile;
             lDefinition._Skills = CopyList(pSource._Skills);
+            lDefinition._SkillAiOverrides = CopyList(pSource._SkillAiOverrides);
             lDefinition._BaseStates = CopyList(pSource._BaseStates);
             lDefinition._PhaseStates = CopyList(pSource._PhaseStates);
             lDefinition._UnitViewPrefab = pSource.UnitViewPrefab;

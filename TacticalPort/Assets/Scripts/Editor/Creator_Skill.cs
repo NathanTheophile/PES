@@ -1,3 +1,9 @@
+#region _____________________________/ INFOS
+//  AUTHOR : Nathan THEOPHILE (2025)
+//  Engine : Unity
+//  Note : MY_CONST, myPublic, m_MyProtected, _MyPrivate, lMyLocal, MyFunc(), pMyParam, onMyEvent, OnMyCallback, MyStruct
+#endregion
+
 using TacticalPort.Data;
 using TacticalPort.Shared;
 using UnityEditor;
@@ -7,7 +13,7 @@ namespace TacticalPort.EditorTools
 {
     public sealed class Creator_Skill : EditorWindow
     {
-        #region _____________________________| VALUES
+        #region _____________________________/ VALUES
 
         private string _Id = string.Empty;
         private string _DisplayName = "New Skill";
@@ -21,6 +27,7 @@ namespace TacticalPort.EditorTools
         private bool _CanAffectCaster = true;
         private SkillAoeShape _AoeShape = SkillAoeShape.Single;
         private int _AoeSize = 0;
+        private int _AoeDamageFalloffPercentPerCell = 20;
         private int _UsePerTurn = 0;
         private int _UsePerTarget = 0;
         private int _CooldownTurns = 0;
@@ -74,12 +81,21 @@ namespace TacticalPort.EditorTools
             _CanAffectCaster = EditorGUILayout.Toggle("Can Affect Caster", _CanAffectCaster);
             _AoeShape = (SkillAoeShape)EditorGUILayout.EnumPopup("AoE Shape", _AoeShape);
             if (_AoeShape != SkillAoeShape.Single)
+            {
                 _AoeSize = Mathf.Max(1, EditorGUILayout.IntField("AoE Size", _AoeSize));
+                _AoeDamageFalloffPercentPerCell = Mathf.Clamp(
+                    EditorGUILayout.IntField("AoE Damage Falloff % / Cell", _AoeDamageFalloffPercentPerCell),
+                    0,
+                    100);
+            }
             else
+            {
                 _AoeSize = 0;
+                _AoeDamageFalloffPercentPerCell = 0;
+            }
 
             _UsePerTurn = Mathf.Max(0, EditorGUILayout.IntField("Use / Turn", _UsePerTurn));
-            _UsePerTarget = Mathf.Max(0, EditorGUILayout.IntField("Use / Target", _UsePerTarget));
+            _UsePerTarget = Mathf.Max(0, EditorGUILayout.IntField("Use / Target / Turn", _UsePerTarget));
             _CooldownTurns = Mathf.Max(0, EditorGUILayout.IntField("Cooldown", _CooldownTurns));
             _Power = Mathf.Max(0, EditorGUILayout.IntField("Power", _Power));
             _ActionPointCost = Mathf.Max(0, EditorGUILayout.IntField("AP Cost", _ActionPointCost));
@@ -162,7 +178,6 @@ namespace TacticalPort.EditorTools
             lSerializedObject.FindProperty("_Id").stringValue = lId;
             lSerializedObject.FindProperty("_DisplayName").stringValue = string.IsNullOrWhiteSpace(_DisplayName) ? lId : _DisplayName.Trim();
             lSerializedObject.FindProperty("_Description").stringValue = _Description ?? string.Empty;
-            lSerializedObject.FindProperty("_TargetType").enumValueIndex = (int)SkillTargetType.Cell;
             lSerializedObject.FindProperty("_LegacyEffectType").enumValueIndex = _PrimaryEffectType == SkillPrimaryEffectType.Heal ? (int)SkillEffectType.Heal : (int)SkillEffectType.Damage;
             lSerializedObject.FindProperty("_PrimaryEffectType").enumValueIndex = (int)_PrimaryEffectType;
             lSerializedObject.FindProperty("_AdditionalEffectType").enumValueIndex = (int)_AdditionalEffectType;
@@ -176,6 +191,7 @@ namespace TacticalPort.EditorTools
             lSerializedObject.FindProperty("_CanAffectCaster").boolValue = _CanAffectCaster;
             lSerializedObject.FindProperty("_AoeShape").enumValueIndex = (int)_AoeShape;
             lSerializedObject.FindProperty("_AoeSize").intValue = _AoeShape == SkillAoeShape.Single ? 0 : Mathf.Max(1, _AoeSize);
+            lSerializedObject.FindProperty("_AoeDamageFalloffPercentPerCell").intValue = _AoeShape == SkillAoeShape.Single ? 0 : Mathf.Clamp(_AoeDamageFalloffPercentPerCell, 0, 100);
             lSerializedObject.FindProperty("_UsePerTurn").intValue = Mathf.Max(0, _UsePerTurn);
             lSerializedObject.FindProperty("_UsePerTarget").intValue = Mathf.Max(0, _UsePerTarget);
             lSerializedObject.FindProperty("_CooldownTurns").intValue = Mathf.Max(0, _CooldownTurns);

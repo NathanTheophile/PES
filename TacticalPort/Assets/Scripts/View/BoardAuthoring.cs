@@ -1,3 +1,9 @@
+#region _____________________________/ INFOS
+//  AUTHOR : Nathan THEOPHILE (2025)
+//  Engine : Unity
+//  Note : MY_CONST, myPublic, m_MyProtected, _MyPrivate, lMyLocal, MyFunc(), pMyParam, onMyEvent, OnMyCallback, MyStruct
+#endregion
+
 using System.Collections.Generic;
 using TacticalPort.Data;
 using TacticalPort.Shared;
@@ -11,6 +17,8 @@ namespace TacticalPort.View
 {
     public sealed class BoardAuthoring : MonoBehaviour
     {
+        #region _____________________________/ VALUES
+
         [SerializeField] private SceneScenarioDefinition _Scenario = new SceneScenarioDefinition();
         [SerializeField] private Grid _Grid;
         [SerializeField] private Tilemap _GroundTilemap;
@@ -18,8 +26,16 @@ namespace TacticalPort.View
 
         private BattleScenarioDefinition _RuntimeScenario;
 
+        #endregion
+
+        #region _____________________________/ ACCESSORS
+
         public Tilemap FloorTilemap => _GroundTilemap;
         public int DefaultMovementCost => Mathf.Max(1, _Scenario.DefaultMovementCost);
+
+        #endregion
+
+        #region _____________________________| UNITY
 
         private void Awake() => CacheMissingReferences();
 
@@ -29,6 +45,10 @@ namespace TacticalPort.View
             SanitizeMetadata();
             InvalidateRuntimeScenario();
         }
+
+        #endregion
+
+        #region _____________________________| BUILD
 
         public BattleScenarioDefinition BuildScenario()
         {
@@ -97,6 +117,10 @@ namespace TacticalPort.View
                 lUnits);
             return _RuntimeScenario;
         }
+
+        #endregion
+
+        #region _____________________________| METADATA
 
         public void InvalidateRuntimeScenario()
         {
@@ -324,6 +348,10 @@ namespace TacticalPort.View
             InvalidateRuntimeScenario();
         }
 
+        #endregion
+
+        #region _____________________________| HELPERS
+
         private CellMetadata GetCellMetadataOrDefault(Vector3Int pCellPosition, int pDefaultMovementCost)
         {
             for (int lIndex = 0; lIndex < _CellMetadata.Count; lIndex++)
@@ -411,5 +439,7 @@ namespace TacticalPort.View
                 _CellMetadata[lIndex].Sanitize(lDefaultMovementCost);
             }
         }
+
+        #endregion
     }
 }

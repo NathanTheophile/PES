@@ -1,3 +1,10 @@
+#region _____________________________/ INFOS
+//  AUTHOR : Nathan THEOPHILE (2025)
+//  Engine : Unity
+//  Note : MY_CONST, myPublic, m_MyProtected, _MyPrivate, lMyLocal, MyFunc(), pMyParam, onMyEvent, OnMyCallback, MyStruct
+#endregion
+
+using TacticalPort.Core.AI;
 using TacticalPort.Core.Runtime;
 using TacticalPort.Data;
 using TacticalPort.Shared;
@@ -7,15 +14,19 @@ namespace TacticalPort.Bootstrap
 {
     public sealed class EnemyTurnController
     {
-        #region _____________________________| VALUES
+        #region _____________________________/ VALUES
 
         private readonly CombatBootstrap _Bootstrap;
         private readonly float _DecisionDelaySeconds;
+        private readonly IEnemyBrain _Brain = new DefaultEnemyBrain();
 
         private bool _HasPendingTurn;
-        private bool _HasExecutedTurn;
         private UnitId _PendingUnitId;
         private float _RemainingDelaySeconds;
+        private int _ExecutedActionCount;
+        private bool _ForceKiteNextDecision;
+
+        private const int MaxActionsPerTurn = 10;
 
         #endregion
 
@@ -51,167 +62,48 @@ namespace TacticalPort.Bootstrap
             if (!_HasPendingTurn || _PendingUnitId != lActiveUnit.Id)
                 BeginPendingTurn(lActiveUnit.Id);
 
-            if (_HasExecutedTurn)
-                return;
-
             _RemainingDelaySeconds -= Mathf.Max(0f, pDeltaTime);
             if (_RemainingDelaySeconds > 0f)
                 return;
 
-            _HasExecutedTurn = true;
-            PlayActiveTurn(lActiveUnit);
+            PlayNextAction(lActiveUnit);
         }
 
         #endregion
 
         #region _____________________________| ACTIONS
 
-        private void PlayActiveTurn(UnitRuntime pActiveUnit)
+        private void PlayNextAction(UnitRuntime pActiveUnit)
         {
-            BattleActionResult lActionResult = TryUseOffensiveSkill(pActiveUnit);
-
-            if (lActionResult == null || !lActionResult.IsSuccess)
-                lActionResult = TryUseHealingSkill(pActiveUnit);
-
-            if (lActionResult == null || !lActionResult.IsSuccess)
-                lActionResult = TryMoveTowardClosestPlayer(pActiveUnit);
-
-            if (lActionResult != null && lActionResult.IsSuccess)
+            if (pActiveUnit == null || _ExecutedActionCount >= MaxActionsPerTurn)
             {
-                CompleteTurn(lActionResult.Message);
+                CompleteTurn(pActiveUnit != null ? $"{pActiveUnit.Definition.DisplayName} ends turn." : "Enemy turn completed.");
                 return;
             }
 
-            CompleteTurn($"{pActiveUnit.Definition.DisplayName} ends turn with no valid action.");
-        }
+            EnemyAiContext lContext = new EnemyAiContext(
+                _Bootstrap.BattleService,
+                pActiveUnit,
+                _Bootstrap.GetReachableCellsForActiveUnit(),
+                (pSkill, pTarget) => _Bootstrap.ValidateActiveSkill(new SkillId(pSkill.Id), pTarget),
+                _ForceKiteNextDecision);
+            _ForceKiteNextDecision = false;
+            EnemyAiAction lAction = _Brain.ChooseAction(lContext);
+            BattleActionResult lResult = Execute(lAction);
+            if (pActiveUnit.Definition.EnemyAiDebugDecisions && !string.IsNullOrWhiteSpace(lAction.Reason))
+                _Bootstrap.HudManager?.SetStatus(lAction.Reason);
 
-        private BattleActionResult TryUseOffensiveSkill(UnitRuntime pActiveUnit)
-        {
-            if (pActiveUnit == null)
-                return null;
-
-            SkillDefinition lBestSkill = null;
-            UnitRuntime lBestTarget = null;
-            int lBestDistance = int.MaxValue;
-            int lBestPower = int.MinValue;
-
-            foreach (UnitRuntime lCandidateUnit in _Bootstrap.BattleService.Units)
+            if (lAction.Type == EnemyAiActionType.EndTurn || lResult == null || !lResult.IsSuccess)
             {
-                if (!IsTargetableEnemyUnit(pActiveUnit, lCandidateUnit))
-                    continue;
-
-                int lDistance = pActiveUnit.Position.ManhattanDistanceTo(lCandidateUnit.Position);
-
-                foreach (SkillDefinition lSkill in pActiveUnit.Skills)
-                {
-                    if (!IsOffensiveSkill(lSkill))
-                        continue;
-
-                    SkillTarget lTarget = CreateSkillTarget(pActiveUnit, lSkill, lCandidateUnit);
-                    if (lTarget == null)
-                        continue;
-
-                    BattleActionResult lValidation = _Bootstrap.ValidateActiveSkill(new SkillId(lSkill.Id), lTarget);
-                    if (!lValidation.IsSuccess)
-                        continue;
-
-                    if (lBestSkill != null && (lDistance > lBestDistance || (lDistance == lBestDistance && lSkill.Power <= lBestPower)))
-                        continue;
-
-                    lBestSkill = lSkill;
-                    lBestTarget = lCandidateUnit;
-                    lBestDistance = lDistance;
-                    lBestPower = lSkill.Power;
-                }
+                CompleteTurn(!string.IsNullOrWhiteSpace(lAction.Reason) ? lAction.Reason : lResult?.Message);
+                return;
             }
 
-            if (lBestSkill == null || lBestTarget == null)
-                return null;
+            _ExecutedActionCount++;
+            if (lAction.RequestsKiteAfterUse)
+                _ForceKiteNextDecision = true;
 
-            return _Bootstrap.UseActiveUnitSkill(new SkillId(lBestSkill.Id), CreateSkillTarget(pActiveUnit, lBestSkill, lBestTarget));
-        }
-
-        private BattleActionResult TryUseHealingSkill(UnitRuntime pActiveUnit)
-        {
-            if (pActiveUnit == null)
-                return null;
-
-            SkillDefinition lBestSkill = null;
-            UnitRuntime lBestTarget = null;
-            int lBestMissingHealth = 0;
-
-            foreach (UnitRuntime lCandidateUnit in _Bootstrap.BattleService.Units)
-            {
-                if (!IsTargetableAllyUnit(pActiveUnit, lCandidateUnit))
-                    continue;
-
-                int lMissingHealth = Mathf.Max(0, lCandidateUnit.Definition.MaxHealth - lCandidateUnit.CurrentHealth);
-                if (lMissingHealth <= 0)
-                    continue;
-
-                foreach (SkillDefinition lSkill in pActiveUnit.Skills)
-                {
-                    if (!IsHealingSkill(lSkill))
-                        continue;
-
-                    SkillTarget lTarget = CreateSkillTarget(pActiveUnit, lSkill, lCandidateUnit);
-                    if (lTarget == null)
-                        continue;
-
-                    BattleActionResult lValidation = _Bootstrap.ValidateActiveSkill(new SkillId(lSkill.Id), lTarget);
-                    if (!lValidation.IsSuccess)
-                        continue;
-
-                    if (lBestSkill != null && lMissingHealth <= lBestMissingHealth)
-                        continue;
-
-                    lBestSkill = lSkill;
-                    lBestTarget = lCandidateUnit;
-                    lBestMissingHealth = lMissingHealth;
-                }
-            }
-
-            if (lBestSkill == null || lBestTarget == null)
-                return null;
-
-            return _Bootstrap.UseActiveUnitSkill(new SkillId(lBestSkill.Id), CreateSkillTarget(pActiveUnit, lBestSkill, lBestTarget));
-        }
-
-        private BattleActionResult TryMoveTowardClosestPlayer(UnitRuntime pActiveUnit)
-        {
-            if (pActiveUnit == null)
-                return null;
-
-            UnitRuntime lClosestPlayer = FindClosestUnit(pActiveUnit.Position, Team.Player);
-            if (lClosestPlayer == null)
-                return null;
-
-            GridCoord lBestCell = pActiveUnit.Position;
-            int lCurrentDistance = pActiveUnit.Position.ManhattanDistanceTo(lClosestPlayer.Position);
-            int lBestDistance = lCurrentDistance;
-            bool lFoundBetterCell = false;
-
-            foreach (GridCoord lReachableCell in _Bootstrap.GetReachableCellsForActiveUnit())
-            {
-                if (lReachableCell == pActiveUnit.Position)
-                    continue;
-
-                int lCandidateDistance = lReachableCell.ManhattanDistanceTo(lClosestPlayer.Position);
-                if (lCandidateDistance > lBestDistance)
-                    continue;
-
-                if (lCandidateDistance == lBestDistance && (!lFoundBetterCell || !IsBetterCell(lReachableCell, lBestCell)))
-                    continue;
-
-                lBestCell = lReachableCell;
-                lBestDistance = lCandidateDistance;
-                lFoundBetterCell = true;
-            }
-
-            if (!lFoundBetterCell || lBestDistance >= lCurrentDistance)
-                return null;
-
-            return _Bootstrap.MoveActiveUnit(lBestCell);
+            _RemainingDelaySeconds = _DecisionDelaySeconds;
         }
 
         private void CompleteTurn(string pStatusMessage)
@@ -226,6 +118,23 @@ namespace TacticalPort.Bootstrap
             ClearPendingTurn();
         }
 
+        private BattleActionResult Execute(EnemyAiAction pAction)
+        {
+            switch (pAction.Type)
+            {
+                case EnemyAiActionType.Move:
+                    return _Bootstrap.MoveActiveUnit(pAction.Destination);
+
+                case EnemyAiActionType.UseSkill:
+                    return pAction.Skill != null && pAction.Target != null
+                        ? _Bootstrap.UseActiveUnitSkill(new SkillId(pAction.Skill.Id), pAction.Target)
+                        : BattleActionResult.Failed(BattleActionType.Skill, "AI selected an invalid skill.");
+
+                default:
+                    return null;
+            }
+        }
+
         #endregion
 
         #region _____________________________| HELPERS
@@ -233,103 +142,19 @@ namespace TacticalPort.Bootstrap
         private void BeginPendingTurn(UnitId pUnitId)
         {
             _HasPendingTurn = true;
-            _HasExecutedTurn = false;
             _PendingUnitId = pUnitId;
             _RemainingDelaySeconds = _DecisionDelaySeconds;
+            _ExecutedActionCount = 0;
+            _ForceKiteNextDecision = false;
         }
 
         private void ClearPendingTurn()
         {
             _HasPendingTurn = false;
-            _HasExecutedTurn = false;
             _PendingUnitId = UnitId.None;
             _RemainingDelaySeconds = 0f;
-        }
-
-        private UnitRuntime FindClosestUnit(GridCoord pOrigin, Team pTeam)
-        {
-            UnitRuntime lClosestUnit = null;
-            int lBestDistance = int.MaxValue;
-
-            foreach (UnitRuntime lCandidateUnit in _Bootstrap.BattleService.Units)
-            {
-                if (lCandidateUnit == null || !lCandidateUnit.IsAlive || lCandidateUnit.Team != pTeam)
-                    continue;
-
-                int lDistance = pOrigin.ManhattanDistanceTo(lCandidateUnit.Position);
-                if (lClosestUnit != null && (lDistance > lBestDistance || (lDistance == lBestDistance && lCandidateUnit.Id.Value >= lClosestUnit.Id.Value)))
-                    continue;
-
-                lClosestUnit = lCandidateUnit;
-                lBestDistance = lDistance;
-            }
-
-            return lClosestUnit;
-        }
-
-        private static SkillTarget CreateSkillTarget(UnitRuntime pActor, SkillDefinition pSkill, UnitRuntime pTargetUnit)
-        {
-            if (pSkill == null || pTargetUnit == null)
-                return null;
-
-            GridCoord lBestCell = pTargetUnit.Position;
-            int lBestDistance = int.MaxValue;
-
-            foreach (GridCoord lCandidateCell in pTargetUnit.EnumerateOccupiedCells())
-            {
-                if (pActor == null)
-                    return SkillTarget.ForCell(lCandidateCell);
-
-                int lDistance = pActor.Position.ManhattanDistanceTo(lCandidateCell);
-                if (lDistance > pActor.GetSkillRangeMax(pSkill))
-                    continue;
-
-                if (!GridLineOfSightUtility.MatchesAlignment(pActor.Position, lCandidateCell, pSkill.TargetAlignment))
-                    continue;
-
-                if (lDistance >= lBestDistance)
-                    continue;
-
-                lBestDistance = lDistance;
-                lBestCell = lCandidateCell;
-            }
-
-            return SkillTarget.ForCell(lBestCell);
-        }
-
-        private static bool IsOffensiveSkill(SkillDefinition pSkill)
-        {
-            return pSkill != null && pSkill.PrimaryEffectType == SkillPrimaryEffectType.Damage;
-        }
-
-        private static bool IsHealingSkill(SkillDefinition pSkill)
-        {
-            return pSkill != null && pSkill.PrimaryEffectType == SkillPrimaryEffectType.Heal;
-        }
-
-        private static bool IsTargetableEnemyUnit(UnitRuntime pActor, UnitRuntime pCandidateUnit)
-        {
-            return pActor != null
-                && pCandidateUnit != null
-                && pCandidateUnit.IsAlive
-                && pCandidateUnit.Team == Team.Player
-                && pCandidateUnit.Id != pActor.Id;
-        }
-
-        private static bool IsTargetableAllyUnit(UnitRuntime pActor, UnitRuntime pCandidateUnit)
-        {
-            return pActor != null
-                && pCandidateUnit != null
-                && pCandidateUnit.IsAlive
-                && pCandidateUnit.Team == pActor.Team;
-        }
-
-        private static bool IsBetterCell(GridCoord pCandidate, GridCoord pCurrentBest)
-        {
-            if (pCandidate.X != pCurrentBest.X)
-                return pCandidate.X < pCurrentBest.X;
-
-            return pCandidate.Y < pCurrentBest.Y;
+            _ExecutedActionCount = 0;
+            _ForceKiteNextDecision = false;
         }
 
         #endregion

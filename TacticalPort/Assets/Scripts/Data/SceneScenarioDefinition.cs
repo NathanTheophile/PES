@@ -1,3 +1,9 @@
+#region _____________________________/ INFOS
+//  AUTHOR : Nathan THEOPHILE (2025)
+//  Engine : Unity
+//  Data
+#endregion
+
 using System;
 using UnityEngine;
 
@@ -6,7 +12,7 @@ namespace TacticalPort.Data
     [Serializable]
     public sealed class SceneScenarioDefinition
     {
-        #region _____________________________| VALUES
+        #region _____________________________/ VALUES
 
         [Header("Identity")]
         [SerializeField] private string _ScenarioId = "sample_scene";
@@ -17,7 +23,7 @@ namespace TacticalPort.Data
 
         #endregion
 
-        #region _____________________________| ACCESSORS
+        #region _____________________________/ ACCESSORS
 
         public string ScenarioId => string.IsNullOrWhiteSpace(_ScenarioId) ? "scene_board" : _ScenarioId;
         public string DisplayName => string.IsNullOrWhiteSpace(_DisplayName) ? "Scene Board" : _DisplayName;

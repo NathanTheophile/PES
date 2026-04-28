@@ -1,3 +1,9 @@
+#region _____________________________/ INFOS
+//  AUTHOR : Nathan THEOPHILE (2025)
+//  Engine : Unity
+//  Data
+#endregion
+
 using System.Collections.Generic;
 using TacticalPort.Shared;
 using UnityEngine;

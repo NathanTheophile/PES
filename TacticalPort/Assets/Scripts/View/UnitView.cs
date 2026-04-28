@@ -1,3 +1,9 @@
+#region _____________________________/ INFOS
+//  AUTHOR : Nathan THEOPHILE (2025)
+//  Engine : Unity
+//  Note : MY_CONST, myPublic, m_MyProtected, _MyPrivate, lMyLocal, MyFunc(), pMyParam, onMyEvent, OnMyCallback, MyStruct
+#endregion
+
 using System.Collections;
 using TacticalPort.Core.Runtime;
 using TacticalPort.Data;
@@ -9,26 +15,28 @@ namespace TacticalPort.View
 {
     public sealed class UnitView : MonoBehaviour
     {
-        #region _____________________________| VALUES
+        #region _____________________________/ VALUES
 
         [SerializeField] private SpriteRenderer _SpriteRenderer;
-        [SerializeField] private Color _DefeatedTint = new Color(0.45f, 0.45f, 0.45f, 0.8f);
+        [SerializeField] private Color _DefeatedTint;
         [SerializeField] private int _BaseSortingOrder = 1000;
         [SerializeField] private int _BodySortingOrderOffset = 20;
         [SerializeField] private RectTransform _FeedbackRoot;
         [SerializeField] private TMP_Text _ValuePopupPrefab;
-        [SerializeField] private Color _DamagePopupColor = new Color(0.86f, 0.15f, 0.07f, 1f);
-        [SerializeField] private Color _HealPopupColor = new Color(0.19f, 0.84f, 0.34f, 1f);
+        [SerializeField] private Color _DamagePopupColor;
+        [SerializeField] private Color _HealPopupColor;
         [SerializeField] private float _PopupLifetimeSeconds = 2f;
 
         private UnitRuntime _Runtime;
         private UnitDefinition _Definition;
         private BoardView _BoardView;
         private Vector3 _BaseSpriteLocalScale = Vector3.one;
+        private Color _BaseSpriteColor;
+        private bool _HasBaseSpriteColor;
 
         #endregion
 
-        #region _____________________________| ACCESSORS
+        #region _____________________________/ ACCESSORS
 
         public UnitId UnitId => _Runtime != null ? _Runtime.Id : UnitId.None;
 
@@ -88,7 +96,7 @@ namespace TacticalPort.View
             if (_SpriteRenderer != null)
             {
                 _SpriteRenderer.enabled = true;
-                _SpriteRenderer.color = _Runtime.IsAlive ? (_Definition != null ? _Definition.Tint : Color.white) : _DefeatedTint;
+                _SpriteRenderer.color = _Runtime.IsAlive ? ResolveAliveTint() : _DefeatedTint;
                 _SpriteRenderer.sortingOrder = ResolveSortingOrder(_BodySortingOrderOffset);
                 _SpriteRenderer.transform.localScale = _BaseSpriteLocalScale;
             }
@@ -110,13 +118,8 @@ namespace TacticalPort.View
                 Debug.LogError("UnitView requires a SpriteRenderer on the root, on a child named 'BodyRenderer', or somewhere under the UnitView hierarchy.", this);
         }
 
-        private int ResolveSortingOrder(int pOffset)
-        {
-            if (_Runtime == null)
-                return pOffset;
-
-            return _BaseSortingOrder - ((_Runtime.Position.X + _Runtime.Position.Y) * 10) + pOffset;
-        }
+        private int ResolveSortingOrder(int pOffset) =>
+            _Runtime != null ? _BaseSortingOrder - ((_Runtime.Position.X + _Runtime.Position.Y) * 10) + pOffset : pOffset;
 
         private Vector3 ResolveWorldPosition()
         {
@@ -155,8 +158,19 @@ namespace TacticalPort.View
         private void CacheBaseSpriteScale()
         {
             if (_SpriteRenderer != null && _SpriteRenderer.transform != null)
+            {
                 _BaseSpriteLocalScale = _SpriteRenderer.transform.localScale;
+                _BaseSpriteColor = _SpriteRenderer.color;
+                _HasBaseSpriteColor = true;
+            }
         }
+
+        private Color ResolveAliveTint() =>
+            _Definition != null
+                ? _Definition.Tint
+                : _HasBaseSpriteColor
+                    ? _BaseSpriteColor
+                    : default;
 
         private bool IsOwnedRenderer(SpriteRenderer pRenderer) =>
             pRenderer != null

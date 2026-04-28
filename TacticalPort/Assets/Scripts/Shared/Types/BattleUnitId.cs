@@ -1,3 +1,9 @@
+#region _____________________________/ INFOS
+//  AUTHOR : Nathan THEOPHILE (2025)
+//  Engine : Unity
+//  Shared
+#endregion
+
 using System;
 
 namespace TacticalPort.Shared
@@ -5,44 +11,38 @@ namespace TacticalPort.Shared
     [Serializable]
     public readonly struct UnitId : IEquatable<UnitId>
     {
+        #region _____________________________/ VALUES
+
         public static UnitId None => new UnitId(0);
+
+        #endregion
+
+        #region _____________________________/ ACCESSORS
 
         public int Value { get; }
         public bool IsValid => Value > 0;
+
+        #endregion
+
+        #region _____________________________| INIT
 
         public UnitId(int value)
         {
             Value = value;
         }
 
-        public bool Equals(UnitId other)
-        {
-            return Value == other.Value;
-        }
+        #endregion
 
-        public override bool Equals(object obj)
-        {
-            return obj is UnitId other && Equals(other);
-        }
+        #region _____________________________| HELPERS
 
-        public override int GetHashCode()
-        {
-            return Value;
-        }
+        public bool Equals(UnitId other) => Value == other.Value;
+        public override bool Equals(object obj) => obj is UnitId other && Equals(other);
+        public override int GetHashCode() => Value;
+        public override string ToString() => Value.ToString();
 
-        public override string ToString()
-        {
-            return Value.ToString();
-        }
+        public static bool operator ==(UnitId left, UnitId right) => left.Equals(right);
+        public static bool operator !=(UnitId left, UnitId right) => !left.Equals(right);
 
-        public static bool operator ==(UnitId left, UnitId right)
-        {
-            return left.Equals(right);
-        }
-
-        public static bool operator !=(UnitId left, UnitId right)
-        {
-            return !left.Equals(right);
-        }
+        #endregion
     }
 }

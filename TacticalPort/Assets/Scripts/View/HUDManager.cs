@@ -1,3 +1,9 @@
+#region _____________________________/ INFOS
+//  AUTHOR : Nathan THEOPHILE (2025)
+//  Engine : Unity
+//  Note : MY_CONST, myPublic, m_MyProtected, _MyPrivate, lMyLocal, MyFunc(), pMyParam, onMyEvent, OnMyCallback, MyStruct
+#endregion
+
 using System;
 using System.Collections.Generic;
 using TacticalPort.Core.Interfaces;
@@ -12,7 +18,7 @@ namespace TacticalPort.View
 {
     public sealed class HUDManager : MonoBehaviour
     {
-        #region _____________________________| VALUES
+        #region _____________________________/ VALUES
 
         [SerializeField] private RectTransform _HBoxSpells;
         [SerializeField] private TMP_Text _TxtCurrentPhase;
@@ -26,16 +32,25 @@ namespace TacticalPort.View
         [SerializeField] private TMP_Text _TxtAP;
         [SerializeField] private Button _BtnCancelSkill;
         [SerializeField] private Button _BtnEndTurn;
+        [SerializeField] private TMP_Text _TxtEndTurnButton;
         [SerializeField] private SkillButtonView _SkillButtonPrefab;
+        [SerializeField] private TimelineView _TimelineView;
+        [SerializeField] private TimelineElementView _TimelineElementPrefab;
+        [SerializeField] private UnitInfoBoxView _ActiveUnitInfobox;
+        [SerializeField] private UnitInfoBoxView _HoverUnitInfobox;
+        [SerializeField] private EndCombatView _EndCombatView;
 
         private readonly List<SkillButtonView> _RuntimeSkillButtons = new List<SkillButtonView>();
         private readonly List<SkillDefinition> _DisplayedSkills = new List<SkillDefinition>();
         private IBattleService _BattleService;
+        private UnitRuntime _TimelineHoveredUnit;
+        private UnitRuntime _MapHoveredUnit;
         private string _StatusMessage = string.Empty;
         private string _SkillModeMessage = "Mode: Move.";
         private bool _CanUseSkills;
         private bool _CanCancelSkill;
         private bool _IsEndTurnAvailable = true;
+        private string _EndTurnButtonLabel = "End Turn";
         private Action<int> _OnSkillButtonClicked;
         private Action _OnCancelSkillButtonClicked;
         private Action _OnEndTurnButtonClicked;
@@ -47,8 +62,10 @@ namespace TacticalPort.View
 
         private void Awake()
         {
+            CacheFeedbackReferences();
             ValidateReferences();
             ConfigureButtons();
+            ConfigureUnitFeedback();
             Refresh();
         }
 
@@ -65,6 +82,7 @@ namespace TacticalPort.View
         public void Bind(IBattleService pBattleService)
         {
             _BattleService = pBattleService;
+            ConfigureUnitFeedback();
             Refresh();
         }
 
@@ -101,6 +119,21 @@ namespace TacticalPort.View
             RefreshActionButtons();
         }
 
+        public void SetEndTurnLabel(string pLabel)
+        {
+            _EndTurnButtonLabel = string.IsNullOrWhiteSpace(pLabel) ? "End Turn" : pLabel;
+            RefreshActionButtons();
+        }
+
+        public void SetMapHoveredUnit(UnitRuntime pUnit)
+        {
+            if (_MapHoveredUnit == pUnit)
+                return;
+
+            _MapHoveredUnit = pUnit;
+            RefreshHoverInfobox();
+        }
+
         #endregion
 
         #region _____________________________| DISPLAY
@@ -118,6 +151,8 @@ namespace TacticalPort.View
             SetText(_TxtStatus, _StatusMessage);
             SetText(_TxtMode, _SkillModeMessage);
             SetUnitStats(lActiveUnit);
+            RefreshUnitFeedback(lActiveUnit);
+            RefreshEndCombatFeedback();
             RefreshSkillArea();
             RefreshActionButtons();
         }
@@ -136,17 +171,10 @@ namespace TacticalPort.View
                 : lTurn.UnitId.ToString();
         }
 
-        private string ResolveTurnLabel()
-        {
-            if (_BattleService == null)
-                return "-";
-
-            BattleTurnContext lTurn = _BattleService.CurrentTurn;
-            if (lTurn == null)
-                return "-";
-
-            return $"Round {lTurn.RoundIndex} / Turn {lTurn.TurnIndex}";
-        }
+        private string ResolveTurnLabel() =>
+            _BattleService?.CurrentTurn is BattleTurnContext lTurn
+                ? $"Round {lTurn.RoundIndex} / Turn {lTurn.TurnIndex}"
+                : "-";
 
         private void SetUnitStats(UnitRuntime pUnit)
         {
@@ -274,6 +302,94 @@ namespace TacticalPort.View
         {
             SetButtonInteractable(_BtnCancelSkill, _CanCancelSkill);
             SetButtonInteractable(_BtnEndTurn, _IsEndTurnAvailable);
+            SetText(_TxtEndTurnButton, _EndTurnButtonLabel);
+        }
+
+        private void ConfigureUnitFeedback()
+        {
+            CacheFeedbackReferences();
+
+            if (_TimelineView != null)
+            {
+                if (_TimelineElementPrefab != null)
+                    _TimelineView.SetElementPrefab(_TimelineElementPrefab);
+
+                _TimelineView.SetHoverCallbacks(SetTimelineHoveredUnit, ClearTimelineHoveredUnit);
+                _TimelineView.Bind(_BattleService);
+            }
+
+            if (_HoverUnitInfobox != null)
+                _HoverUnitInfobox.Hide();
+
+            _EndCombatView?.Hide();
+        }
+
+        private void RefreshUnitFeedback(UnitRuntime pActiveUnit)
+        {
+            if (_ActiveUnitInfobox != null)
+            {
+                if (pActiveUnit != null && pActiveUnit.IsAlive)
+                    _ActiveUnitInfobox.Show(pActiveUnit);
+                else
+                    _ActiveUnitInfobox.Hide();
+            }
+
+            _TimelineView?.Refresh();
+            RefreshHoverInfobox();
+        }
+
+        private void SetTimelineHoveredUnit(UnitRuntime pUnit)
+        {
+            _TimelineHoveredUnit = pUnit;
+            RefreshHoverInfobox();
+        }
+
+        private void ClearTimelineHoveredUnit(UnitRuntime pUnit)
+        {
+            if (_TimelineHoveredUnit == pUnit)
+                _TimelineHoveredUnit = null;
+
+            RefreshHoverInfobox();
+        }
+
+        private void RefreshHoverInfobox()
+        {
+            if (_HoverUnitInfobox == null)
+                return;
+
+            UnitRuntime lHoveredUnit = ResolveHoverUnit();
+            if (lHoveredUnit != null && lHoveredUnit.IsAlive)
+            {
+                _HoverUnitInfobox.Show(lHoveredUnit);
+                return;
+            }
+
+            _HoverUnitInfobox.Hide();
+        }
+
+        private UnitRuntime ResolveHoverUnit()
+        {
+            if (_TimelineHoveredUnit != null && _TimelineHoveredUnit.IsAlive)
+                return _TimelineHoveredUnit;
+
+            if (_MapHoveredUnit != null && _MapHoveredUnit.IsAlive)
+                return _MapHoveredUnit;
+
+            return null;
+        }
+
+        private void RefreshEndCombatFeedback()
+        {
+            if (_EndCombatView == null || _BattleService == null)
+                return;
+
+            if (_BattleService.Outcome == BattleOutcome.None)
+            {
+                _EndCombatView.Hide();
+                return;
+            }
+
+            _EndCombatView.Show(_BattleService.Outcome);
         }
 
         private bool IsSkillInteractable(UnitRuntime pUnit, SkillDefinition pSkill)
@@ -321,10 +437,8 @@ namespace TacticalPort.View
 
         private static void SetButtonInteractable(Button pButton, bool pIsInteractable)
         {
-            if (pButton == null)
-                return;
-
-            pButton.interactable = pIsInteractable;
+            if (pButton != null)
+                pButton.interactable = pIsInteractable;
         }
 
         private static void AddButtonHandler(Button pButton, Action pHandler)
@@ -359,6 +473,68 @@ namespace TacticalPort.View
             LogMissingReference(_BtnCancelSkill, nameof(_BtnCancelSkill));
             LogMissingReference(_BtnEndTurn, nameof(_BtnEndTurn));
             LogMissingReference(_SkillButtonPrefab, nameof(_SkillButtonPrefab));
+            LogMissingReference(_TimelineView, nameof(_TimelineView));
+            LogMissingReference(_ActiveUnitInfobox, nameof(_ActiveUnitInfobox));
+            LogMissingReference(_HoverUnitInfobox, nameof(_HoverUnitInfobox));
+            LogMissingReference(_EndCombatView, nameof(_EndCombatView));
+        }
+
+        private void CacheFeedbackReferences()
+        {
+            if (_TimelineView == null)
+            {
+                Transform lTimelineRoot = FindChildRecursive("UI_HUD_Timeline");
+                if (lTimelineRoot != null)
+                    _TimelineView = GetOrAddComponent<TimelineView>(lTimelineRoot.gameObject);
+            }
+
+            if (_ActiveUnitInfobox == null)
+            {
+                Transform lActiveInfobox = FindChildRecursive("UI_ActiveUnitInfobox");
+                if (lActiveInfobox != null)
+                    _ActiveUnitInfobox = GetOrAddComponent<UnitInfoBoxView>(lActiveInfobox.gameObject);
+            }
+
+            if (_HoverUnitInfobox == null)
+            {
+                Transform lHoverInfobox = FindChildRecursive("UI_HoverUnitInfobox");
+                if (lHoverInfobox != null)
+                    _HoverUnitInfobox = GetOrAddComponent<UnitInfoBoxView>(lHoverInfobox.gameObject);
+            }
+
+            if (_EndCombatView == null)
+            {
+                Transform lEndCombat = FindChildRecursive("UI_EndCombat");
+                if (lEndCombat != null)
+                    _EndCombatView = GetOrAddComponent<EndCombatView>(lEndCombat.gameObject);
+            }
+
+            if (_TxtEndTurnButton == null && _BtnEndTurn != null)
+                _TxtEndTurnButton = _BtnEndTurn.GetComponentInChildren<TMP_Text>(true);
+        }
+
+        private Transform FindChildRecursive(string pName)
+        {
+            if (string.IsNullOrWhiteSpace(pName))
+                return null;
+
+            Transform[] lChildren = GetComponentsInChildren<Transform>(true);
+            for (int lIndex = 0; lIndex < lChildren.Length; lIndex++)
+            {
+                if (lChildren[lIndex] != null && lChildren[lIndex].gameObject.name == pName)
+                    return lChildren[lIndex];
+            }
+
+            return null;
+        }
+
+        private static T GetOrAddComponent<T>(GameObject pGameObject) where T : Component
+        {
+            if (pGameObject == null)
+                return null;
+
+            T lComponent = pGameObject.GetComponent<T>();
+            return lComponent != null ? lComponent : pGameObject.AddComponent<T>();
         }
 
         private void LogMissingReference(UnityEngine.Object pReference, string pFieldName)

@@ -1,3 +1,9 @@
+#region _____________________________/ INFOS
+//  AUTHOR : Nathan THEOPHILE (2025)
+//  Engine : Unity
+//  Note : MY_CONST, myPublic, m_MyProtected, _MyPrivate, lMyLocal, MyFunc(), pMyParam, onMyEvent, OnMyCallback, MyStruct
+#endregion
+
 using TacticalPort.Data;
 using TacticalPort.Shared;
 using TacticalPort.View;
@@ -8,13 +14,23 @@ namespace TacticalPort.Editor
 {
     public sealed class CellEditor : EditorWindow
     {
+        #region _____________________________/ VALUES
+
         [SerializeField] private BoardAuthoring _Board;
         [SerializeField] private bool _PickInScene;
         [SerializeField] private bool _HasSelectedCell;
         [SerializeField] private GridCoord _SelectedCell;
 
+        #endregion
+
+        #region _____________________________| MENU
+
         [MenuItem("Project/Board/Tilemap Cell Editor")]
         private static void Open() => GetWindow<CellEditor>("Tilemap Cell");
+
+        #endregion
+
+        #region _____________________________| UNITY
 
         private void OnEnable()
         {
@@ -22,6 +38,10 @@ namespace TacticalPort.Editor
             TryAutoAssignBoard();
         }
         private void OnDisable() => SceneView.duringSceneGui -= OnSceneGUI;
+
+        #endregion
+
+        #region _____________________________| GUI
 
         private void OnGUI()
         {
@@ -108,6 +128,10 @@ namespace TacticalPort.Editor
             }
         }
 
+        #endregion
+
+        #region _____________________________| SCENE
+
         private void OnSceneGUI(SceneView pSceneView)
         {
             if (!_PickInScene || _Board == null)
@@ -135,6 +159,10 @@ namespace TacticalPort.Editor
             }
         }
 
+        #endregion
+
+        #region _____________________________| HELPERS
+
         private void TryAutoAssignBoard()
         {
             if (_Board != null || Application.isPlaying)
@@ -149,5 +177,7 @@ namespace TacticalPort.Editor
 
             _Board = Object.FindAnyObjectByType<BoardAuthoring>();
         }
+
+        #endregion
     }
 }

@@ -1,3 +1,9 @@
+#region _____________________________/ INFOS
+//  AUTHOR : Nathan THEOPHILE (2025)
+//  Engine : Unity
+//  Note : MY_CONST, myPublic, m_MyProtected, _MyPrivate, lMyLocal, MyFunc(), pMyParam, onMyEvent, OnMyCallback, MyStruct
+#endregion
+
 using TacticalPort.Data;
 using UnityEngine;
 
@@ -5,10 +11,9 @@ namespace TacticalPort.View
 {
     public sealed class CombatSceneReferences : MonoBehaviour
     {
-        #region _____________________________| VALUES
+        #region _____________________________/ VALUES
 
         [SerializeField] private BoardView _BoardView;
-        [SerializeField] private SceneBoardAuthoring _SceneBoardAuthoring;
         [SerializeField] private BoardAuthoring _TilemapBoardAuthoring;
         [SerializeField] private BoardCursorView _BoardCursorView;
         [SerializeField] private HUDManager _HudManager;
@@ -18,50 +23,47 @@ namespace TacticalPort.View
 
         #endregion
 
-        #region _____________________________| ACCESSORS
+        #region _____________________________/ ACCESSORS
 
         public BoardView BoardView => _BoardView;
+        public BoardAuthoring BoardAuthoring => _TilemapBoardAuthoring;
         public BoardCursorView BoardCursorView => _BoardCursorView;
         public HUDManager HudManager => _HudManager;
         public Transform UnitRoot => _UnitRoot != null ? _UnitRoot : transform;
         public UnitView DefaultUnitViewPrefab => _DefaultUnitViewPrefab;
-        public BattleScenarioDefinition ScenarioOverride => ResolveScenarioOverride();
+        public BattleScenarioDefinition ScenarioOverride => _ScenarioOverride;
 
         #endregion
+
+        #region _____________________________| UNITY
 
         private void Awake() => CacheMissingReferences();
 
         private void OnValidate() => CacheMissingReferences();
 
-        private BattleScenarioDefinition ResolveScenarioOverride()
-        {
-            if (_TilemapBoardAuthoring != null)
-            {
-                BattleScenarioDefinition lTilemapScenario = _TilemapBoardAuthoring.BuildScenario();
-                if (lTilemapScenario != null)
-                    return lTilemapScenario;
-            }
+        #endregion
 
-            if (_SceneBoardAuthoring != null)
-            {
-                BattleScenarioDefinition lBoardScenario = _SceneBoardAuthoring.BuildScenario();
-                if (lBoardScenario != null)
-                    return lBoardScenario;
-            }
+        #region _____________________________| RESOLVE
 
-            return _ScenarioOverride;
-        }
+        public BattleScenarioDefinition ResolveScenario(BattleScenarioDefinition pFallbackScenario = null) =>
+            _ScenarioOverride != null
+                ? _ScenarioOverride
+                : _TilemapBoardAuthoring != null
+                    ? _TilemapBoardAuthoring.BuildScenario()
+                    : pFallbackScenario;
+
+        #endregion
+
+        #region _____________________________| HELPERS
 
         private void CacheMissingReferences()
         {
             if (_TilemapBoardAuthoring == null && _BoardView != null)
                 _TilemapBoardAuthoring = _BoardView.GetComponent<BoardAuthoring>();
 
-            if (_SceneBoardAuthoring == null && _BoardView != null)
-                _SceneBoardAuthoring = _BoardView.GetComponent<SceneBoardAuthoring>();
-
             _TilemapBoardAuthoring ??= GetComponentInChildren<BoardAuthoring>(true);
-            _SceneBoardAuthoring ??= GetComponentInChildren<SceneBoardAuthoring>(true);
         }
+
+        #endregion
     }
 }
