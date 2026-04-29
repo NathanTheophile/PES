@@ -4,7 +4,7 @@
 //  Note : MY_CONST, myPublic, m_MyProtected, _MyPrivate, lMyLocal, MyFunc(), pMyParam, onMyEvent, OnMyCallback, MyStruct
 #endregion
 
-namespace TacticalPort.Core.AI
+namespace TacticalPort.Core
 {
     public interface IEnemyBrain
     {

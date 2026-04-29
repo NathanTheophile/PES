@@ -5,11 +5,10 @@
 #endregion
 
 using System.Collections.Generic;
-using TacticalPort.Core.Runtime;
 using TacticalPort.Data;
 using TacticalPort.Shared;
 
-namespace TacticalPort.Core.AI
+namespace TacticalPort.Core
 {
     internal readonly struct EnemyAiSkillEvaluation
     {

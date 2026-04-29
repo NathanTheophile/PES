@@ -6,7 +6,6 @@
 
 using TacticalPort.Shared;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace TacticalPort.Data
 {
@@ -53,15 +52,10 @@ namespace TacticalPort.Data
         [SerializeField] private string _DisplayName = string.Empty;
         [SerializeField, TextArea] private string _Description = string.Empty;
 
-        [FormerlySerializedAs("_EffectType")]
-        [SerializeField, HideInInspector] private SkillEffectType _LegacyEffectType = SkillEffectType.Damage;
         [SerializeField] private SkillPrimaryEffectType _PrimaryEffectType = SkillPrimaryEffectType.Damage;
         [SerializeField] private SkillAdditionalEffectType _AdditionalEffectType = SkillAdditionalEffectType.None;
-        [SerializeField, HideInInspector] private bool _HasMigratedEffectSetup;
-        [SerializeField, Min(0), HideInInspector] private int _Range = 0;
         [SerializeField, Min(0)] private int _RangeMin = 0;
         [SerializeField, Min(0)] private int _RangeMax = 0;
-        [SerializeField, HideInInspector] private bool _Linear;
         [SerializeField] private SkillTargetAlignment _TargetAlignment = SkillTargetAlignment.Any;
         [SerializeField] private bool _RequiresLineOfSight;
         [SerializeField] private bool _CanAffectCaster = true;
@@ -94,15 +88,12 @@ namespace TacticalPort.Data
         public string Id => string.IsNullOrWhiteSpace(_Id) ? name : _Id;
         public string DisplayName => string.IsNullOrWhiteSpace(_DisplayName) ? name : _DisplayName;
         public string Description => _Description;
-        public SkillPrimaryEffectType PrimaryEffectType => ResolvePrimaryEffectType();
-        public SkillAdditionalEffectType AdditionalEffectType => ResolveAdditionalEffectType();
+        public SkillPrimaryEffectType PrimaryEffectType => _PrimaryEffectType;
+        public SkillAdditionalEffectType AdditionalEffectType => _AdditionalEffectType;
         public int Range => RangeMax;
         public int RangeMin => Mathf.Clamp(_RangeMin, 0, RangeMax);
-        public int RangeMax => Mathf.Max(0, _RangeMax > 0 ? _RangeMax : _Range);
-        public SkillTargetAlignment TargetAlignment => _TargetAlignment != SkillTargetAlignment.Any
-            ? _TargetAlignment
-            : (_Linear ? SkillTargetAlignment.Orthogonal : SkillTargetAlignment.Any);
-        public bool Linear => TargetAlignment == SkillTargetAlignment.Orthogonal;
+        public int RangeMax => Mathf.Max(0, _RangeMax);
+        public SkillTargetAlignment TargetAlignment => _TargetAlignment;
         public bool RequiresLineOfSight => _RequiresLineOfSight;
         public bool CanAffectCaster => _CanAffectCaster;
         public SkillAoeShape AoeShape => _AoeShape;
@@ -126,82 +117,6 @@ namespace TacticalPort.Data
         public int SideDamageModifier => _SideDamageModifier;
         public int BackDamageModifier => _BackDamageModifier;
         public Sprite Icon => _Icon;
-
-        #endregion
-
-        #region _____________________________| UNITY
-
-        private void OnValidate()
-        {
-            if (_HasMigratedEffectSetup)
-                return;
-
-            switch (_LegacyEffectType)
-            {
-                case SkillEffectType.Damage:
-                    _PrimaryEffectType = SkillPrimaryEffectType.Damage;
-                    _AdditionalEffectType = SkillAdditionalEffectType.None;
-                    break;
-
-                case SkillEffectType.Heal:
-                    _PrimaryEffectType = SkillPrimaryEffectType.Heal;
-                    _AdditionalEffectType = SkillAdditionalEffectType.None;
-                    break;
-
-                case SkillEffectType.Push:
-                    _PrimaryEffectType = SkillPrimaryEffectType.None;
-                    _AdditionalEffectType = SkillAdditionalEffectType.Push;
-                    break;
-
-                case SkillEffectType.Teleport:
-                    _PrimaryEffectType = SkillPrimaryEffectType.None;
-                    _AdditionalEffectType = SkillAdditionalEffectType.Teleport;
-                    break;
-
-                case SkillEffectType.SwitchPositions:
-                    _PrimaryEffectType = SkillPrimaryEffectType.None;
-                    _AdditionalEffectType = SkillAdditionalEffectType.SwitchPositions;
-                    break;
-
-                case SkillEffectType.Summon:
-                    _PrimaryEffectType = SkillPrimaryEffectType.None;
-                    _AdditionalEffectType = SkillAdditionalEffectType.Summon;
-                    break;
-
-                case SkillEffectType.CreateGlyph:
-                    _PrimaryEffectType = SkillPrimaryEffectType.None;
-                    _AdditionalEffectType = SkillAdditionalEffectType.CreateGlyph;
-                    break;
-            }
-
-            _HasMigratedEffectSetup = true;
-        }
-
-        #endregion
-
-        #region _____________________________| HELPERS
-
-        private SkillPrimaryEffectType ResolvePrimaryEffectType() =>
-            _HasMigratedEffectSetup
-                ? _PrimaryEffectType
-                : _LegacyEffectType == SkillEffectType.Heal
-                    ? SkillPrimaryEffectType.Heal
-                    : _LegacyEffectType == SkillEffectType.Damage
-                        ? SkillPrimaryEffectType.Damage
-                        : SkillPrimaryEffectType.None;
-
-        private SkillAdditionalEffectType ResolveAdditionalEffectType() =>
-            _HasMigratedEffectSetup
-                ? _AdditionalEffectType
-                : _LegacyEffectType switch
-            {
-                SkillEffectType.Push => SkillAdditionalEffectType.Push,
-                SkillEffectType.Teleport => SkillAdditionalEffectType.Teleport,
-                SkillEffectType.SwitchPositions => SkillAdditionalEffectType.SwitchPositions,
-                SkillEffectType.Summon => SkillAdditionalEffectType.Summon,
-                SkillEffectType.CreateGlyph => SkillAdditionalEffectType.CreateGlyph,
-                _ => SkillAdditionalEffectType.None
-            };
 
         #endregion
     }
