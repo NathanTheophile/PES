@@ -871,6 +871,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5309926232412725338}
   - component: {fileID: 9187699230070541097}
+  - component: {fileID: 336943671953413238}
   m_Layer: 5
   m_Name: UI_EndCombat
   m_TagString: Untagged
@@ -907,6 +908,23 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8026111149584027369}
   m_CullTransparentMesh: 1
+--- !u!114 &336943671953413238
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8026111149584027369}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 234f5de8ef9444bcb9326997319cf0c4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TacticalPort.UI.Combat.Selection.EndCombatView
+  _WinPanel: {fileID: 5397984215395770895}
+  _LosePanel: {fileID: 3015779138219186637}
+  _MainMenuButtons:
+  - {fileID: 7351278402967902856}
+  _MainMenuSceneName: S_MainMenu
 --- !u!1 &8600200598310062838
 GameObject:
   m_ObjectHideFlags: 0

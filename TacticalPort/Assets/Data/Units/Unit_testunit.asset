@@ -35,5 +35,5 @@ MonoBehaviour:
   _BaseStates: []
   _PhaseStates: []
   _UnitViewPrefab: {fileID: 6292429647394850086, guid: 60114851700ded341b477fe2d2632b76, type: 3}
-  _Portrait: {fileID: 0}
+  _Portrait: {fileID: 21300000, guid: 1aa45694fc993de4491b10414276dafb, type: 3}
   _Tint: {r: 0.30277675, g: 0.6603774, b: 0.35897857, a: 1}

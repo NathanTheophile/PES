@@ -5,11 +5,10 @@
 #endregion
 
 using System;
-using TacticalPort.Core.Runtime;
 using TacticalPort.Data;
 using TacticalPort.Shared;
 
-namespace TacticalPort.Core.AI
+namespace TacticalPort.Core
 {
     internal static class EnemyAiSkillScorer
     {

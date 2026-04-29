@@ -4,11 +4,13 @@
 //  Note : MY_CONST, myPublic, m_MyProtected, _MyPrivate, lMyLocal, MyFunc(), pMyParam, onMyEvent, OnMyCallback, MyStruct
 #endregion
 
-using TacticalPort.Core.Runtime;
+
+
+
 using TacticalPort.Data;
 using TacticalPort.Shared;
 
-namespace TacticalPort.Core.AI
+namespace TacticalPort.Core
 {
     public enum EnemyAiActionType
     {

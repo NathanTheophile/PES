@@ -5,11 +5,11 @@
 #endregion
 
 using System.Collections.Generic;
-using TacticalPort.Core.Factories;
-using TacticalPort.Core.Interfaces;
-using TacticalPort.Core.Runtime;
+using TacticalPort.Core;
 using TacticalPort.Data;
 using TacticalPort.Shared;
+using TacticalPort.Combat;
+using TacticalPort.UI;
 using TacticalPort.View;
 using UnityEngine;
 
@@ -25,7 +25,7 @@ namespace TacticalPort.Bootstrap
         [SerializeField] private bool _UsePlacementPhase = true;
         [SerializeField] private bool _StartFirstTurnOnBootstrap = true;
         [SerializeField] private bool _AutoAdvanceTurns = true;
-        [SerializeField] private bool _RefreshPresentationEachFrame = true;
+        [SerializeField] private bool _RefreshPresentationEachFrame;
         [SerializeField, Min(0f)] private float _EnemyTurnDelaySeconds = 0.15f;
 
         private readonly Dictionary<UnitId, UnitView> _UnitViews = new Dictionary<UnitId, UnitView>();
@@ -151,27 +151,17 @@ namespace TacticalPort.Bootstrap
             return TryAdvanceBattle();
         }
 
-        public bool TryGetActiveUnit(out UnitRuntime pUnit)
-        {
-            pUnit = ActiveUnit;
-            return pUnit != null;
-        }
+        public bool TryGetActiveUnit(out UnitRuntime pUnit) => (pUnit = ActiveUnit) != null;
 
-        public IReadOnlyCollection<GridCoord> GetReachableCellsForActiveUnit()
-        {
-            if (_BattleService == null || !_BattleService.TryGetActiveUnit(out UnitRuntime lUnit))
-                return System.Array.Empty<GridCoord>();
+        public IReadOnlyCollection<GridCoord> GetReachableCellsForActiveUnit() =>
+            _BattleService != null && _BattleService.TryGetActiveUnit(out UnitRuntime lUnit)
+                ? _BattleService.GetReachableCells(lUnit.Id)
+                : System.Array.Empty<GridCoord>();
 
-            return _BattleService.GetReachableCells(lUnit.Id);
-        }
-
-        public BattleActionResult ValidateActiveSkill(SkillId pSkillId, SkillTarget pTarget)
-        {
-            if (_BattleService == null || !_BattleService.TryGetActiveUnit(out UnitRuntime lUnit))
-                return BattleActionResult.Failed(BattleActionType.Skill, "No active unit is available.");
-
-            return _BattleService.ValidateSkill(lUnit.Id, pSkillId, pTarget);
-        }
+        public BattleActionResult ValidateActiveSkill(SkillId pSkillId, SkillTarget pTarget) =>
+            _BattleService != null && _BattleService.TryGetActiveUnit(out UnitRuntime lUnit)
+                ? _BattleService.ValidateSkill(lUnit.Id, pSkillId, pTarget)
+                : BattleActionResult.Failed(BattleActionType.Skill, "No active unit is available.");
 
         public BattleActionResult MoveActiveUnit(GridCoord pDestination)
         {

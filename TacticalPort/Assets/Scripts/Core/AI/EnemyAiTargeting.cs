@@ -6,11 +6,10 @@
 
 using System;
 using System.Collections.Generic;
-using TacticalPort.Core.Runtime;
 using TacticalPort.Data;
 using TacticalPort.Shared;
 
-namespace TacticalPort.Core.AI
+namespace TacticalPort.Core
 {
     public static class EnemyAiTargeting
     {
@@ -117,11 +116,6 @@ namespace TacticalPort.Core.AI
             }
 
             return lBestScore > ScoreApproachCell(pContext, lActor.Position);
-        }
-
-        public static int ScoreAffectedUnits(EnemyAiContext pContext, SkillDefinition pSkill, SkillTarget pTarget, BattleActionResult pValidation)
-        {
-            return EnemyAiSkillScorer.Score(pContext, pSkill, pTarget, pValidation);
         }
 
         public static List<UnitRuntime> GetPriorityUnits(EnemyAiContext pContext, Team pTeam, EnemyAiTargetMode pTargetMode)

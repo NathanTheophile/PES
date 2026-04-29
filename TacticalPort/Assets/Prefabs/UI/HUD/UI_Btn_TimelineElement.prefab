@@ -324,7 +324,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _PortraitImage: {fileID: 419372001069676574}
   _HealthSlider: {fileID: 4563644170301778892}
+  _HealthFillImage: {fileID: 7821057233010758160}
   _Button: {fileID: 4855279734141887829}
+  _PlayerHealthColor: {r: 0.2, g: 0.85, b: 0.35, a: 1}
+  _EnemyHealthColor: {r: 0.9, g: 0.18, b: 0.16, a: 1}
+  _NeutralHealthColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &8150709153519307454
 GameObject:
   m_ObjectHideFlags: 0
