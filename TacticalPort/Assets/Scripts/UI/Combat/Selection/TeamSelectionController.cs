@@ -44,6 +44,7 @@ namespace TacticalPort.UI
         [SerializeField] private string _CombatSceneName = "S_Poutch";
         [SerializeField] private List<CharacterSlotView> _Slots = new List<CharacterSlotView>(3);
         [SerializeField] private RectTransform _GridRoot;
+        [SerializeField] private RectTransform _GridItemPrefab;
         [SerializeField] private GameObject _GridPanel;
         [SerializeField] private Button _LaunchButton;
 
@@ -92,34 +93,23 @@ namespace TacticalPort.UI
 
         private void BuildGrid()
         {
-            if (_GridRoot == null)
+            if (_GridRoot == null || _GridItemPrefab == null)
                 return;
 
+            ClearGrid();
             List<UnitDefinition> lAvailableUnits = GetAvailableUnits();
-            CharacterGridItemView lTemplate = CreateGridItemView(_GridRoot.childCount > 0 ? _GridRoot.GetChild(0) as RectTransform : null);
-            if (lTemplate == null)
-                return;
 
-            for (int lIndex = _GridRoot.childCount; lIndex < lAvailableUnits.Count; lIndex++)
+            for (int lIndex = 0; lIndex < lAvailableUnits.Count; lIndex++)
             {
-                RectTransform lClone = Instantiate(lTemplate.Root, _GridRoot);
-                lClone.name = $"GridElement_Character ({lIndex})";
-            }
+                RectTransform lInstance = Instantiate(_GridItemPrefab, _GridRoot);
+                lInstance.name = $"GridElement_Character_{lIndex + 1}";
+                lInstance.gameObject.SetActive(true);
 
-            for (int lIndex = 0; lIndex < _GridRoot.childCount; lIndex++)
-            {
-                CharacterGridItemView lItem = CreateGridItemView(_GridRoot.GetChild(lIndex) as RectTransform);
+                CharacterGridItemView lItem = CreateGridItemView(lInstance);
                 if (lItem == null)
                     continue;
 
-                bool lIsActive = lIndex < lAvailableUnits.Count;
-                lItem.Root.gameObject.SetActive(lIsActive);
-                if (!lIsActive)
-                    continue;
-
-                UnitDefinition lDefinition = lAvailableUnits[lIndex];
-                Debug.Log($"J'ai detecté {lIndex} boutons.");
-                BindGridItem(lItem, lDefinition, lIndex);
+                BindGridItem(lItem, lAvailableUnits[lIndex], lIndex);
             }
         }
 
@@ -164,7 +154,6 @@ namespace TacticalPort.UI
 
         private void SelectGridCharacter(int pUnitIndex)
         {
-            Debug.Log("Clicked on character");
             List<UnitDefinition> lAvailableUnits = GetAvailableUnits();
             if (_PendingSlotIndex < 0 || _PendingSlotIndex >= _Slots.Count || pUnitIndex < 0 || pUnitIndex >= lAvailableUnits.Count)
                 return;
@@ -227,24 +216,33 @@ namespace TacticalPort.UI
                 pItem.Name.text = pDefinition != null ? pDefinition.DisplayName : "Empty";
 
             if (pItem.Button == null)
-            {
-                Debug.Log($"Button est null cherche composant : {pItem.Name}");
                 pItem.Button = pItem.Root.GetComponent<Button>();
-            }
+
             if (pItem.Button != null)
             {
-                Debug.Log($"Button est pas null, abonnement : {pItem.Name}");
-                pItem.Button.onClick.AddListener(DebugClick);
                 pItem.Button.onClick.RemoveAllListeners();
                 pItem.Button.onClick.AddListener(() => SelectGridCharacter(pIndex));
             }
         }
 
-        private void DebugClick() => Debug.Log("Bouton clique.");
-
         #endregion
 
         #region _____________________________| HELPERS
+
+        private void ClearGrid()
+        {
+            for (int lIndex = _GridRoot.childCount - 1; lIndex >= 0; lIndex--)
+            {
+                Transform lChild = _GridRoot.GetChild(lIndex);
+                if (lChild == null)
+                    continue;
+
+                if (Application.isPlaying)
+                    Destroy(lChild.gameObject);
+                else
+                    DestroyImmediate(lChild.gameObject);
+            }
+        }
 
         private static CharacterGridItemView CreateGridItemView(RectTransform pRoot) =>
             pRoot != null
@@ -301,6 +299,7 @@ namespace TacticalPort.UI
                 Debug.LogWarning($"{nameof(TeamSelectionController)} has no configured character slots.", this);
 
             LogMissingReference(_GridRoot, nameof(_GridRoot));
+            LogMissingReference(_GridItemPrefab, nameof(_GridItemPrefab));
             LogMissingReference(_GridPanel, nameof(_GridPanel));
             LogMissingReference(_LaunchButton, nameof(_LaunchButton));
         }

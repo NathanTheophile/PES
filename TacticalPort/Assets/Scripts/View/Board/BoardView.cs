@@ -57,6 +57,9 @@ namespace TacticalPort.View
         private int _BoardSortingLayerId;
         private bool _HasHoveredCell;
         private GridCoord _HoveredCell;
+#if UNITY_EDITOR
+        private bool _HasScheduledBoardRebuild;
+#endif
 
         #endregion
 
@@ -78,20 +81,34 @@ namespace TacticalPort.View
         {
             CacheMissingReferences();
 #if UNITY_EDITOR
-            if (!Application.isPlaying)
-            {
-                EditorApplication.delayCall += () =>
-                {
-                    if (this == null)
-                        return;
-
-                    RebuildBoard();
-                };
+            if (Application.isPlaying || EditorApplication.isPlayingOrWillChangePlaymode)
                 return;
-            }
-#endif
+
+            ScheduleBoardRebuild();
+            return;
+#else
             RebuildBoard();
+#endif
         }
+
+#if UNITY_EDITOR
+        private void ScheduleBoardRebuild()
+        {
+            if (_HasScheduledBoardRebuild)
+                return;
+
+            _HasScheduledBoardRebuild = true;
+            EditorApplication.delayCall += () =>
+            {
+                _HasScheduledBoardRebuild = false;
+
+                if (this == null || Application.isPlaying || EditorApplication.isPlayingOrWillChangePlaymode)
+                    return;
+
+                RebuildBoard();
+            };
+        }
+#endif
 
         #endregion
 
