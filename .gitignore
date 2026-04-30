@@ -111,3 +111,5 @@ Assets/RedBlueGames/
 # Ignore legacy Godot content not considered for current porting scope
 One Piece Tactics/skills/old/
 One Piece Tactics/states/old/
+
+AGENTS.md
