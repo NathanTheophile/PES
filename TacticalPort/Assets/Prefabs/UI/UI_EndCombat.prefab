@@ -924,6 +924,7 @@ MonoBehaviour:
   _LosePanel: {fileID: 3015779138219186637}
   _MainMenuButtons:
   - {fileID: 7351278402967902856}
+  - {fileID: 5933178124970807609}
   _MainMenuSceneName: S_MainMenu
 --- !u!1 &8600200598310062838
 GameObject:

@@ -4,6 +4,7 @@
 //  Note : MY_CONST, myPublic, m_MyProtected, _MyPrivate, lMyLocal, MyFunc(), pMyParam, onMyEvent, OnMyCallback, MyStruct
 #endregion
 
+using System.Collections.Generic;
 using TacticalPort.Shared;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -20,6 +21,7 @@ namespace TacticalPort.UI
         [SerializeField] private Button[] _MainMenuButtons = new Button[0];
         [SerializeField] private string _MainMenuSceneName = "S_MainMenu";
 
+        private readonly List<Button> _ResolvedMainMenuButtons = new List<Button>();
         private bool _IsConfigured;
 
         #endregion
@@ -76,9 +78,10 @@ namespace TacticalPort.UI
 
         private void HookButtons()
         {
-            for (int lIndex = 0; lIndex < _MainMenuButtons.Length; lIndex++)
+            ResolveMainMenuButtons();
+            for (int lIndex = 0; lIndex < _ResolvedMainMenuButtons.Count; lIndex++)
             {
-                Button lButton = _MainMenuButtons[lIndex];
+                Button lButton = _ResolvedMainMenuButtons[lIndex];
                 if (lButton == null)
                     continue;
 
@@ -89,9 +92,10 @@ namespace TacticalPort.UI
 
         private void UnhookButtons()
         {
-            for (int lIndex = 0; lIndex < _MainMenuButtons.Length; lIndex++)
+            ResolveMainMenuButtons();
+            for (int lIndex = 0; lIndex < _ResolvedMainMenuButtons.Count; lIndex++)
             {
-                Button lButton = _MainMenuButtons[lIndex];
+                Button lButton = _ResolvedMainMenuButtons[lIndex];
                 if (lButton != null)
                     lButton.onClick.RemoveListener(LoadMainMenu);
             }
@@ -103,11 +107,33 @@ namespace TacticalPort.UI
                 SceneManager.LoadScene(_MainMenuSceneName, LoadSceneMode.Single);
         }
 
+        private void ResolveMainMenuButtons()
+        {
+            _ResolvedMainMenuButtons.Clear();
+
+            if (_MainMenuButtons != null)
+            {
+                for (int lIndex = 0; lIndex < _MainMenuButtons.Length; lIndex++)
+                    AddResolvedMainMenuButton(_MainMenuButtons[lIndex]);
+            }
+
+            Button[] lChildButtons = GetComponentsInChildren<Button>(true);
+            for (int lIndex = 0; lIndex < lChildButtons.Length; lIndex++)
+                AddResolvedMainMenuButton(lChildButtons[lIndex]);
+        }
+
+        private void AddResolvedMainMenuButton(Button pButton)
+        {
+            if (pButton != null && !_ResolvedMainMenuButtons.Contains(pButton))
+                _ResolvedMainMenuButtons.Add(pButton);
+        }
+
         private void ValidateReferences()
         {
             LogMissingReference(_WinPanel, nameof(_WinPanel));
             LogMissingReference(_LosePanel, nameof(_LosePanel));
-            if (_MainMenuButtons == null || _MainMenuButtons.Length == 0)
+            ResolveMainMenuButtons();
+            if (_ResolvedMainMenuButtons.Count == 0)
                 Debug.LogWarning($"{nameof(EndCombatView)} is missing main menu button references.", this);
         }
 

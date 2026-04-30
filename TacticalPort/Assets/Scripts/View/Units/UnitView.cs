@@ -4,7 +4,7 @@
 //  Note : MY_CONST, myPublic, m_MyProtected, _MyPrivate, lMyLocal, MyFunc(), pMyParam, onMyEvent, OnMyCallback, MyStruct
 #endregion
 
-using System.Collections;
+using DG.Tweening;
 using TacticalPort.Core;
 using TacticalPort.Data;
 using TacticalPort.Shared;
@@ -26,6 +26,10 @@ namespace TacticalPort.View
         [SerializeField] private Color _DamagePopupColor;
         [SerializeField] private Color _HealPopupColor;
         [SerializeField] private float _PopupLifetimeSeconds = 2f;
+        [SerializeField] private Vector2 _PopupTravelOffset = new Vector2(0f, 80f);
+        [SerializeField, Min(0.01f)] private float _PopupScalePunchDurationPercent = 0.2f;
+        [SerializeField, Min(0f)] private float _PopupSpawnScale = 0.85f;
+        [SerializeField, Min(0f)] private float _PopupPeakScale = 1.25f;
 
         private UnitRuntime _Runtime;
         private UnitDefinition _Definition;
@@ -151,15 +155,52 @@ namespace TacticalPort.View
             TMP_Text lPopup = Instantiate(_ValuePopupPrefab, _FeedbackRoot);
             lPopup.text = pIsHeal ? $"+ {pAmount}" : $"- {pAmount}";
             lPopup.color = pIsHeal ? _HealPopupColor : _DamagePopupColor;
-            StartCoroutine(DestroyPopupAfterDelay(lPopup.gameObject));
+            AnimateValuePopup(lPopup);
         }
 
-        private IEnumerator DestroyPopupAfterDelay(GameObject pPopup)
+        private void AnimateValuePopup(TMP_Text pPopup)
         {
-            yield return new WaitForSeconds(Mathf.Max(0.1f, _PopupLifetimeSeconds));
+            if (pPopup == null)
+                return;
 
-            if (pPopup != null)
-                Destroy(pPopup);
+            RectTransform lRectTransform = pPopup.rectTransform;
+            Vector2 lEndPosition = lRectTransform.anchoredPosition + _PopupTravelOffset;
+            Vector3 lBaseScale = lRectTransform.localScale;
+            Vector3 lSpawnScale = lBaseScale * _PopupSpawnScale;
+            Vector3 lPeakScale = lBaseScale * _PopupPeakScale;
+            Color lStartColor = pPopup.color;
+            float lLifetime = Mathf.Max(0.1f, _PopupLifetimeSeconds);
+            float lPunchDuration = lLifetime * Mathf.Clamp01(_PopupScalePunchDurationPercent);
+            float lHalfPunchDuration = lPunchDuration * 0.5f;
+
+            lRectTransform.localScale = lSpawnScale;
+
+            Sequence lSequence = DOTween.Sequence()
+                .SetTarget(pPopup)
+                .SetLink(pPopup.gameObject)
+                .Join(lRectTransform.DOAnchorPos(lEndPosition, lLifetime).SetEase(Ease.OutCubic))
+                .Join(DOTween.To(
+                    () => pPopup.color.a,
+                    alpha => pPopup.color = new Color(lStartColor.r, lStartColor.g, lStartColor.b, alpha),
+                    0f,
+                    lLifetime));
+
+            if (lHalfPunchDuration > 0f)
+            {
+                lSequence
+                    .Insert(0f, lRectTransform.DOScale(lPeakScale, lHalfPunchDuration).SetEase(Ease.OutCubic))
+                    .Insert(lHalfPunchDuration, lRectTransform.DOScale(lBaseScale, lHalfPunchDuration).SetEase(Ease.OutCubic));
+            }
+            else
+            {
+                lRectTransform.localScale = lBaseScale;
+            }
+
+            lSequence.OnComplete(() =>
+            {
+                if (pPopup != null)
+                    Destroy(pPopup.gameObject);
+            });
         }
 
         private void ValidateReferences()

@@ -27,6 +27,9 @@ namespace TacticalPort.View
         private BattleScenarioDefinition _RuntimeScenario;
         private BoundsInt _CachedPaintedBounds;
         private bool _HasCachedPaintedBounds;
+#if UNITY_EDITOR
+        private bool _HasScheduledBoardRebuild;
+#endif
 
         #endregion
 
@@ -45,7 +48,12 @@ namespace TacticalPort.View
         {
             CacheMissingReferences();
             SanitizeMetadata();
-            InvalidateRuntimeScenario();
+            ClearRuntimeScenarioCache();
+
+#if UNITY_EDITOR
+            if (!Application.isPlaying && !EditorApplication.isPlayingOrWillChangePlaymode)
+                ScheduleBoardRebuild();
+#endif
         }
 
         #endregion
@@ -70,8 +78,7 @@ namespace TacticalPort.View
 
         public void InvalidateRuntimeScenario()
         {
-            _RuntimeScenario = null;
-            _HasCachedPaintedBounds = false;
+            ClearRuntimeScenarioCache();
 
             BoardView lBoardView = GetComponent<BoardView>();
             if (lBoardView != null)
@@ -79,13 +86,7 @@ namespace TacticalPort.View
 #if UNITY_EDITOR
                 if (!Application.isPlaying)
                 {
-                    EditorApplication.delayCall += () =>
-                    {
-                        if (this == null || lBoardView == null)
-                            return;
-
-                        lBoardView.RebuildBoard();
-                    };
+                    ScheduleBoardRebuild();
                     return;
                 }
 #endif
@@ -317,6 +318,33 @@ namespace TacticalPort.View
             if (_GroundTilemap == null && _Grid != null)
                 _GroundTilemap = _Grid.GetComponentInChildren<Tilemap>(true);
         }
+
+        private void ClearRuntimeScenarioCache()
+        {
+            _RuntimeScenario = null;
+            _HasCachedPaintedBounds = false;
+        }
+
+#if UNITY_EDITOR
+        private void ScheduleBoardRebuild()
+        {
+            if (_HasScheduledBoardRebuild)
+                return;
+
+            _HasScheduledBoardRebuild = true;
+            EditorApplication.delayCall += () =>
+            {
+                _HasScheduledBoardRebuild = false;
+
+                if (this == null || Application.isPlaying || EditorApplication.isPlayingOrWillChangePlaymode)
+                    return;
+
+                BoardView lBoardView = GetComponent<BoardView>();
+                if (lBoardView != null)
+                    lBoardView.RebuildBoard();
+            };
+        }
+#endif
 
         private void SanitizeMetadata()
         {
