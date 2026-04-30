@@ -1,0 +1,26 @@
+#region _____________________________/ INFOS
+//  AUTHOR : Nathan THEOPHILE (2025)
+//  Engine : Unity
+//  Shared
+#endregion
+
+namespace TacticalPort.Shared
+{
+    public enum SkillPrimaryEffectType
+    {
+        None = 0,
+        Damage = 1,
+        Heal = 2
+    }
+
+    public enum SkillAdditionalEffectType
+    {
+        None = 0,
+        Push = 1,
+        Teleport = 2,
+        SwitchPositions = 3,
+        Summon = 4,
+        CreateGlyph = 5
+    }
+
+}
