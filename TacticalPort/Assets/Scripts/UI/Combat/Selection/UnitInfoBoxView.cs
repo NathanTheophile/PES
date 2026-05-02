@@ -61,7 +61,6 @@ namespace TacticalPort.UI
         {
             if (_DisplayedUnit == null)
             {
-                Debug.Log($"Pas de DisplayedUnit.");
                 SetText(_NameText, "-");
                 SetText(_HealthText, "HP: -");
                 SetText(_ActionPointsText, "AP: -");
@@ -70,7 +69,7 @@ namespace TacticalPort.UI
                 return;
             }
 
-            SetPortrait(_DisplayedUnit.Definition.Portrait);
+            SetPortrait(_DisplayedUnit.Definition.DisplaySprite);
             SetText(_NameText, _DisplayedUnit.Definition.DisplayName);
             SetText(_HealthText, $"HP: {_DisplayedUnit.CurrentHealth}/{_DisplayedUnit.Definition.MaxHealth}");
             SetText(_ActionPointsText, $"AP: {_DisplayedUnit.RemainingActionPoints}/{_DisplayedUnit.Definition.ActionPointsPerTurn}");

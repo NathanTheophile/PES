@@ -9,7 +9,6 @@ using TacticalPort.Core;
 using TacticalPort.Data;
 using TacticalPort.Shared;
 using UnityEngine;
-using UnityEngine.Tilemaps;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -24,6 +23,10 @@ namespace TacticalPort.View
         [SerializeField] private int _SortingStep = 10;
         [SerializeField] private int _PreviewSortingOffset = 8;
         [SerializeField] private Transform _SkillPreviewRoot;
+        [Tooltip("Optional world offset applied to board markers. Keep zero for 3D tile feedback prefabs with their own local height.")]
+        [SerializeField] private Vector3 _GroundMarkerWorldOffset = Vector3.zero;
+        [Tooltip("Vertical offset applied to preview markers displayed on cells occupied by units.")]
+        [SerializeField] private float _OccupiedPreviewYOffset = -0.05f;
 
         [Header("Cell State Prefabs")]
         [SerializeField] private GameObject _SpawnerPreviewPrefab;
@@ -39,7 +42,6 @@ namespace TacticalPort.View
         [SerializeField] private GameObject _SkillBlockedRangePreviewPrefab;
 
         private readonly Dictionary<GridCoord, CellDefinition> _CellsByCoord = new Dictionary<GridCoord, CellDefinition>();
-        private readonly Dictionary<GridCoord, Vector3Int> _TilePositionsByCoord = new Dictionary<GridCoord, Vector3Int>();
         private readonly Dictionary<GridCoord, BoardOccupiedCellVisualState> _OccupiedStatesByCoord = new Dictionary<GridCoord, BoardOccupiedCellVisualState>();
         private readonly HashSet<GridCoord> _SpawnerCells = new HashSet<GridCoord>();
         private readonly HashSet<GridCoord> _ReachableCells = new HashSet<GridCoord>();
@@ -50,9 +52,8 @@ namespace TacticalPort.View
         private readonly HashSet<GridCoord> _TelegraphCells = new HashSet<GridCoord>();
         private readonly HashSet<GridCoord> _HoveredCells = new HashSet<GridCoord>();
         private BattleScenarioDefinition _Scenario;
-        private BoardAuthoring _TilemapBoardAuthoring;
+        private BoardAuthoring3D _Board3DAuthoring;
         private bool _ShowSpawnerCells = true;
-        private Tilemap _Tilemap;
         private BoardMarkerLayerSet _MarkerLayers;
         private int _BoardSortingLayerId;
         private bool _HasHoveredCell;
@@ -66,6 +67,7 @@ namespace TacticalPort.View
         #region _____________________________/ ACCESSORS
 
         public BattleScenarioDefinition Scenario => _Scenario;
+        public BoardAuthoring3D Board3DAuthoring => _Board3DAuthoring;
 
         #endregion
 
@@ -121,12 +123,21 @@ namespace TacticalPort.View
         }
 
         public Vector3 GetWorldPosition(GridCoord pCoord) =>
-            _TilemapBoardAuthoring != null ? _TilemapBoardAuthoring.GetWorldPosition(pCoord) : Vector3.zero;
+            _Board3DAuthoring != null && _Board3DAuthoring.HasTiles ? _Board3DAuthoring.GetWorldPosition(pCoord) : Vector3.zero;
+
+        public Vector3 GetMarkerWorldPosition(GridCoord pCoord) =>
+            GetWorldPosition(pCoord) + ResolveMarkerWorldOffset();
 
         public bool TryGetGridCoord(Vector3 pWorldPosition, out GridCoord pCoord)
         {
             pCoord = default;
-            return _TilemapBoardAuthoring != null && _TilemapBoardAuthoring.TryGetGridCoord(pWorldPosition, out pCoord);
+            return _Board3DAuthoring != null && _Board3DAuthoring.HasTiles && _Board3DAuthoring.TryGetGridCoord(pWorldPosition, out pCoord);
+        }
+
+        public bool TryGetGridCoord(Ray pWorldRay, out GridCoord pCoord)
+        {
+            pCoord = default;
+            return _Board3DAuthoring != null && _Board3DAuthoring.HasTiles && _Board3DAuthoring.TryGetGridCoord(pWorldRay, out pCoord);
         }
 
         public bool ContainsCell(GridCoord pCoord) => _CellsByCoord.ContainsKey(pCoord);
@@ -279,8 +290,7 @@ namespace TacticalPort.View
         {
             ClearBoardData();
             CacheMissingReferences();
-
-            TryBuildTilemapBoard();
+            Build3DBoard();
             RefreshCellStates();
         }
 
@@ -292,7 +302,6 @@ namespace TacticalPort.View
         {
             EnsureMarkerLayers();
             _CellsByCoord.Clear();
-            _TilePositionsByCoord.Clear();
             _OccupiedStatesByCoord.Clear();
             _SpawnerCells.Clear();
             _ReachableCells.Clear();
@@ -303,7 +312,6 @@ namespace TacticalPort.View
             _TelegraphCells.Clear();
             _HoveredCells.Clear();
             _HasHoveredCell = false;
-            _Tilemap = null;
             _BoardSortingLayerId = 0;
             _MarkerLayers.Clear();
         }
@@ -311,14 +319,14 @@ namespace TacticalPort.View
         private void CacheMissingReferences()
         {
             _SkillPreviewRoot ??= transform;
-            _TilemapBoardAuthoring ??= GetComponent<BoardAuthoring>() ?? GetComponentInChildren<BoardAuthoring>(true);
+            _Board3DAuthoring ??= GetComponent<BoardAuthoring3D>() ?? GetComponentInChildren<BoardAuthoring3D>(true);
             EnsureMarkerLayers();
         }
 
         private void EnsureMarkerLayers()
         {
             _MarkerLayers ??= new BoardMarkerLayerSet(
-                GetWorldPosition,
+                GetPreviewMarkerWorldPosition,
                 ResolveMarkerRoot,
                 () => _SortingStep,
                 () => _PreviewSortingOffset,
@@ -358,48 +366,32 @@ namespace TacticalPort.View
                     ? BoardOccupiedCellVisualState.Enemy
                     : BoardOccupiedCellVisualState.Player;
 
-        private bool TryBuildTilemapBoard()
+        private void Build3DBoard()
         {
-            if (_TilemapBoardAuthoring == null || _TilemapBoardAuthoring.FloorTilemap == null)
-                return false;
+            if (_Board3DAuthoring == null || !_Board3DAuthoring.HasTiles)
+                return;
 
-            _Tilemap = _TilemapBoardAuthoring.FloorTilemap;
-            _BoardSortingLayerId = ResolveBoardSortingLayerId();
-            foreach (GridCoord lCoord in _TilemapBoardAuthoring.EnumeratePaintedCoordinates())
+            _BoardSortingLayerId = 0;
+            foreach (GridCoord lCoord in _Board3DAuthoring.EnumerateAuthoredCoordinates())
             {
-                if (!_TilemapBoardAuthoring.TryGetCellDefinition(lCoord, out CellDefinition lCellDefinition))
-                    continue;
-                if (!_TilemapBoardAuthoring.TryGetAuthoredCell(lCoord, out Vector3Int lTilePosition))
+                if (!_Board3DAuthoring.TryGetCellDefinition(lCoord, out CellDefinition lCellDefinition))
                     continue;
 
                 _CellsByCoord[lCoord] = lCellDefinition;
-                if (_TilemapBoardAuthoring.TryGetCellMetadata(lCoord, out CellMetadata lMetadata) && lMetadata != null && lMetadata.IsSpawner)
+                if (_Board3DAuthoring.TryGetTile(lCoord, out BoardTileAuthoring lTile) && lTile != null && lTile.IsSpawner)
                     _SpawnerCells.Add(lCoord);
-#if UNITY_EDITOR
-                if (Application.isPlaying)
-                    _Tilemap.SetTileFlags(lTilePosition, TileFlags.None);
-#else
-                _Tilemap.SetTileFlags(lTilePosition, TileFlags.None);
-#endif
-                _TilePositionsByCoord[lCoord] = lTilePosition;
             }
-
-            return _CellsByCoord.Count > 0;
         }
 
         private Transform ResolveMarkerRoot() => _SkillPreviewRoot != null ? _SkillPreviewRoot : transform;
 
-        private int ResolveBoardSortingLayerId()
-        {
-            if (_Tilemap != null)
-            {
-                TilemapRenderer lTilemapRenderer = _Tilemap.GetComponent<TilemapRenderer>();
-                if (lTilemapRenderer != null)
-                    return lTilemapRenderer.sortingLayerID;
-            }
+        private Vector3 ResolveMarkerWorldOffset() => _GroundMarkerWorldOffset;
 
-            return 0;
-        }
+        private Vector3 GetPreviewMarkerWorldPosition(GridCoord pCoord) =>
+            GetMarkerWorldPosition(pCoord) + ResolveOccupiedPreviewOffset(pCoord);
+
+        private Vector3 ResolveOccupiedPreviewOffset(GridCoord pCoord) =>
+            _OccupiedStatesByCoord.ContainsKey(pCoord) ? Vector3.up * _OccupiedPreviewYOffset : Vector3.zero;
 
         #endregion
     }

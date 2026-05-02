@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6020410271563621164}
   - component: {fileID: 6292429647394850086}
+  - component: {fileID: 9172746375701720034}
   m_Layer: 0
   m_Name: P_ActorBase
   m_TagString: Untagged
@@ -25,7 +26,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1579614747290704478}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: 0, y: 0.38268346, z: 0, w: 0.92387956}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -59,6 +60,22 @@ MonoBehaviour:
   _PopupScalePunchDurationPercent: 0.2
   _PopupSpawnScale: 1
   _PopupPeakScale: 1.5
+--- !u!114 &9172746375701720034
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1579614747290704478}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8cec6b5f66ceae14b9667714ff62981d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TacticalPort.View.SpriteBillboard
+  _TargetCamera: {fileID: 0}
+  _MatchCameraForward: 1
+  _LockRoll: 1
+  _LocalEulerOffset: {x: 0, y: 0, z: 0}
 --- !u!1 &2510574505091735127
 GameObject:
   m_ObjectHideFlags: 0
@@ -115,6 +132,7 @@ Canvas:
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
   m_VertexColorAlwaysGammaSpace: 0
+  m_UseReflectionProbes: 0
   m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
