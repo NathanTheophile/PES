@@ -77,6 +77,14 @@ namespace TacticalPort.Data
         public IReadOnlyList<UnitPhaseStateDefinition> PhaseStates => _PhaseStates;
         public UnitView UnitViewPrefab => _UnitViewPrefab;
         public Sprite Portrait => _Portrait;
+        public Sprite DisplaySprite
+        {
+            get
+            {
+                Sprite lSprite = _UnitViewPrefab != null ? _UnitViewPrefab.BodySprite : null;
+                return lSprite != null ? lSprite : _Portrait;
+            }
+        }
         public Color Tint => _Tint;
 
         #endregion

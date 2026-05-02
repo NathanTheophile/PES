@@ -116,7 +116,7 @@ namespace TacticalPort.View
                 return;
             }
 
-            pCursor.transform.position = _BoardView.GetWorldPosition(pCoord);
+            pCursor.transform.position = _BoardView.GetMarkerWorldPosition(pCoord);
             SetActive(pCursor, true);
         }
 

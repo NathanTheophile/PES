@@ -119,6 +119,10 @@ namespace TacticalPort.Combat
             if (_Context.BoardView == null || _Context.MainCamera == null)
                 return false;
 
+            Ray lRay = _Context.MainCamera.ScreenPointToRay(pMouseScreenPosition);
+            if (_Context.BoardView.TryGetGridCoord(lRay, out pCoord))
+                return true;
+
             float lBoardZ = _Context.BoardView.transform.position.z;
             float lCameraDistance = Mathf.Abs(lBoardZ - _Context.MainCamera.transform.position.z);
             Vector3 lWorldPosition = _Context.MainCamera.ScreenToWorldPoint(new Vector3(pMouseScreenPosition.x, pMouseScreenPosition.y, lCameraDistance));

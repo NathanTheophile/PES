@@ -14,7 +14,6 @@ namespace TacticalPort.View
 {
     internal enum BoardOccupiedCellVisualState
     {
-        None,
         Player,
         Enemy,
         Active
@@ -135,20 +134,19 @@ namespace TacticalPort.View
             pLayer.Sync(_OccupiedCellsBuffer, pPrefab, ResolveWorldPosition, ResolveRoot, ApplyMarkerSorting);
         }
 
-        private Vector3 ResolveWorldPosition(GridCoord pCoord) =>
-            _ResolveWorldPosition != null ? _ResolveWorldPosition.Invoke(pCoord) : Vector3.zero;
+        private Vector3 ResolveWorldPosition(GridCoord pCoord) => _ResolveWorldPosition?.Invoke(pCoord) ?? Vector3.zero;
 
-        private Transform ResolveRoot() => _ResolveRoot != null ? _ResolveRoot.Invoke() : null;
+        private Transform ResolveRoot() => _ResolveRoot?.Invoke();
 
         private void ApplyMarkerSorting(GameObject pMarker, GridCoord pCoord)
         {
             if (pMarker == null)
                 return;
 
-            int lSortingStep = Mathf.Max(1, _ResolveSortingStep != null ? _ResolveSortingStep.Invoke() : 1);
-            int lSortingOffset = _ResolveSortingOffset != null ? _ResolveSortingOffset.Invoke() : 0;
+            int lSortingStep = Mathf.Max(1, _ResolveSortingStep?.Invoke() ?? 1);
+            int lSortingOffset = _ResolveSortingOffset?.Invoke() ?? 0;
             int lSortingOrder = -((pCoord.X + pCoord.Y) * lSortingStep) + lSortingOffset;
-            int lSortingLayerId = _ResolveSortingLayerId != null ? _ResolveSortingLayerId.Invoke() : 0;
+            int lSortingLayerId = _ResolveSortingLayerId?.Invoke() ?? 0;
 
             SortingGroup[] lSortingGroups = pMarker.GetComponentsInChildren<SortingGroup>(true);
             for (int lIndex = 0; lIndex < lSortingGroups.Length; lIndex++)
@@ -157,7 +155,7 @@ namespace TacticalPort.View
                 lSortingGroups[lIndex].sortingOrder = lSortingOrder;
             }
 
-            SpriteRenderer[] lRenderers = pMarker.GetComponentsInChildren<SpriteRenderer>(true);
+            Renderer[] lRenderers = pMarker.GetComponentsInChildren<Renderer>(true);
             for (int lIndex = 0; lIndex < lRenderers.Length; lIndex++)
             {
                 lRenderers[lIndex].sortingLayerID = lSortingLayerId;
