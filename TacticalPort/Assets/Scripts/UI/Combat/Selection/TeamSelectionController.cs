@@ -207,7 +207,7 @@ namespace TacticalPort.UI
 
             if (pItem.Icon != null)
             {
-                pItem.Icon.sprite = pDefinition != null ? pDefinition.Portrait : null;
+                pItem.Icon.sprite = pDefinition != null ? pDefinition.DisplaySprite : null;
                 pItem.Icon.preserveAspect = true;
                 pItem.Icon.enabled = pDefinition != null && pItem.Icon.sprite != null;
             }
@@ -255,20 +255,7 @@ namespace TacticalPort.UI
             }
                 : null;
 
-        private static Sprite ResolvePreviewSprite(UnitDefinition pDefinition)
-        {
-            if (pDefinition == null)
-                return null;
-
-            if (pDefinition.UnitViewPrefab != null)
-            {
-                SpriteRenderer lRenderer = pDefinition.UnitViewPrefab.GetComponentInChildren<SpriteRenderer>(true);
-                if (lRenderer != null && lRenderer.sprite != null)
-                    return lRenderer.sprite;
-            }
-
-            return pDefinition.Portrait;
-        }
+        private static Sprite ResolvePreviewSprite(UnitDefinition pDefinition) => pDefinition != null ? pDefinition.DisplaySprite : null;
 
         private static UnitDefinition PopRandomUnit(List<UnitDefinition> pPool)
         {

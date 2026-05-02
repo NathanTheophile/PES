@@ -43,6 +43,7 @@ namespace TacticalPort.View
         #region _____________________________/ ACCESSORS
 
         public UnitId UnitId => _Runtime != null ? _Runtime.Id : UnitId.None;
+        public Sprite BodySprite => _SpriteRenderer != null ? _SpriteRenderer.sprite : null;
 
         #endregion
 

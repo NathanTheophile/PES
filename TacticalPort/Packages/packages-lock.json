@@ -81,23 +81,12 @@
     },
     "com.unity.2d.tilemap": {
       "version": "1.0.0",
-      "depth": 0,
+      "depth": 1,
       "source": "builtin",
       "dependencies": {
         "com.unity.modules.tilemap": "1.0.0",
         "com.unity.modules.uielements": "1.0.0"
       }
-    },
-    "com.unity.2d.tilemap.extras": {
-      "version": "7.0.1",
-      "depth": 0,
-      "source": "registry",
-      "dependencies": {
-        "com.unity.2d.tilemap": "1.0.0",
-        "com.unity.modules.tilemap": "1.0.0",
-        "com.unity.modules.jsonserialize": "1.0.0"
-      },
-      "url": "https://packages.unity.com"
     },
     "com.unity.2d.tooling": {
       "version": "2.0.1",
@@ -514,7 +503,7 @@
     },
     "com.unity.modules.tilemap": {
       "version": "1.0.0",
-      "depth": 0,
+      "depth": 2,
       "source": "builtin",
       "dependencies": {
         "com.unity.modules.physics2d": "1.0.0"
