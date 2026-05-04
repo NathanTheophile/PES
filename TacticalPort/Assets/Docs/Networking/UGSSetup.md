@@ -136,6 +136,14 @@ Resultat attendu apres creation :
 - Pool visible : `defaultClientHosting`.
 - Aucun ticket unmatched inattendu avant les tests.
 
+Etat valide confirme :
+
+- Queue `quickmatch1v1unranked` active.
+- Pool `defaultClientHosting` cree.
+- Hosting type affiche : `Peer-to-peer hosting` / Client Hosting.
+- Timeout pool : `60` secondes.
+- Le smoke test avec deux clients a retourne `Status=Found` et un `MatchId` commun.
+
 ## Client Hosting vs EdgeGap
 
 `Client Hosting` est uniquement un smoke test UGS. Il sert a verifier que Authentication + Matchmaker + flow session/ticket fonctionnent sans serveur dedie.
@@ -196,6 +204,36 @@ Composant de test actuel :
 - Polling par defaut : toutes les `5` secondes pour rester confortablement sous les rate limits UGS.
 - Timeout local par defaut : `90` secondes, pour laisser le pool dashboard expirer a `60` secondes et recuperer le statut final.
 - Usage : ajouter le composant sur un GameObject de test, puis lancer `Run UGS Matchmaker Smoke Test` depuis le menu contextuel du composant ou activer `_RunOnStart`.
+
+Services runtime ajoutes apres validation du smoke test :
+
+- `UgsPlayerIdentityService` implemente `IPlayerIdentityService` avec anonymous sign-in.
+- `UgsQuickMatchService` implemente `IQuickMatchService` pour creer, poller et annuler un ticket Matchmaker.
+- Ces services ne branchent pas encore Lobby, EdgeGap, Cloud Code, PurrNet ou le combat.
+
+Runner de debug service-level :
+
+- Script : `UgsQuickMatchDebugRunner`.
+- Objectif : verifier le flow via les interfaces runtime, sans utiliser directement le smoke test bas niveau.
+- Scene conseillee : `S_UGSSmokeTest`.
+- Setup Unity : ajouter sur un meme GameObject `UgsPlayerIdentityService`, `UgsQuickMatchService` et `UgsQuickMatchDebugRunner`.
+- References Inspector : assigner `UgsPlayerIdentityService` dans `_PlayerIdentityService` et `UgsQuickMatchService` dans `_QuickMatchService`.
+- Valeurs conseillees : `_QueueName = quickmatch1v1unranked`, `_PollIntervalSeconds = 5`, `_TimeoutSeconds = 90`, `_CancelPendingTicketOnDestroy = true`.
+- Usage : activer `_RunOnStart` ou lancer `Run UGS Quick Match Debug` depuis le menu contextuel.
+- Resultat attendu avec deux clients : les deux tickets passent en `Searching`, puis `Found`, avec le meme `MatchId`.
+
+Le script `UgsMatchmakerSmokeTest` reste disponible temporairement comme outil de diagnostic bas niveau, mais le flow futur doit s'appuyer sur les services runtime.
+
+Flow quick match reutilisable :
+
+- Script : `QuickMatchFlowController`.
+- Objectif : orchestrer sign-in, creation ticket, polling, cancel et timeout sans dependance directe a UGS.
+- Dependances Inspector : `_PlayerIdentityServiceSource` doit implementer `IPlayerIdentityService`, `_QuickMatchServiceSource` doit implementer `IQuickMatchService`.
+- Services possibles : `UgsPlayerIdentityService` + `UgsQuickMatchService` pour le vrai UGS, ou services `Local*` pour un test sans reseau.
+- Etats exposes : `Idle`, `SigningIn`, `CreatingTicket`, `Searching`, `Found`, `Failed`, `Cancelled`.
+- Evenement code : `StateChanged(QuickMatchFlowSnapshot)` pour brancher ensuite UI, menu, loading ou connexion reseau.
+- Usage debug : lancer `Start Quick Match` depuis le menu contextuel du composant, ou appeler `StartQuickMatch()` depuis une UI.
+- Ce composant ne charge pas encore de scene, ne connecte pas PurrNet et ne lance pas le combat.
 
 ## Sources
 
