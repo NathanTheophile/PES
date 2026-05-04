@@ -8,8 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Unity.Services.Authentication;
-using Unity.Services.Core;
 using Unity.Services.Matchmaker;
 using Unity.Services.Matchmaker.Models;
 using UnityEngine;
@@ -79,15 +77,14 @@ namespace TacticalPort.Matchmaking
 
             try
             {
-                await EnsureSignedInAsync(_ClearSessionBeforeSignIn);
+                PlayerIdentity lIdentity = await EnsureSignedInAsync(_ClearSessionBeforeSignIn);
 
-                string lPlayerId = AuthenticationService.Instance.PlayerId;
                 CreateTicketResponse lTicket = await MatchmakerService.Instance.CreateTicketAsync(
-                    new List<Player> { new Player(lPlayerId) },
+                    new List<Player> { new Player(lIdentity.PlayerId) },
                     new CreateTicketOptions(_QueueName));
 
                 _CurrentTicketId = lTicket.Id;
-                Debug.Log($"[UGS SmokeTest] Ticket created. PlayerId={lPlayerId}, Queue={_QueueName}, TicketId={_CurrentTicketId}", this);
+                Debug.Log($"[UGS SmokeTest] Ticket created. PlayerId={lIdentity.PlayerId}, Queue={_QueueName}, TicketId={_CurrentTicketId}", this);
 
                 await PollTicketAsync(_CurrentTicketId, pCancellationToken);
             }
@@ -107,19 +104,9 @@ namespace TacticalPort.Matchmaking
             }
         }
 
-        private async Task EnsureSignedInAsync(bool pClearSessionBeforeSignIn)
+        private Task<PlayerIdentity> EnsureSignedInAsync(bool pClearSessionBeforeSignIn)
         {
-            if (UnityServices.State != ServicesInitializationState.Initialized)
-                await UnityServices.InitializeAsync();
-
-            if (pClearSessionBeforeSignIn)
-            {
-                AuthenticationService.Instance.SignOut(true);
-                Debug.Log("[UGS SmokeTest] Authentication session cleared before anonymous sign-in.", this);
-            }
-
-            if (!AuthenticationService.Instance.IsSignedIn)
-                await AuthenticationService.Instance.SignInAnonymouslyAsync();
+            return UgsAuthentication.SignInAnonymouslyAsync(pClearSessionBeforeSignIn, this, CancellationToken.None);
         }
 
         private async Task PollTicketAsync(string pTicketId, CancellationToken pCancellationToken)

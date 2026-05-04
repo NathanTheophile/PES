@@ -91,7 +91,7 @@ namespace TacticalPort.Matchmaking
     [Serializable]
     public sealed class QuickMatchRequest
     {
-        public string QueueName = "quickmatch_1v1_unranked";
+        public string QueueName = "quickmatch1v1unranked";
         public string TeamPresetId = string.Empty;
         public string Region = string.Empty;
     }
