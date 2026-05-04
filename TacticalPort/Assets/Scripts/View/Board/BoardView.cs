@@ -44,6 +44,7 @@ namespace TacticalPort.View
         private readonly Dictionary<GridCoord, CellDefinition> _CellsByCoord = new Dictionary<GridCoord, CellDefinition>();
         private readonly Dictionary<GridCoord, BoardOccupiedCellVisualState> _OccupiedStatesByCoord = new Dictionary<GridCoord, BoardOccupiedCellVisualState>();
         private readonly HashSet<GridCoord> _SpawnerCells = new HashSet<GridCoord>();
+        private readonly Dictionary<MatchPlayerSlot, HashSet<GridCoord>> _SpawnerCellsBySlot = new Dictionary<MatchPlayerSlot, HashSet<GridCoord>>();
         private readonly HashSet<GridCoord> _ReachableCells = new HashSet<GridCoord>();
         private readonly HashSet<GridCoord> _SkillReachableCells = new HashSet<GridCoord>();
         private readonly HashSet<GridCoord> _BlockedSkillReachableCells = new HashSet<GridCoord>();
@@ -54,6 +55,7 @@ namespace TacticalPort.View
         private BattleScenarioDefinition _Scenario;
         private BoardAuthoring3D _Board3DAuthoring;
         private bool _ShowSpawnerCells = true;
+        private MatchPlayerSlot _VisibleSpawnerSlot = MatchPlayerSlot.None;
         private BoardMarkerLayerSet _MarkerLayers;
         private int _BoardSortingLayerId;
         private bool _HasHoveredCell;
@@ -144,14 +146,30 @@ namespace TacticalPort.View
 
         public bool IsSpawnerCell(GridCoord pCoord) => _SpawnerCells.Contains(pCoord);
 
+        public bool IsSpawnerCell(GridCoord pCoord, MatchPlayerSlot pSlot) =>
+            pSlot == MatchPlayerSlot.None
+                ? IsSpawnerCell(pCoord)
+                : _SpawnerCellsBySlot.TryGetValue(pSlot, out HashSet<GridCoord> lCells) && lCells.Contains(pCoord);
+
         public IReadOnlyCollection<GridCoord> GetSpawnerCells() => new List<GridCoord>(_SpawnerCells);
+
+        public IReadOnlyCollection<GridCoord> GetSpawnerCells(MatchPlayerSlot pSlot) =>
+            pSlot != MatchPlayerSlot.None && _SpawnerCellsBySlot.TryGetValue(pSlot, out HashSet<GridCoord> lCells)
+                ? new List<GridCoord>(lCells)
+                : GetSpawnerCells();
 
         public void SetSpawnerCellsVisible(bool pVisible)
         {
-            if (_ShowSpawnerCells == pVisible)
+            SetSpawnerCellsVisible(pVisible, MatchPlayerSlot.None);
+        }
+
+        public void SetSpawnerCellsVisible(bool pVisible, MatchPlayerSlot pVisibleSlot)
+        {
+            if (_ShowSpawnerCells == pVisible && _VisibleSpawnerSlot == pVisibleSlot)
                 return;
 
             _ShowSpawnerCells = pVisible;
+            _VisibleSpawnerSlot = pVisibleSlot;
             RefreshCellStates();
         }
 
@@ -304,6 +322,7 @@ namespace TacticalPort.View
             _CellsByCoord.Clear();
             _OccupiedStatesByCoord.Clear();
             _SpawnerCells.Clear();
+            _SpawnerCellsBySlot.Clear();
             _ReachableCells.Clear();
             _SkillReachableCells.Clear();
             _BlockedSkillReachableCells.Clear();
@@ -336,7 +355,7 @@ namespace TacticalPort.View
         private void RefreshCellStates()
         {
             EnsureMarkerLayers();
-            _MarkerLayers.SyncSpawner(_ShowSpawnerCells, _SpawnerCells, _SpawnerPreviewPrefab);
+            _MarkerLayers.SyncSpawner(_ShowSpawnerCells, ResolveVisibleSpawnerCells(), _SpawnerPreviewPrefab);
             _MarkerLayers.SyncOccupied(
                 _OccupiedStatesByCoord,
                 _PlayerOccupiedPreviewPrefab,
@@ -378,8 +397,8 @@ namespace TacticalPort.View
                     continue;
 
                 _CellsByCoord[lCoord] = lCellDefinition;
-                if (_Board3DAuthoring.TryGetTile(lCoord, out BoardTileAuthoring lTile) && lTile != null && lTile.IsSpawner)
-                    _SpawnerCells.Add(lCoord);
+                if (_Board3DAuthoring.TryGetTile(lCoord, out BoardTileAuthoring lTile) && lTile != null)
+                    AddSpawnerCell(lCoord, lTile.SpawnZone);
             }
         }
 
@@ -392,6 +411,26 @@ namespace TacticalPort.View
 
         private Vector3 ResolveOccupiedPreviewOffset(GridCoord pCoord) =>
             _OccupiedStatesByCoord.ContainsKey(pCoord) ? Vector3.up * _OccupiedPreviewYOffset : Vector3.zero;
+
+        private IReadOnlyCollection<GridCoord> ResolveVisibleSpawnerCells() =>
+            _VisibleSpawnerSlot != MatchPlayerSlot.None && _SpawnerCellsBySlot.TryGetValue(_VisibleSpawnerSlot, out HashSet<GridCoord> lCells)
+                ? lCells
+                : _SpawnerCells;
+
+        private void AddSpawnerCell(GridCoord pCoord, MatchPlayerSlot pSlot)
+        {
+            if (pSlot == MatchPlayerSlot.None)
+                return;
+
+            _SpawnerCells.Add(pCoord);
+            if (!_SpawnerCellsBySlot.TryGetValue(pSlot, out HashSet<GridCoord> lCells))
+            {
+                lCells = new HashSet<GridCoord>();
+                _SpawnerCellsBySlot[pSlot] = lCells;
+            }
+
+            //lCells.Add(pCoord);
+        }
 
         #endregion
     }

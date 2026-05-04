@@ -39,7 +39,8 @@ namespace TacticalPort.Combat
                 return false;
             }
 
-            if (_Context.TryResolveAliveUnitAtCell(pHoveredCell, out UnitRuntime lHoveredUnit) && lHoveredUnit.Team == Team.Player)
+            if (_Context.TryResolveAliveUnitAtCell(pHoveredCell, out UnitRuntime lHoveredUnit)
+                && _Context.Bootstrap.CanLocalPlayerControlUnit(lHoveredUnit))
             {
                 _SelectedPlacementUnitId = lHoveredUnit.Id;
                 _Context.SetStatus($"Selected {lHoveredUnit.Definition.DisplayName}. Choose an empty spawn cell.");
@@ -48,11 +49,13 @@ namespace TacticalPort.Combat
 
             if (!TryGetSelectedUnit(out UnitRuntime lSelectedUnit))
             {
-                _Context.SetStatus("Select a player unit before choosing a placement cell.");
+                _Context.SetStatus("Select one of your units before choosing a placement cell.");
                 return false;
             }
 
-            if (_Context.BoardView == null || !_Context.BoardView.IsSpawnerCell(pHoveredCell))
+            if (_Context.BoardView == null
+                || !_Context.Bootstrap.TryGetPlacementSlotForTeam(lSelectedUnit.Team, out MatchPlayerSlot lSlot)
+                || !_Context.BoardView.IsSpawnerCell(pHoveredCell, lSlot))
             {
                 _Context.SetStatus("Choose a green spawn cell.");
                 return false;
@@ -77,7 +80,11 @@ namespace TacticalPort.Combat
             if (pReachableCells == null || _Context.BoardView == null)
                 return;
 
-            foreach (GridCoord lCoord in _Context.BoardView.GetSpawnerCells())
+            if (!TryGetSelectedUnit(out UnitRuntime lSelectedUnit)
+                || !_Context.Bootstrap.TryGetPlacementSlotForTeam(lSelectedUnit.Team, out MatchPlayerSlot lSlot))
+                return;
+
+            foreach (GridCoord lCoord in _Context.BoardView.GetSpawnerCells(lSlot))
             {
                 if (!_Context.TryResolveAliveUnitAtCell(lCoord, out _))
                     pReachableCells.Add(lCoord);
@@ -101,14 +108,14 @@ namespace TacticalPort.Combat
                 && _Context.Bootstrap.BattleService.TryGetUnit(_SelectedPlacementUnitId, out pUnit)
                 && pUnit != null
                 && pUnit.IsAlive
-                && pUnit.Team == Team.Player;
+                && _Context.Bootstrap.CanLocalPlayerControlUnit(pUnit);
         }
 
         public string ResolveModeMessage()
         {
             return TryGetSelectedUnit(out UnitRuntime lSelectedUnit)
                 ? $"Mode: Placement. Selected {lSelectedUnit.Definition.DisplayName}. Click an empty green spawn cell, then Ready."
-                : "Mode: Placement. Click a player unit, place it on an empty green spawn cell, then Ready.";
+                : "Mode: Placement. Click one of your units, place it on an empty green spawn cell, then Ready.";
         }
 
         #endregion

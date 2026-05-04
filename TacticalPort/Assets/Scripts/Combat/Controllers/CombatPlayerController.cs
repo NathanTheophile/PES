@@ -172,7 +172,7 @@ namespace TacticalPort.Combat
             {
                 _PlacementInteraction.ClearSelection();
                 CancelSkillSelection(null);
-                _BoardView?.SetReachableCells(null);
+                _PreviewController.ClearInteractionPreviews();
                 _Bootstrap.StartCombatFromPlacement();
                 RefreshInteractionState();
                 return;
@@ -225,6 +225,7 @@ namespace TacticalPort.Combat
             _Context.HudManager?.SetSkillState(
                 _Context.CanPlayerIssueCommands(),
                 _SkillSelection.HasSelectedSkill,
+                _Context.Bootstrap.CanLocalPlayerControlUnit,
                 OnSkillButtonClicked,
                 OnCancelSkillButtonClicked);
         }

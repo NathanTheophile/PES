@@ -59,7 +59,7 @@ namespace TacticalPort.Combat
             && _Bootstrap.BattleService != null
             && _Bootstrap.BattleService.Outcome == BattleOutcome.None
             && _Bootstrap.TryGetActiveUnit(out UnitRuntime lActiveUnit)
-            && lActiveUnit.Team == Team.Player;
+            && _Bootstrap.CanLocalPlayerControlUnit(lActiveUnit);
 
         public bool TryGetPlayerActiveUnit(string pEnemyTurnMessage, out UnitRuntime pActiveUnit)
         {
@@ -71,7 +71,7 @@ namespace TacticalPort.Combat
                 return false;
             }
 
-            if (pActiveUnit.Team == Team.Player)
+            if (_Bootstrap.CanLocalPlayerControlUnit(pActiveUnit))
                 return true;
 
             SetStatus($"{pEnemyTurnMessage} during {pActiveUnit.Definition.DisplayName}'s turn.");

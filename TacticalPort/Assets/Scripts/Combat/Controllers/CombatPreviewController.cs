@@ -39,6 +39,22 @@ namespace TacticalPort.Combat
 
         public bool IsReachable(GridCoord pCell) => _ReachableCells.Contains(pCell);
 
+        public void ClearInteractionPreviews()
+        {
+            _ReachableCells.Clear();
+            _BlockedReachableCells.Clear();
+            _LatestReachableCells.Clear();
+            _LatestBlockedReachableCells.Clear();
+            _SkillPreviewCells.Clear();
+
+            if (_Context.BoardView == null)
+                return;
+
+            _Context.BoardView.SetReachableCells(null);
+            _Context.BoardView.SetSkillRangeCells(null, null);
+            _Context.BoardView.SetPreviewCells(null);
+        }
+
         public void SyncReachableCells(
             bool pIsPlacementPhaseActive,
             SkillSelectionController pSkillSelection,
