@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 282ce8e1fc4de754fae88d05b6b0928d, type: 3}
+  m_Name: Unit_plouffy
+  m_EditorClassIdentifier: Assembly-CSharp::TacticalPort.Data.UnitDefinition
+  _Id: plouffy
+  _DisplayName: Plouffy
+  _Description: 
+  _Team: 1
+  _MaxHealth: 100
+  _MoveRange: 3
+  _ActionPointsPerTurn: 8
+  _Initiative: 10
+  _PushDamageBonus: 0
+  _FootprintWidth: 1
+  _FootprintHeight: 1
+  _EnemyAiTargetPriority: 0
+  _EnemyAiMovementPolicy: 0
+  _EnemyAiPreferredDistance: 0
+  _EnemyAiThreatRadius: 0
+  _EnemyAiProfile: {fileID: 0}
+  _Skills:
+  - {fileID: 11400000, guid: bfac4c4b3c27b7a45b3194ab1e8b40a6, type: 2}
+  - {fileID: 11400000, guid: 2e4bbedee9543534cb268057ccc2044a, type: 2}
+  _SkillAiOverrides: []
+  _BaseStates: []
+  _PhaseStates: []
+  _UnitViewPrefab: {fileID: 7390514138790812359, guid: 2bd5d36005010874a9b613a6e715f547, type: 3}
+  _Portrait: {fileID: -5556145934370744350, guid: ef79a625e82fb1d49be0807f29940182, type: 3}
+  _Tint: {r: 1, g: 1, b: 1, a: 1}

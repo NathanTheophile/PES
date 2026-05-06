@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 282ce8e1fc4de754fae88d05b6b0928d, type: 3}
+  m_Name: Unit_roronocroa
+  m_EditorClassIdentifier: Assembly-CSharp::TacticalPort.Data.UnitDefinition
+  _Id: roronocroa
+  _DisplayName: Roronocroa
+  _Description: 
+  _Team: 1
+  _MaxHealth: 100
+  _MoveRange: 5
+  _ActionPointsPerTurn: 8
+  _Initiative: 20
+  _PushDamageBonus: 0
+  _FootprintWidth: 1
+  _FootprintHeight: 1
+  _EnemyAiTargetPriority: 0
+  _EnemyAiMovementPolicy: 0
+  _EnemyAiPreferredDistance: 0
+  _EnemyAiThreatRadius: 0
+  _EnemyAiProfile: {fileID: 0}
+  _Skills:
+  - {fileID: 11400000, guid: a46804f3c1e2de1489f4902bc89a3b54, type: 2}
+  - {fileID: 11400000, guid: d8e5e40fea6460045a671db747813da0, type: 2}
+  _SkillAiOverrides: []
+  _BaseStates: []
+  _PhaseStates: []
+  _UnitViewPrefab: {fileID: 9190741388485313373, guid: 32a42f0c072b4904b8a43558a14bb9c9, type: 3}
+  _Portrait: {fileID: 626069095941527577, guid: 2e52f6e71de6fe24fb4ec0c3e8a8d800, type: 3}
+  _Tint: {r: 1, g: 1, b: 1, a: 1}

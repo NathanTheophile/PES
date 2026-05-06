@@ -79,7 +79,7 @@ namespace TacticalPort.Core
             }
 
             if (lProcessedTargets == 0)
-                return BattleActionResult.Failed(BattleActionType.Skill, "Push could not move any target.");
+                return BattleActionResult.Succeeded(BattleActionType.Skill, string.Empty, lAffectedUnitIds);
 
             string lMessage = lMovedUnits > 0
                 ? $"{pActor.Definition.DisplayName} pushed {lMovedUnits} unit(s)."

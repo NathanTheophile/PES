@@ -1,0 +1,57 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 282ce8e1fc4de754fae88d05b6b0928d, type: 3}
+  m_Name: Unit_boucanier
+  m_EditorClassIdentifier: Assembly-CSharp::TacticalPort.Data.UnitDefinition
+  _Id: boucanier
+  _DisplayName: Boucanier
+  _Description: 
+  _Team: 2
+  _MaxHealth: 100
+  _MoveRange: 5
+  _ActionPointsPerTurn: 8
+  _Initiative: 10
+  _PushDamageBonus: 0
+  _FootprintWidth: 1
+  _FootprintHeight: 1
+  _EnemyAiTargetPriority: 0
+  _EnemyAiMovementPolicy: 0
+  _EnemyAiPreferredDistance: 0
+  _EnemyAiThreatRadius: 0
+  _EnemyAiProfile: {fileID: 11400000, guid: 60ca543cd98401141b322c32e807c97d, type: 2}
+  _Skills:
+  - {fileID: 11400000, guid: 51a5a554e61d6684290b04e5a4571e89, type: 2}
+  - {fileID: 11400000, guid: 84a7e3651a3045c47a23461801c4ef12, type: 2}
+  _SkillAiOverrides:
+  - _Skill: {fileID: 11400000, guid: 51a5a554e61d6684290b04e5a4571e89, type: 2}
+    _Priority: 0
+    _TargetTeam: 0
+    _TargetMode: 0
+    _AllowSelfCast: 0
+    _PreferSelfCastWhenValid: 0
+    _MaxCasterHealthPercent: 0
+    _MinTargetMissingHealth: 0
+    _KiteAfterUse: 0
+  - _Skill: {fileID: 11400000, guid: 84a7e3651a3045c47a23461801c4ef12, type: 2}
+    _Priority: 0
+    _TargetTeam: 0
+    _TargetMode: 0
+    _AllowSelfCast: 0
+    _PreferSelfCastWhenValid: 0
+    _MaxCasterHealthPercent: 0
+    _MinTargetMissingHealth: 0
+    _KiteAfterUse: 0
+  _BaseStates: []
+  _PhaseStates: []
+  _UnitViewPrefab: {fileID: 6651696997939395069, guid: 1270861c10dc78547ac659348a3020bb, type: 3}
+  _Portrait: {fileID: -3061368447033733805, guid: a80c86b399b4bef49859fc349f0e1445, type: 3}
+  _Tint: {r: 1, g: 1, b: 1, a: 1}
