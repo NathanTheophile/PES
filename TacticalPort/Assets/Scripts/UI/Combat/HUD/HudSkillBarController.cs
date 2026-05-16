@@ -111,7 +111,7 @@ namespace TacticalPort.UI
 
             bool lCanDisplayUnitSkills = _CanDisplaySkills != null
                 ? _CanDisplaySkills(pUnit)
-                : pUnit.Team == Team.Player;
+                : pUnit.Team == Team.TeamA;
             if (!lCanDisplayUnitSkills || pUnit.Skills == null || pUnit.Skills.Count == 0)
                 return false;
 

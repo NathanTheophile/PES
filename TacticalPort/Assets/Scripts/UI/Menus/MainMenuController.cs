@@ -4,7 +4,6 @@
 //  Note : MY_CONST, myPublic, m_MyProtected, _MyPrivate, lMyLocal, MyFunc(), pMyParam, onMyEvent, OnMyCallback, MyStruct
 #endregion
 
-using TacticalPort.Shared;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -16,7 +15,8 @@ namespace TacticalPort.UI
         #region _____________________________/ VALUES
 
         [SerializeField] private string _TeamSelectionSceneName = "S_TeamSelection";
-        [SerializeField] private Button _PlayTestButton;
+        [SerializeField] private Button _TeamButton;
+        [SerializeField, HideInInspector] private Button _PlayTestButton;
 
         #endregion
 
@@ -24,27 +24,23 @@ namespace TacticalPort.UI
 
         private void Awake()
         {
-            ValidateReferences();
-            TeamSelectionState.Clear();
+            Button lTeamButton = _TeamButton != null ? _TeamButton : _PlayTestButton;
 
-            if (_PlayTestButton != null)
+            if (lTeamButton == null)
             {
-                _PlayTestButton.onClick.RemoveListener(LoadTeamSelectionScene);
-                _PlayTestButton.onClick.AddListener(LoadTeamSelectionScene);
+                Debug.LogWarning($"{nameof(MainMenuController)} is missing a Team button reference.", this);
+                return;
             }
+
+            lTeamButton.onClick.RemoveListener(OpenTeamSelection);
+            lTeamButton.onClick.AddListener(OpenTeamSelection);
         }
 
         #endregion
 
         #region _____________________________| HELPERS
 
-        private void ValidateReferences()
-        {
-            if (_PlayTestButton == null)
-                Debug.LogWarning($"{nameof(MainMenuController)} is missing reference '{nameof(_PlayTestButton)}'.", this);
-        }
-
-        private void LoadTeamSelectionScene()
+        public void OpenTeamSelection()
         {
             if (!string.IsNullOrWhiteSpace(_TeamSelectionSceneName))
                 SceneManager.LoadScene(_TeamSelectionSceneName);

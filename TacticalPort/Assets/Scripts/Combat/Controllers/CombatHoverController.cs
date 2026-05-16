@@ -54,8 +54,7 @@ namespace TacticalPort.Combat
                 return;
             }
 
-            _Context.HudManager?.SetMapHoveredUnit(
-                _Context.TryResolveAliveUnitAtCell(lHoveredCell, out UnitRuntime lHoveredUnit) ? lHoveredUnit : null);
+            _Context.HudManager?.SetMapHoveredUnit(ResolveVisibleHoveredUnit(lHoveredCell));
 
             if (_HasHoveredCell && _HoveredCell == lHoveredCell)
                 return;
@@ -129,6 +128,17 @@ namespace TacticalPort.Combat
             lWorldPosition.z = lBoardZ;
 
             return _Context.BoardView.TryGetGridCoord(lWorldPosition, out pCoord);
+        }
+
+        private UnitRuntime ResolveVisibleHoveredUnit(GridCoord pCell)
+        {
+            if (!_Context.TryResolveAliveUnitAtCell(pCell, out UnitRuntime lHoveredUnit))
+                return null;
+
+            return _Context.IsPlacementPhaseActive
+                   && _Context.Bootstrap.GetLocalTeamRelation(lHoveredUnit) == CombatTeamRelation.Opponent
+                ? null
+                : lHoveredUnit;
         }
 
         private void ClearHoveredCell()

@@ -88,7 +88,6 @@ namespace TacticalPort.Core
             _TurnSystem.Initialize(_UnitsById.Values);
             Phase = BattlePhase.Setup;
             Outcome = BattleOutcome.None;
-            EvaluateOutcome();
         }
 
         #endregion
@@ -97,6 +96,7 @@ namespace TacticalPort.Core
 
         public bool TryStartNextTurn(out BattleTurnContext pTurnContext)
         {
+            EvaluateOutcome();
             if (Outcome != BattleOutcome.None)
             {
                 pTurnContext = null;

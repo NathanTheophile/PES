@@ -93,7 +93,7 @@ namespace TacticalPort.Core
         public static int DistanceToNearestHostile(EnemyAiContext pContext, GridCoord pCell)
         {
             UnitRuntime lActor = pContext.Actor;
-            Team lHostileTeam = lActor.Team == Team.Player ? Team.Enemy : Team.Player;
+            Team lHostileTeam = lActor.Team == Team.TeamA ? Team.TeamB : Team.TeamA;
             int lBestDistance = int.MaxValue;
             foreach (UnitRuntime lUnit in EnemyAiTargeting.GetPriorityUnits(pContext, lHostileTeam))
                 lBestDistance = Math.Min(lBestDistance, DistanceToUnit(lUnit, pCell));

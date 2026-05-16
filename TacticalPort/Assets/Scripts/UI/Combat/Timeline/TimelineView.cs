@@ -26,6 +26,7 @@ namespace TacticalPort.UI
         private IBattleService _BattleService;
         private Action<UnitRuntime> _OnUnitHoverEnter;
         private Action<UnitRuntime> _OnUnitHoverExit;
+        private MatchPlayerSlot _LocalPlayerSlot = MatchPlayerSlot.TeamA;
 
         #endregion
 
@@ -79,6 +80,16 @@ namespace TacticalPort.UI
             Rebuild();
         }
 
+        public void SetLocalPlayerSlot(MatchPlayerSlot pSlot)
+        {
+            if (pSlot == MatchPlayerSlot.None || _LocalPlayerSlot == pSlot)
+                return;
+
+            _LocalPlayerSlot = pSlot;
+            for (int lIndex = 0; lIndex < _RuntimeElements.Count; lIndex++)
+                _RuntimeElements[lIndex]?.SetLocalPlayerSlot(_LocalPlayerSlot);
+        }
+
         #endregion
 
         #region _____________________________| DISPLAY
@@ -101,6 +112,7 @@ namespace TacticalPort.UI
                 TimelineElementView lElement = Instantiate(_ElementPrefab, _ContentRoot);
                 lElement.gameObject.SetActive(true);
                 lElement.Bind(lUnit, _OnUnitHoverEnter, _OnUnitHoverExit);
+                lElement.SetLocalPlayerSlot(_LocalPlayerSlot);
 
                 _RuntimeElements.Add(lElement);
                 _DisplayedUnits.Add(lUnit);

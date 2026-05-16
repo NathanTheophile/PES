@@ -9,6 +9,9 @@ EditorBuildSettings:
     path: Assets/Scenes/SampleScene.unity
     guid: 8c9cfa26abfee488c85f1582747f6a02
   - enabled: 1
+    path: Assets/Scenes/S_Bootstrap.unity
+    guid: 364cee489ce5f664a802f60b9b48a589
+  - enabled: 1
     path: Assets/Scenes/S_MainMenu.unity
     guid: b6ae18204357d2f4da5efd4ace1095f9
   - enabled: 1
@@ -18,4 +21,5 @@ EditorBuildSettings:
     path: Assets/Scenes/S_Poutch.unity
     guid: bb6f0e038990c7846a63c8d8a75ab498
   m_configObjects:
+    com.unity.dt.app-ui: {fileID: 11400000, guid: 1b1c20d82303e4b5781c3ef50ac1449f, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}

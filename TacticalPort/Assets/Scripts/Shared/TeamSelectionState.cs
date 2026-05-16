@@ -4,8 +4,8 @@
 //  Shared
 #endregion
 
-using System.Collections.Generic;
 using TacticalPort.Data;
+using UnityEngine;
 
 namespace TacticalPort.Shared
 {
@@ -13,32 +13,36 @@ namespace TacticalPort.Shared
     {
         #region _____________________________/ VALUES
 
-        private static readonly List<UnitDefinition> _SelectedUnits = new List<UnitDefinition>(3);
+        private const string SavedUnitIdsKey = "TacticalPort.TeamSelection.UnitIds.v1";
 
-        #endregion
-
-        #region _____________________________/ ACCESSORS
-
-        public static bool HasSelection => _SelectedUnits.Count > 0;
-        public static IReadOnlyList<UnitDefinition> SelectedUnits => _SelectedUnits;
+        public static bool HasSelection => CombatTeamCompositionState.HasLocalSelection;
+        public static System.Collections.Generic.IReadOnlyList<UnitDefinition> SelectedUnits => CombatTeamCompositionState.LocalSelectedUnits;
+        public static System.Collections.Generic.IReadOnlyList<string> SelectedUnitIds => CombatTeamCompositionState.LocalSelectedUnitIds;
 
         #endregion
 
         #region _____________________________| BUILD
 
-        public static void Clear() => _SelectedUnits.Clear();
+        public static void Clear() => CombatTeamCompositionState.Clear();
 
-        public static void SetSelectedUnits(IReadOnlyList<UnitDefinition> pUnits)
+        public static void SetSelectedUnits(System.Collections.Generic.IReadOnlyList<UnitDefinition> pUnits) =>
+            CombatTeamCompositionState.SetLocalSelectedUnits(pUnits);
+
+        public static void SaveSelectedUnits()
         {
-            _SelectedUnits.Clear();
-            if (pUnits == null)
-                return;
+            PlayerPrefs.SetString(SavedUnitIdsKey, string.Join("|", SelectedUnitIds));
+            PlayerPrefs.Save();
+        }
 
-            for (int lIndex = 0; lIndex < pUnits.Count; lIndex++)
-            {
-                if (pUnits[lIndex] != null)
-                    _SelectedUnits.Add(pUnits[lIndex]);
-            }
+        public static bool LoadSavedUnitIds()
+        {
+            string lRawIds = PlayerPrefs.GetString(SavedUnitIdsKey, string.Empty);
+            if (string.IsNullOrWhiteSpace(lRawIds))
+                return false;
+
+            string[] lIds = lRawIds.Split('|');
+            CombatTeamCompositionState.SetLocalSelectedUnitIds(lIds);
+            return SelectedUnitIds.Count > 0;
         }
 
         #endregion

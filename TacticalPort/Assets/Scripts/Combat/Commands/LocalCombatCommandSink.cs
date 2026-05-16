@@ -33,17 +33,22 @@ namespace TacticalPort.Combat
         public bool CanRunAuthoritativeSimulation => true;
         public bool CanRunEnemyAi => true;
 
-        public bool CanLocallyControlTeam(Team pTeam) => pTeam == Team.Player;
+        public bool CanLocallyControlTeam(Team pTeam) => GetLocalRelation(pTeam) == CombatTeamRelation.Own;
 
         public bool TryGetSlotForTeam(Team pTeam, out MatchPlayerSlot pSlot)
         {
-            pSlot = pTeam == Team.Player
-                ? MatchPlayerSlot.TeamA
-                : pTeam == Team.Enemy
-                    ? MatchPlayerSlot.TeamB
-                    : MatchPlayerSlot.None;
+            pSlot = CombatTeamUtility.ToSlot(pTeam);
             return pSlot != MatchPlayerSlot.None;
         }
+
+        public bool TryGetLocalPlayerSlot(out MatchPlayerSlot pSlot)
+        {
+            pSlot = MatchPlayerSlot.TeamA;
+            return true;
+        }
+
+        public CombatTeamRelation GetLocalRelation(Team pTeam) =>
+            CombatTeamUtility.ResolveRelation(pTeam, MatchPlayerSlot.TeamA);
 
         #endregion
 
