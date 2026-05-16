@@ -80,6 +80,12 @@ namespace TacticalPort.UI
             Refresh();
         }
 
+        public void SetLocalPlayerSlot(MatchPlayerSlot pSlot)
+        {
+            if (pSlot != MatchPlayerSlot.None)
+                _TimelineView?.SetLocalPlayerSlot(pSlot);
+        }
+
         public void SetStatus(string pMessage)
         {
             string lMessage = pMessage ?? string.Empty;
@@ -103,11 +109,12 @@ namespace TacticalPort.UI
         public void SetSkillState(
             bool pCanUseSkills,
             bool pCanCancelSkill,
+            Func<UnitRuntime, bool> pCanDisplaySkills,
             Action<int> pOnSkillButtonClicked,
             Action pOnCancelSkillButtonClicked)
         {
             CreateControllers();
-            _SkillBar?.SetState(pCanUseSkills, pOnSkillButtonClicked);
+            _SkillBar?.SetState(pCanUseSkills, pCanDisplaySkills, pOnSkillButtonClicked);
 
             if (_CanCancelSkill == pCanCancelSkill && _OnCancelSkillButtonClicked == pOnCancelSkillButtonClicked)
                 return;

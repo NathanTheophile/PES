@@ -273,7 +273,7 @@ namespace TacticalPort.Core
         private static int ScoreCellNearHostiles(EnemyAiContext pContext, GridCoord pCell, int pMaxBonus)
         {
             UnitRuntime lActor = pContext.Actor;
-            Team lHostileTeam = lActor.Team == Team.Player ? Team.Enemy : Team.Player;
+            Team lHostileTeam = lActor.Team == Team.TeamA ? Team.TeamB : Team.TeamA;
             return ScoreCellNearTeam(pContext, pCell, lHostileTeam, pMaxBonus);
         }
 

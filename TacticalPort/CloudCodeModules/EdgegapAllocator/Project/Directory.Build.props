@@ -1,0 +1,8 @@
+<Project>
+    <PropertyGroup>
+        <CloudCodeBuildRoot>$(MSBuildThisFileDirectory)..\..\..\Library\CloudCodeBuild\EdgegapAllocator\</CloudCodeBuildRoot>
+        <BaseOutputPath>$(CloudCodeBuildRoot)bin\</BaseOutputPath>
+        <BaseIntermediateOutputPath>$(CloudCodeBuildRoot)obj\</BaseIntermediateOutputPath>
+        <MSBuildProjectExtensionsPath>$(BaseIntermediateOutputPath)</MSBuildProjectExtensionsPath>
+    </PropertyGroup>
+</Project>

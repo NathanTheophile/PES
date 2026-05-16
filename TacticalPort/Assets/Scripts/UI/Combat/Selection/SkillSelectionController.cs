@@ -140,7 +140,7 @@ namespace TacticalPort.UI
                 Cancel(null);
             }
 
-            if (lActiveUnit.Team != Team.Player)
+            if (!_Context.Bootstrap.CanLocalPlayerControlUnit(lActiveUnit))
             {
                 Cancel(null);
                 return;
@@ -169,8 +169,8 @@ namespace TacticalPort.UI
             if (_Context.Bootstrap == null || !_Context.Bootstrap.TryGetActiveUnit(out UnitRuntime lActiveUnit))
                 return "Mode: Waiting for an active unit.";
 
-            if (lActiveUnit.Team != Team.Player)
-                return $"Mode: Enemy turn for {lActiveUnit.Definition.DisplayName}.";
+            if (!_Context.Bootstrap.CanLocalPlayerControlUnit(lActiveUnit))
+                return $"Mode: Waiting during {lActiveUnit.Definition.DisplayName}'s turn.";
 
             if (!HasSelectedSkill)
                 return "Mode: Move. Click a blue cell to move, or choose a skill.";

@@ -41,12 +41,14 @@ namespace TacticalPort.UI
         #region _____________________________/ VALUES
 
         [SerializeField] private List<UnitDefinition> _AvailableUnits = new List<UnitDefinition>();
-        [SerializeField] private string _CombatSceneName = "S_Poutch";
+        [SerializeField] private string _MainMenuSceneName = "S_MainMenu";
         [SerializeField] private List<CharacterSlotView> _Slots = new List<CharacterSlotView>(3);
         [SerializeField] private RectTransform _GridRoot;
         [SerializeField] private RectTransform _GridItemPrefab;
         [SerializeField] private GameObject _GridPanel;
-        [SerializeField] private Button _LaunchButton;
+        [SerializeField] private Button _SaveButton;
+        [SerializeField, HideInInspector] private Button _LaunchButton;
+        [SerializeField] private TMP_Text _SaveButtonLabel;
 
         private readonly List<UnitDefinition> _SelectedUnits = new List<UnitDefinition>(3);
 
@@ -64,6 +66,7 @@ namespace TacticalPort.UI
             BuildGrid();
             SetGridVisible(false);
             HookButtons();
+            RefreshSaveButtonLabel();
         }
 
         #endregion
@@ -76,6 +79,13 @@ namespace TacticalPort.UI
             List<UnitDefinition> lAvailableUnits = GetAvailableUnits();
             if (lAvailableUnits.Count == 0)
                 return;
+
+            if (TryLoadCurrentSelection(lAvailableUnits, _SelectedUnits))
+            {
+                FillMissingSlots(lAvailableUnits, _SelectedUnits);
+                TeamSelectionState.SetSelectedUnits(_SelectedUnits);
+                return;
+            }
 
             List<UnitDefinition> lPool = new List<UnitDefinition>();
             lPool.AddRange(lAvailableUnits);
@@ -126,10 +136,11 @@ namespace TacticalPort.UI
                 lSwitchButton.onClick.AddListener(() => OpenGridForSlot(lSlotIndex));
             }
 
-            if (_LaunchButton != null)
+            Button lSaveButton = ResolveSaveButton();
+            if (lSaveButton != null)
             {
-                _LaunchButton.onClick.RemoveAllListeners();
-                _LaunchButton.onClick.AddListener(LaunchCombatScene);
+                lSaveButton.onClick.RemoveAllListeners();
+                lSaveButton.onClick.AddListener(SaveSelectionAndReturnToMenu);
             }
         }
 
@@ -165,11 +176,13 @@ namespace TacticalPort.UI
             SetGridVisible(false);
         }
 
-        private void LaunchCombatScene()
+        private void SaveSelectionAndReturnToMenu()
         {
             TeamSelectionState.SetSelectedUnits(_SelectedUnits);
-            if (!string.IsNullOrWhiteSpace(_CombatSceneName))
-                SceneManager.LoadScene(_CombatSceneName);
+            TeamSelectionState.SaveSelectedUnits();
+
+            if (!string.IsNullOrWhiteSpace(_MainMenuSceneName))
+                SceneManager.LoadScene(_MainMenuSceneName);
         }
 
         private void SetGridVisible(bool pVisible)
@@ -257,6 +270,86 @@ namespace TacticalPort.UI
 
         private static Sprite ResolvePreviewSprite(UnitDefinition pDefinition) => pDefinition != null ? pDefinition.DisplaySprite : null;
 
+        private bool TryLoadCurrentSelection(IReadOnlyList<UnitDefinition> pAvailableUnits, List<UnitDefinition> pTarget)
+        {
+            if (!TeamSelectionState.HasSelection && !TeamSelectionState.LoadSavedUnitIds())
+                return false;
+
+            if (TeamSelectionState.SelectedUnits.Count > 0)
+            {
+                List<string> lUnitIds = new List<string>(TeamSelectionState.SelectedUnits.Count);
+                for (int lIndex = 0; lIndex < TeamSelectionState.SelectedUnits.Count; lIndex++)
+                {
+                    UnitDefinition lUnit = TeamSelectionState.SelectedUnits[lIndex];
+                    if (lUnit != null)
+                        lUnitIds.Add(lUnit.Id);
+                }
+
+                return TryResolveSelection(lUnitIds, pAvailableUnits, pTarget);
+            }
+
+            return TryResolveSelection(TeamSelectionState.SelectedUnitIds, pAvailableUnits, pTarget);
+        }
+
+        private static bool TryResolveSelection(IReadOnlyList<string> pUnitIds, IReadOnlyList<UnitDefinition> pAvailableUnits, List<UnitDefinition> pTarget)
+        {
+            pTarget.Clear();
+            if (pUnitIds == null || pAvailableUnits == null)
+                return false;
+
+            for (int lIndex = 0; lIndex < pUnitIds.Count; lIndex++)
+            {
+                UnitDefinition lUnit = FindAvailableUnitById(pAvailableUnits, pUnitIds[lIndex]);
+                if (lUnit != null)
+                    pTarget.Add(lUnit);
+            }
+
+            return pTarget.Count > 0;
+        }
+
+        private static UnitDefinition FindAvailableUnitById(IReadOnlyList<UnitDefinition> pAvailableUnits, string pId)
+        {
+            if (string.IsNullOrWhiteSpace(pId))
+                return null;
+
+            for (int lIndex = 0; lIndex < pAvailableUnits.Count; lIndex++)
+            {
+                UnitDefinition lUnit = pAvailableUnits[lIndex];
+                if (lUnit != null && string.Equals(lUnit.Id, pId, System.StringComparison.Ordinal))
+                    return lUnit;
+            }
+
+            return null;
+        }
+
+        private void FillMissingSlots(IReadOnlyList<UnitDefinition> pAvailableUnits, List<UnitDefinition> pTarget)
+        {
+            if (pAvailableUnits == null || pAvailableUnits.Count == 0 || pTarget == null)
+                return;
+
+            int lSlotCount = _Slots != null ? _Slots.Count : 0;
+            while (pTarget.Count < lSlotCount)
+                pTarget.Add(pAvailableUnits[pTarget.Count % pAvailableUnits.Count]);
+
+            if (pTarget.Count > lSlotCount)
+                pTarget.RemoveRange(lSlotCount, pTarget.Count - lSlotCount);
+        }
+
+        private void RefreshSaveButtonLabel()
+        {
+            Button lSaveButton = ResolveSaveButton();
+            TMP_Text lLabel = _SaveButtonLabel != null
+                ? _SaveButtonLabel
+                : lSaveButton != null
+                    ? lSaveButton.GetComponentInChildren<TMP_Text>(true)
+                    : null;
+
+            if (lLabel != null)
+                lLabel.text = "SAVE";
+        }
+
+        private Button ResolveSaveButton() => _SaveButton != null ? _SaveButton : _LaunchButton;
+
         private static UnitDefinition PopRandomUnit(List<UnitDefinition> pPool)
         {
             if (pPool == null || pPool.Count == 0)
@@ -288,7 +381,7 @@ namespace TacticalPort.UI
             LogMissingReference(_GridRoot, nameof(_GridRoot));
             LogMissingReference(_GridItemPrefab, nameof(_GridItemPrefab));
             LogMissingReference(_GridPanel, nameof(_GridPanel));
-            LogMissingReference(_LaunchButton, nameof(_LaunchButton));
+            LogMissingReference(ResolveSaveButton(), nameof(_SaveButton));
         }
 
         private void LogMissingReference(Object pReference, string pFieldName)

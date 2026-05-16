@@ -172,7 +172,7 @@ namespace TacticalPort.Combat
             {
                 _PlacementInteraction.ClearSelection();
                 CancelSkillSelection(null);
-                _BoardView?.SetReachableCells(null);
+                _PreviewController.ClearInteractionPreviews();
                 _Bootstrap.StartCombatFromPlacement();
                 RefreshInteractionState();
                 return;
@@ -212,7 +212,7 @@ namespace TacticalPort.Combat
             if (IsPlacementPhaseActive())
             {
                 _Context.HudManager?.SetEndTurnLabel("Ready");
-                _Context.HudManager?.SetEndTurnAvailable(true, OnEndTurnButtonClicked);
+                _Context.HudManager?.SetEndTurnAvailable(CanReadyPlacement(), OnEndTurnButtonClicked);
                 return;
             }
 
@@ -225,6 +225,7 @@ namespace TacticalPort.Combat
             _Context.HudManager?.SetSkillState(
                 _Context.CanPlayerIssueCommands(),
                 _SkillSelection.HasSelectedSkill,
+                _Context.Bootstrap.CanLocalPlayerControlUnit,
                 OnSkillButtonClicked,
                 OnCancelSkillButtonClicked);
         }
@@ -270,6 +271,11 @@ namespace TacticalPort.Combat
         private bool CanRun() => _Context != null && _Context.CanRun();
 
         private bool IsPlacementPhaseActive() => _Context != null && _Context.IsPlacementPhaseActive;
+
+        private bool CanReadyPlacement() =>
+            _Bootstrap != null
+            && _Bootstrap.TryGetLocalPlayerSlot(out MatchPlayerSlot lSlot)
+            && _Bootstrap.TryValidatePlacementReadyForSlot(lSlot, out _);
 
         private bool IsPointerOverUi() => EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
 

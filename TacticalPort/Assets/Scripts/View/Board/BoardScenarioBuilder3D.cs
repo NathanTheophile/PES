@@ -13,6 +13,8 @@ namespace TacticalPort.View
 {
     internal static class BoardScenarioBuilder3D
     {
+        private const int DefaultTeamSize = 3;
+
         public static BattleScenarioDefinition Build(
             SceneScenarioDefinition pScenario,
             IReadOnlyDictionary<Vector2Int, BoardTileAuthoring> pTilesByAuthoredCoordinate,
@@ -23,8 +25,9 @@ namespace TacticalPort.View
             int lDefaultMovementCost = Mathf.Max(1, pScenario.DefaultMovementCost);
             List<CellDefinition> lCells = new List<CellDefinition>(pBounds.width * pBounds.height);
             List<UnitSpawnDefinition> lUnits = new List<UnitSpawnDefinition>();
-            List<UnitDefinition> lSpawnerFallbackUnits = new List<UnitDefinition>();
-            List<GridCoord> lSpawnerCoords = new List<GridCoord>();
+            List<UnitSpawnDefinition> lDirectUnits = new List<UnitSpawnDefinition>();
+            List<SpawnCell> lSpawnCells = new List<SpawnCell>();
+            List<UnitDefinition> lFallbackRoster = new List<UnitDefinition>();
 
             for (int lY = pBounds.yMin; lY < pBounds.yMax; lY++)
             {
@@ -45,11 +48,15 @@ namespace TacticalPort.View
                         MovementCost = lHasTile ? lTile.MovementCost : lDefaultMovementCost
                     });
 
-                    AppendAuthoredSpawn(lUnits, lSpawnerCoords, lSpawnerFallbackUnits, lRuntimeCoord, lTile, lHasTile);
+                    AppendAuthoredSpawn(lDirectUnits, lSpawnCells, lFallbackRoster, lRuntimeCoord, lTile, lHasTile);
                 }
             }
 
-            AppendSelectedTeamSpawns(lUnits, lSpawnerCoords, lSpawnerFallbackUnits);
+            if (lSpawnCells.Count > 0)
+                AppendSelectedTeamSpawns(lUnits, lSpawnCells, lFallbackRoster, pScenario);
+            else
+                lUnits.AddRange(lDirectUnits);
+
             return BattleScenarioDefinition.CreateRuntime(
                 pScenario.ScenarioId,
                 pScenario.DisplayName,
@@ -62,8 +69,8 @@ namespace TacticalPort.View
 
         private static void AppendAuthoredSpawn(
             ICollection<UnitSpawnDefinition> pUnits,
-            ICollection<GridCoord> pSpawnerCoords,
-            ICollection<UnitDefinition> pSpawnerFallbackUnits,
+            ICollection<SpawnCell> pSpawnCells,
+            ICollection<UnitDefinition> pFallbackRoster,
             GridCoord pRuntimeCoord,
             BoardTileAuthoring pTile,
             bool pHasTile)
@@ -71,10 +78,12 @@ namespace TacticalPort.View
             if (!pHasTile || pTile == null)
                 return;
 
-            if (pTile.IsSpawner)
+            if (pTile.OccupantDefinition != null)
+                pFallbackRoster?.Add(pTile.OccupantDefinition);
+
+            if (pTile.AssignedTeam != MatchPlayerSlot.None)
             {
-                pSpawnerCoords.Add(pRuntimeCoord);
-                pSpawnerFallbackUnits.Add(pTile.OccupantDefinition);
+                pSpawnCells.Add(new SpawnCell(pRuntimeCoord, pTile.AssignedTeam, pTile.OccupantDefinition));
                 return;
             }
 
@@ -90,44 +99,102 @@ namespace TacticalPort.View
 
         private static void AppendSelectedTeamSpawns(
             ICollection<UnitSpawnDefinition> pUnits,
-            IReadOnlyList<GridCoord> pSpawnerCoords,
-            IReadOnlyList<UnitDefinition> pSpawnerFallbackUnits)
+            IReadOnlyList<SpawnCell> pSpawnCells,
+            IReadOnlyList<UnitDefinition> pFallbackRoster,
+            SceneScenarioDefinition pScenario)
         {
-            if (pUnits == null || pSpawnerCoords == null || pSpawnerCoords.Count == 0)
+            if (pUnits == null || pSpawnCells == null || pSpawnCells.Count == 0)
                 return;
 
-            int lSpawnerIndex = 0;
-            if (TeamSelectionState.HasSelection)
-            {
-                IReadOnlyList<UnitDefinition> lSelectedUnits = TeamSelectionState.SelectedUnits;
-                for (int lIndex = 0; lIndex < lSelectedUnits.Count && lSpawnerIndex < pSpawnerCoords.Count; lIndex++)
-                {
-                    UnitDefinition lSelectedUnit = lSelectedUnits[lIndex];
-                    if (lSelectedUnit == null)
-                        continue;
+            IReadOnlyList<UnitDefinition> lTeamAUnits = ResolveComposition(pScenario, MatchPlayerSlot.TeamA);
+            IReadOnlyList<UnitDefinition> lTeamBUnits = ResolveComposition(pScenario, MatchPlayerSlot.TeamB);
 
-                    pUnits.Add(new UnitSpawnDefinition
-                    {
-                        Unit = UnitDefinition.CreateRuntimeClone(lSelectedUnit, Team.Player),
-                        StartCoordinate = new SerializableGridCoord(pSpawnerCoords[lSpawnerIndex].X, pSpawnerCoords[lSpawnerIndex].Y)
-                    });
-                    lSpawnerIndex++;
-                }
-            }
+            AppendSpawnedTeam(pUnits, pSpawnCells, pFallbackRoster, MatchPlayerSlot.TeamA, Team.TeamA, lTeamAUnits, ResolveTeamSize(lTeamAUnits));
+            AppendSpawnedTeam(pUnits, pSpawnCells, pFallbackRoster, MatchPlayerSlot.TeamB, Team.TeamB, lTeamBUnits, ResolveTeamSize(lTeamBUnits));
+        }
 
-            for (; lSpawnerIndex < pSpawnerCoords.Count; lSpawnerIndex++)
+        private static IReadOnlyList<UnitDefinition> ResolveComposition(SceneScenarioDefinition pScenario, MatchPlayerSlot pSlot)
+        {
+            if (CombatTeamCompositionState.TryGetComposition(pSlot, out IReadOnlyList<UnitDefinition> lRuntimeUnits))
+                return lRuntimeUnits;
+
+            return pScenario != null && pScenario.TryGetComposition(pSlot, out IReadOnlyList<UnitDefinition> lSceneUnits)
+                ? lSceneUnits
+                : null;
+        }
+
+        private static int ResolveTeamSize(IReadOnlyList<UnitDefinition> pUnits) =>
+            pUnits != null && pUnits.Count > 0 ? pUnits.Count : DefaultTeamSize;
+
+        private static void AppendSpawnedTeam(
+            ICollection<UnitSpawnDefinition> pUnits,
+            IReadOnlyList<SpawnCell> pSpawnCells,
+            IReadOnlyList<UnitDefinition> pFallbackRoster,
+            MatchPlayerSlot pSlot,
+            Team pTeam,
+            IReadOnlyList<UnitDefinition> pSelectedUnits,
+            int pMaxUnits)
+        {
+            int lAddedUnits = 0;
+            int lSelectedIndex = 0;
+            for (int lSpawnIndex = 0; lSpawnIndex < pSpawnCells.Count && lAddedUnits < pMaxUnits; lSpawnIndex++)
             {
-                UnitDefinition lFallbackUnit = pSpawnerFallbackUnits != null && lSpawnerIndex < pSpawnerFallbackUnits.Count
-                    ? pSpawnerFallbackUnits[lSpawnerIndex]
-                    : null;
-                if (lFallbackUnit == null)
+                SpawnCell lSpawnCell = pSpawnCells[lSpawnIndex];
+                if (lSpawnCell.Slot != pSlot)
+                    continue;
+
+                UnitDefinition lSource = ResolveSpawnUnit(lSpawnCell, pFallbackRoster, pSelectedUnits, ref lSelectedIndex);
+                if (lSource == null)
                     continue;
 
                 pUnits.Add(new UnitSpawnDefinition
                 {
-                    Unit = lFallbackUnit,
-                    StartCoordinate = new SerializableGridCoord(pSpawnerCoords[lSpawnerIndex].X, pSpawnerCoords[lSpawnerIndex].Y)
+                    Unit = UnitDefinition.CreateRuntimeClone(lSource, pTeam),
+                    StartCoordinate = new SerializableGridCoord(lSpawnCell.Coord.X, lSpawnCell.Coord.Y)
                 });
+                lAddedUnits++;
+            }
+        }
+
+        private static UnitDefinition ResolveSpawnUnit(
+            SpawnCell pSpawnCell,
+            IReadOnlyList<UnitDefinition> pFallbackRoster,
+            IReadOnlyList<UnitDefinition> pSelectedUnits,
+            ref int pSelectedIndex)
+        {
+            while (pSelectedUnits != null && pSelectedIndex < pSelectedUnits.Count)
+            {
+                UnitDefinition lSelectedUnit = pSelectedUnits[pSelectedIndex++];
+                if (lSelectedUnit != null)
+                    return lSelectedUnit;
+            }
+
+            if (pSpawnCell.FallbackUnit != null)
+                return pSpawnCell.FallbackUnit;
+
+            if (pFallbackRoster == null)
+                return null;
+
+            for (int lIndex = 0; lIndex < pFallbackRoster.Count; lIndex++)
+            {
+                if (pFallbackRoster[lIndex] != null)
+                    return pFallbackRoster[lIndex];
+            }
+
+            return null;
+        }
+
+        private readonly struct SpawnCell
+        {
+            public readonly GridCoord Coord;
+            public readonly MatchPlayerSlot Slot;
+            public readonly UnitDefinition FallbackUnit;
+
+            public SpawnCell(GridCoord pCoord, MatchPlayerSlot pSlot, UnitDefinition pFallbackUnit)
+            {
+                Coord = pCoord;
+                Slot = pSlot;
+                FallbackUnit = pFallbackUnit;
             }
         }
     }

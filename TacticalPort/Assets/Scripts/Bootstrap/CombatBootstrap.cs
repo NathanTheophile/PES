@@ -27,10 +27,15 @@ namespace TacticalPort.Bootstrap
         [SerializeField] private bool _AutoAdvanceTurns = true;
         [SerializeField] private bool _RefreshPresentationEachFrame;
         [SerializeField, Min(0f)] private float _EnemyTurnDelaySeconds = 0.15f;
+        [Tooltip("Optional command sink used to route combat actions through networking. Leave empty for local solo execution.")]
+        [SerializeField] private MonoBehaviour _CommandSinkBehaviour;
 
         private readonly Dictionary<UnitId, UnitView> _UnitViews = new Dictionary<UnitId, UnitView>();
+        private readonly List<UnitRuntime> _VisibleUnitsScratch = new List<UnitRuntime>();
         private IBattleService _BattleService;
         private EnemyTurnController _EnemyTurnController;
+        private ICombatCommandSink _CommandSink;
+        private LocalCombatCommandSink _LocalCommandSink;
         private bool _IsBootstrapped;
 
         #endregion
@@ -44,6 +49,32 @@ namespace TacticalPort.Bootstrap
         public HUDManager HudManager => _SceneReferences != null ? _SceneReferences.HudManager : null;
         public BoardCursorView BoardCursorView => _SceneReferences != null ? _SceneReferences.BoardCursorView : null;
         public bool IsPlacementPhaseActive => _BattleService != null && _BattleService.Phase == BattlePhase.Placement;
+        public ICombatCommandSink CommandSink => ResolveCommandSink();
+        public bool CanLocalPlayerControlTeam(Team pTeam) => CommandSink != null && CommandSink.CanLocallyControlTeam(pTeam);
+        public bool CanLocalPlayerControlUnit(UnitRuntime pUnit) => pUnit != null && CanLocalPlayerControlTeam(pUnit.Team);
+        public bool TryGetLocalPlayerSlot(out MatchPlayerSlot pSlot)
+        {
+            if (CommandSink != null && CommandSink.TryGetLocalPlayerSlot(out pSlot))
+                return true;
+
+            pSlot = MatchPlayerSlot.None;
+            return false;
+        }
+
+        public CombatTeamRelation GetLocalTeamRelation(Team pTeam) =>
+            CommandSink != null ? CommandSink.GetLocalRelation(pTeam) : CombatTeamRelation.Neutral;
+
+        public CombatTeamRelation GetLocalTeamRelation(UnitRuntime pUnit) =>
+            pUnit != null ? GetLocalTeamRelation(pUnit.Team) : CombatTeamRelation.Neutral;
+
+        public bool TryGetPlacementSlotForTeam(Team pTeam, out MatchPlayerSlot pSlot)
+        {
+            if (CommandSink != null && CommandSink.TryGetSlotForTeam(pTeam, out pSlot))
+                return true;
+
+            pSlot = MatchPlayerSlot.None;
+            return false;
+        }
 
         #endregion
 
@@ -57,7 +88,8 @@ namespace TacticalPort.Bootstrap
 
         private void Update()
         {
-            _EnemyTurnController?.Tick(Time.deltaTime);
+            if (CanRunEnemyAi())
+                _EnemyTurnController?.Tick(Time.deltaTime);
 
             if (_RefreshPresentationEachFrame && _IsBootstrapped)
                 RefreshPresentation();
@@ -93,6 +125,8 @@ namespace TacticalPort.Bootstrap
             _BattleService = BattleRuntimeCompositionRoot.CreateDefaultBattleService();
             _BattleService.Initialize(lActiveScenario);
             _EnemyTurnController = new EnemyTurnController(this, _EnemyTurnDelaySeconds);
+            _LocalCommandSink = new LocalCombatCommandSink(this);
+            _CommandSink = ResolveCommandSink();
 
             if (_SceneReferences != null)
             {
@@ -147,8 +181,9 @@ namespace TacticalPort.Bootstrap
             if (!IsPlacementPhaseActive)
                 return false;
 
-            _SceneReferences?.HudManager?.SetStatus("Combat started.");
-            return TryAdvanceBattle();
+            BattleActionResult lResult = CommandSink.Submit(BattleCommand.ReadyPlacement());
+            ApplyCommandSinkResultFeedback(lResult);
+            return lResult.IsSuccess;
         }
 
         public bool TryGetActiveUnit(out UnitRuntime pUnit) => (pUnit = ActiveUnit) != null;
@@ -168,8 +203,8 @@ namespace TacticalPort.Bootstrap
             if (_BattleService == null || !_BattleService.TryGetActiveUnit(out UnitRuntime lUnit))
                 return BattleActionResult.Failed(BattleActionType.Move, "No active unit is available.");
 
-            BattleActionResult lResult = _BattleService.MoveUnit(lUnit.Id, pDestination);
-            ApplyActionFeedback(lResult);
+            BattleActionResult lResult = CommandSink.Submit(BattleCommand.Move(lUnit.Id, pDestination));
+            ApplyCommandSinkResultFeedback(lResult);
             return lResult;
         }
 
@@ -178,8 +213,11 @@ namespace TacticalPort.Bootstrap
             if (_BattleService == null || !_BattleService.TryGetActiveUnit(out UnitRuntime lUnit))
                 return BattleActionResult.Failed(BattleActionType.Skill, "No active unit is available.");
 
-            BattleActionResult lResult = _BattleService.UseSkill(lUnit.Id, pSkillId, pTarget);
-            ApplyActionFeedback(lResult);
+            if (pTarget == null)
+                return BattleActionResult.Failed(BattleActionType.Skill, "No skill target is available.");
+
+            BattleActionResult lResult = CommandSink.Submit(BattleCommand.UseSkill(lUnit.Id, pSkillId, pTarget.Cell));
+            ApplyCommandSinkResultFeedback(lResult);
             return lResult;
         }
 
@@ -188,45 +226,78 @@ namespace TacticalPort.Bootstrap
             if (_BattleService == null || !_BattleService.TryGetActiveUnit(out UnitRuntime lUnit))
                 return BattleActionResult.Failed(BattleActionType.EndTurn, "No active unit is available.");
 
-            BattleActionResult lResult = _BattleService.EndTurn(lUnit.Id);
-            ApplyActionFeedback(lResult);
+            BattleActionResult lResult = CommandSink.Submit(BattleCommand.EndTurn(lUnit.Id));
+            ApplyCommandSinkResultFeedback(lResult);
+            if (lResult.IsSuccess)
+                ApplyStatusOverride(pStatusOverride);
 
-            if (lResult.IsSuccess && _AutoAdvanceTurns)
-                TryAdvanceBattle();
-
-            ApplyStatusOverride(pStatusOverride);
             return lResult;
         }
 
         public BattleActionResult RepositionUnitDuringPlacement(UnitId pUnitId, GridCoord pDestination)
         {
+            if (!TryValidatePlacementCommand(pUnitId, pDestination, true, out BattleActionResult lFailure))
+                return lFailure;
+
+            return CommandSink.Submit(BattleCommand.PlaceUnit(pUnitId, pDestination));
+        }
+
+        public bool TryValidatePlacementReadyForSlot(MatchPlayerSlot pSlot, out BattleActionResult pFailure)
+        {
+            pFailure = null;
+
             if (!IsPlacementPhaseActive)
-                return BattleActionResult.Failed(BattleActionType.Placement, "Placement phase is not active.");
-
-            if (_BattleService == null || !_BattleService.TryGetUnit(pUnitId, out UnitRuntime lUnit) || lUnit == null || !lUnit.IsAlive)
-                return BattleActionResult.Failed(BattleActionType.Placement, "Selected unit is not available.");
-
-            if (lUnit.Team != Team.Player)
-                return BattleActionResult.Failed(BattleActionType.Placement, "Only player units can be placed.");
-
-            if (_SceneReferences?.BoardView == null || !_SceneReferences.BoardView.IsSpawnerCell(pDestination))
-                return BattleActionResult.Failed(BattleActionType.Placement, "Choose an empty spawn cell.");
-
-            foreach (UnitRuntime lRuntimeUnit in _BattleService.Units)
             {
-                if (lRuntimeUnit == null || !lRuntimeUnit.IsAlive || lRuntimeUnit.Id == pUnitId)
+                pFailure = BattleActionResult.Failed(BattleActionType.Placement, "Placement phase is not active.");
+                return false;
+            }
+
+            if (_BattleService == null || _SceneReferences?.BoardView == null)
+            {
+                pFailure = BattleActionResult.Failed(BattleActionType.Placement, "Placement is not ready.");
+                return false;
+            }
+
+            if (pSlot == MatchPlayerSlot.None)
+            {
+                pFailure = BattleActionResult.Failed(BattleActionType.Placement, "No placement slot is assigned.");
+                return false;
+            }
+
+            int lUnitCount = 0;
+            foreach (UnitRuntime lUnit in _BattleService.Units)
+            {
+                if (lUnit == null || !lUnit.IsAlive)
                     continue;
 
-                foreach (GridCoord lOccupiedCell in lRuntimeUnit.EnumerateOccupiedCells())
+                if (!TryGetPlacementSlotForTeam(lUnit.Team, out MatchPlayerSlot lSlot) || lSlot != pSlot)
+                    continue;
+
+                lUnitCount++;
+                if (!_SceneReferences.BoardView.IsSpawnerCell(lUnit.Position, pSlot))
                 {
-                    if (lOccupiedCell == pDestination)
-                        return BattleActionResult.Failed(BattleActionType.Placement, "This spawn cell is already occupied.");
+                    pFailure = BattleActionResult.Failed(BattleActionType.Placement, $"{lUnit.Definition.DisplayName} must be placed on a valid {pSlot} spawn cell.");
+                    return false;
                 }
             }
 
-            BattleActionResult lResult = _BattleService.RepositionUnitDuringPlacement(pUnitId, pDestination);
+            if (lUnitCount > 0)
+                return true;
+
+            pFailure = BattleActionResult.Failed(BattleActionType.Placement, $"No units are assigned to {pSlot}.");
+            return false;
+        }
+
+        public BattleActionResult ExecuteLocalCommand(BattleCommand pCommand)
+        {
+            BattleActionResult lResult = ExecuteCommand(pCommand);
             ApplyActionFeedback(lResult);
             return lResult;
+        }
+
+        public void ApplyRemoteCommandResult(BattleActionResult pResult)
+        {
+            ApplyActionFeedback(pResult);
         }
 
         #endregion
@@ -239,14 +310,35 @@ namespace TacticalPort.Bootstrap
                 return;
 
             SyncRuntimeUnitViews();
-            _SceneReferences?.BoardView?.SetSpawnerCellsVisible(IsPlacementPhaseActive);
-            _SceneReferences?.BoardView?.SetOccupiedCells(_BattleService.Units, _BattleService.ActiveUnit != null ? _BattleService.ActiveUnit.Id : UnitId.None);
-            _SceneReferences?.BoardView?.SetGlyphCells(_BattleService.GetActiveGlyphs());
-            _SceneReferences?.BoardView?.SetHazardCells(_BattleService.GetTelegraphedHazards());
+            BoardView lBoardView = _SceneReferences != null ? _SceneReferences.BoardView : null;
+            lBoardView?.BeginCellStateUpdate();
+            try
+            {
+                if (TryGetLocalPlayerSlot(out MatchPlayerSlot lLocalPlayerSlot))
+                {
+                    lBoardView?.SetLocalPlayerSlot(lLocalPlayerSlot);
+                    _SceneReferences?.HudManager?.SetLocalPlayerSlot(lLocalPlayerSlot);
+                }
+
+                lBoardView?.SetSpawnerCellsVisible(IsPlacementPhaseActive, ResolveVisibleSpawnerSlot());
+                lBoardView?.SetOccupiedCells(ResolveVisibleUnitsForPresentation(), _BattleService.ActiveUnit != null ? _BattleService.ActiveUnit.Id : UnitId.None);
+                lBoardView?.SetGlyphCells(_BattleService.GetActiveGlyphs());
+                lBoardView?.SetHazardCells(_BattleService.GetTelegraphedHazards());
+            }
+            finally
+            {
+                lBoardView?.EndCellStateUpdate();
+            }
 
             foreach (UnitView lUnitView in _UnitViews.Values)
             {
                 if (lUnitView == null)
+                    continue;
+
+                if (_BattleService.TryGetUnit(lUnitView.UnitId, out UnitRuntime lRuntimeUnit))
+                    lUnitView.gameObject.SetActive(ShouldDisplayUnit(lRuntimeUnit));
+
+                if (!lUnitView.gameObject.activeSelf)
                     continue;
 
                 lUnitView.Refresh();
@@ -262,6 +354,159 @@ namespace TacticalPort.Bootstrap
 
         private BattleScenarioDefinition ResolveScenario() =>
             _SceneReferences != null ? _SceneReferences.ResolveScenario(_Scenario) : _Scenario;
+
+        private ICombatCommandSink ResolveCommandSink()
+        {
+            if (_CommandSink != null)
+                return _CommandSink;
+
+            _LocalCommandSink ??= new LocalCombatCommandSink(this);
+            if (_CommandSinkBehaviour != null)
+            {
+                if (_CommandSinkBehaviour is ICombatCommandSink lCommandSink)
+                    return _CommandSink = lCommandSink;
+
+                Debug.LogWarning($"Assigned command sink '{_CommandSinkBehaviour.name}' does not implement {nameof(ICombatCommandSink)}.", this);
+            }
+
+            return _CommandSink = _LocalCommandSink;
+        }
+
+        private bool CanRunAuthoritativeSimulation() => CommandSink == null || CommandSink.CanRunAuthoritativeSimulation;
+
+        private bool CanRunEnemyAi() => CommandSink == null || CommandSink.CanRunEnemyAi;
+
+        private void ApplyCommandSinkResultFeedback(BattleActionResult pResult)
+        {
+            if (pResult == null || CommandSink is LocalCombatCommandSink)
+                return;
+
+            if (CommandSink.UsesRemoteAuthority || !pResult.IsSuccess)
+                ApplyActionFeedback(pResult);
+        }
+
+        private BattleActionResult ExecuteCommand(BattleCommand pCommand)
+        {
+            if (_BattleService == null)
+                return BattleActionResult.Failed(pCommand.ActionType, "Battle service is not initialized.");
+
+            switch (pCommand.Type)
+            {
+                case BattleCommandType.Move:
+                    return AdvanceAfterImplicitTurnEnd(_BattleService.MoveUnit(pCommand.UnitId, pCommand.Cell));
+
+                case BattleCommandType.UseSkill:
+                    return AdvanceAfterImplicitTurnEnd(_BattleService.UseSkill(pCommand.UnitId, pCommand.SkillId, SkillTarget.ForCell(pCommand.Cell)));
+
+                case BattleCommandType.EndTurn:
+                    return ExecuteEndTurnCommand(pCommand.UnitId);
+
+                case BattleCommandType.PlaceUnit:
+                    return ExecutePlacementCommand(pCommand.UnitId, pCommand.Cell);
+
+                case BattleCommandType.ReadyPlacement:
+                    return ExecuteReadyPlacementCommand();
+
+                default:
+                    return BattleActionResult.Failed(pCommand.ActionType, "Unsupported battle command.");
+            }
+        }
+
+        private BattleActionResult ExecuteEndTurnCommand(UnitId pUnitId)
+        {
+            BattleActionResult lResult = _BattleService.EndTurn(pUnitId);
+            if (!lResult.IsSuccess || !_AutoAdvanceTurns)
+                return lResult;
+
+            bool lStartedNextTurn = TryAdvanceBattle();
+            return lStartedNextTurn && _BattleService.CurrentTurn != null
+                ? BattleActionResult.Succeeded(BattleActionType.EndTurn, $"Turn started for {ResolveUnitLabel(_BattleService.CurrentTurn.UnitId)}.")
+                : lResult;
+        }
+
+        private BattleActionResult AdvanceAfterImplicitTurnEnd(BattleActionResult pResult)
+        {
+            if (pResult == null || !pResult.IsSuccess || !_AutoAdvanceTurns)
+                return pResult;
+
+            if (_BattleService == null
+                || _BattleService.Outcome != BattleOutcome.None
+                || _BattleService.CurrentTurn != null
+                || _BattleService.Phase != BattlePhase.TurnEnd)
+            {
+                return pResult;
+            }
+
+            bool lStartedNextTurn = TryAdvanceBattle();
+            return lStartedNextTurn && _BattleService.CurrentTurn != null
+                ? BattleActionResult.Succeeded(
+                    pResult.ActionType,
+                    $"{pResult.Message} Turn started for {ResolveUnitLabel(_BattleService.CurrentTurn.UnitId)}.",
+                    pResult.AffectedUnitIds,
+                    pResult.TraversedPath)
+                : pResult;
+        }
+
+        private BattleActionResult ExecuteReadyPlacementCommand()
+        {
+            if (!IsPlacementPhaseActive)
+                return BattleActionResult.Failed(BattleActionType.Placement, "Placement phase is not active.");
+
+            if (!TryValidatePlacementReadyForSlot(MatchPlayerSlot.TeamA, out BattleActionResult lTeamAFailure))
+                return lTeamAFailure;
+
+            if (!TryValidatePlacementReadyForSlot(MatchPlayerSlot.TeamB, out BattleActionResult lTeamBFailure))
+                return lTeamBFailure;
+
+            _SceneReferences?.HudManager?.SetStatus("Combat started.");
+            bool lStartedFirstTurn = TryAdvanceBattle();
+            return lStartedFirstTurn && _BattleService.CurrentTurn != null
+                ? BattleActionResult.Succeeded(BattleActionType.Placement, $"Combat started. Turn started for {ResolveUnitLabel(_BattleService.CurrentTurn.UnitId)}.")
+                : BattleActionResult.Failed(BattleActionType.Placement, "Combat could not start.");
+        }
+
+        private BattleActionResult ExecutePlacementCommand(UnitId pUnitId, GridCoord pDestination)
+        {
+            if (!TryValidatePlacementCommand(pUnitId, pDestination, false, out BattleActionResult lFailure))
+                return lFailure;
+
+            return _BattleService.RepositionUnitDuringPlacement(pUnitId, pDestination);
+        }
+
+        private bool TryValidatePlacementCommand(UnitId pUnitId, GridCoord pDestination, bool pRequireLocalControl, out BattleActionResult pFailure)
+        {
+            return CombatPlacementValidator.TryValidatePlacementCommand(
+                _BattleService,
+                _SceneReferences != null ? _SceneReferences.BoardView : null,
+                CommandSink,
+                pUnitId,
+                pDestination,
+                pRequireLocalControl,
+                out pFailure);
+        }
+
+        private IReadOnlyCollection<UnitRuntime> ResolveVisibleUnitsForPresentation()
+        {
+            _VisibleUnitsScratch.Clear();
+            if (_BattleService?.Units == null)
+                return _VisibleUnitsScratch;
+
+            foreach (UnitRuntime lUnit in _BattleService.Units)
+            {
+                if (ShouldDisplayUnit(lUnit))
+                    _VisibleUnitsScratch.Add(lUnit);
+            }
+
+            return _VisibleUnitsScratch;
+        }
+
+        private bool ShouldDisplayUnit(UnitRuntime pUnit)
+        {
+            if (pUnit == null)
+                return false;
+
+            return !IsPlacementPhaseActive || GetLocalTeamRelation(pUnit) != CombatTeamRelation.Opponent;
+        }
 
         private void RebuildUnitViews(BattleScenarioDefinition pActiveScenario)
         {
@@ -383,6 +628,20 @@ namespace TacticalPort.Bootstrap
             _BattleService != null && _BattleService.TryGetUnit(pUnitId, out UnitRuntime lUnit)
                 ? lUnit.Definition.DisplayName
                 : pUnitId.ToString();
+
+        private MatchPlayerSlot ResolveVisibleSpawnerSlot()
+        {
+            if (!IsPlacementPhaseActive || _BattleService == null)
+                return MatchPlayerSlot.None;
+
+            foreach (UnitRuntime lUnit in _BattleService.Units)
+            {
+                if (lUnit != null && lUnit.IsAlive && CanLocalPlayerControlUnit(lUnit) && TryGetPlacementSlotForTeam(lUnit.Team, out MatchPlayerSlot lSlot))
+                    return lSlot;
+            }
+
+            return MatchPlayerSlot.None;
+        }
 
         private string ResolveBootstrapStatus(BattleScenarioDefinition pScenario)
         {

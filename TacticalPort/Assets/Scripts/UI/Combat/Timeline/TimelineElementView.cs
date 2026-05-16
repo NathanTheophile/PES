@@ -28,6 +28,7 @@ namespace TacticalPort.UI
         private UnitRuntime _Unit;
         private Action<UnitRuntime> _OnHoverEnter;
         private Action<UnitRuntime> _OnHoverExit;
+        private MatchPlayerSlot _LocalPlayerSlot = MatchPlayerSlot.TeamA;
         private Vector3 _BaseScale = Vector3.one;
 
         #endregion
@@ -56,6 +57,15 @@ namespace TacticalPort.UI
         }
 
         public void Bind(UnitRuntime pUnit) => Bind(pUnit, null, null);
+
+        public void SetLocalPlayerSlot(MatchPlayerSlot pSlot)
+        {
+            if (pSlot == MatchPlayerSlot.None || _LocalPlayerSlot == pSlot)
+                return;
+
+            _LocalPlayerSlot = pSlot;
+            Refresh();
+        }
 
         public void Clear()
         {
@@ -143,8 +153,8 @@ namespace TacticalPort.UI
         {
             return pTeam switch
             {
-                Team.Player => _PlayerHealthColor,
-                Team.Enemy => _EnemyHealthColor,
+                Team.TeamA => CombatTeamUtility.ResolveRelation(pTeam, _LocalPlayerSlot) == CombatTeamRelation.Own ? _PlayerHealthColor : _EnemyHealthColor,
+                Team.TeamB => CombatTeamUtility.ResolveRelation(pTeam, _LocalPlayerSlot) == CombatTeamRelation.Own ? _PlayerHealthColor : _EnemyHealthColor,
                 _ => _NeutralHealthColor
             };
         }

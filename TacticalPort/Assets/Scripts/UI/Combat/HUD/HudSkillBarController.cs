@@ -24,6 +24,7 @@ namespace TacticalPort.UI
         private IBattleService _BattleService;
         private UnitId _DisplayedSkillUnitId = UnitId.None;
         private bool _CanUseSkills;
+        private Func<UnitRuntime, bool> _CanDisplaySkills;
         private Action<int> _OnSkillButtonClicked;
 
         #endregion
@@ -45,12 +46,13 @@ namespace TacticalPort.UI
             _BattleService = pBattleService;
         }
 
-        public void SetState(bool pCanUseSkills, Action<int> pOnSkillButtonClicked)
+        public void SetState(bool pCanUseSkills, Func<UnitRuntime, bool> pCanDisplaySkills, Action<int> pOnSkillButtonClicked)
         {
-            if (_CanUseSkills == pCanUseSkills && _OnSkillButtonClicked == pOnSkillButtonClicked)
+            if (_CanUseSkills == pCanUseSkills && _CanDisplaySkills == pCanDisplaySkills && _OnSkillButtonClicked == pOnSkillButtonClicked)
                 return;
 
             _CanUseSkills = pCanUseSkills;
+            _CanDisplaySkills = pCanDisplaySkills;
             _OnSkillButtonClicked = pOnSkillButtonClicked;
             Refresh();
         }
@@ -107,7 +109,10 @@ namespace TacticalPort.UI
             if (_BattleService == null || !_BattleService.TryGetActiveUnit(out pUnit) || pUnit == null)
                 return false;
 
-            if (pUnit.Team != Team.Player || pUnit.Skills == null || pUnit.Skills.Count == 0)
+            bool lCanDisplayUnitSkills = _CanDisplaySkills != null
+                ? _CanDisplaySkills(pUnit)
+                : pUnit.Team == Team.TeamA;
+            if (!lCanDisplayUnitSkills || pUnit.Skills == null || pUnit.Skills.Count == 0)
                 return false;
 
             pSkills = pUnit.Skills;
