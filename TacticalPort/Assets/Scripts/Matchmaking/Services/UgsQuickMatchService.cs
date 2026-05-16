@@ -4,22 +4,31 @@
 //  Matchmaking
 #endregion
 
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using TacticalPort.Shared;
 using Unity.Services.Matchmaker;
+using Unity.Services.Matchmaker.Http;
 using Unity.Services.Matchmaker.Models;
 using UnityEngine;
+using MatchmakerPlayer = Unity.Services.Matchmaker.Models.Player;
+using MatchmakerTeam = Unity.Services.Matchmaker.Models.Team;
 
 namespace TacticalPort.Matchmaking
 {
     public sealed class UgsQuickMatchService : MonoBehaviour, IQuickMatchService
     {
+        private const string EdgeGapRequestIdCustomDataKey = "edgegapRequestId";
+        private const string RequestIdCustomDataKey = "requestId";
+
         #region _____________________________/ VALUES
 
         [SerializeField] private string _DefaultQueueName = "quickmatch1v1unranked";
         [SerializeField] private string _DefaultMapId = "poutch";
         [SerializeField] private bool _ClearSessionBeforeSignIn;
+        [SerializeField] private bool _FetchMatchmakingResults = true;
         [SerializeField] private bool _LogTicketEvents;
 
         #endregion
@@ -28,7 +37,7 @@ namespace TacticalPort.Matchmaking
 
         public async Task<MatchTicketSnapshot> CreateTicketAsync(QuickMatchRequest pRequest, CancellationToken pCancellationToken)
         {
-            PlayerIdentity lIdentity = await UgsAuthentication.SignInAnonymouslyAsync(_ClearSessionBeforeSignIn, this, pCancellationToken);
+            PlayerIdentity lIdentity = await ResolvePlayerIdentityAsync(pRequest, pCancellationToken);
             string lQueueName = ResolveQueueName(pRequest);
 
             CreateTicketResponse lTicket = await MatchmakerService.Instance.CreateTicketAsync(
@@ -57,8 +66,13 @@ namespace TacticalPort.Matchmaking
             pCancellationToken.ThrowIfCancellationRequested();
 
             MatchTicketSnapshot lSnapshot = BuildSnapshot(pTicketId, lStatus);
+            if (_FetchMatchmakingResults && lSnapshot.Status == MatchTicketStatus.Found && lSnapshot.Manifest != null)
+                await TryPopulateManifestFromMatchmakerAsync(lSnapshot.Manifest, pCancellationToken);
+
+            lSnapshot = ValidateFoundSnapshot(lSnapshot);
+
             if (_LogTicketEvents)
-                Debug.Log($"[UGS QuickMatch] Ticket status. TicketId={pTicketId}, Status={lSnapshot.Status}, MatchId={lSnapshot.Manifest?.MatchId}, Reason={lSnapshot.FailureReason}", this);
+                Debug.Log($"[UGS QuickMatch] Ticket status. TicketId={pTicketId}, Status={lSnapshot.Status}, MatchId={lSnapshot.Manifest?.MatchId}, Players={lSnapshot.Manifest?.Players?.Count ?? 0}, Reason={lSnapshot.FailureReason}", this);
 
             return lSnapshot;
         }
@@ -78,6 +92,14 @@ namespace TacticalPort.Matchmaking
 
         private string ResolveQueueName(QuickMatchRequest pRequest) =>
             !string.IsNullOrWhiteSpace(pRequest?.QueueName) ? pRequest.QueueName : _DefaultQueueName;
+
+        private async Task<PlayerIdentity> ResolvePlayerIdentityAsync(QuickMatchRequest pRequest, CancellationToken pCancellationToken)
+        {
+            if (pRequest != null && pRequest.Player.IsValid)
+                return pRequest.Player;
+
+            return await UgsAuthentication.SignInAnonymouslyAsync(_ClearSessionBeforeSignIn, this, pCancellationToken);
+        }
 
         private static Dictionary<string, object> BuildPlayerData(QuickMatchRequest pRequest)
         {
@@ -124,11 +146,32 @@ namespace TacticalPort.Matchmaking
                 {
                     IpAddress = pAssignment.Ip,
                     Port = (ushort)pAssignment.Port.Value,
-                    AllocationId = pAssignment.MatchId ?? string.Empty
+                    AllocationId = ResolveAllocationId(pAssignment)
                 };
             }
 
             return lSnapshot;
+        }
+
+        private static string ResolveAllocationId(IpPortAssignment pAssignment)
+        {
+            if (TryReadCustomData(pAssignment?.CustomData, EdgeGapRequestIdCustomDataKey, out string lRequestId))
+                return lRequestId;
+
+            if (TryReadCustomData(pAssignment?.CustomData, RequestIdCustomDataKey, out lRequestId))
+                return lRequestId;
+
+            return pAssignment?.MatchId ?? string.Empty;
+        }
+
+        private static bool TryReadCustomData(IReadOnlyDictionary<string, IDeserializable> pCustomData, string pKey, out string pValue)
+        {
+            pValue = string.Empty;
+            if (pCustomData == null || string.IsNullOrWhiteSpace(pKey) || !pCustomData.TryGetValue(pKey, out IDeserializable lValue) || lValue == null)
+                return false;
+
+            pValue = lValue.GetAsString()?.Trim().Trim('"') ?? string.Empty;
+            return !string.IsNullOrWhiteSpace(pValue);
         }
 
         private MatchTicketSnapshot BuildSnapshot(string pTicketId, string pStatus, string pMatchId, string pFailureReason)
@@ -154,6 +197,159 @@ namespace TacticalPort.Matchmaking
                 MapId = _DefaultMapId
             };
 
+        private static MatchTicketSnapshot ValidateFoundSnapshot(MatchTicketSnapshot pSnapshot)
+        {
+            if (pSnapshot == null || pSnapshot.Status != MatchTicketStatus.Found)
+                return pSnapshot;
+
+            if (pSnapshot.Manifest != null && pSnapshot.Manifest.TryValidatePlayerAssignments(out _))
+                return pSnapshot;
+
+            return new MatchTicketSnapshot
+            {
+                TicketId = pSnapshot.TicketId,
+                Status = MatchTicketStatus.Failed,
+                Manifest = pSnapshot.Manifest,
+                ServerEndpoint = pSnapshot.ServerEndpoint,
+                FailureReason = "Match found, but player slot assignments are missing or invalid."
+            };
+        }
+
+        private async Task TryPopulateManifestFromMatchmakerAsync(MatchManifest pManifest, CancellationToken pCancellationToken)
+        {
+            if (pManifest == null || string.IsNullOrWhiteSpace(pManifest.MatchId))
+                return;
+
+            try
+            {
+                StoredMatchmakingResults lResults = await MatchmakerService.Instance.GetMatchmakingResultsAsync(pManifest.MatchId);
+                pCancellationToken.ThrowIfCancellationRequested();
+                PopulateManifestFromResults(pManifest, lResults);
+            }
+            catch (System.OperationCanceledException)
+            {
+                throw;
+            }
+            catch (System.Exception pException)
+            {
+                Debug.LogWarning($"[UGS QuickMatch] Could not fetch matchmaking results for manifest assignments: {pException.Message}", this);
+            }
+        }
+
+        private static void PopulateManifestFromResults(MatchManifest pManifest, StoredMatchmakingResults pResults)
+        {
+            if (pManifest == null || pResults?.MatchProperties == null)
+                return;
+
+            pManifest.Players.Clear();
+
+            Dictionary<string, string> lPresetIdsByPlayerId = BuildTeamPresetLookup(pResults.MatchProperties.Players);
+            IReadOnlyList<MatchmakerTeam> lTeams = pResults.MatchProperties.Teams;
+            if (lTeams != null && lTeams.Count > 0)
+            {
+                for (int lTeamIndex = 0; lTeamIndex < lTeams.Count; lTeamIndex++)
+                {
+                    MatchPlayerSlot lSlot = ResolveSlotForTeamIndex(lTeamIndex);
+                    if (lSlot == MatchPlayerSlot.None)
+                        continue;
+
+                    List<string> lPlayerIds = lTeams[lTeamIndex]?.PlayerIds;
+                    if (lPlayerIds == null)
+                        continue;
+
+                    for (int lPlayerIndex = 0; lPlayerIndex < lPlayerIds.Count; lPlayerIndex++)
+                    {
+                        string lPlayerId = lPlayerIds[lPlayerIndex];
+                        AddPlayerAssignment(pManifest, lPlayerId, lSlot, ResolveTeamPresetId(lPresetIdsByPlayerId, lPlayerId));
+                    }
+                }
+
+                if (pManifest.Players.Count > 0)
+                    return;
+            }
+
+            IReadOnlyList<MatchmakerPlayer> lPlayers = pResults.MatchProperties.Players;
+            if (lPlayers == null)
+                return;
+
+            for (int lIndex = 0; lIndex < lPlayers.Count; lIndex++)
+                AddPlayerAssignment(pManifest, lPlayers[lIndex]?.Id, ResolveSlotForTeamIndex(lIndex), ResolveTeamPresetId(lPlayers[lIndex]));
+        }
+
+        private static MatchPlayerSlot ResolveSlotForTeamIndex(int pIndex) =>
+            pIndex == 0
+                ? MatchPlayerSlot.TeamA
+                : pIndex == 1
+                    ? MatchPlayerSlot.TeamB
+                    : MatchPlayerSlot.None;
+
+        private static void AddPlayerAssignment(MatchManifest pManifest, string pPlayerId, MatchPlayerSlot pSlot, string pTeamPresetId)
+        {
+            if (pManifest == null || string.IsNullOrWhiteSpace(pPlayerId) || pSlot == MatchPlayerSlot.None)
+                return;
+
+            pManifest.Players.Add(new MatchPlayerAssignment
+            {
+                PlayerId = pPlayerId,
+                Slot = pSlot,
+                TeamPresetId = pTeamPresetId ?? string.Empty
+            });
+        }
+
+        private static string ResolveTeamPresetId(MatchmakerPlayer pPlayer)
+        {
+            return TryReadPlayerData(pPlayer, "teamPresetId", out string lTeamPresetId)
+                ? lTeamPresetId
+                : string.Empty;
+        }
+
+        private static Dictionary<string, string> BuildTeamPresetLookup(IReadOnlyList<MatchmakerPlayer> pPlayers)
+        {
+            Dictionary<string, string> lResult = new Dictionary<string, string>();
+            if (pPlayers == null)
+                return lResult;
+
+            for (int lIndex = 0; lIndex < pPlayers.Count; lIndex++)
+            {
+                MatchmakerPlayer lPlayer = pPlayers[lIndex];
+                if (lPlayer == null || string.IsNullOrWhiteSpace(lPlayer.Id))
+                    continue;
+
+                lResult[lPlayer.Id] = ResolveTeamPresetId(lPlayer);
+            }
+
+            return lResult;
+        }
+
+        private static string ResolveTeamPresetId(IReadOnlyDictionary<string, string> pPresetIdsByPlayerId, string pPlayerId) =>
+            !string.IsNullOrWhiteSpace(pPlayerId) && pPresetIdsByPlayerId != null && pPresetIdsByPlayerId.TryGetValue(pPlayerId, out string lPresetId)
+                ? lPresetId
+                : string.Empty;
+
+        private static bool TryReadPlayerData(MatchmakerPlayer pPlayer, string pKey, out string pValue)
+        {
+            pValue = string.Empty;
+            if (pPlayer == null || string.IsNullOrWhiteSpace(pKey))
+                return false;
+
+            object lPlayerData = TryGetPropertyValue(pPlayer, "CustomData")
+                ?? TryGetPropertyValue(pPlayer, "Data")
+                ?? TryGetPropertyValue(pPlayer, "Properties");
+
+            if (lPlayerData is IDictionary lDictionary && lDictionary.Contains(pKey) && lDictionary[pKey] != null)
+            {
+                pValue = lDictionary[pKey].ToString();
+                return !string.IsNullOrWhiteSpace(pValue);
+            }
+
+            return false;
+        }
+
+        private static object TryGetPropertyValue(object pSource, string pPropertyName)
+        {
+            return pSource?.GetType().GetProperty(pPropertyName)?.GetValue(pSource);
+        }
+
         private static MatchTicketSnapshot SearchingSnapshot(string pTicketId) =>
             new MatchTicketSnapshot
             {
@@ -166,6 +362,8 @@ namespace TacticalPort.Matchmaking
             {
                 "Found" => MatchTicketStatus.Found,
                 "InProgress" => MatchTicketStatus.Searching,
+                "Pending" => MatchTicketStatus.Searching,
+                "None" => MatchTicketStatus.Searching,
                 "Failed" => MatchTicketStatus.Failed,
                 "Timeout" => MatchTicketStatus.Failed,
                 _ => MatchTicketStatus.None

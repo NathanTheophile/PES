@@ -59,7 +59,7 @@ namespace TacticalPort.Core
 
             UnitRuntime lActor = pContext.Actor;
             int lBestBonus = 0;
-            foreach (UnitRuntime lTarget in EnemyAiTargeting.GetPriorityUnits(pContext, lActor.Team == Team.Player ? Team.Enemy : Team.Player))
+            foreach (UnitRuntime lTarget in EnemyAiTargeting.GetPriorityUnits(pContext, lActor.Team == Team.TeamA ? Team.TeamB : Team.TeamA))
             {
                 int lDistance = pTarget.Cell.ManhattanDistanceTo(lTarget.Position);
                 int lAoeReach = pSkill.AoeShape == SkillAoeShape.Single ? 0 : Math.Max(0, pSkill.AoeSize);

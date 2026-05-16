@@ -56,8 +56,11 @@ namespace TacticalPort.View
         private BoardAuthoring3D _Board3DAuthoring;
         private bool _ShowSpawnerCells = true;
         private MatchPlayerSlot _VisibleSpawnerSlot = MatchPlayerSlot.None;
+        private MatchPlayerSlot _LocalPlayerSlot = MatchPlayerSlot.TeamA;
         private BoardMarkerLayerSet _MarkerLayers;
         private int _BoardSortingLayerId;
+        private int _CellStateBatchDepth;
+        private bool _HasPendingCellStateRefresh;
         private bool _HasHoveredCell;
         private GridCoord _HoveredCell;
 #if UNITY_EDITOR
@@ -158,6 +161,18 @@ namespace TacticalPort.View
                 ? new List<GridCoord>(lCells)
                 : GetSpawnerCells();
 
+        public void BeginCellStateUpdate() => _CellStateBatchDepth++;
+
+        public void EndCellStateUpdate()
+        {
+            if (_CellStateBatchDepth <= 0)
+                return;
+
+            _CellStateBatchDepth--;
+            if (_CellStateBatchDepth == 0 && _HasPendingCellStateRefresh)
+                RefreshCellStates();
+        }
+
         public void SetSpawnerCellsVisible(bool pVisible)
         {
             SetSpawnerCellsVisible(pVisible, MatchPlayerSlot.None);
@@ -170,6 +185,15 @@ namespace TacticalPort.View
 
             _ShowSpawnerCells = pVisible;
             _VisibleSpawnerSlot = pVisibleSlot;
+            RefreshCellStates();
+        }
+
+        public void SetLocalPlayerSlot(MatchPlayerSlot pSlot)
+        {
+            if (pSlot == MatchPlayerSlot.None || _LocalPlayerSlot == pSlot)
+                return;
+
+            _LocalPlayerSlot = pSlot;
             RefreshCellStates();
         }
 
@@ -354,6 +378,13 @@ namespace TacticalPort.View
 
         private void RefreshCellStates()
         {
+            if (_CellStateBatchDepth > 0)
+            {
+                _HasPendingCellStateRefresh = true;
+                return;
+            }
+
+            _HasPendingCellStateRefresh = false;
             EnsureMarkerLayers();
             _MarkerLayers.SyncSpawner(_ShowSpawnerCells, ResolveVisibleSpawnerCells(), _SpawnerPreviewPrefab);
             _MarkerLayers.SyncOccupied(
@@ -381,7 +412,7 @@ namespace TacticalPort.View
         private BoardOccupiedCellVisualState ResolveOccupiedVisualState(UnitRuntime pUnit, UnitId pActiveUnitId) =>
             pUnit != null && pUnit.Id == pActiveUnitId
                 ? BoardOccupiedCellVisualState.Active
-                : pUnit != null && pUnit.Team == Team.Enemy
+                : pUnit != null && CombatTeamUtility.ResolveRelation(pUnit.Team, _LocalPlayerSlot) == CombatTeamRelation.Opponent
                     ? BoardOccupiedCellVisualState.Enemy
                     : BoardOccupiedCellVisualState.Player;
 
@@ -398,7 +429,7 @@ namespace TacticalPort.View
 
                 _CellsByCoord[lCoord] = lCellDefinition;
                 if (_Board3DAuthoring.TryGetTile(lCoord, out BoardTileAuthoring lTile) && lTile != null)
-                    AddSpawnerCell(lCoord, lTile.SpawnZone);
+                    AddSpawnerCell(lCoord, lTile.AssignedTeam);
             }
         }
 
@@ -429,7 +460,7 @@ namespace TacticalPort.View
                 _SpawnerCellsBySlot[pSlot] = lCells;
             }
 
-            //lCells.Add(pCoord);
+            lCells.Add(pCoord);
         }
 
         #endregion

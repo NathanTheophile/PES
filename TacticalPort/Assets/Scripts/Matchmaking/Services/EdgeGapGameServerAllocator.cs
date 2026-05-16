@@ -19,6 +19,8 @@ namespace TacticalPort.Matchmaking
 
         [Tooltip("Trusted backend or Cloud Code endpoint that performs the EdgeGap allocation. Do not call EdgeGap directly from clients with a private token.")]
         [SerializeField] private string _AllocationEndpointUrl = string.Empty;
+        [Tooltip("Optional trusted backend or Cloud Code endpoint that releases an EdgeGap allocation.")]
+        [SerializeField] private string _ReleaseEndpointUrl = string.Empty;
         [SerializeField, Min(1f)] private float _TimeoutSeconds = 15f;
 
         #endregion
@@ -54,6 +56,31 @@ namespace TacticalPort.Matchmaking
                 throw new InvalidOperationException("EdgeGap allocation response did not contain a valid server endpoint.");
 
             return lEndpoint;
+        }
+
+        public async Task ReleaseServerAsync(MatchServerEndpoint pEndpoint, CancellationToken pCancellationToken)
+        {
+            if (pEndpoint == null || string.IsNullOrWhiteSpace(pEndpoint.AllocationId) || string.IsNullOrWhiteSpace(_ReleaseEndpointUrl))
+                return;
+
+            string lPayload = JsonUtility.ToJson(pEndpoint);
+            using UnityWebRequest lRequest = new UnityWebRequest(_ReleaseEndpointUrl, UnityWebRequest.kHttpVerbPOST)
+            {
+                uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(lPayload)),
+                downloadHandler = new DownloadHandlerBuffer(),
+                timeout = Mathf.CeilToInt(_TimeoutSeconds)
+            };
+            lRequest.SetRequestHeader("Content-Type", "application/json");
+
+            UnityWebRequestAsyncOperation lOperation = lRequest.SendWebRequest();
+            while (!lOperation.isDone)
+            {
+                pCancellationToken.ThrowIfCancellationRequested();
+                await Task.Yield();
+            }
+
+            if (lRequest.result != UnityWebRequest.Result.Success)
+                throw new InvalidOperationException($"EdgeGap release failed: {lRequest.error}");
         }
 
         #endregion

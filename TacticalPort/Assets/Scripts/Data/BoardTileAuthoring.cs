@@ -1,7 +1,7 @@
-using System;
 using TacticalPort.Data;
 using TacticalPort.Shared;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace TacticalPort.View
 {
@@ -12,8 +12,9 @@ namespace TacticalPort.View
         [SerializeField] private bool _IsWalkable = true;
         [SerializeField] private bool _BlocksLineOfSight;
         [SerializeField, Min(1)] private int _MovementCost = 1;
-        [SerializeField, HideInInspector] private bool _IsSpawner;
-        [SerializeField] private MatchPlayerSlot _SpawnZone;
+        [SerializeField] private bool _IsSpawner;
+        [FormerlySerializedAs("_SpawnZone")]
+        [SerializeField] private MatchPlayerSlot _AssignedTeam;
         [SerializeField] private UnitDefinition _OccupantDefinition;
         [SerializeField] private int _HeightLevel;
 
@@ -24,9 +25,8 @@ namespace TacticalPort.View
         public bool IsWalkable => _IsWalkable;
         public bool BlocksLineOfSight => _BlocksLineOfSight;
         public int MovementCost => Mathf.Max(1, _MovementCost);
-        [Obsolete("Use SpawnZone instead.")]
-        public bool IsSpawner => SpawnZone != MatchPlayerSlot.None;
-        public MatchPlayerSlot SpawnZone => _SpawnZone != MatchPlayerSlot.None || !_IsSpawner ? _SpawnZone : MatchPlayerSlot.TeamA;
+        public bool IsSpawner => _IsSpawner;
+        public MatchPlayerSlot AssignedTeam => _IsSpawner ? _AssignedTeam : MatchPlayerSlot.None;
         public UnitDefinition OccupantDefinition => _OccupantDefinition;
         public int HeightLevel => _HeightLevel;
 
@@ -37,10 +37,15 @@ namespace TacticalPort.View
         private void OnValidate()
         {
             _MovementCost = Mathf.Max(1, _MovementCost);
-            if (_IsSpawner && _SpawnZone == MatchPlayerSlot.None)
-                _SpawnZone = MatchPlayerSlot.TeamA;
 
-            _IsSpawner = _SpawnZone != MatchPlayerSlot.None;
+            if (!_IsSpawner)
+            {
+                _AssignedTeam = MatchPlayerSlot.None;
+                return;
+            }
+
+            if (_IsSpawner && _AssignedTeam == MatchPlayerSlot.None)
+                _AssignedTeam = MatchPlayerSlot.TeamA;
         }
 
         #endregion

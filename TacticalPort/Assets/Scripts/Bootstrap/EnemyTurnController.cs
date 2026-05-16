@@ -53,7 +53,8 @@ namespace TacticalPort.Bootstrap
             if (_Bootstrap.BattleService.Outcome != BattleOutcome.None || _Bootstrap.BattleService.Phase != BattlePhase.AwaitingAction)
                 return;
 
-            if (!_Bootstrap.TryGetActiveUnit(out UnitRuntime lActiveUnit) || lActiveUnit.Team != Team.Enemy)
+            if (!_Bootstrap.TryGetActiveUnit(out UnitRuntime lActiveUnit)
+                || _Bootstrap.GetLocalTeamRelation(lActiveUnit) != CombatTeamRelation.Opponent)
             {
                 ClearPendingTurn();
                 return;
