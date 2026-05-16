@@ -203,7 +203,7 @@ namespace TacticalPort.Core
                 switch (pRule.TargetTeam)
                 {
                     case EnemyAiTargetTeam.Enemy:
-                        return pActor.Team == Team.Player ? Team.Enemy : Team.Player;
+                        return pActor.Team == Team.TeamA ? Team.TeamB : Team.TeamA;
 
                     case EnemyAiTargetTeam.Ally:
                         return pActor.Team;
@@ -212,7 +212,7 @@ namespace TacticalPort.Core
 
             return pSkill.PrimaryEffectType == SkillPrimaryEffectType.Heal
                 ? pActor.Team
-                : pActor.Team == Team.Player ? Team.Enemy : Team.Player;
+                : pActor.Team == Team.TeamA ? Team.TeamB : Team.TeamA;
         }
 
         private static int ResolveMissingHealth(UnitRuntime pUnit) =>
@@ -257,7 +257,7 @@ namespace TacticalPort.Core
         {
             UnitRuntime lActor = pContext.Actor;
             int lBestScore = int.MinValue;
-            List<UnitRuntime> lTargets = GetPriorityUnits(pContext, Team.Player);
+            List<UnitRuntime> lTargets = GetPriorityUnits(pContext, Team.TeamA);
 
             foreach (SkillDefinition lSkill in lActor.Skills)
             {
@@ -283,7 +283,7 @@ namespace TacticalPort.Core
             if (lBestScore != int.MinValue)
                 return lBestScore;
 
-            List<UnitRuntime> lFallbackTargets = GetPriorityUnits(pContext, Team.Player);
+            List<UnitRuntime> lFallbackTargets = GetPriorityUnits(pContext, Team.TeamA);
             if (lFallbackTargets.Count == 0)
                 return int.MinValue;
 

@@ -80,6 +80,12 @@ namespace TacticalPort.UI
             Refresh();
         }
 
+        public void SetLocalPlayerSlot(MatchPlayerSlot pSlot)
+        {
+            if (pSlot != MatchPlayerSlot.None)
+                _TimelineView?.SetLocalPlayerSlot(pSlot);
+        }
+
         public void SetStatus(string pMessage)
         {
             string lMessage = pMessage ?? string.Empty;

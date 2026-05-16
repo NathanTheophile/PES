@@ -130,6 +130,7 @@ GameObject:
   - component: {fileID: 1105729090}
   - component: {fileID: 1105729089}
   - component: {fileID: 1105729088}
+  - component: {fileID: 1105729091}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -211,8 +212,353 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1105729091
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1105729087}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a79441f348de89743a2939f4d699eac1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalCameraData
+  m_RenderShadows: 1
+  m_RequiresDepthTextureOption: 2
+  m_RequiresOpaqueTextureOption: 2
+  m_CameraType: 0
+  m_Cameras: []
+  m_RendererIndex: -1
+  m_VolumeLayerMask:
+    serializedVersion: 2
+    m_Bits: 1
+  m_VolumeTrigger: {fileID: 0}
+  m_VolumeFrameworkUpdateModeOption: 2
+  m_RenderPostProcessing: 0
+  m_Antialiasing: 0
+  m_AntialiasingQuality: 2
+  m_StopNaN: 0
+  m_Dithering: 0
+  m_ClearDepth: 1
+  m_AllowXRRendering: 1
+  m_AllowHDROutput: 1
+  m_UseScreenCoordOverride: 0
+  m_ScreenSizeOverride: {x: 0, y: 0, z: 0, w: 0}
+  m_ScreenCoordScaleBias: {x: 0, y: 0, z: 0, w: 0}
+  m_RequiresDepthTexture: 0
+  m_RequiresColorTexture: 0
+  m_TaaSettings:
+    m_Quality: 3
+    m_FrameInfluence: 0.1
+    m_JitterScale: 1
+    m_MipBias: 0
+    m_VarianceClampScale: 0.9
+    m_ContrastAdaptiveSharpening: 0
+  m_Version: 2
+--- !u!1 &1665935549
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1665935553}
+  - component: {fileID: 1665935552}
+  - component: {fileID: 1665935551}
+  - component: {fileID: 1665935550}
+  - component: {fileID: 1665935554}
+  - component: {fileID: 1665935555}
+  - component: {fileID: 1665935556}
+  - component: {fileID: 1665935558}
+  - component: {fileID: 1665935557}
+  - component: {fileID: 1665935561}
+  - component: {fileID: 1665935559}
+  - component: {fileID: 1665935560}
+  - component: {fileID: 1665935562}
+  - component: {fileID: 1665935563}
+  m_Layer: 0
+  m_Name: GO_RuntimeServices
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1665935550
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1665935549}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 658d18bf1ea849ddb6e3b3b3cd2824fd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TacticalPort.Matchmaking.QuickMatchFlowController
+  _PlayerIdentityServiceSource: {fileID: 1665935552}
+  _QuickMatchServiceSource: {fileID: 1665935551}
+  _GameServerAllocatorSource: {fileID: 0}
+  _MatchContext: {fileID: 1665935555}
+  _QueueName: quickmatch1v1edgegap
+  _TeamPresetId: 
+  _ConnectionModeWithoutAllocator: 3
+  _ConnectionModeWithAllocator: 4
+  _ReportsRankedResultsWithAllocator: 0
+  _PollIntervalSeconds: 5
+  _TimeoutSeconds: 90
+  _CancelPendingTicketOnDestroy: 1
+  _LogEvents: 1
+--- !u!114 &1665935551
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1665935549}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2fbcd24a8b9840a3abac256f0d227fd8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TacticalPort.Matchmaking.UgsQuickMatchService
+  _DefaultQueueName: quickmatch1v1edgegap
+  _DefaultMapId: poutch
+  _ClearSessionBeforeSignIn: 1
+  _FetchMatchmakingResults: 1
+  _LogTicketEvents: 0
+--- !u!114 &1665935552
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1665935549}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eec7c47f9ffc4625a9de63a91c6e939b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TacticalPort.Matchmaking.UgsPlayerIdentityService
+  _ClearSessionBeforeSignIn: 1
+--- !u!4 &1665935553
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1665935549}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1015.7741, y: 539.0142, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1665935554
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1665935549}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1d9c56c31f754fd49c6b8f43083bde21, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TacticalPort.Bootstrap.RuntimeServicesBootstrap
+  _MainMenuSceneName: S_MainMenu
+  _LoadMenuOnStart: 1
+  _KeepAliveAcrossScenes: 1
+  _PlayerIdentityService: {fileID: 1665935552}
+  _QuickMatchService: {fileID: 1665935551}
+  _GameServerAllocatorSource: {fileID: 0}
+  _PartyLobbyServiceSource: {fileID: 1665935562}
+  _QuickMatchFlowController: {fileID: 1665935550}
+  _MatchRuntimeContext: {fileID: 1665935555}
+  _MatchRuntimeSessionLifecycle: {fileID: 1665935560}
+--- !u!114 &1665935555
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1665935549}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 40ce89f2de604e7787637531c9576247, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TacticalPort.Matchmaking.MatchRuntimeContext
+  _LogChanges: 1
+  _TeamPresetCatalog: {fileID: 0}
+  _DefaultCustomMatchPort: 5000
+--- !u!114 &1665935556
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1665935549}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff4cf4348fd94fe6a9c550afba54d892, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TacticalPort.Matchmaking.QuickMatchSceneHandoff
+  _MatchContext: {fileID: 1665935555}
+  _CombatSceneName: S_Poutch
+  _LoadOnMatchFound: 1
+  _LoadDelaySeconds: 1
+  _LogEvents: 1
+--- !u!114 &1665935557
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1665935549}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc64ff707d914a64e95f2ac0bf554c09, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PurrNet.Runtime::PurrNet.Transports.UDPTransport
+  _automaticCloudSetups:
+    _adaptToEdgegap: 0
+  _serverPort: 5000
+  _maxConnections: 100
+  _address: 127.0.0.1
+  _timeoutInSeconds: 5
+  _pollEventsInUpdate: 0
+--- !u!114 &1665935558
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1665935549}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: baacc2bfe126d544691d4f39fa3785f9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PurrNet.Runtime::PurrNet.NetworkManager
+  _stopPlayingOnDisconnect: 0
+  _startServerFlags: 0
+  _startClientFlags: 0
+  _cookieScope: 1
+  _dontDestroyOnLoad: 0
+  _transport: {fileID: 1665935557}
+  _networkPrefabs: {fileID: 11400000, guid: 7d9ce381e9331e642a847c818a07df70, type: 2}
+  _networkAssets: {fileID: 0}
+  _networkRules: {fileID: 11400000, guid: 57ad4cc976c21074181652c4f7179d44, type: 2}
+  _visibilityRules: {fileID: 11400000, guid: 8f014a5bd8dc68646a2a3c0b18c5bbd8, type: 2}
+  _authenticator: {fileID: 0}
+  _tickRate: 20
+  _patchLingeringProcessBug: 0
+--- !u!114 &1665935559
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1665935549}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f627cd45fc84e4398d9f2211ac8e91b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TacticalPort.Networking.PurrNetMatchConnector
+  _MatchContext: {fileID: 1665935555}
+  _NetworkManager: {fileID: 1665935558}
+  _UdpTransport: {fileID: 1665935557}
+  _UtpTransport: {fileID: 1665935561}
+  _ConnectionRole: 4
+  _AllowCloneServerRole: 0
+  _ConnectOnMatchFound: 1
+  _AllowServerWithoutMatchContext: 0
+  _UseMatchEndpointWhenAvailable: 1
+  _UseEdgeGapInjectedServerPort: 1
+  _EdgeGapPortName: gameport
+  _DisableNetworkManagerAutoStart: 1
+  _StopWhenMatchContextClears: 1
+  _AllowServerMatchReplacementInMainMenu: 1
+  _MainMenuSceneName: S_MainMenu
+  _ConnectionRetrySeconds: 1
+  _CompositionHandshakeRetrySeconds: 1
+  _LogEvents: 1
+--- !u!114 &1665935560
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1665935549}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fd986543f4d2425f88ef3ea2e17172dc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TacticalPort.Matchmaking.MatchRuntimeSessionLifecycle
+  _MatchContext: {fileID: 1665935555}
+  _QuickMatchFlowController: {fileID: 1665935550}
+  _PurrNetMatchConnector: {fileID: 1665935559}
+  _GameServerAllocatorSource: {fileID: 1665935563}
+  _PartyLobbyServiceSource: {fileID: 1665935562}
+  _MainMenuSceneName: S_MainMenu
+  _ClearMatchOnMainMenuReturn: 1
+  _ReleaseServerAllocationOnSessionEnd: 1
+  _LogEvents: 1
+--- !u!114 &1665935561
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1665935549}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b76f42349e746b39a324dce6dbd231c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PurrNet.UTP.Runtime::PurrNet.UTP.UTPTransport
+  _serverPort: 5004
+  _dedicatedServer: 0
+  _peerToPeer: 1
+  _address: 127.0.0.1
+--- !u!114 &1665935562
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1665935549}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4ed9853751914113aa1578cfd4203ddb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TacticalPort.Matchmaking.UgsCustomRelayLobbyService
+  _LobbyName: Private Match
+  _MapId: custom-relay
+  _MaxPlayers: 2
+  _RelayMaxConnections: 1
+  _RelayRegion: 
+  _ClearSessionBeforeSignIn: 0
+  _HeartbeatIntervalSeconds: 15
+  _LogEvents: 1
+--- !u!114 &1665935563
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1665935549}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7f8b4a24c3494b3a87e92b6c31ca13f5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TacticalPort.Matchmaking.UgsCloudCodeGameServerReleaser
+  _ModuleName: EdgegapAllocator
+  _ReleaseEndpointName: ReleaseEdgeGapServer
+  _ReleaseOnCleanup: 1
+  _LogEvents: 1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 1105729090}
+  - {fileID: 1665935553}

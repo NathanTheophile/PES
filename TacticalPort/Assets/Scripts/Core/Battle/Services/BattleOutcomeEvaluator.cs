@@ -23,9 +23,9 @@ namespace TacticalPort.Core
                     if (lUnit == null || !lUnit.IsAlive)
                         continue;
 
-                    if (lUnit.Team == Team.Player)
+                    if (lUnit.Team == Team.TeamA)
                         lAnyPlayersAlive = true;
-                    else if (lUnit.Team == Team.Enemy)
+                    else if (lUnit.Team == Team.TeamB)
                         lAnyEnemiesAlive = true;
 
                     if (lAnyPlayersAlive && lAnyEnemiesAlive)

@@ -145,7 +145,7 @@ namespace TacticalPort.Core
                     if (pSummoner == null)
                         return pDefinition.Team;
 
-                    return pSummoner.Team == Team.Player ? Team.Enemy : Team.Player;
+                    return pSummoner.Team == Team.TeamA ? Team.TeamB : Team.TeamA;
 
                 default:
                     return pDefinition != null ? pDefinition.Team : Team.Neutral;

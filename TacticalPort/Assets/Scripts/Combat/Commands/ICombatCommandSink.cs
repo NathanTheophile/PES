@@ -16,6 +16,8 @@ namespace TacticalPort.Combat
         bool CanRunEnemyAi { get; }
         bool CanLocallyControlTeam(Team pTeam);
         bool TryGetSlotForTeam(Team pTeam, out MatchPlayerSlot pSlot);
+        bool TryGetLocalPlayerSlot(out MatchPlayerSlot pSlot);
+        CombatTeamRelation GetLocalRelation(Team pTeam);
         BattleActionResult Submit(BattleCommand pCommand);
     }
 }

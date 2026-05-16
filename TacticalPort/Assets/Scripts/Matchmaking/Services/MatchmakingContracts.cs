@@ -29,7 +29,12 @@ namespace TacticalPort.Matchmaking
         Task CancelTicketAsync(string pTicketId, CancellationToken pCancellationToken);
     }
 
-    public interface IGameServerAllocator
+    public interface IGameServerAllocationReleaser
+    {
+        Task ReleaseServerAsync(MatchServerEndpoint pEndpoint, CancellationToken pCancellationToken);
+    }
+
+    public interface IGameServerAllocator : IGameServerAllocationReleaser
     {
         Task<MatchServerEndpoint> AllocateServerAsync(MatchAllocationRequest pRequest, CancellationToken pCancellationToken);
     }

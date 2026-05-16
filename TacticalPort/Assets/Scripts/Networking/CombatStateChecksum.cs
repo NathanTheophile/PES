@@ -68,7 +68,9 @@ namespace TacticalPort.Networking
             pHash = Mix(pHash, pUnit.RemainingActionPoints);
             pHash = Mix(pHash, pUnit.IsAlive ? 1 : 0);
 
-            foreach (BattleStateRuntime lState in pUnit.ActiveStates)
+            List<BattleStateRuntime> lStates = new List<BattleStateRuntime>(pUnit.ActiveStates);
+            lStates.Sort(CompareStates);
+            foreach (BattleStateRuntime lState in lStates)
                 MixState(ref pHash, lState);
         }
 
@@ -137,6 +139,17 @@ namespace TacticalPort.Networking
 
         private static int CompareHazards(TelegraphedHazardRuntime pLeft, TelegraphedHazardRuntime pRight) =>
             CompareStrings(pLeft != null ? pLeft.Id : string.Empty, pRight != null ? pRight.Id : string.Empty);
+
+        private static int CompareStates(BattleStateRuntime pLeft, BattleStateRuntime pRight)
+        {
+            int lResult = CompareStrings(pLeft != null ? pLeft.Key : string.Empty, pRight != null ? pRight.Key : string.Empty);
+            if (lResult != 0)
+                return lResult;
+
+            return CompareStrings(
+                pLeft?.Definition != null ? pLeft.Definition.Id : string.Empty,
+                pRight?.Definition != null ? pRight.Definition.Id : string.Empty);
+        }
 
         private static int CompareCells(GridCoord pLeft, GridCoord pRight)
         {

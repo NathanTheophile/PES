@@ -693,7 +693,7 @@ PlayerSettings:
     PS5: DOTWEEN;DOTWEEN_UITOOLKIT
     QNX: DOTWEEN;DOTWEEN_UITOOLKIT
     Server: EDGEGAP_PLUGIN_SERVERS
-    Standalone: DOTWEEN;DOTWEEN_UITOOLKIT;EDGEGAP_PLUGIN_SERVERS
+    Standalone: DOTWEEN;DOTWEEN_UITOOLKIT;EDGEGAP_PLUGIN_SERVERS;SENTIS_ANALYTICS_ENABLED;APP_UI_EDITOR_ONLY
     VisionOS: DOTWEEN;DOTWEEN_UITOOLKIT
     WebGL: DOTWEEN;DOTWEEN_UITOOLKIT
     Windows Store Apps: DOTWEEN;DOTWEEN_UITOOLKIT
@@ -804,7 +804,7 @@ PlayerSettings:
   qualitySettingsNames: []
   projectName: TacticalVersus
   organizationId: unity_dacc1972f84b2c9e967b
-  cloudEnabled: 0
+  cloudEnabled: 1
   legacyClampBlendShapeWeights: 0
   hmiLoadingImage: {fileID: 0}
   platformRequiresReadableAssets: 0
