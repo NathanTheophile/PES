@@ -111,6 +111,7 @@ Assets/RedBlueGames/
 # Ignore legacy Godot content not considered for current porting scope
 One Piece Tactics/skills/old/
 One Piece Tactics/states/old/
-
+forlaterdontread.txt
 AGENTS.md
 TacticalPort_clone_0/
+TacticalPort_clone_1/

@@ -18,6 +18,7 @@ namespace TacticalPort.Matchmaking
 
         [SerializeField] private string _LocalPlayerId = "local-player";
         [SerializeField] private string _OpponentPlayerId = "local-opponent";
+        [SerializeField] private string _OpponentTeamPresetId = string.Empty;
         [SerializeField] private string _MapId = "poutch";
 
         private MatchTicketSnapshot _CurrentTicket;
@@ -34,7 +35,7 @@ namespace TacticalPort.Matchmaking
             {
                 TicketId = lTicketId,
                 Status = MatchTicketStatus.Searching,
-                Manifest = BuildManifest(lTicketId, pRequest?.TeamPresetId)
+                Manifest = BuildManifest(lTicketId, ResolveLocalPlayerId(pRequest), pRequest?.TeamPresetId)
             };
 
             return Task.FromResult(_CurrentTicket);
@@ -66,7 +67,10 @@ namespace TacticalPort.Matchmaking
             return Task.CompletedTask;
         }
 
-        private MatchManifest BuildManifest(string pMatchId, string pTeamPresetId) =>
+        private string ResolveLocalPlayerId(QuickMatchRequest pRequest) =>
+            pRequest != null && pRequest.Player.IsValid ? pRequest.Player.PlayerId : _LocalPlayerId;
+
+        private MatchManifest BuildManifest(string pMatchId, string pLocalPlayerId, string pTeamPresetId) =>
             new MatchManifest
             {
                 MatchId = pMatchId,
@@ -75,14 +79,15 @@ namespace TacticalPort.Matchmaking
                 {
                     new MatchPlayerAssignment
                     {
-                        PlayerId = _LocalPlayerId,
+                        PlayerId = pLocalPlayerId,
                         Slot = MatchPlayerSlot.TeamA,
                         TeamPresetId = pTeamPresetId ?? string.Empty
                     },
                     new MatchPlayerAssignment
                     {
                         PlayerId = _OpponentPlayerId,
-                        Slot = MatchPlayerSlot.TeamB
+                        Slot = MatchPlayerSlot.TeamB,
+                        TeamPresetId = _OpponentTeamPresetId
                     }
                 }
             };

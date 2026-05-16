@@ -21,7 +21,7 @@ namespace TacticalPort.EditorTools
         [SerializeField] private string _Id = string.Empty;
         [SerializeField] private string _DisplayName = "New Unit";
         [SerializeField] private string _Description = string.Empty;
-        [SerializeField] private Team _Team = Team.Player;
+        [SerializeField] private Team _Team = Team.TeamA;
         [SerializeField] private int _MaxHealth = 10;
         [SerializeField] private int _MoveRange = 4;
         [SerializeField] private int _ActionPointsPerTurn = 1;

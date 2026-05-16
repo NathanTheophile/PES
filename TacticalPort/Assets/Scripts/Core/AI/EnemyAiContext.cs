@@ -154,9 +154,9 @@ namespace TacticalPort.Core
         private static Team ResolveHostileTeam(UnitRuntime pActor)
         {
             if (pActor == null)
-                return Team.Player;
+                return Team.TeamA;
 
-            return pActor.Team == Team.Player ? Team.Enemy : Team.Player;
+            return pActor.Team == Team.TeamA ? Team.TeamB : Team.TeamA;
         }
 
         private static int ResolveBestOffensiveRange(UnitRuntime pActor)

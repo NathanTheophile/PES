@@ -34,11 +34,7 @@ namespace TacticalPort.Core
         {
             _TurnOrder.Clear();
             _LastInsertionIndexByAnchor.Clear();
-            _TurnOrder.AddRange(
-                pUnits
-                    .Where(unit => unit != null && unit.IsAlive)
-                    .OrderByDescending(unit => unit.Definition.Initiative)
-                    .ThenBy(unit => unit.Id.Value));
+            BuildAlternatingTurnOrder(pUnits);
 
             _CurrentIndex = -1;
             RoundIndex = 0;
@@ -142,6 +138,68 @@ namespace TacticalPort.Core
         #endregion
 
         #region _____________________________| HELPERS
+
+        private void BuildAlternatingTurnOrder(IEnumerable<UnitRuntime> pUnits)
+        {
+            if (pUnits == null)
+                return;
+
+            List<UnitRuntime> lTeamA = BuildTeamOrder(pUnits, Team.TeamA);
+            List<UnitRuntime> lTeamB = BuildTeamOrder(pUnits, Team.TeamB);
+
+            Team lStartingTeam = ResolveStartingTeam(lTeamA, lTeamB);
+            if (lStartingTeam == Team.TeamB)
+                AppendAlternating(lTeamB, lTeamA);
+            else
+                AppendAlternating(lTeamA, lTeamB);
+
+            _TurnOrder.AddRange(
+                pUnits
+                    .Where(unit => unit != null && unit.IsAlive && unit.Team == Team.Neutral)
+                    .OrderByDescending(unit => unit.Definition.Initiative)
+                    .ThenBy(unit => unit.Id.Value));
+        }
+
+        private static List<UnitRuntime> BuildTeamOrder(IEnumerable<UnitRuntime> pUnits, Team pTeam) =>
+            pUnits
+                .Where(unit => unit != null && unit.IsAlive && unit.Team == pTeam)
+                .OrderBy(unit => unit.Id.Value)
+                .ToList();
+
+        private void AppendAlternating(IReadOnlyList<UnitRuntime> pFirstTeam, IReadOnlyList<UnitRuntime> pSecondTeam)
+        {
+            int lMaxCount = Math.Max(pFirstTeam.Count, pSecondTeam.Count);
+            for (int lIndex = 0; lIndex < lMaxCount; lIndex++)
+            {
+                if (lIndex < pFirstTeam.Count)
+                    _TurnOrder.Add(pFirstTeam[lIndex]);
+
+                if (lIndex < pSecondTeam.Count)
+                    _TurnOrder.Add(pSecondTeam[lIndex]);
+            }
+        }
+
+        private static Team ResolveStartingTeam(IReadOnlyList<UnitRuntime> pTeamA, IReadOnlyList<UnitRuntime> pTeamB)
+        {
+            if (pTeamA.Count == 0)
+                return Team.TeamB;
+
+            if (pTeamB.Count == 0)
+                return Team.TeamA;
+
+            int lTeamAInitiative = SumInitiative(pTeamA);
+            int lTeamBInitiative = SumInitiative(pTeamB);
+            return lTeamBInitiative > lTeamAInitiative ? Team.TeamB : Team.TeamA;
+        }
+
+        private static int SumInitiative(IReadOnlyList<UnitRuntime> pUnits)
+        {
+            int lTotal = 0;
+            for (int lIndex = 0; lIndex < pUnits.Count; lIndex++)
+                lTotal += pUnits[lIndex].Definition.Initiative;
+
+            return lTotal;
+        }
 
         private void RemoveDefeatedUnits()
         {

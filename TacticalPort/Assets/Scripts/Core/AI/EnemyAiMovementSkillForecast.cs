@@ -311,7 +311,7 @@ namespace TacticalPort.Core
                 switch (pRule.TargetTeam)
                 {
                     case EnemyAiTargetTeam.Enemy:
-                        return pActor.Team == Team.Player ? Team.Enemy : Team.Player;
+                        return pActor.Team == Team.TeamA ? Team.TeamB : Team.TeamA;
 
                     case EnemyAiTargetTeam.Ally:
                         return pActor.Team;
@@ -320,7 +320,7 @@ namespace TacticalPort.Core
 
             return pSkill.PrimaryEffectType == SkillPrimaryEffectType.Heal
                 ? pActor.Team
-                : pActor.Team == Team.Player ? Team.Enemy : Team.Player;
+                : pActor.Team == Team.TeamA ? Team.TeamB : Team.TeamA;
         }
     }
 }

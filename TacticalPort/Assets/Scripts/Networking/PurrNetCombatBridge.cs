@@ -5,6 +5,7 @@
 #endregion
 
 using PurrNet;
+using PurrNet.Modules;
 using TacticalPort.Bootstrap;
 using TacticalPort.Combat;
 using TacticalPort.Core;
@@ -20,49 +21,74 @@ namespace TacticalPort.Networking
 
         [SerializeField] private CombatBootstrap _Bootstrap;
         [SerializeField] private bool _AllowOfflineFallback = true;
-        [SerializeField] private Team _OfflineControlledTeam = Team.Player;
-        [SerializeField] private Team _ServerControlledTeam = Team.Player;
-        [SerializeField] private Team _ClientControlledTeam = Team.Enemy;
         [SerializeField] private bool _RequireRemoteReady = true;
+        [Tooltip("Development fallback until the dedicated server receives an authoritative allocation manifest.")]
+        [SerializeField] private bool _AcceptClientManifestWhenServerHasNoManifest = true;
+        [SerializeField, Min(0.1f)] private float _HandshakeRetrySeconds = 1f;
+        [SerializeField] private bool _LogSlotAssignments = true;
 
         [Header("Match Slots")]
-        [Tooltip("Keep enabled for host playtests. Disable on dedicated server builds where both players are remote clients.")]
-        [SerializeField] private bool _ServerActsAsPlayer = true;
+        [Tooltip("Keep enabled only for host playtests. Dedicated/local server mode should leave this disabled.")]
+        [SerializeField] private bool _ServerActsAsPlayer;
         [SerializeField] private MatchPlayerSlot _OfflineControlledSlot = MatchPlayerSlot.TeamA;
         [SerializeField] private MatchPlayerSlot _ServerPlayerSlot = MatchPlayerSlot.TeamA;
         [SerializeField] private MatchManifest _MatchManifest;
 
-        private bool _IsTeamAReady;
-        private bool _IsTeamBReady;
-        private PlayerID? _TeamAPlayer;
-        private PlayerID? _TeamBPlayer;
-        private MatchPlayerSlot _LocalPlayerSlot = MatchPlayerSlot.None;
+        private readonly CombatPlayerSlotRegistry _PlayerSlots = new CombatPlayerSlotRegistry();
+        private readonly CombatReadyState _ReadyState = new CombatReadyState();
+        private PlayersManager _ServerPlayers;
+        private PlayersManager _ClientPlayers;
+        private bool _IsServerSubscribed;
+        private bool _IsClientSubscribed;
+        private bool _HasServerSlotConfirmation;
+        private float _NextHandshakeTime;
+        private NetworkManager _ResolvedNetworkManager;
 
         #endregion
 
         #region _____________________________/ ACCESSORS
 
-        public bool UsesRemoteAuthority => isSpawned && isClient && !isServer;
-        public bool CanRunAuthoritativeSimulation => !isSpawned ? _AllowOfflineFallback : isServer;
-        public bool CanRunEnemyAi => !isSpawned && _AllowOfflineFallback;
+        public bool UsesRemoteAuthority => IsOnlineClientAuthority();
+        public bool CanRunAuthoritativeSimulation => IsOnlineServerAuthority() || (!IsNetworkSessionActive() && _AllowOfflineFallback);
+        public bool CanRunEnemyAi => !IsNetworkSessionActive() && _AllowOfflineFallback;
         public MatchManifest MatchManifest => _MatchManifest;
 
-        public bool CanLocallyControlTeam(Team pTeam)
-        {
-            return TryResolveLocalControlledSlot(out MatchPlayerSlot lSlot) && ResolveTeam(lSlot) == pTeam;
-        }
+        public bool CanLocallyControlTeam(Team pTeam) => GetLocalRelation(pTeam) == CombatTeamRelation.Own;
 
         public bool TryGetSlotForTeam(Team pTeam, out MatchPlayerSlot pSlot)
         {
-            pSlot = ResolveSlot(pTeam);
+            pSlot = CombatTeamUtility.ToSlot(pTeam);
             return pSlot != MatchPlayerSlot.None;
         }
+
+        public bool TryGetLocalPlayerSlot(out MatchPlayerSlot pSlot) => TryResolveLocalControlledSlot(out pSlot);
+
+        public CombatTeamRelation GetLocalRelation(Team pTeam) =>
+            TryResolveLocalControlledSlot(out MatchPlayerSlot lSlot)
+                ? CombatTeamUtility.ResolveRelation(pTeam, lSlot)
+                : CombatTeamRelation.Neutral;
 
         #endregion
 
         #region _____________________________| UNITY
 
         private void Awake() => CacheMissingReferences();
+
+        private void OnEnable()
+        {
+            TrySubscribeNetworkModules();
+        }
+
+        private void OnDisable()
+        {
+            UnsubscribeNetworkModules();
+        }
+
+        private void Update()
+        {
+            TrySubscribeNetworkModules();
+            TrySendPendingHandshake();
+        }
 
         private void OnValidate() => CacheMissingReferences();
 
@@ -71,7 +97,8 @@ namespace TacticalPort.Networking
             if (!pAsServer || pPlayerId == PlayerID.Server)
                 return;
 
-            AssignRemotePlayerSlot(pPlayerId);
+            if (_LogSlotAssignments)
+                Debug.Log($"[PurrNet Combat Bridge] Player connected. Waiting for match handshake. PurrNetPlayer={pPlayerId}", this);
         }
 
         void IPlayerEvents.OnPlayerDisconnected(PlayerID pPlayerId, bool pAsServer)
@@ -79,45 +106,53 @@ namespace TacticalPort.Networking
             if (!pAsServer)
                 return;
 
-            if (_TeamAPlayer.HasValue && _TeamAPlayer.Value == pPlayerId)
-            {
-                _TeamAPlayer = null;
-                _IsTeamAReady = false;
-            }
-
-            if (_TeamBPlayer.HasValue && _TeamBPlayer.Value == pPlayerId)
-            {
-                _TeamBPlayer = null;
-                _IsTeamBReady = false;
-            }
+            if (_PlayerSlots.Clear(pPlayerId, out MatchPlayerSlot lClearedSlot))
+                _ReadyState.SetReady(lClearedSlot, false);
         }
 
         #endregion
 
         #region _____________________________| CONFIGURE
 
-        public void InitializeMatch(MatchManifest pManifest)
+        public void ConfigureServerPlayerMode(bool pServerActsAsPlayer, MatchPlayerSlot pServerPlayerSlot)
+        {
+            _ServerActsAsPlayer = pServerActsAsPlayer;
+            _ServerPlayerSlot = pServerPlayerSlot;
+        }
+
+        public void InitializeMatch(MatchManifest pManifest) => InitializeMatch(pManifest, default);
+
+        public void InitializeMatch(MatchManifest pManifest, PlayerIdentity pLocalPlayer)
         {
             _MatchManifest = pManifest;
-            _IsTeamAReady = false;
-            _IsTeamBReady = false;
-            _TeamAPlayer = null;
-            _TeamBPlayer = null;
-            _LocalPlayerSlot = MatchPlayerSlot.None;
+            _PlayerSlots.Reset(_MatchManifest, pLocalPlayer);
+            _ReadyState.Reset();
+            _HasServerSlotConfirmation = !HasOnlineMatchContext() || IsOnlineServerAuthority();
+            _NextHandshakeTime = 0f;
+
+            if (_LogSlotAssignments && !string.IsNullOrWhiteSpace(_PlayerSlots.LocalPlayerId))
+                Debug.Log($"[PurrNet Combat Bridge] Match initialized. PlayerId={_PlayerSlots.LocalPlayerId}, LocalSlot={_PlayerSlots.LocalPlayerSlot}, MatchId={_MatchManifest?.MatchId}", this);
+
+            TrySubscribeNetworkModules();
+            TrySendPendingHandshake(true);
         }
 
         public void AssignPlayerSlot(PlayerID pPlayer, MatchPlayerSlot pSlot)
         {
-            if (!isServer || pPlayer == PlayerID.Server || pSlot == MatchPlayerSlot.None)
+            if (!IsOnlineServerAuthority() || pPlayer == PlayerID.Server || pSlot == MatchPlayerSlot.None)
                 return;
 
-            ClearPlayerSlot(pPlayer);
-            if (pSlot == MatchPlayerSlot.TeamA)
-                _TeamAPlayer = pPlayer;
-            else if (pSlot == MatchPlayerSlot.TeamB)
-                _TeamBPlayer = pPlayer;
+            string lPlayerId = _PlayerSlots.ResolvePlayerIdForSlot(_MatchManifest, pSlot);
+            if (!_PlayerSlots.TryAssign(pPlayer, pSlot, out string lFailure))
+            {
+                SendSlotAssignmentFailure(pPlayer, lPlayerId, _MatchManifest != null ? _MatchManifest.MatchId : string.Empty, lFailure);
+                return;
+            }
 
-            AssignLocalSlotTargetRpc(pPlayer, (int)pSlot);
+            if (_LogSlotAssignments)
+                Debug.Log($"[PurrNet Combat Bridge] Assigned PurrNetPlayer={pPlayer} to {pSlot}.", this);
+
+            SendSlotAssignment(pPlayer, pSlot, string.Empty);
         }
 
         #endregion
@@ -129,69 +164,294 @@ namespace TacticalPort.Networking
             if (_Bootstrap == null)
                 return BattleActionResult.Failed(pCommand.ActionType, "PurrNet combat bridge is missing its CombatBootstrap reference.");
 
-            if (!isSpawned)
-            {
-                return _AllowOfflineFallback
-                    ? _Bootstrap.ExecuteLocalCommand(pCommand)
-                    : BattleActionResult.Failed(pCommand.ActionType, "PurrNet combat bridge is not spawned.");
-            }
+            if (TrySubmitWithPurrNetBroadcast(pCommand, out BattleActionResult lBroadcastResult))
+                return lBroadcastResult;
 
-            CombatCommandPacket lPacket = CombatCommandPacket.From(pCommand);
-            if (isServer)
-            {
-                BattleActionResult lResult = ExecuteAuthoritativeCommand(lPacket, PlayerID.Server);
-                if (ShouldBroadcastAcceptedCommand(pCommand, lResult))
-                    ApplyAcceptedCommandObserversRpc(lPacket, CombatStateChecksum.Compute(_Bootstrap.BattleService));
-                else if (pCommand.Type == BattleCommandType.ReadyPlacement)
-                    _Bootstrap.ApplyRemoteCommandResult(lResult);
+            if (HasOnlineMatchContext())
+                return BattleActionResult.Failed(pCommand.ActionType, "Online combat transport is not ready yet.");
 
-                return lResult;
-            }
+            if (IsNetworkSessionActive() && !_AllowOfflineFallback)
+                return BattleActionResult.Failed(pCommand.ActionType, "PurrNet combat bridge has no online match context.");
 
-            SubmitCommandServerRpc(lPacket);
-            return BattleActionResult.Succeeded(pCommand.ActionType, "Command submitted.");
+            return _AllowOfflineFallback
+                ? _Bootstrap.ExecuteLocalCommand(pCommand)
+                : BattleActionResult.Failed(pCommand.ActionType, "Offline combat fallback is disabled.");
         }
 
         #endregion
 
-        #region _____________________________| RPCS
+        #region _____________________________| BROADCASTS
 
-        [ServerRpc(requireOwnership: false)]
-        private void SubmitCommandServerRpc(CombatCommandPacket pPacket, RPCInfo pInfo = default)
+        private bool TrySubmitWithPurrNetBroadcast(BattleCommand pCommand, out BattleActionResult pResult)
         {
-            BattleActionResult lResult = ExecuteAuthoritativeCommand(pPacket, pInfo.sender);
-            if (pPacket.TryToCommand(out BattleCommand lCommand) && ShouldBroadcastAcceptedCommand(lCommand, lResult))
+            pResult = null;
+            if (!HasOnlineMatchContext())
+                return false;
+
+            if (IsOnlineServerAuthority())
             {
-                ApplyAcceptedCommandObserversRpc(pPacket, CombatStateChecksum.Compute(_Bootstrap.BattleService));
+                CombatCommandPacket lServerPacket = CombatCommandPacket.From(pCommand);
+                pResult = ExecuteAuthoritativeCommand(lServerPacket, PlayerID.Server);
+                if (ShouldBroadcastAcceptedCommand(pCommand, pResult))
+                    SendAcceptedCommandToAll(lServerPacket);
+                else if (pCommand.Type == BattleCommandType.ReadyPlacement)
+                    _Bootstrap.ApplyRemoteCommandResult(pResult);
+
+                return true;
+            }
+
+            if (!IsOnlineClientAuthority())
+            {
+                pResult = BattleActionResult.Failed(pCommand.ActionType, $"Online combat client is not connected. {DescribeNetworkState()}");
+                return true;
+            }
+
+            TrySubscribeNetworkModules();
+            TrySendPendingHandshake(true);
+
+            if (!_HasServerSlotConfirmation)
+            {
+                pResult = BattleActionResult.Failed(pCommand.ActionType, "Waiting for online slot confirmation.");
+                return true;
+            }
+
+            if (_ClientPlayers == null)
+            {
+                pResult = BattleActionResult.Failed(pCommand.ActionType, "PurrNet client player module is not ready.");
+                return true;
+            }
+
+            _ClientPlayers.SendToServer(new PurrNetCombatCommandMessage
+            {
+                PlayerId = _PlayerSlots.LocalPlayerId,
+                MatchId = _MatchManifest.MatchId,
+                Command = CombatCommandPacket.From(pCommand)
+            });
+
+            pResult = BattleActionResult.Succeeded(pCommand.ActionType, "Command submitted.");
+            return true;
+        }
+
+        private void TrySubscribeNetworkModules()
+        {
+            NetworkManager lManager = ResolveNetworkManager();
+            if (lManager == null)
+                return;
+
+            if (!_IsServerSubscribed && lManager.isServer && lManager.TryGetModule(true, out PlayersManager lServerPlayers))
+            {
+                _ServerPlayers = lServerPlayers;
+                _ServerPlayers.Subscribe<PurrNetCombatHandshakeMessage>(HandleHandshakeMessage);
+                _ServerPlayers.Subscribe<PurrNetCombatCommandMessage>(HandleCommandMessage);
+                _IsServerSubscribed = true;
+            }
+
+            if (!_IsClientSubscribed && lManager.isClient && lManager.TryGetModule(false, out PlayersManager lClientPlayers))
+            {
+                _ClientPlayers = lClientPlayers;
+                _ClientPlayers.Subscribe<PurrNetCombatSlotAssignmentMessage>(HandleSlotAssignmentMessage);
+                _ClientPlayers.Subscribe<PurrNetCombatCommandResultMessage>(HandleCommandResultMessage);
+                _ClientPlayers.Subscribe<PurrNetCombatAcceptedCommandMessage>(HandleAcceptedCommandMessage);
+                _IsClientSubscribed = true;
+            }
+        }
+
+        private void UnsubscribeNetworkModules()
+        {
+            if (_IsServerSubscribed && _ServerPlayers != null)
+            {
+                _ServerPlayers.Unsubscribe<PurrNetCombatHandshakeMessage>(HandleHandshakeMessage);
+                _ServerPlayers.Unsubscribe<PurrNetCombatCommandMessage>(HandleCommandMessage);
+            }
+
+            if (_IsClientSubscribed && _ClientPlayers != null)
+            {
+                _ClientPlayers.Unsubscribe<PurrNetCombatSlotAssignmentMessage>(HandleSlotAssignmentMessage);
+                _ClientPlayers.Unsubscribe<PurrNetCombatCommandResultMessage>(HandleCommandResultMessage);
+                _ClientPlayers.Unsubscribe<PurrNetCombatAcceptedCommandMessage>(HandleAcceptedCommandMessage);
+            }
+
+            _ServerPlayers = null;
+            _ClientPlayers = null;
+            _IsServerSubscribed = false;
+            _IsClientSubscribed = false;
+        }
+
+        private void TrySendPendingHandshake(bool pForce = false)
+        {
+            if (!HasOnlineMatchContext() || !IsOnlineClientAuthority() || string.IsNullOrWhiteSpace(_PlayerSlots.LocalPlayerId) || _HasServerSlotConfirmation)
+                return;
+
+            if (_ClientPlayers == null)
+                return;
+
+            if (!pForce && Time.unscaledTime < _NextHandshakeTime)
+                return;
+
+            _NextHandshakeTime = Time.unscaledTime + _HandshakeRetrySeconds;
+            if (CombatTeamCompositionState.HasLocalSelection)
+                _MatchManifest.SetUnitIds(_PlayerSlots.LocalPlayerId, CombatTeamCompositionState.LocalSelectedUnits);
+
+            _ClientPlayers.SendToServer(new PurrNetCombatHandshakeMessage
+            {
+                PlayerId = _PlayerSlots.LocalPlayerId,
+                MatchId = _MatchManifest.MatchId,
+                ManifestJson = JsonUtility.ToJson(_MatchManifest)
+            });
+        }
+
+        private void HandleHandshakeMessage(PlayerID pPlayer, PurrNetCombatHandshakeMessage pMessage, bool pAsServer)
+        {
+            if (!pAsServer || pPlayer == PlayerID.Server)
+                return;
+
+            if (!TryMatchesMessage(pMessage.MatchId))
+            {
+                SendSlotAssignmentFailure(pPlayer, pMessage.PlayerId, pMessage.MatchId, "Match handshake failed: server is running another match.");
                 return;
             }
 
-            ApplyCommandResultTargetRpc(pInfo.sender, CombatCommandResultPacket.From(lResult));
+            if (!TryImportManifest(pMessage.MatchId, pMessage.ManifestJson, out string lImportFailure))
+            {
+                SendSlotAssignmentFailure(pPlayer, pMessage.PlayerId, pMessage.MatchId, lImportFailure);
+                return;
+            }
+
+            if (_MatchManifest == null || !_MatchManifest.TryGetSlot(pMessage.PlayerId, out MatchPlayerSlot lSlot))
+            {
+                SendSlotAssignmentFailure(pPlayer, pMessage.PlayerId, pMessage.MatchId, $"No match slot found for player '{pMessage.PlayerId}'.");
+                return;
+            }
+
+            AssignPlayerSlot(pPlayer, lSlot);
         }
 
-        [ObserversRpc]
-        private void ApplyAcceptedCommandObserversRpc(CombatCommandPacket pPacket, int pServerChecksum)
+        private void HandleCommandMessage(PlayerID pPlayer, PurrNetCombatCommandMessage pMessage, bool pAsServer)
         {
-            if (isServer)
+            if (!pAsServer || pPlayer == PlayerID.Server)
                 return;
 
-            if (pPacket.TryToCommand(out BattleCommand lCommand))
+            if (!TryMatchesMessage(pMessage.MatchId))
+            {
+                SendCommandResult(
+                    pPlayer,
+                    pMessage.PlayerId,
+                    BattleActionResult.Failed(ResolveActionType(pMessage.Command), "Command rejected: match id does not match the server match."),
+                    pMessage.MatchId);
+                return;
+            }
+
+            if (!TryEnsurePlayerSlot(pPlayer, pMessage.PlayerId, pMessage.MatchId, out BattleActionResult lSlotFailure))
+            {
+                SendCommandResult(pPlayer, pMessage.PlayerId, lSlotFailure);
+                return;
+            }
+
+            BattleActionResult lResult = ExecuteAuthoritativeCommand(pMessage.Command, pPlayer);
+            if (pMessage.Command.TryToCommand(out BattleCommand lCommand) && ShouldBroadcastAcceptedCommand(lCommand, lResult))
+            {
+                SendAcceptedCommandToAll(pMessage.Command);
+                return;
+            }
+
+            SendCommandResult(pPlayer, pMessage.PlayerId, lResult);
+        }
+
+        private void HandleSlotAssignmentMessage(PlayerID pPlayer, PurrNetCombatSlotAssignmentMessage pMessage, bool pAsServer)
+        {
+            if (pAsServer || !IsLocalPlayerMessage(pMessage.PlayerId, pMessage.MatchId))
+                return;
+
+            if (!string.IsNullOrWhiteSpace(pMessage.FailureReason))
+            {
+                _HasServerSlotConfirmation = false;
+                Debug.LogWarning($"[PurrNet Combat Bridge] {pMessage.FailureReason}", this);
+                _Bootstrap?.ApplyRemoteCommandResult(BattleActionResult.Failed(BattleActionType.Placement, pMessage.FailureReason));
+                return;
+            }
+
+            _PlayerSlots.SetLocalSlot((MatchPlayerSlot)pMessage.Slot);
+            _HasServerSlotConfirmation = _PlayerSlots.LocalPlayerSlot != MatchPlayerSlot.None;
+
+            if (_LogSlotAssignments)
+                Debug.Log($"[PurrNet Combat Bridge] Local slot confirmed by server: {_PlayerSlots.LocalPlayerSlot}.", this);
+
+            _Bootstrap?.ApplyRemoteCommandResult(BattleActionResult.Succeeded(BattleActionType.Placement, $"Online slot confirmed: {_PlayerSlots.LocalPlayerSlot}."));
+        }
+
+        private void HandleCommandResultMessage(PlayerID pPlayer, PurrNetCombatCommandResultMessage pMessage, bool pAsServer)
+        {
+            if (pAsServer || !IsLocalPlayerMessage(pMessage.PlayerId, pMessage.MatchId))
+                return;
+
+            _Bootstrap?.ApplyRemoteCommandResult(pMessage.Result.ToResult());
+        }
+
+        private void HandleAcceptedCommandMessage(PlayerID pPlayer, PurrNetCombatAcceptedCommandMessage pMessage, bool pAsServer)
+        {
+            if (pAsServer || !TryMatchesMessage(pMessage.MatchId))
+                return;
+
+            if (pMessage.Command.TryToCommand(out BattleCommand lCommand))
             {
                 _Bootstrap?.ExecuteLocalCommand(lCommand);
-                ValidateServerChecksum(pServerChecksum);
+                ValidateServerChecksum(pMessage.ServerChecksum);
             }
         }
 
-        [TargetRpc]
-        private void ApplyCommandResultTargetRpc(PlayerID pPlayer, CombatCommandResultPacket pResult)
+        private void SendSlotAssignment(PlayerID pPlayer, MatchPlayerSlot pSlot, string pFailureReason)
         {
-            _Bootstrap?.ApplyRemoteCommandResult(pResult.ToResult());
+            if (_ServerPlayers == null)
+                return;
+
+            string lPlayerId = _PlayerSlots.ResolvePlayerIdForSlot(_MatchManifest, pSlot);
+            _ServerPlayers.Send(pPlayer, new PurrNetCombatSlotAssignmentMessage
+            {
+                PlayerId = lPlayerId,
+                MatchId = _MatchManifest != null ? _MatchManifest.MatchId : string.Empty,
+                Slot = (int)pSlot,
+                FailureReason = pFailureReason ?? string.Empty
+            });
         }
 
-        [TargetRpc]
-        private void AssignLocalSlotTargetRpc(PlayerID pPlayer, int pSlot)
+        private void SendSlotAssignmentFailure(PlayerID pPlayer, string pPlayerId, string pMatchId, string pFailureReason)
         {
-            _LocalPlayerSlot = (MatchPlayerSlot)pSlot;
+            if (_ServerPlayers == null)
+                return;
+
+            _ServerPlayers.Send(pPlayer, new PurrNetCombatSlotAssignmentMessage
+            {
+                PlayerId = pPlayerId ?? string.Empty,
+                MatchId = pMatchId ?? string.Empty,
+                Slot = (int)MatchPlayerSlot.None,
+                FailureReason = string.IsNullOrWhiteSpace(pFailureReason) ? "Player slot assignment failed." : pFailureReason
+            });
+        }
+
+        private void SendCommandResult(PlayerID pPlayer, string pPlayerId, BattleActionResult pResult, string pMatchId = null)
+        {
+            if (_ServerPlayers == null)
+                return;
+
+            _ServerPlayers.Send(pPlayer, new PurrNetCombatCommandResultMessage
+            {
+                PlayerId = pPlayerId ?? ResolvePlayerIdForPlayer(pPlayer),
+                MatchId = pMatchId ?? (_MatchManifest != null ? _MatchManifest.MatchId : string.Empty),
+                Result = CombatCommandResultPacket.From(pResult)
+            });
+        }
+
+        private void SendAcceptedCommandToAll(CombatCommandPacket pPacket)
+        {
+            if (_ServerPlayers == null || _Bootstrap?.BattleService == null)
+                return;
+
+            _ServerPlayers.SendToAll(new PurrNetCombatAcceptedCommandMessage
+            {
+                MatchId = _MatchManifest != null ? _MatchManifest.MatchId : string.Empty,
+                Command = pPacket,
+                ServerChecksum = CombatStateChecksum.Compute(_Bootstrap.BattleService)
+            });
         }
 
         #endregion
@@ -228,8 +488,8 @@ namespace TacticalPort.Networking
                 return lFailure;
 
             SetReady(pSender, true);
-            if (!AreRequiredPlayersReady())
-                return BattleActionResult.Succeeded(BattleActionType.Placement, ResolveReadyStatus());
+            if (!_ReadyState.AreRequiredPlayersReady(_RequireRemoteReady, ResolveReadyFallbackSlot(pSender)))
+                return BattleActionResult.Succeeded(BattleActionType.Placement, _ReadyState.ResolveStatus(_RequireRemoteReady));
 
             return _Bootstrap.ExecuteLocalCommand(BattleCommand.ReadyPlacement());
         }
@@ -259,11 +519,19 @@ namespace TacticalPort.Networking
         private bool ValidateReadyCommand(PlayerID pSender, out BattleActionResult pFailure)
         {
             pFailure = null;
-            if (TryResolvePlayerSlot(pSender, out _))
-                return true;
+            if (!TryResolvePlayerSlot(pSender, out MatchPlayerSlot lSlot))
+            {
+                pFailure = BattleActionResult.Failed(BattleActionType.Placement, $"Ready from {pSender} failed: no slot assigned.");
+                return false;
+            }
 
-            pFailure = BattleActionResult.Failed(BattleActionType.Placement, $"Ready from {pSender} failed: no slot assigned.");
-            return false;
+            if (_Bootstrap == null)
+            {
+                pFailure = BattleActionResult.Failed(BattleActionType.Placement, "Ready failed: combat bootstrap is missing.");
+                return false;
+            }
+
+            return _Bootstrap.TryValidatePlacementReadyForSlot(lSlot, out pFailure);
         }
 
         private bool ShouldBroadcastAcceptedCommand(BattleCommand pCommand, BattleActionResult pResult)
@@ -280,36 +548,13 @@ namespace TacticalPort.Networking
         private void ResetReadyIfPlacementChanged(PlayerID pSender, BattleCommand pCommand)
         {
             if (pCommand.Type == BattleCommandType.PlaceUnit && TryResolvePlayerSlot(pSender, out MatchPlayerSlot lSlot))
-                SetReady(lSlot, false);
+                _ReadyState.SetReady(lSlot, false);
         }
 
         private void SetReady(PlayerID pPlayer, bool pValue)
         {
             if (TryResolvePlayerSlot(pPlayer, out MatchPlayerSlot lSlot))
-                SetReady(lSlot, pValue);
-        }
-
-        private void SetReady(MatchPlayerSlot pSlot, bool pValue)
-        {
-            if (pSlot == MatchPlayerSlot.TeamA)
-                _IsTeamAReady = pValue;
-            else if (pSlot == MatchPlayerSlot.TeamB)
-                _IsTeamBReady = pValue;
-        }
-
-        private bool AreRequiredPlayersReady()
-        {
-            if (!_RequireRemoteReady)
-                return _IsTeamAReady;
-
-            return _IsTeamAReady && _IsTeamBReady;
-        }
-
-        private string ResolveReadyStatus()
-        {
-            return _RequireRemoteReady
-                ? $"Waiting for opponent. TeamA ready: {_IsTeamAReady}. TeamB ready: {_IsTeamBReady}."
-                : "Ready.";
+                _ReadyState.SetReady(lSlot, pValue);
         }
 
         private void ValidateServerChecksum(int pServerChecksum)
@@ -327,130 +572,226 @@ namespace TacticalPort.Networking
 
         private bool TryResolveLocalControlledSlot(out MatchPlayerSlot pSlot)
         {
-            if (!isSpawned)
+            if (HasOnlineMatchContext() && IsOnlineClientAuthority() && !_HasServerSlotConfirmation)
             {
-                pSlot = _OfflineControlledSlot != MatchPlayerSlot.None ? _OfflineControlledSlot : ResolveSlot(_OfflineControlledTeam);
-                return pSlot != MatchPlayerSlot.None;
+                pSlot = MatchPlayerSlot.None;
+                return false;
             }
 
-            if (isServer)
-            {
-                pSlot = _ServerActsAsPlayer
-                    ? _ServerPlayerSlot != MatchPlayerSlot.None ? _ServerPlayerSlot : ResolveSlot(_ServerControlledTeam)
-                    : MatchPlayerSlot.None;
-                return pSlot != MatchPlayerSlot.None;
-            }
-
-            pSlot = _LocalPlayerSlot != MatchPlayerSlot.None ? _LocalPlayerSlot : ResolveSlot(_ClientControlledTeam);
-            return pSlot != MatchPlayerSlot.None;
+            return _PlayerSlots.TryResolveLocalControlledSlot(
+                HasOnlineMatchContext(),
+                IsOnlineServerAuthority(),
+                isSpawned,
+                _ServerActsAsPlayer,
+                IsServerOnlyNetwork(),
+                _OfflineControlledSlot,
+                _ServerPlayerSlot,
+                out pSlot);
         }
 
         private bool TryResolveControlledTeam(PlayerID pPlayer, out Team pTeam)
         {
-            if (TryResolvePlayerSlot(pPlayer, out MatchPlayerSlot lSlot))
-            {
-                pTeam = ResolveTeam(lSlot);
-                return pTeam != Team.Neutral;
-            }
-
-            pTeam = Team.Neutral;
-            return false;
+            return _PlayerSlots.TryResolveControlledTeam(
+                pPlayer,
+                _ServerActsAsPlayer,
+                IsServerOnlyNetwork(),
+                _ServerPlayerSlot,
+                out pTeam);
         }
 
         private bool TryResolvePlayerSlot(PlayerID pPlayer, out MatchPlayerSlot pSlot)
         {
-            if (pPlayer == PlayerID.Server)
+            return _PlayerSlots.TryResolvePlayerSlot(
+                pPlayer,
+                _ServerActsAsPlayer,
+                IsServerOnlyNetwork(),
+                _ServerPlayerSlot,
+                out pSlot);
+        }
+
+        private bool TryImportManifest(string pMatchId, string pManifestJson, out string pFailure)
+        {
+            bool lImported = CombatMatchManifestImporter.TryImport(
+                _MatchManifest,
+                pMatchId,
+                pManifestJson,
+                _AcceptClientManifestWhenServerHasNoManifest,
+                out MatchManifest lResolvedManifest,
+                out pFailure);
+
+            if (lImported)
+                _MatchManifest = lResolvedManifest;
+
+            return lImported;
+        }
+
+        private bool HasOnlineMatchContext() =>
+            _MatchManifest != null && !string.IsNullOrWhiteSpace(_MatchManifest.MatchId);
+
+        private NetworkManager ResolveNetworkManager()
+        {
+            if (networkManager != null && !networkManager.isOffline)
+                return networkManager;
+
+            if (NetworkManager.main != null && !NetworkManager.main.isOffline)
+                return NetworkManager.main;
+
+            if (_ResolvedNetworkManager != null && !_ResolvedNetworkManager.isOffline)
+                return _ResolvedNetworkManager;
+
+            NetworkManager[] lManagers = FindObjectsByType<NetworkManager>(FindObjectsInactive.Exclude);
+            for (int lIndex = 0; lIndex < lManagers.Length; lIndex++)
             {
-                pSlot = _ServerActsAsPlayer
-                    ? _ServerPlayerSlot != MatchPlayerSlot.None ? _ServerPlayerSlot : ResolveSlot(_ServerControlledTeam)
-                    : MatchPlayerSlot.None;
-                return pSlot != MatchPlayerSlot.None;
+                NetworkManager lManager = lManagers[lIndex];
+                if (lManager != null && !lManager.isOffline)
+                {
+                    _ResolvedNetworkManager = lManager;
+                    return _ResolvedNetworkManager;
+                }
             }
 
-            TryCachePlayersFromNetworkManager();
-            if (_TeamAPlayer.HasValue && _TeamAPlayer.Value == pPlayer)
+            if (networkManager != null)
+                return networkManager;
+
+            if (NetworkManager.main != null)
+                return NetworkManager.main;
+
+            if (_ResolvedNetworkManager != null)
+                return _ResolvedNetworkManager;
+
+            return lManagers.Length > 0 ? lManagers[0] : null;
+        }
+
+        private bool TryEnsurePlayerSlot(PlayerID pPlayer, string pPlayerId, string pMatchId, out BattleActionResult pFailure)
+        {
+            pFailure = null;
+
+            if (!TryMatchesMessage(pMatchId))
             {
-                pSlot = MatchPlayerSlot.TeamA;
+                pFailure = BattleActionResult.Failed(BattleActionType.Placement, "Command rejected: match id does not match the server match.");
+                return false;
+            }
+
+            if (TryResolvePlayerSlot(pPlayer, out MatchPlayerSlot lAssignedSlot))
+            {
+                if (!string.IsNullOrWhiteSpace(pPlayerId)
+                    && _MatchManifest != null
+                    && _MatchManifest.TryGetSlot(pPlayerId, out MatchPlayerSlot lClaimedSlot)
+                    && lClaimedSlot != lAssignedSlot)
+                {
+                    pFailure = BattleActionResult.Failed(BattleActionType.Placement, $"Command from {pPlayer} rejected: player id does not match the assigned slot.");
+                    return false;
+                }
+
                 return true;
             }
 
-            if (_TeamBPlayer.HasValue && _TeamBPlayer.Value == pPlayer)
-            {
-                pSlot = MatchPlayerSlot.TeamB;
+            if (TryAssignSlotFromPlayerId(pPlayer, pPlayerId, out string lAssignFailure))
                 return true;
+
+            if (string.IsNullOrWhiteSpace(pPlayerId))
+            {
+                pFailure = BattleActionResult.Failed(BattleActionType.Placement, $"Command from {pPlayer} rejected: slot handshake is not confirmed.");
+                return false;
             }
 
-            pSlot = MatchPlayerSlot.None;
+            pFailure = BattleActionResult.Failed(BattleActionType.Placement, $"Command from {pPlayer} rejected: slot handshake is not confirmed for player '{pPlayerId}'. {lAssignFailure}");
             return false;
         }
 
-        private void AssignRemotePlayerSlot(PlayerID pPlayer)
+        private bool TryAssignSlotFromPlayerId(PlayerID pPlayer, string pPlayerId, out string pFailure)
         {
-            if (_TeamAPlayer.HasValue && _TeamAPlayer.Value == pPlayer)
-                return;
+            pFailure = string.Empty;
+            if (string.IsNullOrWhiteSpace(pPlayerId))
+                return false;
 
-            if (_TeamBPlayer.HasValue && _TeamBPlayer.Value == pPlayer)
-                return;
-
-            MatchPlayerSlot lSlot = ResolveNextFreeRemoteSlot();
-            if (lSlot == MatchPlayerSlot.None)
+            if (_MatchManifest == null || !_MatchManifest.TryGetSlot(pPlayerId, out MatchPlayerSlot lSlot))
             {
-                Debug.LogWarning($"Cannot assign slot to player {pPlayer}: match is already full.", this);
-                return;
+                pFailure = "Player id is not present in the match manifest.";
+                return false;
             }
 
-            if (lSlot == MatchPlayerSlot.TeamA)
-                AssignPlayerSlot(pPlayer, MatchPlayerSlot.TeamA);
-            else
-                AssignPlayerSlot(pPlayer, MatchPlayerSlot.TeamB);
+            if (!_PlayerSlots.TryAssign(pPlayer, lSlot, out pFailure))
+                return false;
+
+            SendSlotAssignment(pPlayer, lSlot, string.Empty);
+
+            if (_LogSlotAssignments)
+                Debug.Log($"[PurrNet Combat Bridge] Late assigned PurrNetPlayer={pPlayer} to {lSlot} from PlayerId={pPlayerId}.", this);
+
+            return true;
         }
 
-        private void ClearPlayerSlot(PlayerID pPlayer)
+        private MatchPlayerSlot ResolveReadyFallbackSlot(PlayerID pSender) =>
+            TryResolvePlayerSlot(pSender, out MatchPlayerSlot lSlot) ? lSlot : MatchPlayerSlot.TeamA;
+
+        private bool IsOnlineClientAuthority()
         {
-            if (_TeamAPlayer.HasValue && _TeamAPlayer.Value == pPlayer)
-                _TeamAPlayer = null;
+            NetworkManager lManager = ResolveNetworkManager();
+            if (lManager != null)
+                return lManager.isClient && !lManager.isServer;
 
-            if (_TeamBPlayer.HasValue && _TeamBPlayer.Value == pPlayer)
-                _TeamBPlayer = null;
+            return isSpawned && isClient && !isServer;
         }
 
-        private MatchPlayerSlot ResolveNextFreeRemoteSlot()
+        private string DescribeNetworkState()
         {
-            if (!_ServerActsAsPlayer && !_TeamAPlayer.HasValue)
-                return MatchPlayerSlot.TeamA;
-
-            return !_TeamBPlayer.HasValue ? MatchPlayerSlot.TeamB : MatchPlayerSlot.None;
+            NetworkManager lManager = ResolveNetworkManager();
+            return lManager != null
+                ? $"NetworkManager={lManager.name}, Offline={lManager.isOffline}, Client={lManager.isClient}, Server={lManager.isServer}."
+                : "No NetworkManager found.";
         }
 
-        private void TryCachePlayersFromNetworkManager()
+        private bool IsServerOnlyNetwork()
         {
-            if (!isServer || networkManager == null || networkManager.players == null)
-                return;
+            NetworkManager lManager = ResolveNetworkManager();
+            if (lManager != null)
+                return lManager.isServerOnly;
 
-            foreach (PlayerID lPlayer in networkManager.players)
-            {
-                if (lPlayer != PlayerID.Server)
-                    AssignRemotePlayerSlot(lPlayer);
-            }
+            return isServerOnly;
         }
 
-        private static Team ResolveTeam(MatchPlayerSlot pSlot)
+        private bool TryMatchesMessage(string pMatchId)
         {
-            return pSlot == MatchPlayerSlot.TeamA
-                ? Team.Player
-                : pSlot == MatchPlayerSlot.TeamB
-                    ? Team.Enemy
-                    : Team.Neutral;
+            if (string.IsNullOrWhiteSpace(pMatchId))
+                return false;
+
+            return _MatchManifest == null
+                   || string.IsNullOrWhiteSpace(_MatchManifest.MatchId)
+                   || _MatchManifest.MatchId == pMatchId;
         }
 
-        private static MatchPlayerSlot ResolveSlot(Team pTeam)
+        private bool IsLocalPlayerMessage(string pPlayerId, string pMatchId) =>
+            TryMatchesMessage(pMatchId)
+            && !string.IsNullOrWhiteSpace(_PlayerSlots.LocalPlayerId)
+            && _PlayerSlots.LocalPlayerId == pPlayerId;
+
+        private string ResolvePlayerIdForPlayer(PlayerID pPlayer)
         {
-            return pTeam == Team.Player
-                ? MatchPlayerSlot.TeamA
-                : pTeam == Team.Enemy
-                    ? MatchPlayerSlot.TeamB
-                    : MatchPlayerSlot.None;
+            return _PlayerSlots.ResolvePlayerIdForPlayer(
+                _MatchManifest,
+                pPlayer,
+                _ServerActsAsPlayer,
+                IsServerOnlyNetwork(),
+                _ServerPlayerSlot);
         }
+
+        private static BattleActionType ResolveActionType(CombatCommandPacket pPacket) =>
+            pPacket.TryToCommand(out BattleCommand lCommand) ? lCommand.ActionType : BattleActionType.Move;
+
+        private bool IsOnlineServerAuthority()
+        {
+            NetworkManager lManager = ResolveNetworkManager();
+            if (lManager != null)
+                return lManager.isServer;
+
+            return isSpawned && isServer;
+        }
+
+        private bool IsNetworkSessionActive() =>
+            HasOnlineMatchContext()
+            || isSpawned
+            || ResolveNetworkManager() is NetworkManager lManager && !lManager.isOffline;
 
         #endregion
     }
