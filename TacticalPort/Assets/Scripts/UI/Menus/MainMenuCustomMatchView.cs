@@ -31,11 +31,11 @@ namespace TacticalPort.UI
 
         #region _____________________________/ VALUES
 
-        [Tooltip("Optional. Leave empty in S_MainMenu: the service is resolved from GO_RuntimeServices at runtime.")]
+        [Tooltip("Optional. Leave empty in S_MainMenu: the service is resolved from runtime services at startup.")]
         [SerializeField] private MonoBehaviour _PlayerIdentityServiceSource;
-        [Tooltip("Optional. Leave empty in S_MainMenu: the service is resolved from GO_RuntimeServices at runtime.")]
+        [Tooltip("Optional. Leave empty in S_MainMenu: the service is resolved from runtime services at startup.")]
         [SerializeField] private MonoBehaviour _PartyLobbyServiceSource;
-        [Tooltip("Optional. Leave empty in S_MainMenu: the context is resolved from GO_RuntimeServices at runtime.")]
+        [Tooltip("Optional. Leave empty in S_MainMenu: the context is resolved from runtime services at startup.")]
         [SerializeField] private MatchRuntimeContext _MatchContext;
         [SerializeField] private Button _OpenButton;
         [SerializeField] private Button _HostButton;
@@ -98,13 +98,17 @@ namespace TacticalPort.UI
         private void HostCustomMatch() => RunCustomMatchAsync(true);
         private void JoinCustomMatch() => RunCustomMatchAsync(false);
 
-        private void OpenCustomMatchPanel()
+        public void ShowPanel()
         {
             SetPanelVisible(true);
 
             if (ResolveServices())
                 RefreshIdleState();
         }
+
+        public void HidePanel() => SetPanelVisible(false);
+
+        private void OpenCustomMatchPanel() => ShowPanel();
 
         private async void CancelCustomMatch()
         {
@@ -117,7 +121,7 @@ namespace TacticalPort.UI
 
             _MatchContext?.Clear();
             RefreshIdleState();
-            SetPanelVisible(false);
+            HidePanel();
         }
 
         private async void RunCustomMatchAsync(bool pHost)
@@ -475,10 +479,9 @@ namespace TacticalPort.UI
 
         private void SetPanelVisible(bool pVisible)
         {
-            if (_PanelRoot == null || _PanelRoot == gameObject)
-                return;
-
-            _PanelRoot.SetActive(pVisible);
+            GameObject lPanelRoot = _PanelRoot != null ? _PanelRoot : gameObject;
+            if (lPanelRoot != null && lPanelRoot.activeSelf != pVisible)
+                lPanelRoot.SetActive(pVisible);
         }
 
         private void SetStatus(string pText)
@@ -499,16 +502,16 @@ namespace TacticalPort.UI
                 _OpenButton = FindComponentByObjectName<Button>("Button_CustomMatch", "Button Custom Match", "Btn_CustomMatch");
 
             if (_HostButton == null)
-                _HostButton = FindComponentByObjectName<Button>("Button_CustomHost", "Button_HostCustom");
+                _HostButton = FindComponentByObjectName<Button>("Button_CustomHost", "Button_HostCustom", "Btn_CustomHost");
 
             if (_JoinButton == null)
-                _JoinButton = FindComponentByObjectName<Button>("Button_CustomJoin", "Button_JoinCustom");
+                _JoinButton = FindComponentByObjectName<Button>("Button_CustomJoin", "Button_JoinCustom", "Btn_CustomJoin");
 
             if (_CancelButton == null)
-                _CancelButton = FindComponentByObjectName<Button>("Button_CancelCustomMatch", "Button_CancelCustom");
+                _CancelButton = FindComponentByObjectName<Button>("Button_CancelCustomMatch", "Button_CancelCustom", "Btn_CancelCustomMatch");
 
             if (_AddressInput == null)
-                _AddressInput = FindComponentByObjectName<TMP_InputField>("Input_CustomAddress", "Input_CustomMatchAddress");
+                _AddressInput = FindComponentByObjectName<TMP_InputField>("Input_CustomAddress", "Input_CustomAdress", "Input_CustomMatchAddress");
 
             if (_JoinCodeInput == null)
                 _JoinCodeInput = FindComponentByObjectName<TMP_InputField>("Input_CustomJoinCode", "Input_CustomLobbyCode", "Input_LobbyCode");
@@ -517,10 +520,10 @@ namespace TacticalPort.UI
                 _PortInput = FindComponentByObjectName<TMP_InputField>("Input_CustomPort", "Input_CustomMatchPort");
 
             if (_StatusText == null)
-                _StatusText = FindComponentByObjectName<TMP_Text>("Text_CustomMatchStatus");
+                _StatusText = FindComponentByObjectName<TMP_Text>("Text_CustomMatchStatus", "Txt_CustomMatchStatus");
 
             if (_ErrorText == null)
-                _ErrorText = FindComponentByObjectName<TMP_Text>("Text_CustomMatchError");
+                _ErrorText = FindComponentByObjectName<TMP_Text>("Text_CustomMatchError", "Txt_CustomMatchError");
 
             if (_PanelRoot == null)
                 _PanelRoot = FindGameObjectByName("Panel_CustomMatch", "Panel_CustomMatchView", "UI_CustomMatchView");

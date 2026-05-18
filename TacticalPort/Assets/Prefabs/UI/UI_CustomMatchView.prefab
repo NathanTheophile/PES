@@ -338,8 +338,9 @@ GameObject:
   - component: {fileID: 3661987278802323355}
   - component: {fileID: 6317785049232272048}
   - component: {fileID: 5142972416151353990}
+  - component: {fileID: 1975713154066612290}
   m_Layer: 5
-  m_Name: UI_CustomMatchView
+  m_Name: Panel_CustomMatch
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -433,6 +434,39 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!114 &1975713154066612290
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2547268355603731188}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a48e3d9877fb4c40a91d8cf8da5e4a19, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TacticalPort.UI.MainMenuCustomMatchView
+  _PlayerIdentityServiceSource: {fileID: 0}
+  _PartyLobbyServiceSource: {fileID: 0}
+  _MatchContext: {fileID: 0}
+  _OpenButton: {fileID: 0}
+  _HostButton: {fileID: 3470054422657053541}
+  _JoinButton: {fileID: 332069274590417640}
+  _CancelButton: {fileID: 740065534558702323}
+  _PanelRoot: {fileID: 2547268355603731188}
+  _JoinCodeInput: {fileID: 0}
+  _AddressInput: {fileID: 6781078606453306887}
+  _PortInput: {fileID: 6885339961125766837}
+  _StatusText: {fileID: 2857719191292458955}
+  _ErrorText: {fileID: 4058944694497723501}
+  _DefaultAddress: 172.234.102.19
+  _DefaultPort: 30147
+  _UseRelayLobbyByDefault: 0
+  _ShowDirectIpDebugControls: 1
+  _DirectIpMode: 1
+  _DedicatedServerTestSlotSource: 1
+  _DedicatedServerTestSlot: 1
+  _HidePanelOnAwake: 0
 --- !u!1 &2633843887628578376
 GameObject:
   m_ObjectHideFlags: 0

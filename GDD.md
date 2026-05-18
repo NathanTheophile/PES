@@ -4,7 +4,7 @@
 
 Ce document est la source de vérité temporaire du Game Design Document tant que la structure Notion n'est pas prête. Il doit rester lisible, sobre et maintenable. Les sections ci-dessous sont consolidées à partir des réponses validées.
 
-**Statut actuel :** prototype vertical slice technique fonctionnel.
+**Statut actuel :** prototype vertical slice technique jouable en réseau pour playtests contrôlés.
 
 **Projet actuel :** TacticalPort, prototype Unity en cours de portage depuis une base Godot appelée One Piece Tactics.
 
@@ -30,23 +30,32 @@ Le projet est actuellement un prototype Unity nommé TacticalPort, développé s
 
 Le projet est en cours de portage depuis une base Godot nommée One Piece Tactics. L'objectif technique est de passer vers une approche URP 3D tout en conservant la logique actuelle, en ajoutant une verticalité légère et en facilitant la gestion de la profondeur des sprites.
 
-La vertical slice technique est fonctionnelle : le socle de combat est avancé, mais le contenu gameplay, l'équilibrage, les règles de scénario et la validation PlayMode restent à formaliser.
+La vertical slice technique est fonctionnelle : le socle de combat est avancé et le matchmaking réseau permet désormais de lancer des combats entre deux clients dans un cadre de test contrôlé.
+
+Le prototype dispose d'un socle réseau structurant : services UGS pour l'identité joueur, Matchmaker pour le match rapide, Lobby + Relay pour les parties privées, PurrNet pour la connexion et la réplication des commandes de combat. Le chemin EdgeGap / serveur dédié est préparé côté architecture et Cloud Code, mais reste à valider comme chemin de production complet.
+
+Le contenu gameplay, l'équilibrage, les règles de scénario, le pool de cartes compétitives et la validation PlayMode restent à formaliser.
 
 ---
 
 ## 3. Boucle de jeu actuelle
 
-Le flow jouable actuel est :
+Le flow jouable actuel principal est :
 
-1. Menu principal.
-2. Sélection d'équipe.
-3. Chargement de la scène de combat S_Poutch.
-4. Phase de placement des unités joueur sur des cases de spawn.
-5. Début du combat.
-6. Alternance des tours selon l'initiative.
-7. Actions possibles : déplacement, compétence, fin de tour.
-8. Résolution automatique des tours ennemis.
-9. Fin de combat avec victoire ou défaite.
+1. Scène de bootstrap.
+2. Menu principal.
+3. Sélection et sauvegarde locale d'équipe.
+4. Lancement d'un match rapide, d'un lobby privé, ou d'un chemin debug local/direct IP.
+5. Création d'un contexte de match avec identités joueurs, slots TeamA/TeamB, manifest de composition et mode de connexion.
+6. Connexion PurrNet selon le mode : UDP pour serveur local/dédié, UTP Relay pour lobby privé.
+7. Chargement de la scène de combat S_Poutch lorsque les compositions nécessaires sont connues.
+8. Phase de placement des unités sur les cases de spawn autorisées.
+9. Ready des deux joueurs, puis verrouillage du placement.
+10. Début du combat et alternance des tours.
+11. Actions possibles : déplacement, compétence, fin de tour.
+12. Fin de combat avec victoire ou défaite.
+
+Le flow local/offline contre IA reste utile pour le debug du combat, mais il n'est plus le flow de référence du prototype réseau.
 
 ---
 
@@ -129,17 +138,28 @@ L'équilibrage compétitif repose sur : design des kits, patches réguliers, sé
 
 Pour la première version jouable en ligne, les modes prioritaires sont le lobby privé et le match rapide non classé. Le lobby privé facilite les playtests contrôlés, tandis que le match rapide permet de tester l'expérience standard de confrontation en ligne.
 
+L'architecture réseau est séparée par intention de match, mais le combat doit rester un chemin runtime unique. Le handoff cible est : services de découverte de match, `MatchRuntimeContext`, `PurrNetMatchConnector`, puis `PurrNetCombatBridge`.
+
+Les modes réseau de référence sont :
+
+- match rapide non classé : UGS Matchmaker, queue simple, combat en ligne standard ;
+- lobby privé : UGS Lobby avec code d'invitation, UGS Relay, match non classé et non fiable pour le ranked ;
+- debug local/direct IP : outil de développement uniquement, conservé pour valider PurrNet et les serveurs locaux ;
+- serveur dédié EdgeGap : chemin cible pour quick match autoritaire et futur ranked, préparé mais à valider en production.
+
 Le ranked ne doit pas être disponible dès la première version publique. Il doit arriver après un niveau d'équilibrage suffisant, lorsque le roster, les règles de combat, les cartes, le matchmaking et la stabilité réseau sont assez solides.
 
 Dans les premières versions, le matchmaking reste simple et ne tient pas encore compte du niveau joueur, du MMR ou du rang visible. Ces systèmes pourront être ajoutés plus tard lorsque le volume de joueurs et les besoins compétitifs le justifieront.
 
+Le ranked ne peut être ouvert que sur un chemin serveur fiable. Les parties privées, Relay et direct IP ne peuvent pas reporter de résultat ranked.
+
 Les matchs privés utilisent les mêmes règles que le mode standard. Ils ne permettent pas de modifier librement le timer, la carte, les restrictions ou les règles de combat dans la direction actuelle. Cela évite de fragmenter l'équilibrage et simplifie les tests.
 
-En matchmaking, la carte est choisie aléatoirement parmi un pool compétitif. Ce pool doit contenir des cartes symétriques, testées et adaptées au format 3v3.
+En matchmaking, la cible produit reste une carte choisie aléatoirement parmi un pool compétitif. Ce pool doit contenir des cartes symétriques, testées et adaptées au format 3v3. Dans le prototype actuel, le flow réseau charge encore S_Poutch comme scène de combat de référence.
 
-Le joueur choisit son équipe avant de lancer le matchmaking. L'équipe est donc verrouillée avant la recherche d'adversaire.
+Le joueur choisit son équipe avant de lancer le matchmaking, de créer un lobby ou de rejoindre un lobby. L'équipe est donc verrouillée pour la session dès l'entrée dans le flow réseau, et ne doit plus être modifiable pendant la recherche, le placement ou le combat.
 
-Avant le lancement du combat, l'équipe adverse révèle uniquement les personnages choisis. Les passifs, les sorts équipés et l'ordre de slot ne sont pas révélés à ce stade par la règle actuelle, sauf si la phase de placement ou la timeline les rend visibles ensuite.
+La cible produit est de révéler avant le lancement du combat les personnages choisis, leur ordre d'activation et leur passif actif. Les sorts équipés restent cachés pendant la phase de placement et ne doivent être découverts que pendant le combat ou après le match.
 
 ---
 
@@ -227,9 +247,11 @@ Les passifs peuvent créer des builds très différents pour un même personnage
 
 Les passifs sont équilibrés prioritairement autour du PvP. Le PvE peut s'adapter à ces choix, mais ne doit pas imposer de compromis qui affaiblissent la clarté ou l'équilibre compétitif.
 
-Le joueur peut modifier librement son équipe avant de lancer une recherche de combat. Le créateur d'équipe permet de choisir les personnages, les sorts équipés et le passif sélectionné pour chaque personnage. Une fois la recherche ou le combat lancé, l'équipe est verrouillée pour la partie.
+Le joueur peut modifier librement son équipe avant de lancer une recherche de combat. Le créateur d'équipe cible permet de choisir les personnages, les sorts équipés et le passif sélectionné pour chaque personnage. Une fois la recherche ou le combat lancé, l'équipe est verrouillée pour la partie.
 
 Les compositions complètes doivent pouvoir être sauvegardées sous forme de presets d'équipe. Un preset contient les 3 personnages, leur ordre de slot, leurs 6 sorts équipés et leur passif sélectionné.
+
+Dans le prototype actuel, la sélection d'équipe implémentée reste plus limitée que la cible design : elle sauvegarde principalement les identifiants des unités choisies localement. La sélection de sorts, de passif et les presets complets restent des objectifs de production à implémenter.
 
 Le build adverse n'est pas entièrement révélé pendant le combat. Le passif sélectionné peut être visible afin de fournir une information stratégique forte, tandis que les sorts équipés restent partiellement ou totalement à découvrir pendant le combat.
 
@@ -301,14 +323,14 @@ Les zones de danger adverses ne sont pas affichées automatiquement. Le joueur d
 
 L'UI doit assister le joueur sur la compréhension des règles, mais pas sur la décision stratégique. Elle ne doit pas recommander le meilleur coup, afficher automatiquement toutes les menaces adverses ou prédire l'action optimale.
 
-En PvP, un timer de tour est utilisé pour préserver le rythme du combat. La cible actuelle est de 30 à 45 secondes par tour. Le PvE, notamment les tutoriels, peut rester plus permissif afin de faciliter l'apprentissage.
+En PvP, un timer de tour est utilisé pour préserver le rythme du combat. La cible actuelle est de 30 à 45 secondes par tour. Le PvE, notamment les tutoriels, peut rester plus permissif afin de faciliter l'apprentissage. Dans le prototype réseau actuel, le ready de placement est branché, mais les timers PvP ne sont pas encore considérés comme finalisés.
 
 Les informations suivantes doivent être visibles en permanence : HP, AP, MP, ordre des tours, effets d'état et passif actif.
 
 
 ### Phase de placement et révélation d'informations
 
-La phase de placement PvP dure 45 secondes. Cette durée doit laisser assez de temps pour positionner les 3 personnages sans ralentir excessivement le lancement du combat.
+La cible de la phase de placement PvP est de 45 secondes. Cette durée doit laisser assez de temps pour positionner les 3 personnages sans ralentir excessivement le lancement du combat.
 
 Les deux joueurs placent leurs unités simultanément, avec un placement caché. Les positions adverses ne sont pas visibles en temps réel pendant la phase de placement.
 
@@ -320,9 +342,11 @@ Les zones de spawn doivent être de taille moyenne. Elles doivent offrir quelque
 
 La timeline complète est visible pendant le placement, avec les personnages des deux joueurs dans l'ordre d'activation.
 
-Le passif adverse est visible pendant la phase de placement. Cette information donne une indication stratégique importante sans révéler les sorts équipés.
+La cible produit est que le passif adverse soit visible pendant la phase de placement. Cette information donne une indication stratégique importante sans révéler les sorts équipés.
 
 Les sorts adverses ne sont pas révélés pendant le placement. Le joueur connaît les personnages adverses, leur ordre d'activation et leurs passifs, mais il doit découvrir les sorts équipés pendant le combat ou après le match.
+
+Dans le prototype réseau actuel, le ready de placement et le masquage des positions adverses sont branchés, mais le timer de placement, la révélation de passifs et la révélation pré-combat complète ne sont pas encore finalisés.
 
 ---
 
@@ -414,6 +438,35 @@ Les buffs et debuffs doivent être visibles sur les unités. Les icônes doivent
 - PathService : pathfinding orthogonal avec coûts de déplacement.
 - SimpleSkillExecutor : validation et exécution des compétences.
 - DefaultEnemyBrain : IA ennemie configurable.
+- RuntimeServicesBootstrap : initialisation persistante des services runtime et chargement du menu principal.
+- MatchRuntimeContext : contexte de match partagé entre menu, matchmaking, réseau et combat.
+- QuickMatchFlowController : flow match rapide avec sign-in, ticket, polling, annulation et handoff vers le contexte de match.
+- MatchRuntimeSessionLifecycle : nettoyage de session, arrêt PurrNet, release serveur et sortie de lobby au retour menu.
+- QuickMatchSceneHandoff : chargement de la scène de combat lorsque le match et les compositions sont prêts.
+
+### Matchmaking et réseau
+
+Le prototype supporte un chemin quick match via UGS Matchmaker avec queue actuellement configurée en scène sur `quickmatch1v1edgegap`. Le ticket peut produire un simple match id, ou un endpoint IP/port lorsque le hosting serveur dédié est configuré.
+
+Le prototype supporte un lobby privé via UGS Lobby + Relay. Le joueur hôte crée un lobby privé, reçoit un code de lobby, initialise l'allocation Relay et attend un second joueur. Le joueur invité rejoint par code. Ce mode est prévu pour les playtests privés non classés.
+
+Le prototype conserve un chemin direct IP pour debug local, ainsi qu'un mode de test serveur dédié local. Ces chemins ne font pas partie de l'expérience joueur finale.
+
+PurrNet est utilisé pour connecter les joueurs, attribuer les slots TeamA/TeamB, synchroniser le manifest de match, valider le ready de placement, transmettre les commandes de combat au serveur/host et répliquer les commandes acceptées. Le serveur ou host reste l'autorité d'exécution des commandes en ligne.
+
+La synchronisation réseau actuelle est command-based : les clients envoient des commandes de combat sérialisées, l'autorité les valide et les exécute, puis diffuse les commandes acceptées. Il n'y a pas encore de snapshot complet, de rollback ou de resynchronisation automatique. Un checksum de combat permet de détecter une divergence côté client.
+
+Le manifest de match transporte aujourd'hui le match id, le map id, les assignations joueur-slot, le preset id et les unit ids. Il ne transporte pas encore la sélection complète de sorts, de passif ou une vraie phase de révélation pré-combat.
+
+En lobby Relay, le joueur hôte démarre le rôle PurrNet serveur tout en agissant comme joueur TeamA. Ce mode reste non classé et non fiable pour le reporting compétitif.
+
+L'architecture réseau cible distingue :
+
+- quick match / futur ranked : UGS Matchmaker, serveur dédié EdgeGap, transport UDP, autorité fiable ;
+- lobby privé : UGS Lobby + Relay, host joueur, transport UTP Relay, non classé ;
+- debug local : direct IP ou serveur local, transport UDP, non classé.
+
+Le module Cloud Code EdgegapAllocator existe pour préparer l'allocation de serveurs EdgeGap via Matchmaker, avec release d'allocation prévue. Le flow scène actuel attend surtout un endpoint IP/port retourné par Matchmaker ; l'allocation manuelle côté client n'est pas le chemin de production. Ce chemin reste à valider côté dashboard, build serveur Linux, image EdgeGap et tests bout en bout.
 
 ### Grille
 
@@ -508,12 +561,25 @@ Le profil EnemyAiProfile_simplekit utilise une logique de distance : priorité c
 - Test contre bot/poutch non prioritaire.
 - Pas de codex séparé prioritaire : le créateur d'équipe doit suffire.
 - Première version en ligne : lobby privé + match rapide non classé.
+- Combat réseau fonctionnel pour playtests contrôlés.
+- Architecture réseau séparée par intention de match, avec combat partagé par tous les modes.
+- Match rapide via UGS Matchmaker.
+- Queue actuelle de match rapide en scène : `quickmatch1v1edgegap`.
+- Lobby privé via UGS Lobby + Relay.
+- Lobby privé non classé, non autorisé à reporter des résultats ranked.
+- Direct IP conservé uniquement comme chemin debug.
+- Serveur dédié EdgeGap ciblé pour quick match autoritaire et futur ranked.
+- PurrNet utilisé pour connexion, slots joueurs, ready de placement, commandes de combat et réplication.
+- UDPTransport utilisé pour serveur local/dédié.
+- UTPTransport utilisé pour les lobbies Relay.
+- Ranked autorisé uniquement sur un chemin serveur fiable.
 - Ranked après équilibrage suffisant.
 - Matchmaking simple au début, sans MMR ni rang.
 - Matchs privés avec règles standard.
 - Carte aléatoire parmi un pool compétitif.
-- Équipe choisie avant matchmaking.
-- Avant combat, seuls les personnages adverses sont révélés.
+- Équipe choisie avant matchmaking, création de lobby ou join lobby.
+- Build verrouillé dès l'entrée dans le flow réseau.
+- Avant combat, personnages adverses, ordre d'activation et passif actif révélés.
 - Phase de placement PvP : 45 secondes.
 - Placement simultané caché.
 - Positions adverses révélées à la fin du placement.
@@ -576,8 +642,6 @@ Le profil EnemyAiProfile_simplekit utilise une logique de distance : priorité c
 - Plateforme prioritaire : PC, web ou mobile.
 - Univers : fangame inspiré One Piece ou IP originale.
 - Hauteur / verticalité : ampleur exacte de l'impact gameplay.
-- Visibilité exacte des sorts adverses.
-- Moment exact où le build est verrouillé.
 - Nombre maximal de presets sauvegardables.
 - Présentation visuelle des presets sans nom manuel.
 - Besoin éventuel de duplication de presets.
@@ -603,7 +667,6 @@ Le profil EnemyAiProfile_simplekit utilise une logique de distance : priorité c
 - Date et conditions d'ouverture du ranked.
 - Futur système de MMR/rang.
 - Taille du pool de cartes compétitives.
-- Règles exactes de révélation entre matchmaking, placement et lancement combat.
 - Détail du comportement du timer de placement.
 - UX exacte du bouton Ready et annulation Ready.
 - Taille exacte des zones de spawn par carte.
@@ -614,8 +677,6 @@ Le profil EnemyAiProfile_simplekit utilise une logique de distance : priorité c
 - Moment exact de révélation des positions si le timer expire.
 - Valeur exacte du timer PvP.
 - Différence entre timer normal et ranked.
-- Visibilité exacte du passif adverse avant / pendant combat.
-- Visibilité des cooldowns.
 - Présence ou non d'un historique de combat.
 - Niveau de détail des tooltips.
 - Codex / encyclopédie des personnages et sorts.
@@ -655,6 +716,12 @@ Le profil EnemyAiProfile_simplekit utilise une logique de distance : priorité c
 - Équilibrage AP / MP / HP / dégâts.
 - Design final des skills.
 - Règles exactes de cooldown.
+- Validation production du chemin EdgeGap / serveur dédié.
+- Critères techniques d'ouverture du quick match autoritaire.
+- Politique de gestion des déconnexions, abandons et reconnexions.
+- Règles de resynchronisation après mismatch checksum.
+- Politique de late join et spectateur.
+- Timeout de placement en réseau.
 - Place des grosses unités.
 - Place des invocations, glyphes et hazards.
 - Direction artistique finale.

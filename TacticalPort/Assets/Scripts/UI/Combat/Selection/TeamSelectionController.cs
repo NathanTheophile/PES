@@ -49,6 +49,8 @@ namespace TacticalPort.UI
         [SerializeField] private Button _SaveButton;
         [SerializeField, HideInInspector] private Button _LaunchButton;
         [SerializeField] private TMP_Text _SaveButtonLabel;
+        [SerializeField] private FrontendScreenRouter _EmbeddedScreenRouter;
+        [SerializeField] private bool _UseEmbeddedReturn;
 
         private readonly List<UnitDefinition> _SelectedUnits = new List<UnitDefinition>(3);
 
@@ -181,6 +183,12 @@ namespace TacticalPort.UI
             TeamSelectionState.SetSelectedUnits(_SelectedUnits);
             TeamSelectionState.SaveSelectedUnits();
 
+            if (_UseEmbeddedReturn && ResolveEmbeddedScreenRouter())
+            {
+                _EmbeddedScreenRouter.ShowMainMenu();
+                return;
+            }
+
             if (!string.IsNullOrWhiteSpace(_MainMenuSceneName))
                 SceneManager.LoadScene(_MainMenuSceneName);
         }
@@ -241,6 +249,14 @@ namespace TacticalPort.UI
         #endregion
 
         #region _____________________________| HELPERS
+
+        public void RefreshSelectionView()
+        {
+            InitializeSelection();
+            RefreshSlotViews();
+            SetGridVisible(false);
+            RefreshSaveButtonLabel();
+        }
 
         private void ClearGrid()
         {
@@ -349,6 +365,21 @@ namespace TacticalPort.UI
         }
 
         private Button ResolveSaveButton() => _SaveButton != null ? _SaveButton : _LaunchButton;
+
+        private bool ResolveEmbeddedScreenRouter()
+        {
+            if (_EmbeddedScreenRouter == null)
+                _EmbeddedScreenRouter = GetComponentInParent<FrontendScreenRouter>();
+
+            if (_EmbeddedScreenRouter == null)
+                _EmbeddedScreenRouter = FindAnyObjectByType<FrontendScreenRouter>();
+
+            if (_EmbeddedScreenRouter != null)
+                return true;
+
+            Debug.LogWarning($"{nameof(TeamSelectionController)} uses embedded return but has no {nameof(FrontendScreenRouter)} reference.", this);
+            return false;
+        }
 
         private static UnitDefinition PopRandomUnit(List<UnitDefinition> pPool)
         {

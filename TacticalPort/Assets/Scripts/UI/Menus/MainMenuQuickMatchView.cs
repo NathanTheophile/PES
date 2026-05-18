@@ -111,7 +111,7 @@ namespace TacticalPort.UI
                 _CancelQuickMatchButton.interactable = false;
 
             SetStatus("Matchmaking unavailable.");
-            SetError("Runtime services not found. Start from S_Bootstrap so GO_RuntimeServices can initialize UGS.");
+            SetError("Runtime services not found. Start from S_Bootstrap so UGS can initialize.");
         }
 
         private static string BuildStatusText(QuickMatchFlowSnapshot pSnapshot)
@@ -214,7 +214,7 @@ namespace TacticalPort.UI
                 _ErrorText = FindComponentByObjectName<TMP_Text>("Text_MatchmakingError", "Txt_MatchmakingError");
 
             if (_SearchingPanel == null)
-                _SearchingPanel = FindGameObjectByName("Panel_MatchmakingSearching");
+                _SearchingPanel = FindGameObjectByName("Panel_QuickMatchStatus", "Panel_MatchmakingSearching");
         }
 
         private T FindComponentByObjectName<T>(params string[] pNames) where T : Component

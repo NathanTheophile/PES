@@ -224,7 +224,7 @@ GameObject:
   - component: {fileID: 5440374340123792489}
   - component: {fileID: 7834098919969520114}
   m_Layer: 5
-  m_Name: Panel_MatchmakingSearching
+  m_Name: Panel_QuickMatchStatus
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1369,12 +1369,12 @@ GameObject:
   - component: {fileID: 619536722817065141}
   - component: {fileID: 7666910757543023415}
   m_Layer: 5
-  m_Name: Panel_Debug
+  m_Name: Panel_NetworkDebug
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &8713834609125137248
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2063,9 +2063,8 @@ GameObject:
   - component: {fileID: 65093869232043128}
   - component: {fileID: 1283746523984756234}
   - component: {fileID: 7594058529137423810}
-  - component: {fileID: 1975713154066612290}
   m_Layer: 5
-  m_Name: UI_Menu_Main
+  m_Name: Screen_MainMenu
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2145,6 +2144,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TacticalPort.View.MainMenuController
   _TeamSelectionSceneName: S_TeamSelection
   _TeamButton: {fileID: 7072789166475254969}
+  _CustomMatchButton: {fileID: 7152279445904785930}
+  _ScreenRouter: {fileID: 0}
+  _UseEmbeddedTeamSelection: 1
   _PlayTestButton: {fileID: 4417043355079378717}
 --- !u!114 &7594058529137423810
 MonoBehaviour:
@@ -2164,33 +2166,3 @@ MonoBehaviour:
   _StatusText: {fileID: 881688002788407006}
   _ErrorText: {fileID: 4995158228845356558}
   _SearchingPanel: {fileID: 1258966896394995605}
---- !u!114 &1975713154066612290
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8968514674899226208}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a48e3d9877fb4c40a91d8cf8da5e4a19, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TacticalPort.UI.MainMenuCustomMatchView
-  _PlayerIdentityServiceSource: {fileID: 0}
-  _PartyLobbyServiceSource: {fileID: 0}
-  _MatchContext: {fileID: 0}
-  _OpenButton: {fileID: 0}
-  _HostButton: {fileID: 0}
-  _JoinButton: {fileID: 0}
-  _CancelButton: {fileID: 0}
-  _PanelRoot: {fileID: 0}
-  _JoinCodeInput: {fileID: 0}
-  _AddressInput: {fileID: 0}
-  _PortInput: {fileID: 0}
-  _StatusText: {fileID: 0}
-  _ErrorText: {fileID: 0}
-  _DefaultAddress: 127.0.0.1
-  _DefaultPort: 7777
-  _UseRelayLobbyByDefault: 1
-  _ShowDirectIpDebugControls: 0
-  _HidePanelOnAwake: 1
