@@ -10,6 +10,7 @@ using TacticalPort.Data;
 using TacticalPort.Shared;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace TacticalPort.View
 {
@@ -17,7 +18,19 @@ namespace TacticalPort.View
     {
         #region _____________________________/ VALUES
 
-        [SerializeField] private SpriteRenderer _SpriteRenderer;
+        [Tooltip("Optional 3D model root. If empty, this UnitView transform is used as the model root.")]
+        [SerializeField] private Transform _ModelRoot;
+        [Tooltip("Optional Animator driven by the spawned or prebuilt 3D model.")]
+        [SerializeField] private Animator _Animator;
+        [Tooltip("Renderers tinted from the UnitDefinition tint and defeated tint. If empty, they are cached from the model root at runtime.")]
+        [SerializeField] private Renderer[] _TintRenderers = System.Array.Empty<Renderer>();
+        [Tooltip("Material color property used for 3D model tinting. URP Lit uses _BaseColor.")]
+        [SerializeField] private string _TintColorProperty = "_BaseColor";
+        [Tooltip("When enabled, UnitView instantiates UnitDefinition.ModelPrefab under the model root when binding.")]
+        [SerializeField] private bool _InstantiateDefinitionModelPrefab = true;
+        [Tooltip("Legacy 2D fallback while old prefabs are migrated to 3D models.")]
+        [FormerlySerializedAs("_SpriteRenderer")]
+        [SerializeField] private SpriteRenderer _LegacySpriteRenderer;
         [SerializeField] private Color _DefeatedTint;
         [SerializeField] private int _BaseSortingOrder = 1000;
         [SerializeField] private int _BodySortingOrderOffset = 20;
@@ -37,13 +50,16 @@ namespace TacticalPort.View
         private Vector3 _BaseSpriteLocalScale = Vector3.one;
         private Color _BaseSpriteColor;
         private bool _HasBaseSpriteColor;
+        private GameObject _RuntimeModelInstance;
+        private MaterialPropertyBlock _TintPropertyBlock;
+        private int _TintColorPropertyId;
 
         #endregion
 
         #region _____________________________/ ACCESSORS
 
         public UnitId UnitId => _Runtime != null ? _Runtime.Id : UnitId.None;
-        public Sprite BodySprite => _SpriteRenderer != null ? _SpriteRenderer.sprite : null;
+        public Sprite BodySprite => _LegacySpriteRenderer != null ? _LegacySpriteRenderer.sprite : null;
 
         #endregion
 
@@ -51,13 +67,13 @@ namespace TacticalPort.View
 
         private void Awake()
         {
-            ValidateReferences();
-            CacheBaseSpriteScale();
+            CacheMissingReferences();
+            CacheVisualReferences();
         }
 
         private void OnValidate()
         {
-            CacheBaseSpriteScale();
+            CacheVisualReferences();
         }
 
         #endregion
@@ -72,6 +88,7 @@ namespace TacticalPort.View
             _Runtime = pRuntime;
             _Definition = pDefinition;
             _BoardView = pBoardView;
+            RebuildRuntimeModelIfNeeded();
 
             if (_Runtime != null)
                 _Runtime.ValueChanged += HandleValueChanged;
@@ -82,6 +99,8 @@ namespace TacticalPort.View
         {
             if (_Runtime != null)
                 _Runtime.ValueChanged -= HandleValueChanged;
+
+            DestroyRuntimeModel();
         }
 
         #endregion
@@ -95,13 +114,86 @@ namespace TacticalPort.View
 
             transform.position = ResolveWorldPosition();
             gameObject.name = $"UnitView_{_Runtime.Id}_{_Runtime.Definition.DisplayName}";
+            ApplyVisualState();
+        }
 
-            if (_SpriteRenderer != null)
+        #endregion
+
+        #region _____________________________| MODEL
+
+        private void RebuildRuntimeModelIfNeeded()
+        {
+            if (!_InstantiateDefinitionModelPrefab || _Definition == null || _Definition.ModelPrefab == null)
+                return;
+
+            DestroyRuntimeModel();
+
+            Transform lModelRoot = ResolveModelRoot();
+            _RuntimeModelInstance = Instantiate(_Definition.ModelPrefab, lModelRoot);
+            _RuntimeModelInstance.transform.localPosition = Vector3.zero;
+            _RuntimeModelInstance.transform.localRotation = Quaternion.identity;
+            _RuntimeModelInstance.transform.localScale = Vector3.one;
+
+            if (_Animator == null)
+                _Animator = _RuntimeModelInstance.GetComponentInChildren<Animator>(true);
+
+            CacheTintRenderers(lModelRoot);
+        }
+
+        private void DestroyRuntimeModel()
+        {
+            if (_RuntimeModelInstance == null)
+                return;
+
+            if (Application.isPlaying)
+                Destroy(_RuntimeModelInstance);
+            else
+                DestroyImmediate(_RuntimeModelInstance);
+
+            _RuntimeModelInstance = null;
+        }
+
+        private Transform ResolveModelRoot() => _ModelRoot != null ? _ModelRoot : transform;
+
+        private void ApplyVisualState()
+        {
+            Color lTint = _Runtime != null && _Runtime.IsAlive ? ResolveAliveTint() : _DefeatedTint;
+            ApplyLegacySpriteState(lTint);
+            ApplyRendererTint(lTint);
+        }
+
+        private void ApplyLegacySpriteState(Color pTint)
+        {
+            if (_LegacySpriteRenderer == null)
+                return;
+
+            _LegacySpriteRenderer.enabled = true;
+            _LegacySpriteRenderer.color = pTint;
+            _LegacySpriteRenderer.sortingOrder = ResolveSortingOrder(_BodySortingOrderOffset);
+            _LegacySpriteRenderer.transform.localScale = _BaseSpriteLocalScale;
+        }
+
+        private void ApplyRendererTint(Color pTint)
+        {
+            if (_TintRenderers == null || _TintRenderers.Length == 0)
+                CacheTintRenderers(ResolveModelRoot());
+
+            if (_TintRenderers == null || _TintRenderers.Length == 0)
+                return;
+
+            _TintPropertyBlock ??= new MaterialPropertyBlock();
+            _TintColorPropertyId = ResolveTintColorPropertyId();
+
+            for (int lIndex = 0; lIndex < _TintRenderers.Length; lIndex++)
             {
-                _SpriteRenderer.enabled = true;
-                _SpriteRenderer.color = _Runtime.IsAlive ? ResolveAliveTint() : _DefeatedTint;
-                _SpriteRenderer.sortingOrder = ResolveSortingOrder(_BodySortingOrderOffset);
-                _SpriteRenderer.transform.localScale = _BaseSpriteLocalScale;
+                Renderer lRenderer = _TintRenderers[lIndex];
+                if (lRenderer == null)
+                    continue;
+
+                lRenderer.GetPropertyBlock(_TintPropertyBlock);
+                _TintPropertyBlock.SetColor(_TintColorPropertyId, pTint);
+                _TintPropertyBlock.SetColor("_Color", pTint);
+                lRenderer.SetPropertyBlock(_TintPropertyBlock);
             }
         }
 
@@ -131,14 +223,16 @@ namespace TacticalPort.View
             return lAccumulated / lCellCount;
         }
 
-        private void CacheBaseSpriteScale()
+        private void CacheVisualReferences()
         {
-            if (_SpriteRenderer != null && _SpriteRenderer.transform != null)
+            if (_LegacySpriteRenderer != null && _LegacySpriteRenderer.transform != null)
             {
-                _BaseSpriteLocalScale = _SpriteRenderer.transform.localScale;
-                _BaseSpriteColor = _SpriteRenderer.color;
+                _BaseSpriteLocalScale = _LegacySpriteRenderer.transform.localScale;
+                _BaseSpriteColor = _LegacySpriteRenderer.color;
                 _HasBaseSpriteColor = true;
             }
+
+            _TintColorPropertyId = ResolveTintColorPropertyId();
         }
 
         private Color ResolveAliveTint() =>
@@ -204,11 +298,25 @@ namespace TacticalPort.View
             });
         }
 
-        private void ValidateReferences()
+        private void CacheTintRenderers(Transform pRoot)
         {
-            LogMissingReference(_SpriteRenderer, nameof(_SpriteRenderer));
-            LogMissingReference(_FeedbackRoot, nameof(_FeedbackRoot));
-            LogMissingReference(_ValuePopupPrefab, nameof(_ValuePopupPrefab));
+            if (pRoot == null)
+                return;
+
+            Renderer[] lRenderers = pRoot.GetComponentsInChildren<Renderer>(true);
+            if (lRenderers == null || lRenderers.Length == 0)
+                return;
+
+            _TintRenderers = lRenderers;
+        }
+
+        private int ResolveTintColorPropertyId() =>
+            Shader.PropertyToID(string.IsNullOrWhiteSpace(_TintColorProperty) ? "_BaseColor" : _TintColorProperty);
+
+        private void CacheMissingReferences()
+        {
+            if (_FeedbackRoot != null && _ValuePopupPrefab == null)
+                LogMissingReference(_ValuePopupPrefab, nameof(_ValuePopupPrefab));
         }
 
         private void LogMissingReference(Object pReference, string pFieldName)

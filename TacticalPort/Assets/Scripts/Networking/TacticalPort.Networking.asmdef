@@ -1,0 +1,25 @@
+{
+    "name": "TacticalPort.Networking",
+    "rootNamespace": "TacticalPort.Networking",
+    "references": [
+        "TacticalPort.App.Contracts",
+        "TacticalPort.Shared",
+        "TacticalPort.Data",
+        "TacticalPort.State",
+        "TacticalPort.Core",
+        "TacticalPort.CombatRuntime",
+        "TacticalPort.Matchmaking",
+        "Unity.Services.Multiplayer",
+        "PurrNet.Runtime",
+        "PurrNet.UTP.Runtime"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 1913543977447216644}
   - component: {fileID: 8040066514735997954}
   m_Layer: 5
-  m_Name: UI_Txt_Outcome
+  m_Name: Txt_Outcome
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -149,7 +149,7 @@ GameObject:
   - component: {fileID: 2262630265276769833}
   - component: {fileID: 6625777449933400060}
   m_Layer: 5
-  m_Name: UI_Txt_Mode
+  m_Name: Txt_Mode
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -287,7 +287,7 @@ GameObject:
   - component: {fileID: 1911877469008100063}
   - component: {fileID: 305980650111095130}
   m_Layer: 5
-  m_Name: UI_HUD_VBox_Debug
+  m_Name: VBox_Debug
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -393,7 +393,7 @@ GameObject:
   - component: {fileID: 6298350024473617933}
   - component: {fileID: 4621461098064188794}
   m_Layer: 5
-  m_Name: UI_HUD_VBox_Bottom
+  m_Name: VBox_Bottom
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -458,7 +458,7 @@ GameObject:
   - component: {fileID: 8488109999036959753}
   - component: {fileID: 3746830010801731776}
   m_Layer: 5
-  m_Name: UI_Txt_CurrentTurn
+  m_Name: Txt_CurrentTurn
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -595,7 +595,7 @@ GameObject:
   - component: {fileID: 6108489779481719663}
   - component: {fileID: 4546719404007673632}
   m_Layer: 5
-  m_Name: UI_Txt_ActiveUnit
+  m_Name: Txt_ActiveUnit
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -732,7 +732,7 @@ GameObject:
   - component: {fileID: 3476894960396229803}
   - component: {fileID: 4911602284314908719}
   m_Layer: 5
-  m_Name: UI_Txt_Status
+  m_Name: Txt_Status
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -869,7 +869,7 @@ GameObject:
   - component: {fileID: 2531692831563152848}
   - component: {fileID: 5629703432547897254}
   m_Layer: 5
-  m_Name: UI_Txt_CurrentPhase
+  m_Name: Txt_CurrentPhase
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1007,7 +1007,7 @@ GameObject:
   - component: {fileID: 2620328320917375391}
   - component: {fileID: 1327854683151421119}
   m_Layer: 5
-  m_Name: UI_HUD_VBox_Right
+  m_Name: VBox_Right
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1225,7 +1225,7 @@ GameObject:
   - component: {fileID: 1860714243931024002}
   - component: {fileID: 6111603093994970683}
   m_Layer: 5
-  m_Name: UI_Txt_Outcome
+  m_Name: Txt_Outcome
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

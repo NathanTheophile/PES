@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5369065148825606472}
   m_Layer: 5
-  m_Name: Fill Area
+  m_Name: Img_HealthFillArea
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -416,7 +416,7 @@ GameObject:
   - component: {fileID: 4145904137505118206}
   - component: {fileID: 5867699224847324171}
   m_Layer: 5
-  m_Name: Background
+  m_Name: Img_Background
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

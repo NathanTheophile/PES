@@ -1,0 +1,22 @@
+{
+    "name": "TacticalPort.App",
+    "rootNamespace": "TacticalPort.App",
+    "references": [
+        "TacticalPort.App.Contracts",
+        "TacticalPort.Shared",
+        "TacticalPort.CombatRuntime",
+        "TacticalPort.Matchmaking",
+        "TacticalPort.Menu",
+        "Unity.TextMeshPro",
+        "UnityEngine.UI"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

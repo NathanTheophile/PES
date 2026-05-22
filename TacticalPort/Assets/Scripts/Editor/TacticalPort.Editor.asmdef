@@ -1,0 +1,27 @@
+{
+    "name": "TacticalPort.Editor",
+    "rootNamespace": "TacticalPort.EditorTools",
+    "references": [
+        "TacticalPort.Shared",
+        "TacticalPort.Data",
+        "TacticalPort.State",
+        "TacticalPort.Core",
+        "TacticalPort.View",
+        "TacticalPort.CombatRuntime",
+        "TacticalPort.Matchmaking",
+        "TacticalPort.Networking",
+        "TacticalPort.App",
+        "TacticalPort.Menu"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

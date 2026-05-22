@@ -6,18 +6,22 @@
 
 using PurrNet;
 using PurrNet.Modules;
+using TacticalPort.App;
 using TacticalPort.Bootstrap;
 using TacticalPort.Combat;
 using TacticalPort.Core;
 using TacticalPort.Matchmaking;
 using TacticalPort.Shared;
+using TacticalPort.State;
 using UnityEngine;
 
 namespace TacticalPort.Networking
 {
-    public sealed class PurrNetCombatBridge : NetworkBehaviour, ICombatCommandSink, IPlayerEvents
+    public sealed class PurrNetCombatBridge : NetworkBehaviour, ICombatCommandSink, IMatchCombatNetworkBridge, IPlayerEvents
     {
         #region _____________________________/ VALUES
+
+        private const float NETWORK_MAINTENANCE_INTERVAL_SECONDS = 0.1f;
 
         [SerializeField] private CombatBootstrap _Bootstrap;
         [SerializeField] private bool _AllowOfflineFallback = true;
@@ -42,6 +46,7 @@ namespace TacticalPort.Networking
         private bool _IsClientSubscribed;
         private bool _HasServerSlotConfirmation;
         private float _NextHandshakeTime;
+        private float _NextNetworkMaintenanceTime;
         private NetworkManager _ResolvedNetworkManager;
 
         #endregion
@@ -76,7 +81,7 @@ namespace TacticalPort.Networking
 
         private void OnEnable()
         {
-            TrySubscribeNetworkModules();
+            RunNetworkMaintenanceTick();
         }
 
         private void OnDisable()
@@ -86,8 +91,11 @@ namespace TacticalPort.Networking
 
         private void Update()
         {
-            TrySubscribeNetworkModules();
-            TrySendPendingHandshake();
+            if (Time.unscaledTime < _NextNetworkMaintenanceTime)
+                return;
+
+            _NextNetworkMaintenanceTime = Time.unscaledTime + NETWORK_MAINTENANCE_INTERVAL_SECONDS;
+            RunNetworkMaintenanceTick();
         }
 
         private void OnValidate() => CacheMissingReferences();
@@ -133,8 +141,8 @@ namespace TacticalPort.Networking
             if (_LogSlotAssignments && !string.IsNullOrWhiteSpace(_PlayerSlots.LocalPlayerId))
                 Debug.Log($"[PurrNet Combat Bridge] Match initialized. PlayerId={_PlayerSlots.LocalPlayerId}, LocalSlot={_PlayerSlots.LocalPlayerSlot}, MatchId={_MatchManifest?.MatchId}", this);
 
-            TrySubscribeNetworkModules();
-            TrySendPendingHandshake(true);
+            SubscribeNetworkModulesIfReady();
+            SendPendingHandshakeIfReady(true);
         }
 
         public void AssignPlayerSlot(PlayerID pPlayer, MatchPlayerSlot pSlot)
@@ -206,8 +214,8 @@ namespace TacticalPort.Networking
                 return true;
             }
 
-            TrySubscribeNetworkModules();
-            TrySendPendingHandshake(true);
+            SubscribeNetworkModulesIfReady();
+            SendPendingHandshakeIfReady(true);
 
             if (!_HasServerSlotConfirmation)
             {
@@ -232,7 +240,7 @@ namespace TacticalPort.Networking
             return true;
         }
 
-        private void TrySubscribeNetworkModules()
+        private void SubscribeNetworkModulesIfReady()
         {
             NetworkManager lManager = ResolveNetworkManager();
             if (lManager == null)
@@ -256,6 +264,12 @@ namespace TacticalPort.Networking
             }
         }
 
+        private void RunNetworkMaintenanceTick()
+        {
+            SubscribeNetworkModulesIfReady();
+            SendPendingHandshakeIfReady();
+        }
+
         private void UnsubscribeNetworkModules()
         {
             if (_IsServerSubscribed && _ServerPlayers != null)
@@ -277,7 +291,7 @@ namespace TacticalPort.Networking
             _IsClientSubscribed = false;
         }
 
-        private void TrySendPendingHandshake(bool pForce = false)
+        private void SendPendingHandshakeIfReady(bool pForce = false)
         {
             if (!HasOnlineMatchContext() || !IsOnlineClientAuthority() || string.IsNullOrWhiteSpace(_PlayerSlots.LocalPlayerId) || _HasServerSlotConfirmation)
                 return;
@@ -395,7 +409,7 @@ namespace TacticalPort.Networking
             if (pMessage.Command.TryToCommand(out BattleCommand lCommand))
             {
                 _Bootstrap?.ExecuteLocalCommand(lCommand);
-                ValidateServerChecksum(pMessage.ServerChecksum);
+                HandleServerChecksumValidation(pMessage.ServerChecksum);
             }
         }
 
@@ -557,7 +571,7 @@ namespace TacticalPort.Networking
                 _ReadyState.SetReady(lSlot, pValue);
         }
 
-        private void ValidateServerChecksum(int pServerChecksum)
+        private void HandleServerChecksumValidation(int pServerChecksum)
         {
             if (_Bootstrap?.BattleService == null)
                 return;

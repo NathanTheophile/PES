@@ -65,13 +65,13 @@ namespace TacticalPort.View.Cameras
 
         private void Start()
         {
-            TryApplyInitialFrame();
+            ApplyInitialFrameIfReady();
         }
 
         private void LateUpdate()
         {
             if (!_HasAppliedInitialFrame)
-                TryApplyInitialFrame();
+                ApplyInitialFrameIfReady();
 
             if (_FollowTargetAtRuntime && _FollowTarget != null)
                 SetPivot(Vector3.Lerp(_CurrentPivot, _FollowTarget.position + _PivotOffset, ResolveFollowAlpha()));
@@ -130,7 +130,7 @@ namespace TacticalPort.View.Cameras
             transform.rotation = Quaternion.Euler(_Pitch, _Yaw, 0f);
         }
 
-        private void TryApplyInitialFrame()
+        private void ApplyInitialFrameIfReady()
         {
             ApplyProjectionPreset();
             ConfigureCamera();

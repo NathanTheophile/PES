@@ -1,0 +1,22 @@
+{
+    "name": "TacticalPort.Matchmaking",
+    "rootNamespace": "TacticalPort.Matchmaking",
+    "references": [
+        "TacticalPort.Shared",
+        "TacticalPort.Data",
+        "TacticalPort.State",
+        "Unity.Services.Core",
+        "Unity.Services.Authentication",
+        "Unity.Services.CloudCode",
+        "Unity.Services.Multiplayer"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -138,9 +138,9 @@ namespace TacticalPort.View
 
         private Transform ResolveRoot() => _ResolveRoot?.Invoke();
 
-        private void ApplyMarkerSorting(GameObject pMarker, GridCoord pCoord)
+        private void ApplyMarkerSorting(BoardMarkerRuntimeMarker pMarker, GridCoord pCoord)
         {
-            if (pMarker == null)
+            if (pMarker == null || pMarker.GameObject == null)
                 return;
 
             int lSortingStep = Mathf.Max(1, _ResolveSortingStep?.Invoke() ?? 1);
@@ -148,24 +148,51 @@ namespace TacticalPort.View
             int lSortingOrder = -((pCoord.X + pCoord.Y) * lSortingStep) + lSortingOffset;
             int lSortingLayerId = _ResolveSortingLayerId?.Invoke() ?? 0;
 
-            SortingGroup[] lSortingGroups = pMarker.GetComponentsInChildren<SortingGroup>(true);
+            SortingGroup[] lSortingGroups = pMarker.SortingGroups;
             for (int lIndex = 0; lIndex < lSortingGroups.Length; lIndex++)
             {
+                if (lSortingGroups[lIndex] == null)
+                    continue;
+
                 lSortingGroups[lIndex].sortingLayerID = lSortingLayerId;
                 lSortingGroups[lIndex].sortingOrder = lSortingOrder;
             }
 
-            Renderer[] lRenderers = pMarker.GetComponentsInChildren<Renderer>(true);
+            Renderer[] lRenderers = pMarker.Renderers;
             for (int lIndex = 0; lIndex < lRenderers.Length; lIndex++)
             {
+                if (lRenderers[lIndex] == null)
+                    continue;
+
                 lRenderers[lIndex].sortingLayerID = lSortingLayerId;
                 lRenderers[lIndex].sortingOrder = lSortingOrder;
             }
         }
 
+        private sealed class BoardMarkerRuntimeMarker
+        {
+            public BoardMarkerRuntimeMarker(GameObject pGameObject, GameObject pSourcePrefab)
+            {
+                GameObject = pGameObject;
+                SourcePrefab = pSourcePrefab;
+                SortingGroups = pGameObject != null
+                    ? pGameObject.GetComponentsInChildren<SortingGroup>(true)
+                    : Array.Empty<SortingGroup>();
+                Renderers = pGameObject != null
+                    ? pGameObject.GetComponentsInChildren<Renderer>(true)
+                    : Array.Empty<Renderer>();
+            }
+
+            public GameObject GameObject { get; }
+            public GameObject SourcePrefab { get; }
+            public SortingGroup[] SortingGroups { get; }
+            public Renderer[] Renderers { get; }
+        }
+
         private sealed class BoardMarkerLayer
         {
-            private readonly Dictionary<GridCoord, GameObject> _RuntimeMarkers = new Dictionary<GridCoord, GameObject>();
+            private readonly Dictionary<GridCoord, BoardMarkerRuntimeMarker> _RuntimeMarkers = new Dictionary<GridCoord, BoardMarkerRuntimeMarker>();
+            private readonly List<BoardMarkerRuntimeMarker> _PooledMarkers = new List<BoardMarkerRuntimeMarker>();
             private readonly HashSet<GridCoord> _TargetCoords = new HashSet<GridCoord>();
             private readonly List<GridCoord> _CoordsToRemove = new List<GridCoord>();
 
@@ -174,7 +201,7 @@ namespace TacticalPort.View
                 GameObject pPrefab,
                 Func<GridCoord, Vector3> pResolveWorldPosition,
                 Func<Transform> pResolveRoot,
-                Action<GameObject, GridCoord> pApplySorting)
+                Action<BoardMarkerRuntimeMarker, GridCoord> pApplySorting)
             {
                 if (pPrefab == null)
                 {
@@ -190,7 +217,7 @@ namespace TacticalPort.View
                 }
 
                 _CoordsToRemove.Clear();
-                foreach (KeyValuePair<GridCoord, GameObject> lEntry in _RuntimeMarkers)
+                foreach (KeyValuePair<GridCoord, BoardMarkerRuntimeMarker> lEntry in _RuntimeMarkers)
                 {
                     if (!_TargetCoords.Contains(lEntry.Key))
                         _CoordsToRemove.Add(lEntry.Key);
@@ -201,46 +228,90 @@ namespace TacticalPort.View
 
                 foreach (GridCoord lCoord in _TargetCoords)
                 {
-                    if (!_RuntimeMarkers.TryGetValue(lCoord, out GameObject lMarker) || lMarker == null)
+                    if (!_RuntimeMarkers.TryGetValue(lCoord, out BoardMarkerRuntimeMarker lMarker) || lMarker == null || lMarker.GameObject == null)
                     {
-                        lMarker = UnityEngine.Object.Instantiate(pPrefab, pResolveRoot != null ? pResolveRoot.Invoke() : null);
+                        lMarker = AcquireMarker(pPrefab, pResolveRoot);
                         _RuntimeMarkers[lCoord] = lMarker;
                     }
 
-                    lMarker.transform.position = pResolveWorldPosition != null ? pResolveWorldPosition.Invoke(lCoord) : Vector3.zero;
+                    GameObject lMarkerObject = lMarker.GameObject;
+                    lMarkerObject.transform.position = pResolveWorldPosition != null ? pResolveWorldPosition.Invoke(lCoord) : Vector3.zero;
                     pApplySorting?.Invoke(lMarker, lCoord);
-                    lMarker.SetActive(true);
+                    lMarkerObject.SetActive(true);
                 }
             }
 
             public void Clear()
             {
-                foreach (GameObject lMarker in _RuntimeMarkers.Values)
+                foreach (BoardMarkerRuntimeMarker lMarker in _RuntimeMarkers.Values)
                     DestroyMarker(lMarker);
 
+                for (int lIndex = 0; lIndex < _PooledMarkers.Count; lIndex++)
+                    DestroyMarker(_PooledMarkers[lIndex]);
+
                 _RuntimeMarkers.Clear();
+                _PooledMarkers.Clear();
                 _TargetCoords.Clear();
                 _CoordsToRemove.Clear();
             }
 
             private void RemoveMarker(GridCoord pCoord)
             {
-                if (!_RuntimeMarkers.TryGetValue(pCoord, out GameObject lMarker))
+                if (!_RuntimeMarkers.TryGetValue(pCoord, out BoardMarkerRuntimeMarker lMarker))
                     return;
 
-                DestroyMarker(lMarker);
+                ReleaseMarker(lMarker);
                 _RuntimeMarkers.Remove(pCoord);
             }
 
-            private static void DestroyMarker(GameObject pMarker)
+            private BoardMarkerRuntimeMarker AcquireMarker(GameObject pPrefab, Func<Transform> pResolveRoot)
             {
-                if (pMarker == null)
+                for (int lIndex = _PooledMarkers.Count - 1; lIndex >= 0; lIndex--)
+                {
+                    BoardMarkerRuntimeMarker lMarker = _PooledMarkers[lIndex];
+                    if (lMarker == null || lMarker.GameObject == null)
+                    {
+                        _PooledMarkers.RemoveAt(lIndex);
+                        continue;
+                    }
+
+                    if (lMarker.SourcePrefab != pPrefab)
+                        continue;
+
+                    _PooledMarkers.RemoveAt(lIndex);
+                    Transform lRoot = pResolveRoot != null ? pResolveRoot.Invoke() : null;
+                    lMarker.GameObject.transform.SetParent(lRoot, false);
+                    return lMarker;
+                }
+
+                GameObject lMarkerObject = UnityEngine.Object.Instantiate(pPrefab, pResolveRoot != null ? pResolveRoot.Invoke() : null);
+                return new BoardMarkerRuntimeMarker(lMarkerObject, pPrefab);
+            }
+
+            private void ReleaseMarker(BoardMarkerRuntimeMarker pMarker)
+            {
+                if (pMarker == null || pMarker.GameObject == null)
+                    return;
+
+                if (!Application.isPlaying)
+                {
+                    DestroyMarker(pMarker);
+                    return;
+                }
+
+                pMarker.GameObject.SetActive(false);
+                _PooledMarkers.Add(pMarker);
+            }
+
+            private static void DestroyMarker(BoardMarkerRuntimeMarker pMarker)
+            {
+                if (pMarker == null || pMarker.GameObject == null)
                     return;
 
                 if (Application.isPlaying)
-                    UnityEngine.Object.Destroy(pMarker);
+                    UnityEngine.Object.Destroy(pMarker.GameObject);
                 else
-                    UnityEngine.Object.DestroyImmediate(pMarker);
+                    UnityEngine.Object.DestroyImmediate(pMarker.GameObject);
             }
         }
     }

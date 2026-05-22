@@ -35,7 +35,7 @@ namespace TacticalPort.Combat
 
         private void Awake()
         {
-            ValidateReferences();
+            LogMissingReferences();
             EnsureControllers();
         }
 
@@ -59,13 +59,13 @@ namespace TacticalPort.Combat
         public void OnEndTurnButtonClicked()
         {
             EnsureControllers();
-            TryPrimaryAction();
+            HandlePrimaryAction();
         }
 
         public void OnSkillButtonClicked(int pSkillSlotIndex)
         {
             EnsureControllers();
-            TrySelectSkill(pSkillSlotIndex);
+            SelectSkillIfPossible(pSkillSlotIndex);
         }
 
         public void OnCancelSkillButtonClicked()
@@ -79,7 +79,7 @@ namespace TacticalPort.Combat
             if (Keyboard.current == null || !Keyboard.current.spaceKey.wasPressedThisFrame)
                 return;
 
-            TryPrimaryAction();
+            HandlePrimaryAction();
         }
 
         private void HandleSkillCancelShortcut()
@@ -106,24 +106,24 @@ namespace TacticalPort.Combat
 
             if (_SkillSelection.HasSelectedSkill)
             {
-                TryUseSelectedSkill();
+                UseSelectedSkillIfPossible();
                 return;
             }
 
             if (IsPlacementPhaseActive())
             {
-                TryHandlePlacementClick();
+                HandlePlacementClickIfPossible();
                 return;
             }
 
-            TryMoveHoveredCell();
+            MoveHoveredCellIfPossible();
         }
 
         #endregion
 
         #region _____________________________| INTERACTION
 
-        private void TryMoveHoveredCell()
+        private void MoveHoveredCellIfPossible()
         {
             if (!_Context.TryGetPlayerActiveUnit("Manual movement is disabled", out _))
                 return;
@@ -145,25 +145,25 @@ namespace TacticalPort.Combat
             RefreshInteractionState();
         }
 
-        private void TryHandlePlacementClick()
+        private void HandlePlacementClickIfPossible()
         {
             if (_PlacementInteraction.TryHandleClick(_HoverController.HasHoveredCell, _HoverController.HoveredCell))
                 RefreshInteractionState();
         }
 
-        private void TrySelectSkill(int pSkillSlotIndex)
+        private void SelectSkillIfPossible(int pSkillSlotIndex)
         {
             if (_SkillSelection.TrySelectSkill(pSkillSlotIndex))
                 RefreshInteractionState();
         }
 
-        private void TryUseSelectedSkill()
+        private void UseSelectedSkillIfPossible()
         {
             if (_SkillSelection.TryUseSelectedSkill(_HoverController.HasHoveredCell, _HoverController.HoveredCell))
                 RefreshInteractionState();
         }
 
-        private void TryPrimaryAction()
+        private void HandlePrimaryAction()
         {
             if (!CanRun())
                 return;
@@ -178,10 +178,10 @@ namespace TacticalPort.Combat
                 return;
             }
 
-            TryEndTurn();
+            EndTurnIfPossible();
         }
 
-        private void TryEndTurn()
+        private void EndTurnIfPossible()
         {
             if (!_Context.TryGetPlayerActiveUnit("Turn input is disabled", out _))
                 return;
@@ -281,7 +281,7 @@ namespace TacticalPort.Combat
 
         private void SetStatus(string pMessage) => _Context.SetStatus(pMessage);
 
-        private void ValidateReferences()
+        private void LogMissingReferences()
         {
             LogMissingReference(_Bootstrap, nameof(_Bootstrap));
             LogMissingReference(_BoardView, nameof(_BoardView));

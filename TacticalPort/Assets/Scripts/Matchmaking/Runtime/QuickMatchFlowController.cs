@@ -1,6 +1,7 @@
 #region _____________________________/ INFOS
 //  AUTHOR : Nathan THEOPHILE (2025)
 //  Engine : Unity
+//  Note : MY_CONST, myPublic, m_MyProtected, _MyPrivate, lMyLocal, MyFunc(), pMyParam, onMyEvent, OnMyCallback, MyStruct
 //  Matchmaking
 #endregion
 
@@ -35,20 +36,40 @@ namespace TacticalPort.Matchmaking
     {
         #region _____________________________/ VALUES
 
+        [Header("Service Sources")]
+        [Tooltip("Source implementing IPlayerIdentityService, usually UgsPlayerIdentityService in S_Bootstrap.")]
         [SerializeField] private MonoBehaviour _PlayerIdentityServiceSource;
+        [Tooltip("Source implementing IQuickMatchService, usually UgsQuickMatchService in S_Bootstrap.")]
         [SerializeField] private MonoBehaviour _QuickMatchServiceSource;
-        [Tooltip("Optional. Assign LocalGameServerAllocator for local validation or EdgeGapGameServerAllocator later.")]
+        [Tooltip("Optional. Source implementing IGameServerAllocator for local validation or EdgeGap allocation.")]
         [SerializeField] private MonoBehaviour _GameServerAllocatorSource;
+        [Tooltip("Runtime context populated when a match is found.")]
         [SerializeField] private MatchRuntimeContext _MatchContext;
+
+        [Header("Match Request")]
+        [Tooltip("UGS Matchmaker queue name used when creating a quick match ticket.")]
         [SerializeField] private string _QueueName = "quickmatch1v1unranked";
+        [Tooltip("Team preset id included in the ticket request. Empty keeps the current local fallback behavior.")]
         [SerializeField] private string _TeamPresetId = string.Empty;
+
+        [Header("Connection Policy")]
+        [Tooltip("Connection mode used when no dedicated server endpoint or allocator is available.")]
         [SerializeField] private MatchConnectionMode _ConnectionModeWithoutAllocator = MatchConnectionMode.QuickMatchLocalServer;
+        [Tooltip("Connection mode used when Matchmaker or an allocator provides a server endpoint.")]
         [SerializeField] private MatchConnectionMode _ConnectionModeWithAllocator = MatchConnectionMode.DedicatedServer;
         [Tooltip("Keep disabled until a trusted ranked backend validates result reporting.")]
         [SerializeField] private bool _ReportsRankedResultsWithAllocator;
+
+        [Header("Polling And Cleanup")]
+        [Tooltip("Delay between Matchmaker ticket polling requests.")]
         [SerializeField, Min(1f)] private float _PollIntervalSeconds = 5f;
+        [Tooltip("Maximum time spent searching before the ticket is cancelled locally.")]
         [SerializeField, Min(10f)] private float _TimeoutSeconds = 90f;
+        [Tooltip("Cancels the active Matchmaker ticket if this controller is destroyed while a search is pending.")]
         [SerializeField] private bool _CancelPendingTicketOnDestroy = true;
+
+        [Header("Debug")]
+        [Tooltip("Logs quick match state changes and allocation details.")]
         [SerializeField] private bool _LogEvents = true;
 
         private IPlayerIdentityService _PlayerIdentityService;

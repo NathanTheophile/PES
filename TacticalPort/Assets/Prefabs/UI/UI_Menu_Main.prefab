@@ -87,7 +87,7 @@ GameObject:
   - component: {fileID: 1781172959091506848}
   - component: {fileID: 5061496363148491676}
   m_Layer: 5
-  m_Name: Text (TMP)
+  m_Name: Txt_QuickMatch
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -409,7 +409,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1283746523984756234}
-        m_TargetAssemblyTypeName: TacticalPort.UI.MainMenuController, Assembly-CSharp
+        m_TargetAssemblyTypeName: TacticalPort.UI.MainMenuScreenController, Assembly-CSharp
         m_MethodName: OpenTeamSelection
         m_Mode: 1
         m_Arguments:
@@ -680,7 +680,7 @@ GameObject:
   - component: {fileID: 2142701528796614651}
   - component: {fileID: 1836338053860261398}
   m_Layer: 5
-  m_Name: Text (TMP)
+  m_Name: Txt_Team
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -973,7 +973,7 @@ GameObject:
   - component: {fileID: 1613908713217497857}
   - component: {fileID: 4594826510733604011}
   m_Layer: 5
-  m_Name: Text (TMP)
+  m_Name: Txt_PlayTest
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1369,7 +1369,7 @@ GameObject:
   - component: {fileID: 619536722817065141}
   - component: {fileID: 7666910757543023415}
   m_Layer: 5
-  m_Name: Panel_NetworkDebug
+  m_Name: Popup_NetworkDebug
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1628,7 +1628,7 @@ GameObject:
   - component: {fileID: 5803220174531346454}
   - component: {fileID: 3861252584262032640}
   m_Layer: 5
-  m_Name: Text (TMP)
+  m_Name: Txt_CancelQuickMatch
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1888,7 +1888,7 @@ GameObject:
   - component: {fileID: 293725886383657114}
   - component: {fileID: 7876294089338682183}
   m_Layer: 5
-  m_Name: Text (TMP)
+  m_Name: Txt_CustomMatch
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2062,7 +2062,6 @@ GameObject:
   - component: {fileID: 5477857194035714550}
   - component: {fileID: 65093869232043128}
   - component: {fileID: 1283746523984756234}
-  - component: {fileID: 7594058529137423810}
   m_Layer: 5
   m_Name: Screen_MainMenu
   m_TagString: Untagged
@@ -2085,6 +2084,7 @@ RectTransform:
   - {fileID: 8671973329477726411}
   - {fileID: 8713834609125137248}
   - {fileID: 1722041849089224334}
+  - {fileID: 5001040000000000001}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -2141,25 +2141,61 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 754305c0f5104d4d82b2784f3ab1499c, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TacticalPort.View.MainMenuController
+  m_EditorClassIdentifier: Assembly-CSharp::TacticalPort.UI.MainMenuScreenController
   _TeamSelectionSceneName: S_TeamSelection
   _TeamButton: {fileID: 7072789166475254969}
   _CustomMatchButton: {fileID: 7152279445904785930}
-  _ScreenRouter: {fileID: 0}
+  _MenuRouter: {fileID: 0}
   _UseEmbeddedTeamSelection: 1
   _PlayTestButton: {fileID: 4417043355079378717}
+--- !u!1 &5001040000000000000
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5001040000000000001}
+  - component: {fileID: 7594058529137423810}
+  m_Layer: 5
+  m_Name: View_QuickMatch
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &5001040000000000001
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5001040000000000000}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3746137101331042347}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &7594058529137423810
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8968514674899226208}
+  m_GameObject: {fileID: 5001040000000000000}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6cb1e6e62f5d4f8aa3b42c407a258b7a, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TacticalPort.UI.MainMenuQuickMatchView
+  m_EditorClassIdentifier: Assembly-CSharp::TacticalPort.UI.QuickMatchPanelView
   _FlowController: {fileID: 0}
   _QuickMatchButton: {fileID: 5199873027002074135}
   _CancelQuickMatchButton: {fileID: 9147283763815792856}

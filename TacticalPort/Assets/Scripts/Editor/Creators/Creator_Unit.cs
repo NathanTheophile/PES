@@ -29,7 +29,9 @@ namespace TacticalPort.EditorTools
         [SerializeField] private int _PushDamageBonus = 0;
         [SerializeField] private int _FootprintWidth = 1;
         [SerializeField] private int _FootprintHeight = 1;
-        [SerializeField] private UnitView _UnitViewPrefab;
+        [SerializeField] private UnitView _CombatViewPrefab;
+        [SerializeField] private GameObject _ModelPrefab;
+        [SerializeField] private Sprite _PreviewSprite;
         [SerializeField] private Sprite _Portrait;
         [SerializeField] private Color _Tint = Color.white;
         [SerializeField] private EnemyAiProfileDefinition _EnemyAiProfile;
@@ -80,7 +82,9 @@ namespace TacticalPort.EditorTools
             _FootprintHeight = Mathf.Max(1, EditorGUILayout.IntField("Footprint Height", _FootprintHeight));
 
             DrawSectionHeader("Presentation");
-            _UnitViewPrefab = (UnitView)EditorGUILayout.ObjectField("Unit View Prefab", _UnitViewPrefab, typeof(UnitView), false);
+            _CombatViewPrefab = (UnitView)EditorGUILayout.ObjectField("Combat View Prefab", _CombatViewPrefab, typeof(UnitView), false);
+            _ModelPrefab = (GameObject)EditorGUILayout.ObjectField("3D Model Prefab", _ModelPrefab, typeof(GameObject), false);
+            _PreviewSprite = (Sprite)EditorGUILayout.ObjectField("Preview Sprite", _PreviewSprite, typeof(Sprite), false);
             _Portrait = (Sprite)EditorGUILayout.ObjectField("Portrait", _Portrait, typeof(Sprite), false);
             _Tint = EditorGUILayout.ColorField("Tint", _Tint);
 
@@ -194,7 +198,9 @@ namespace TacticalPort.EditorTools
             SetInt(lSerializedObject, "_PushDamageBonus", Mathf.Max(0, _PushDamageBonus));
             SetInt(lSerializedObject, "_FootprintWidth", Mathf.Max(1, _FootprintWidth));
             SetInt(lSerializedObject, "_FootprintHeight", Mathf.Max(1, _FootprintHeight));
-            SetObject(lSerializedObject, "_UnitViewPrefab", _UnitViewPrefab);
+            SetObject(lSerializedObject, "_CombatViewPrefab", _CombatViewPrefab);
+            SetObject(lSerializedObject, "_ModelPrefab", _ModelPrefab);
+            SetObject(lSerializedObject, "_PreviewSprite", _PreviewSprite);
             SetObject(lSerializedObject, "_Portrait", _Portrait);
             SetColor(lSerializedObject, "_Tint", _Tint);
             SetObject(lSerializedObject, "_EnemyAiProfile", _EnemyAiProfile);

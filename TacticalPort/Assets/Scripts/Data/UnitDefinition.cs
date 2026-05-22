@@ -1,14 +1,14 @@
 #region _____________________________/ INFOS
 //  AUTHOR : Nathan THEOPHILE (2025)
 //  Engine : Unity
+//  Note : MY_CONST, myPublic, m_MyProtected, _MyPrivate, lMyLocal, MyFunc(), pMyParam, onMyEvent, OnMyCallback, MyStruct
 //  Data
 #endregion
 
 using System.Collections.Generic;
-using TacticalPort.Core;
 using TacticalPort.Shared;
-using TacticalPort.View;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace TacticalPort.Data
 {
@@ -39,7 +39,14 @@ namespace TacticalPort.Data
         [SerializeField] private List<UnitStateEntry> _BaseStates = new List<UnitStateEntry>();
         [SerializeField] private List<UnitPhaseStateDefinition> _PhaseStates = new List<UnitPhaseStateDefinition>();
 
-        [SerializeField] private UnitView _UnitViewPrefab;
+        [Tooltip("Combat view prefab used to instantiate this unit in the combat scene. Keep this as a component reference to avoid a Data -> View assembly dependency.")]
+        [FormerlySerializedAs("_UnitViewPrefab")]
+        [SerializeField] private MonoBehaviour _CombatViewPrefab;
+        [Tooltip("Optional 3D model prefab spawned by the combat view. This keeps the character asset centralized without making Data depend on presentation scripts.")]
+        [SerializeField] private GameObject _ModelPrefab;
+        [Tooltip("2D image used by menus, team selection and compact combat UI.")]
+        [SerializeField] private Sprite _PreviewSprite;
+        [Tooltip("Larger portrait image used by character details and timeline UI when available.")]
         [SerializeField] private Sprite _Portrait;
         [SerializeField] private Color _Tint = Color.white;
 
@@ -75,16 +82,12 @@ namespace TacticalPort.Data
         public IReadOnlyList<UnitSkillAiOverride> SkillAiOverrides => _SkillAiOverrides;
         public IReadOnlyList<UnitStateEntry> BaseStates => _BaseStates;
         public IReadOnlyList<UnitPhaseStateDefinition> PhaseStates => _PhaseStates;
-        public UnitView UnitViewPrefab => _UnitViewPrefab;
+        public MonoBehaviour CombatViewPrefabComponent => _CombatViewPrefab;
+        public MonoBehaviour UnitViewPrefabComponent => _CombatViewPrefab;
+        public GameObject ModelPrefab => _ModelPrefab;
+        public Sprite PreviewSprite => _PreviewSprite;
         public Sprite Portrait => _Portrait;
-        public Sprite DisplaySprite
-        {
-            get
-            {
-                Sprite lSprite = _UnitViewPrefab != null ? _UnitViewPrefab.BodySprite : null;
-                return lSprite != null ? lSprite : _Portrait;
-            }
-        }
+        public Sprite DisplaySprite => _PreviewSprite != null ? _PreviewSprite : _Portrait;
         public Color Tint => _Tint;
 
         #endregion
@@ -119,7 +122,9 @@ namespace TacticalPort.Data
             lDefinition._SkillAiOverrides = CopyList(pSource._SkillAiOverrides);
             lDefinition._BaseStates = CopyList(pSource._BaseStates);
             lDefinition._PhaseStates = CopyList(pSource._PhaseStates);
-            lDefinition._UnitViewPrefab = pSource.UnitViewPrefab;
+            lDefinition._CombatViewPrefab = pSource.CombatViewPrefabComponent;
+            lDefinition._ModelPrefab = pSource.ModelPrefab;
+            lDefinition._PreviewSprite = pSource.PreviewSprite;
             lDefinition._Portrait = pSource.Portrait;
             lDefinition._Tint = pSource.Tint;
             return lDefinition;

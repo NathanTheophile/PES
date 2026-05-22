@@ -62,7 +62,7 @@ namespace TacticalPort.EditorTools
         private void DrawMetadataTab()
         {
             DrawSection("Naming", "_DisplayName", "_Id", "_Description");
-            DrawSection("Presentation", "_UnitViewPrefab", "_Portrait", "_Tint");
+            DrawSection("Presentation", "_CombatViewPrefab", "_ModelPrefab", "_PreviewSprite", "_Portrait", "_Tint");
         }
 
         private void DrawStatsTab()

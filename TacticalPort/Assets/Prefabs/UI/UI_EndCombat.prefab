@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 5285246872101933517}
   - component: {fileID: 7768808488923121888}
   m_Layer: 5
-  m_Name: UI_Panel_Lose
+  m_Name: Panel_Lose
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -117,7 +117,7 @@ GameObject:
   - component: {fileID: 7393467406941085983}
   - component: {fileID: 6172686712296020073}
   m_Layer: 5
-  m_Name: UI_Panel_Win
+  m_Name: Panel_Win
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -341,7 +341,7 @@ GameObject:
   - component: {fileID: 2771671729199234278}
   - component: {fileID: 6546142613092333058}
   m_Layer: 5
-  m_Name: Text (TMP)
+  m_Name: Txt_BackToMenu
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -938,7 +938,7 @@ GameObject:
   - component: {fileID: 4057962252286817005}
   - component: {fileID: 6989858985573289405}
   m_Layer: 5
-  m_Name: Text (TMP)
+  m_Name: Txt_BackToMenu
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

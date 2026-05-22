@@ -1,12 +1,14 @@
 #region _____________________________/ INFOS
 //  AUTHOR : Nathan THEOPHILE (2026)
 //  Engine : Unity
+//  Note : MY_CONST, myPublic, m_MyProtected, _MyPrivate, lMyLocal, MyFunc(), pMyParam, onMyEvent, OnMyCallback, MyStruct
 //  Matchmaking
 #endregion
 
 using System.Collections.Generic;
 using TacticalPort.Data;
 using TacticalPort.Shared;
+using TacticalPort.State;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif

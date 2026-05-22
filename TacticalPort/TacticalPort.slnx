@@ -1,5 +1,15 @@
 ﻿<Solution>
-  <Project Path="Assembly-CSharp.csproj" />
-  <Project Path="Assembly-CSharp-firstpass.csproj" />
-  <Project Path="Assembly-CSharp-Editor.csproj" />
+  <Project Path="TacticalPort.Matchmaking.csproj" />
+  <Project Path="TacticalPort.Networking.csproj" />
+  <Project Path="TacticalPort.Core.csproj" />
+  <Project Path="TacticalPort.CombatRuntime.csproj" />
+  <Project Path="DOTween.Modules.csproj" />
+  <Project Path="TacticalPort.Shared.csproj" />
+  <Project Path="TacticalPort.View.csproj" />
+  <Project Path="TacticalPort.Editor.csproj" />
+  <Project Path="TacticalPort.Data.csproj" />
+  <Project Path="TacticalPort.App.Contracts.csproj" />
+  <Project Path="TacticalPort.Menu.csproj" />
+  <Project Path="TacticalPort.State.csproj" />
+  <Project Path="TacticalPort.App.csproj" />
 </Solution>

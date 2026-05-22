@@ -1,0 +1,21 @@
+{
+    "name": "TacticalPort.View",
+    "rootNamespace": "TacticalPort.View",
+    "references": [
+        "TacticalPort.Shared",
+        "TacticalPort.Data",
+        "TacticalPort.State",
+        "TacticalPort.Core",
+        "DOTween.Modules",
+        "Unity.TextMeshPro"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
