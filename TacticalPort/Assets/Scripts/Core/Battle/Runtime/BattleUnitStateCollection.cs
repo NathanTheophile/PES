@@ -15,6 +15,8 @@ namespace TacticalPort.Core
         private enum StateModifierType
         {
             Damage,
+            MeleeDamage,
+            RangedDamage,
             DamageReduction,
             Range,
             ActionPoint,
@@ -45,6 +47,10 @@ namespace TacticalPort.Core
         }
 
         public int GetDamageModifier() => ResolveModifier(StateModifierType.Damage);
+
+        public int GetMeleeDamageModifier() => ResolveModifier(StateModifierType.MeleeDamage);
+
+        public int GetRangedDamageModifier() => ResolveModifier(StateModifierType.RangedDamage);
 
         public int GetDamageReduction() => Math.Max(0, ResolveModifier(StateModifierType.DamageReduction));
 
@@ -166,6 +172,12 @@ namespace TacticalPort.Core
             {
                 case StateModifierType.Damage:
                     return pState.DamageModifierPerStack;
+
+                case StateModifierType.MeleeDamage:
+                    return pState.MeleeDamageModifierPerStack;
+
+                case StateModifierType.RangedDamage:
+                    return pState.RangedDamageModifierPerStack;
 
                 case StateModifierType.DamageReduction:
                     return pState.DamageReductionPerStack;

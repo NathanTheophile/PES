@@ -22,7 +22,9 @@ namespace TacticalPort.Data
         [SerializeField, Min(1)] private int _MaxStacks = 1;
         [SerializeField] private bool _IsPassiveMarker;
 
-        [SerializeField] private int _DamageModifierPerStack = 0;
+        [SerializeField, InspectorName("Damage % Per Stack")] private int _DamageModifierPerStack = 0;
+        [SerializeField, InspectorName("Melee Damage % Per Stack")] private int _MeleeDamageModifierPerStack = 0;
+        [SerializeField, InspectorName("Ranged Damage % Per Stack")] private int _RangedDamageModifierPerStack = 0;
         [SerializeField, Min(0)] private int _DamageReductionPerStack = 0;
         [SerializeField] private int _RangeModifierPerStack = 0;
         [SerializeField] private int _ActionPointModifierPerStack = 0;
@@ -40,6 +42,8 @@ namespace TacticalPort.Data
         public int MaxStacks => Mathf.Max(1, _MaxStacks);
         public bool IsPassiveMarker => _IsPassiveMarker;
         public int DamageModifierPerStack => _DamageModifierPerStack;
+        public int MeleeDamageModifierPerStack => _MeleeDamageModifierPerStack;
+        public int RangedDamageModifierPerStack => _RangedDamageModifierPerStack;
         public int DamageReductionPerStack => Mathf.Max(0, _DamageReductionPerStack);
         public int RangeModifierPerStack => _RangeModifierPerStack;
         public int ActionPointModifierPerStack => _ActionPointModifierPerStack;

@@ -26,7 +26,6 @@ namespace TacticalPort.Core
             Position = pPosition;
             _Skills = BuildRuntimeSkills(pDefinition);
             _OccupiedCellOffsets = BuildOccupiedCellOffsets(pDefinition);
-            FacingDirection = new GridCoord(0, -1);
             CurrentHealth = Math.Max(1, pDefinition.MaxHealth);
             RemainingMovement = 0;
             RemainingActionPoints = 0;
@@ -51,7 +50,6 @@ namespace TacticalPort.Core
         public UnitDefinition Definition { get; }
         public Team Team => _TeamOverride ?? Definition.Team;
         public GridCoord Position { get; private set; }
-        public GridCoord FacingDirection { get; private set; }
         public int CurrentHealth { get; private set; }
         public int RemainingMovement { get; private set; }
         public int RemainingActionPoints { get; private set; }
@@ -125,24 +123,6 @@ namespace TacticalPort.Core
 
         public void SetPosition(GridCoord pPosition) => Position = pPosition;
 
-        public void FaceTowards(GridCoord pTargetCell)
-        {
-            GridCoord lDirection = NormalizeCardinalDirection(new GridCoord(pTargetCell.X - Position.X, pTargetCell.Y - Position.Y));
-            if (lDirection.X == 0 && lDirection.Y == 0)
-                return;
-
-            FacingDirection = lDirection;
-        }
-
-        public void FaceDirection(GridCoord pDirection)
-        {
-            GridCoord lDirection = NormalizeCardinalDirection(pDirection);
-            if (lDirection.X == 0 && lDirection.Y == 0)
-                return;
-
-            FacingDirection = lDirection;
-        }
-
         public IEnumerable<GridCoord> EnumerateOccupiedCells()
         {
             for (int lIndex = 0; lIndex < _OccupiedCellOffsets.Count; lIndex++)
@@ -159,6 +139,10 @@ namespace TacticalPort.Core
         public int GetStateStacks(StateDefinition pState) => _States.GetStateStacks(pState);
 
         public int GetDamageModifier() => _States.GetDamageModifier();
+
+        public int GetMeleeDamageModifier() => _States.GetMeleeDamageModifier();
+
+        public int GetRangedDamageModifier() => _States.GetRangedDamageModifier();
 
         public int GetDamageReduction() => _States.GetDamageReduction();
 
@@ -179,7 +163,14 @@ namespace TacticalPort.Core
             return Math.Max(0, Math.Min(pSkill.RangeMin, lRangeMax));
         }
 
-        public int ResolveOutgoingDamage(int pBaseDamage) => Math.Max(0, pBaseDamage + GetDamageModifier());
+        public int ResolveOutgoingDamage(int pBaseDamage, UnitRuntime pTarget = null)
+        {
+            if (pBaseDamage <= 0)
+                return 0;
+
+            int lDamagePercent = ResolveDamagePercent(pTarget);
+            return Math.Max(0, pBaseDamage * Math.Max(0, lDamagePercent) / 100);
+        }
 
         public int ApplyDamage(int pAmount)
         {
@@ -324,20 +315,6 @@ namespace TacticalPort.Core
             return lOffsets;
         }
 
-        private static GridCoord NormalizeCardinalDirection(GridCoord pDirection)
-        {
-            int lAbsX = Math.Abs(pDirection.X);
-            int lAbsY = Math.Abs(pDirection.Y);
-
-            if (lAbsX == 0 && lAbsY == 0)
-                return new GridCoord(0, 0);
-
-            if (lAbsX >= lAbsY)
-                return new GridCoord(Math.Sign(pDirection.X), 0);
-
-            return new GridCoord(0, Math.Sign(pDirection.Y));
-        }
-
         private void InitializePersistentStates()
         {
             if (Definition?.BaseStates == null)
@@ -351,6 +328,29 @@ namespace TacticalPort.Core
 
                 SetPersistentState($"base::{lIndex}", lEntry.State, lEntry.Stacks);
             }
+        }
+
+        private int ResolveDamagePercent(UnitRuntime pTarget)
+        {
+            bool lIsMelee = pTarget != null && ResolveDistanceToUnit(pTarget) <= 1;
+            int lBasePercent = lIsMelee ? Definition.MeleeDamagePercent : Definition.RangedDamagePercent;
+            int lTypedModifier = lIsMelee ? GetMeleeDamageModifier() : GetRangedDamageModifier();
+            return lBasePercent + lTypedModifier + GetDamageModifier();
+        }
+
+        private int ResolveDistanceToUnit(UnitRuntime pTarget)
+        {
+            if (pTarget == null)
+                return int.MaxValue;
+
+            int lBestDistance = int.MaxValue;
+            foreach (GridCoord lSourceCell in EnumerateOccupiedCells())
+            {
+                foreach (GridCoord lTargetCell in pTarget.EnumerateOccupiedCells())
+                    lBestDistance = Math.Min(lBestDistance, lSourceCell.ManhattanDistanceTo(lTargetCell));
+            }
+
+            return lBestDistance;
         }
 
         #endregion

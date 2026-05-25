@@ -64,12 +64,10 @@ namespace TacticalPort.Core
             if (pUnit == null || !pUnit.IsAlive)
                 return false;
 
-            GridCoord lOrigin = pUnit.Position;
             if (!_GridService.TryMoveUnit(pUnit.Id, pDestination))
                 return false;
 
             pUnit.SetPosition(pDestination);
-            pUnit.FaceDirection(new GridCoord(pDestination.X - lOrigin.X, pDestination.Y - lOrigin.Y));
             return true;
         }
 
@@ -103,8 +101,6 @@ namespace TacticalPort.Core
 
             pFirstUnit.SetPosition(lSecondPosition);
             pSecondUnit.SetPosition(lFirstPosition);
-            pFirstUnit.FaceTowards(lSecondPosition);
-            pSecondUnit.FaceTowards(lFirstPosition);
             return true;
         }
 

@@ -111,6 +111,21 @@ ugs deploy TacticalPort/CloudCodeModules/EdgegapAllocator/EdgegapAllocator.sln
 
 If using a non-production Unity environment, replace `production` with the active environment name.
 
+The repository also includes a Windows launcher for the same flow:
+
+```powershell
+TacticalPort/Tools/DeployEdgegapCloudCode.cmd
+```
+
+Useful variants:
+
+```powershell
+TacticalPort/Tools/DeployEdgegapCloudCode.cmd -Login -ProjectId <unity-cloud-project-id> -EnvironmentName production
+TacticalPort/Tools/DeployEdgegapCloudCode.cmd -BuildOnly
+TacticalPort/Tools/DeployEdgegapCloudCode.cmd -DryRunOnly
+TacticalPort/Tools/DeployEdgegapCloudCode.cmd -SkipDryRun
+```
+
 ## Unity Editor Deploy
 
 If you deploy through Unity:

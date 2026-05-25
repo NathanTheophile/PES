@@ -6,7 +6,6 @@
         "TacticalPort.Data",
         "TacticalPort.State",
         "TacticalPort.Core",
-        "DOTween.Modules",
         "Unity.TextMeshPro"
     ],
     "includePlatforms": [],

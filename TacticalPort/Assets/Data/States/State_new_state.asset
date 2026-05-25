@@ -19,5 +19,7 @@ MonoBehaviour:
   _MaxStacks: 1
   _IsPassiveMarker: 0
   _DamageModifierPerStack: 0
+  _MeleeDamageModifierPerStack: 0
+  _RangedDamageModifierPerStack: 0
   _DamageReductionPerStack: 10
   _RangeModifierPerStack: 0

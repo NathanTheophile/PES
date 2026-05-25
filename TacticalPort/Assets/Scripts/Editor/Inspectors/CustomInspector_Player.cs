@@ -74,6 +74,8 @@ namespace TacticalPort.EditorTools
                 "_MoveRange",
                 "_ActionPointsPerTurn",
                 "_Initiative",
+                "_MeleeDamagePercent",
+                "_RangedDamagePercent",
                 "_PushDamageBonus");
 
             DrawSection("Footprint", "_FootprintWidth", "_FootprintHeight");

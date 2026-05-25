@@ -1,13 +1,13 @@
 fileFormatVersion: 2
-guid: 03f4ac81c5384fb4e9de50db9a351560
+guid: a9eff96d1ca94594e9e7f1930349f9ff
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 2040814694002780778
-    second: TUI_Btn_Spell_Ornaments_1_0
+      213: -5246912882522242190
+    second: TUI_Btn_Skill_Ornaments_0
   - first:
-      213: 4514007014489759034
-    second: TUI_Btn_Spell_Ornaments_1_1
+      213: 7938905072330523490
+    second: TUI_Btn_Skill_Ornaments_1
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -49,7 +49,7 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 1
+  spriteMode: 2
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
@@ -129,45 +129,45 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: TUI_Btn_Spell_Ornaments_1_0
+      name: TUI_Btn_Skill_Ornaments_L
       rect:
         serializedVersion: 2
-        x: 82
-        y: 77
-        width: 306
-        height: 303
+        x: 0
+        y: 0
+        width: 497
+        height: 473
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: a6aee68c62e625c10800000000000000
-      internalID: 2040814694002780778
+      spriteID: 27347dd58883f27b0800000000000000
+      internalID: -5246912882522242190
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: TUI_Btn_Spell_Ornaments_1_1
+      name: TUI_Btn_Skill_Ornaments_R
       rect:
         serializedVersion: 2
-        x: 635
-        y: 77
-        width: 306
-        height: 303
+        x: 519
+        y: 0
+        width: 505
+        height: 481
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: a3d9844a679f4ae30800000000000000
-      internalID: 4514007014489759034
+      spriteID: 263cec5e918ac2e60800000000000000
+      internalID: 7938905072330523490
       vertices: []
       indices: 
       edges: []
@@ -176,7 +176,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 5e97eb03825dee720800000000000000
+    spriteID: bc734864fd778cf4dad8192001af5182
     internalID: 0
     vertices: []
     indices: 
@@ -186,8 +186,8 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      TUI_Btn_Spell_Ornaments_1_0: 2040814694002780778
-      TUI_Btn_Spell_Ornaments_1_1: 4514007014489759034
+      TUI_Btn_Skill_Ornaments_L: -5246912882522242190
+      TUI_Btn_Skill_Ornaments_R: 7938905072330523490
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

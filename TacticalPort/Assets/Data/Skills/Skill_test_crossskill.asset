@@ -28,7 +28,7 @@ MonoBehaviour:
   _CanAffectCaster: 1
   _AoeShape: 2
   _AoeSize: 2
-  _AoeDamageFalloffPercentPerCell: 10
+  _AoeDamageFalloffPercentPerCell: 20
   _UsePerTurn: 2
   _UsePerTarget: 2
   _CooldownTurns: 0
@@ -42,8 +42,4 @@ MonoBehaviour:
   _AppliedState: {fileID: 0}
   _AppliedStateStacks: 1
   _AppliedStateDurationTurns: -1
-  _UseDirectionalModifiers: 0
-  _FrontDamageModifier: 0
-  _SideDamageModifier: 0
-  _BackDamageModifier: 0
   _Icon: {fileID: 0}

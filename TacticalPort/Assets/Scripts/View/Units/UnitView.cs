@@ -273,7 +273,11 @@ namespace TacticalPort.View
             Sequence lSequence = DOTween.Sequence()
                 .SetTarget(pPopup)
                 .SetLink(pPopup.gameObject)
-                .Join(lRectTransform.DOAnchorPos(lEndPosition, lLifetime).SetEase(Ease.OutCubic))
+                .Join(DOTween.To(
+                    () => lRectTransform.anchoredPosition,
+                    pPosition => lRectTransform.anchoredPosition = pPosition,
+                    lEndPosition,
+                    lLifetime).SetEase(Ease.OutCubic))
                 .Join(DOTween.To(
                     () => pPopup.color.a,
                     alpha => pPopup.color = new Color(lStartColor.r, lStartColor.g, lStartColor.b, alpha),
@@ -283,8 +287,16 @@ namespace TacticalPort.View
             if (lHalfPunchDuration > 0f)
             {
                 lSequence
-                    .Insert(0f, lRectTransform.DOScale(lPeakScale, lHalfPunchDuration).SetEase(Ease.OutCubic))
-                    .Insert(lHalfPunchDuration, lRectTransform.DOScale(lBaseScale, lHalfPunchDuration).SetEase(Ease.OutCubic));
+                    .Insert(0f, DOTween.To(
+                        () => lRectTransform.localScale,
+                        pScale => lRectTransform.localScale = pScale,
+                        lPeakScale,
+                        lHalfPunchDuration).SetEase(Ease.OutCubic))
+                    .Insert(lHalfPunchDuration, DOTween.To(
+                        () => lRectTransform.localScale,
+                        pScale => lRectTransform.localScale = pScale,
+                        lBaseScale,
+                        lHalfPunchDuration).SetEase(Ease.OutCubic));
             }
             else
             {

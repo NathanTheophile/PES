@@ -24,9 +24,9 @@ namespace TacticalPort.Core
                 if (lTarget == null || !lTarget.IsAlive)
                     continue;
 
-                int lBaseDamage = Math.Max(0, pSkill.Power + ResolveDirectionalDamageModifier(pActor, lTarget, pSkill));
+                int lBaseDamage = Math.Max(0, pSkill.Power);
                 int lFalloffDamage = ResolveAoeFalloffDamage(lBaseDamage, pSkill, lTarget, pResolvedTarget.TargetCell);
-                int lResolvedDamage = pActor.ResolveOutgoingDamage(lFalloffDamage);
+                int lResolvedDamage = pActor.ResolveOutgoingDamage(lFalloffDamage, lTarget);
                 lTotalValue += lTarget.ApplyDamage(lResolvedDamage);
                 lAffectedUnitCount++;
                 lAffectedUnitIds.Add(lTarget.Id);
@@ -114,25 +114,6 @@ namespace TacticalPort.Core
             return $"{pActor.Definition.DisplayName} {pVerb} {pTotalValue} {pResourceLabel} across {pAffectedUnitCount} unit(s).";
         }
 
-        private static int ResolveDirectionalDamageModifier(UnitRuntime pActor, UnitRuntime pTarget, SkillDefinition pSkill)
-        {
-            if (pActor == null || pTarget == null || pSkill == null || !pSkill.UseDirectionalModifiers)
-                return 0;
-
-            GridCoord lRelativeDirection = ResolveCardinalDirection(pTarget.Position, pActor.Position);
-            GridCoord lFacing = ResolveCardinalDirection(default, pTarget.FacingDirection);
-            if (lRelativeDirection.X == 0 && lRelativeDirection.Y == 0)
-                return pSkill.SideDamageModifier;
-
-            if (lRelativeDirection == lFacing)
-                return pSkill.FrontDamageModifier;
-
-            if (lRelativeDirection == new GridCoord(-lFacing.X, -lFacing.Y))
-                return pSkill.BackDamageModifier;
-
-            return pSkill.SideDamageModifier;
-        }
-
         private static int ResolveClosestOccupiedCellDistance(UnitRuntime pTarget, GridCoord pCell)
         {
             if (pTarget == null)
@@ -145,20 +126,5 @@ namespace TacticalPort.Core
             return lBestDistance == int.MaxValue ? 0 : lBestDistance;
         }
 
-        private static GridCoord ResolveCardinalDirection(GridCoord pOrigin, GridCoord pTarget)
-        {
-            int lDeltaX = pTarget.X - pOrigin.X;
-            int lDeltaY = pTarget.Y - pOrigin.Y;
-            int lAbsX = Math.Abs(lDeltaX);
-            int lAbsY = Math.Abs(lDeltaY);
-
-            if (lAbsX == 0 && lAbsY == 0)
-                return new GridCoord(0, 0);
-
-            if (lAbsX >= lAbsY)
-                return new GridCoord(Math.Sign(lDeltaX), 0);
-
-            return new GridCoord(0, Math.Sign(lDeltaY));
-        }
     }
 }

@@ -15,19 +15,16 @@ MonoBehaviour:
   _Id: skill_simplehit
   _DisplayName: Skill_SimpleHit
   _Description: 
-  _LegacyEffectType: 0
   _PrimaryEffectType: 1
   _AdditionalEffectType: 0
-  _HasMigratedEffectSetup: 1
-  _Range: 6
   _RangeMin: 1
   _RangeMax: 6
-  _Linear: 0
   _TargetAlignment: 0
   _RequiresLineOfSight: 1
   _CanAffectCaster: 0
   _AoeShape: 0
   _AoeSize: 0
+  _AoeDamageFalloffPercentPerCell: 0
   _UsePerTurn: 3
   _UsePerTarget: 2
   _CooldownTurns: 0
@@ -41,17 +38,4 @@ MonoBehaviour:
   _AppliedState: {fileID: 0}
   _AppliedStateStacks: 1
   _AppliedStateDurationTurns: -1
-  _UseDirectionalModifiers: 0
-  _FrontDamageModifier: 0
-  _SideDamageModifier: 0
-  _BackDamageModifier: 0
-  _Icon: {fileID: 0}
-  _AiConsidered: 1
-  _AiBasePriority: 0
-  _AiTargetTeam: 0
-  _AiTargetMode: 0
-  _AiAllowSelfCast: 0
-  _AiPreferSelfCastWhenValid: 0
-  _AiMaxCasterHealthPercent: 0
-  _AiMinTargetMissingHealth: 0
-  _AiKiteAfterUse: 0
+  _Icon: {fileID: -6212023529406698928, guid: c5f63d2fde6c52947b9c7262e63b9373, type: 3}

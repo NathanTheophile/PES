@@ -30,7 +30,7 @@ public class ModuleConfig : ICloudCodeSetup
 public class EdgegapAllocator(IGameApiClient gameApiClient, ILogger<EdgegapAllocator> logger) : IMatchmakerAllocator
 {
     private const string ApplicationName = "tortugarena";
-    private const string VersionName = "alpha-0.1.3";
+    private const string VersionName = "alpha-0.1.7";
     private const string PortName = "gameport";
 
     private const string EdgegapApiUrl = "https://api.edgegap.com";

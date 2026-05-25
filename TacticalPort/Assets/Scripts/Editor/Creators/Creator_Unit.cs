@@ -26,6 +26,8 @@ namespace TacticalPort.EditorTools
         [SerializeField] private int _MoveRange = 4;
         [SerializeField] private int _ActionPointsPerTurn = 1;
         [SerializeField] private int _Initiative = 10;
+        [SerializeField] private int _MeleeDamagePercent = 100;
+        [SerializeField] private int _RangedDamagePercent = 100;
         [SerializeField] private int _PushDamageBonus = 0;
         [SerializeField] private int _FootprintWidth = 1;
         [SerializeField] private int _FootprintHeight = 1;
@@ -77,6 +79,8 @@ namespace TacticalPort.EditorTools
             _MoveRange = Mathf.Max(0, EditorGUILayout.IntField("Move Range", _MoveRange));
             _ActionPointsPerTurn = Mathf.Max(0, EditorGUILayout.IntField("AP / Turn", _ActionPointsPerTurn));
             _Initiative = Mathf.Max(0, EditorGUILayout.IntField("Initiative", _Initiative));
+            _MeleeDamagePercent = Mathf.Max(0, EditorGUILayout.IntField("Melee Damage %", _MeleeDamagePercent));
+            _RangedDamagePercent = Mathf.Max(0, EditorGUILayout.IntField("Ranged Damage %", _RangedDamagePercent));
             _PushDamageBonus = Mathf.Max(0, EditorGUILayout.IntField("Push Damage Bonus", _PushDamageBonus));
             _FootprintWidth = Mathf.Max(1, EditorGUILayout.IntField("Footprint Width", _FootprintWidth));
             _FootprintHeight = Mathf.Max(1, EditorGUILayout.IntField("Footprint Height", _FootprintHeight));
@@ -195,6 +199,8 @@ namespace TacticalPort.EditorTools
             SetInt(lSerializedObject, "_MoveRange", Mathf.Max(0, _MoveRange));
             SetInt(lSerializedObject, "_ActionPointsPerTurn", Mathf.Max(0, _ActionPointsPerTurn));
             SetInt(lSerializedObject, "_Initiative", Mathf.Max(0, _Initiative));
+            SetInt(lSerializedObject, "_MeleeDamagePercent", Mathf.Max(0, _MeleeDamagePercent));
+            SetInt(lSerializedObject, "_RangedDamagePercent", Mathf.Max(0, _RangedDamagePercent));
             SetInt(lSerializedObject, "_PushDamageBonus", Mathf.Max(0, _PushDamageBonus));
             SetInt(lSerializedObject, "_FootprintWidth", Mathf.Max(1, _FootprintWidth));
             SetInt(lSerializedObject, "_FootprintHeight", Mathf.Max(1, _FootprintHeight));

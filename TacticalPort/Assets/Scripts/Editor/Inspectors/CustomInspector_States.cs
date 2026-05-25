@@ -47,6 +47,8 @@ namespace TacticalPort.EditorTools
                     DrawSection(
                         "Modifiers",
                         "_DamageModifierPerStack",
+                        "_MeleeDamageModifierPerStack",
+                        "_RangedDamageModifierPerStack",
                         "_DamageReductionPerStack",
                         "_RangeModifierPerStack",
                         "_ActionPointModifierPerStack",

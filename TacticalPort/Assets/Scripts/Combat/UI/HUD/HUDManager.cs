@@ -109,12 +109,13 @@ namespace TacticalPort.UI
         public void SetSkillState(
             bool pCanUseSkills,
             bool pCanCancelSkill,
+            int pSelectedSkillSlotIndex,
             Func<UnitRuntime, bool> pCanDisplaySkills,
             Action<int> pOnSkillButtonClicked,
             Action pOnCancelSkillButtonClicked)
         {
             CreateControllers();
-            _SkillBar?.SetState(pCanUseSkills, pCanDisplaySkills, pOnSkillButtonClicked);
+            _SkillBar?.SetState(pCanUseSkills, pSelectedSkillSlotIndex, pCanDisplaySkills, pOnSkillButtonClicked);
 
             if (_CanCancelSkill == pCanCancelSkill && _OnCancelSkillButtonClicked == pOnCancelSkillButtonClicked)
                 return;

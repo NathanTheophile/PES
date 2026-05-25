@@ -28,7 +28,7 @@ namespace TacticalPort.EditorTools
         private bool _CanAffectCaster = true;
         private SkillAoeShape _AoeShape = SkillAoeShape.Single;
         private int _AoeSize = 0;
-        private int _AoeDamageFalloffPercentPerCell = 20;
+        private bool _UseAoeDamageFalloff;
         private int _UsePerTurn = 0;
         private int _UsePerTarget = 0;
         private int _CooldownTurns = 0;
@@ -42,10 +42,6 @@ namespace TacticalPort.EditorTools
         private StateDefinition _AppliedState;
         private int _AppliedStateStacks = 1;
         private int _AppliedStateDurationTurns = -1;
-        private bool _UseDirectionalModifiers;
-        private int _FrontDamageModifier = 0;
-        private int _SideDamageModifier = 0;
-        private int _BackDamageModifier = 0;
         private Sprite _Icon;
 
         #endregion
@@ -83,15 +79,12 @@ namespace TacticalPort.EditorTools
             if (_AoeShape != SkillAoeShape.Single)
             {
                 _AoeSize = Mathf.Max(1, EditorGUILayout.IntField("AoE Size", _AoeSize));
-                _AoeDamageFalloffPercentPerCell = Mathf.Clamp(
-                    EditorGUILayout.IntField("AoE Damage Falloff % / Cell", _AoeDamageFalloffPercentPerCell),
-                    0,
-                    100);
+                _UseAoeDamageFalloff = EditorGUILayout.Toggle("Use AoE Damage Falloff", _UseAoeDamageFalloff);
             }
             else
             {
                 _AoeSize = 0;
-                _AoeDamageFalloffPercentPerCell = 0;
+                _UseAoeDamageFalloff = false;
             }
 
             _UsePerTurn = Mathf.Max(0, EditorGUILayout.IntField("Use / Turn", _UsePerTurn));
@@ -143,24 +136,6 @@ namespace TacticalPort.EditorTools
                 _AppliedStateStacks = 1;
                 _AppliedStateDurationTurns = -1;
             }
-
-            if (_PrimaryEffectType == SkillPrimaryEffectType.Damage)
-            {
-                _UseDirectionalModifiers = EditorGUILayout.Toggle("Directional Modifiers", _UseDirectionalModifiers);
-                if (_UseDirectionalModifiers)
-                {
-                    _FrontDamageModifier = EditorGUILayout.IntField("Front Modifier", _FrontDamageModifier);
-                    _SideDamageModifier = EditorGUILayout.IntField("Side Modifier", _SideDamageModifier);
-                    _BackDamageModifier = EditorGUILayout.IntField("Back Modifier", _BackDamageModifier);
-                }
-            }
-            else
-            {
-                _UseDirectionalModifiers = false;
-                _FrontDamageModifier = 0;
-                _SideDamageModifier = 0;
-                _BackDamageModifier = 0;
-            }
         }
 
         #endregion
@@ -184,7 +159,7 @@ namespace TacticalPort.EditorTools
             SetBool(lSerializedObject, "_CanAffectCaster", _CanAffectCaster);
             SetEnum(lSerializedObject, "_AoeShape", (int)_AoeShape);
             SetInt(lSerializedObject, "_AoeSize", _AoeShape == SkillAoeShape.Single ? 0 : Mathf.Max(1, _AoeSize));
-            SetInt(lSerializedObject, "_AoeDamageFalloffPercentPerCell", _AoeShape == SkillAoeShape.Single ? 0 : Mathf.Clamp(_AoeDamageFalloffPercentPerCell, 0, 100));
+            SetInt(lSerializedObject, "_AoeDamageFalloffPercentPerCell", _AoeShape != SkillAoeShape.Single && _UseAoeDamageFalloff ? SkillDefinition.FixedAoeDamageFalloffPercentPerCell : 0);
             SetInt(lSerializedObject, "_UsePerTurn", Mathf.Max(0, _UsePerTurn));
             SetInt(lSerializedObject, "_UsePerTarget", Mathf.Max(0, _UsePerTarget));
             SetInt(lSerializedObject, "_CooldownTurns", Mathf.Max(0, _CooldownTurns));
@@ -198,10 +173,6 @@ namespace TacticalPort.EditorTools
             SetObject(lSerializedObject, "_AppliedState", _AppliedState);
             SetInt(lSerializedObject, "_AppliedStateStacks", Mathf.Max(1, _AppliedStateStacks));
             SetInt(lSerializedObject, "_AppliedStateDurationTurns", _AppliedStateDurationTurns);
-            SetBool(lSerializedObject, "_UseDirectionalModifiers", _UseDirectionalModifiers);
-            SetInt(lSerializedObject, "_FrontDamageModifier", _FrontDamageModifier);
-            SetInt(lSerializedObject, "_SideDamageModifier", _SideDamageModifier);
-            SetInt(lSerializedObject, "_BackDamageModifier", _BackDamageModifier);
             SetObject(lSerializedObject, "_Icon", _Icon);
 
             ApplyAndSave(lSerializedObject);

@@ -474,7 +474,7 @@ Le système de grille supporte : déplacement orthogonal, cases non marchables, 
 
 ### Unités
 
-Les unités sont définies via ScriptableObject : HP max, équipe, portée de déplacement, AP par tour, initiative, compétences disponibles, profil IA ennemi, états de base, états conditionnels selon les PV, prefab visuel, portrait et teinte.
+Les unités sont définies via ScriptableObject : HP max, équipe, portée de déplacement, AP par tour, initiative, dégâts mêlée/distance en pourcentage, compétences disponibles, profil IA ennemi, états de base, états conditionnels selon les PV, prefab visuel, portrait et teinte.
 
 Contenu actuellement présent :
 
@@ -485,7 +485,7 @@ Contenu actuellement présent :
 
 ### Compétences
 
-Les compétences sont data-driven via SkillDefinition. Le système supporte dégâts, soin, push, téléportation, échange de position, invocation, glyphes/pièges, états, coût AP, limite par tour, limite par cible, cooldown, portée min/max, ligne de vue, alignement orthogonal ou diagonal, AoE variées, falloff de dégâts AoE et modificateurs directionnels front/côté/dos.
+Les compétences sont data-driven via SkillDefinition. Le système supporte dégâts, soin, push, téléportation, échange de position, invocation, glyphes/pièges, états, coût AP, limite par tour, limite par cible, cooldown, portée min/max, ligne de vue, alignement orthogonal ou diagonal, AoE variées, falloff de dégâts AoE activable par skill et modificateurs de dégâts mêlée/distance.
 
 Compétences actuellement créées :
 
@@ -494,7 +494,7 @@ Compétences actuellement créées :
 
 ### États
 
-Le système d'états supporte durée en tours, max stacks, marqueurs passifs, bonus/malus dégâts, réduction de dégâts, modificateur de portée, modificateur AP et modificateur mouvement.
+Le système d'états supporte durée en tours, max stacks, marqueurs passifs, bonus/malus de dégâts génériques, mêlée et distance, réduction de dégâts, modificateur de portée, modificateur AP et modificateur mouvement.
 
 État de test : New State, durée 5 tours, réduction de dégâts de 10.
 
@@ -611,6 +611,8 @@ Le profil EnemyAiProfile_simplekit utilise une logique de distance : priorité c
 - 2 passifs par personnage, 1 passif choisi.
 - Pas de variantes de sorts.
 - Tous les sorts équipés de l'unité active sont affichés.
+- L'interface utilise un thème global configurable via `ThemeDefinition` et exposé au runtime par `ThemeManager`.
+- Les boutons de sorts utilisent les couleurs de skill du thème global : dégâts, utilitaire ou soin.
 - Timer de tour en PvP.
 - Durée cible d'un tour : 30 à 45 secondes.
 - Infos permanentes : HP, AP, MP, timeline, états, passif actif.
@@ -623,6 +625,8 @@ Le profil EnemyAiProfile_simplekit utilise une logique de distance : priorité c
 - Soin présent mais limité.
 - Boucliers et réductions de dégâts centraux dans certaines compositions.
 - Variations AP/MP principalement via buffs et debuffs en combat.
+- Facing retiré du socle gameplay global.
+- Les dégâts mêlée/distance sont des pourcentages de personnage, modifiables par états.
 - Pas de RNG sur les dégâts de base.
 - Critiques possibles avec taux dépendant du sort et modifiable via buffs/debuffs.
 - Cooldowns variables selon puissance et fonction du sort.
@@ -638,7 +642,6 @@ Le profil EnemyAiProfile_simplekit utilise une logique de distance : priorité c
 
 ## 15. Décisions ouvertes
 
-- Facing : absent, global ou mécanique spécifique à certains personnages.
 - Plateforme prioritaire : PC, web ou mobile.
 - Univers : fangame inspiré One Piece ou IP originale.
 - Hauteur / verticalité : ampleur exacte de l'impact gameplay.

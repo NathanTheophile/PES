@@ -28,10 +28,20 @@ namespace TacticalPort.UI
         [SerializeField] private TMP_Text _TxtPower;
         [SerializeField] private TMP_Text _TxtDescription;
         [SerializeField] private CanvasGroup _CanvasGroup;
+        [Header("Visual Type Feedback")]
+        [SerializeField] private Image _SkillBackground;
+        [SerializeField] private Image _SkillCircle;
+        [SerializeField] private Image _SkillIcon;
+        [SerializeField] private Image _SkillHighlight;
+        [SerializeField] private Image _SkillOrnament;
+        [SerializeField] private Image _SkillOrnamentSecondary;
+        [SerializeField] private UIInteractionAnimator _InteractionAnimator;
 
         private SkillDefinition _Skill;
         private Action _OnClick;
         private bool _IsInteractable = true;
+        private bool _IsSelected;
+        private bool _HasResolvedVisualReferences;
 
         #endregion
 
@@ -63,6 +73,7 @@ namespace TacticalPort.UI
             _Skill = pSkill;
             _OnClick = pOnClick;
 
+            SetSelected(false);
             Refresh();
             HideTooltip();
         }
@@ -71,6 +82,16 @@ namespace TacticalPort.UI
         {
             _IsInteractable = pValue;
             Refresh();
+        }
+
+        public void SetSelected(bool pValue)
+        {
+            if (_IsSelected == pValue)
+                return;
+
+            _IsSelected = pValue;
+            ResolveInteractionAnimator();
+            _InteractionAnimator?.SetSelected(_IsSelected);
         }
 
         #endregion
@@ -98,6 +119,7 @@ namespace TacticalPort.UI
             SetLabel(_TxtActionPointCostAndRange, ResolveActionPointCostAndRangeText());
             SetTooltipLine(_TxtPower, ResolvePowerText());
             SetLabel(_TxtDescription, ResolveDescriptionText());
+            ApplySkillVisuals();
             RefreshTooltipLayout();
 
             bool lIsButtonInteractable = _Skill != null && _IsInteractable;
@@ -140,7 +162,7 @@ namespace TacticalPort.UI
             switch (_Skill.PrimaryEffectType)
             {
                 case SkillPrimaryEffectType.Damage:
-                    return _Skill.AoeDamageFalloffPercentPerCell > 0
+                    return _Skill.UseAoeDamageFalloff
                         ? $"Deals {_Skill.Power} (-{_Skill.AoeDamageFalloffPercentPerCell}%/cell)"
                         : $"Deals {_Skill.Power}";
 
@@ -184,6 +206,75 @@ namespace TacticalPort.UI
         }
 
         private void OnButtonClicked() => _OnClick?.Invoke();
+
+        private void ApplySkillVisuals()
+        {
+            ResolveVisualReferences();
+
+            if (_SkillIcon != null)
+                _SkillIcon.sprite = _Skill != null ? _Skill.Icon : null;
+
+            Color lColor = ResolveSkillColor(_Skill);
+            ApplyColor(_SkillBackground, lColor);
+            ApplyColor(_SkillCircle, lColor);
+            ApplyColor(_SkillIcon, ResolveIconColor(lColor));
+            ApplyColor(_SkillHighlight, lColor);
+            ApplyColor(_SkillOrnament, lColor);
+            ApplyColor(_SkillOrnamentSecondary, lColor);
+        }
+
+        private void ResolveVisualReferences()
+        {
+            if (_HasResolvedVisualReferences)
+                return;
+
+            _SkillBackground ??= FindChildImage("Btn_Skill_Background");
+            _SkillCircle ??= FindChildImage("Btn_Skill_Circle");
+            _SkillIcon ??= FindChildImage("Btn_Skill_Icon");
+            _SkillHighlight ??= FindChildImage("Btn_Skill_Highlight");
+            _SkillOrnament ??= FindChildImage("Btn_Skill_Ornament_L") ?? FindChildImage("Btn_Skill_Ornament") ?? FindChildImage("Btn_Skill_Ornaments");
+            _SkillOrnamentSecondary ??= FindChildImage("Btn_Skill_Ornament_R");
+            _HasResolvedVisualReferences = true;
+        }
+
+        private void ResolveInteractionAnimator()
+        {
+            if (_InteractionAnimator == null)
+                _InteractionAnimator = GetComponent<UIInteractionAnimator>();
+        }
+
+        private Color ResolveSkillColor(SkillDefinition pSkill) =>
+            ThemeManager.GetSkillColor(pSkill);
+
+        private static Color ResolveIconColor(Color pBaseColor)
+        {
+            Color.RGBToHSV(pBaseColor, out float lHue, out float lSaturation, out float lValue);
+            Color lIconColor = Color.HSVToRGB(lHue, lSaturation, Mathf.Clamp01(lValue + 0.1f));
+            lIconColor.a = pBaseColor.a;
+            return lIconColor;
+        }
+
+        private Image FindChildImage(string pChildName)
+        {
+            if (string.IsNullOrWhiteSpace(pChildName))
+                return null;
+
+            Image[] lImages = GetComponentsInChildren<Image>(true);
+            for (int lIndex = 0; lIndex < lImages.Length; lIndex++)
+            {
+                Image lImage = lImages[lIndex];
+                if (lImage != null && lImage.name == pChildName)
+                    return lImage;
+            }
+
+            return null;
+        }
+
+        private static void ApplyColor(Image pImage, Color pColor)
+        {
+            if (pImage != null)
+                pImage.color = pColor;
+        }
 
         private void RefreshTooltipLayout()
         {

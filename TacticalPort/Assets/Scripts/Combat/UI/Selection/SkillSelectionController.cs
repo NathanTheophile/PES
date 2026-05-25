@@ -20,6 +20,7 @@ namespace TacticalPort.UI
         private UnitId _CachedActiveUnitId = UnitId.None;
         private SkillDefinition _SelectedSkill;
         private SkillId _SelectedSkillId = SkillId.None;
+        private int _SelectedSkillSlotIndex = -1;
 
         #endregion
 
@@ -28,6 +29,7 @@ namespace TacticalPort.UI
         public bool HasSelectedSkill => _SelectedSkill != null && _SelectedSkillId.IsValid;
         public SkillDefinition SelectedSkill => _SelectedSkill;
         public SkillId SelectedSkillId => _SelectedSkillId;
+        public int SelectedSkillSlotIndex => HasSelectedSkill ? _SelectedSkillSlotIndex : -1;
 
         #endregion
 
@@ -69,6 +71,7 @@ namespace TacticalPort.UI
 
             _SelectedSkill = lSkill;
             _SelectedSkillId = lSkillId;
+            _SelectedSkillSlotIndex = pSkillSlotIndex;
             _Context.SetStatus($"Selected skill: {lSkill.DisplayName}.");
             return true;
         }
@@ -108,6 +111,7 @@ namespace TacticalPort.UI
         {
             _SelectedSkill = null;
             _SelectedSkillId = SkillId.None;
+            _SelectedSkillSlotIndex = -1;
             _Context.BoardView?.SetPreviewCells(null);
 
             if (!string.IsNullOrWhiteSpace(pStatusMessage))
@@ -156,6 +160,7 @@ namespace TacticalPort.UI
             }
 
             _SelectedSkill = lSkill;
+            _SelectedSkillSlotIndex = ResolveSkillSlotIndex(lActiveUnit, _SelectedSkillId);
         }
 
         public string ResolveSkillModeMessage(
@@ -218,6 +223,21 @@ namespace TacticalPort.UI
                 return $"Hover: {lHoveredUnit.Definition.DisplayName} {lHoveredCell}.";
 
             return $"Hover: cell {lHoveredCell}.";
+        }
+
+        private static int ResolveSkillSlotIndex(UnitRuntime pUnit, SkillId pSkillId)
+        {
+            if (pUnit?.Skills == null)
+                return -1;
+
+            for (int lIndex = 0; lIndex < pUnit.Skills.Count; lIndex++)
+            {
+                SkillDefinition lSkill = pUnit.Skills[lIndex];
+                if (lSkill != null && new SkillId(lSkill.Id) == pSkillId)
+                    return lIndex;
+            }
+
+            return -1;
         }
 
         #endregion

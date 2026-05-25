@@ -225,6 +225,7 @@ namespace TacticalPort.Combat
             _Context.HudManager?.SetSkillState(
                 _Context.CanPlayerIssueCommands(),
                 _SkillSelection.HasSelectedSkill,
+                _SkillSelection.SelectedSkillSlotIndex,
                 _Context.Bootstrap.CanLocalPlayerControlUnit,
                 OnSkillButtonClicked,
                 OnCancelSkillButtonClicked);

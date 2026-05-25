@@ -168,16 +168,6 @@ namespace TacticalPort.Core
             SkillExecutionContext pContext,
             out BattleActionResult pFailure)
         {
-            bool lRequiresAffectedUnits = pSkill.PrimaryEffectType == SkillPrimaryEffectType.Damage
-                || pSkill.PrimaryEffectType == SkillPrimaryEffectType.Heal
-                || pSkill.AdditionalEffectType == SkillAdditionalEffectType.Push;
-
-            if (lRequiresAffectedUnits && pResolvedTarget.AffectedUnits.Count == 0)
-            {
-                pFailure = BattleActionResult.Failed(BattleActionType.Skill, "No unit is affected by this skill.");
-                return false;
-            }
-
             switch (pSkill.AdditionalEffectType)
             {
                 case SkillAdditionalEffectType.SwitchPositions:

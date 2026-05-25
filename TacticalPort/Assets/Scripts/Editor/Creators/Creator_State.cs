@@ -22,6 +22,8 @@ namespace TacticalPort.EditorTools
         private int _MaxStacks = 1;
         private bool _IsPassiveMarker;
         private int _DamageModifierPerStack = 0;
+        private int _MeleeDamageModifierPerStack = 0;
+        private int _RangedDamageModifierPerStack = 0;
         private int _DamageReductionPerStack = 0;
         private int _RangeModifierPerStack = 0;
         private int _ActionPointModifierPerStack = 0;
@@ -56,7 +58,9 @@ namespace TacticalPort.EditorTools
             _IsPassiveMarker = EditorGUILayout.Toggle("Passive Marker", _IsPassiveMarker);
 
             DrawSectionHeader("Modifiers");
-            _DamageModifierPerStack = EditorGUILayout.IntField("Damage / Stack", _DamageModifierPerStack);
+            _DamageModifierPerStack = EditorGUILayout.IntField("Damage % / Stack", _DamageModifierPerStack);
+            _MeleeDamageModifierPerStack = EditorGUILayout.IntField("Melee Damage % / Stack", _MeleeDamageModifierPerStack);
+            _RangedDamageModifierPerStack = EditorGUILayout.IntField("Ranged Damage % / Stack", _RangedDamageModifierPerStack);
             _DamageReductionPerStack = Mathf.Max(0, EditorGUILayout.IntField("Reduction / Stack", _DamageReductionPerStack));
             _RangeModifierPerStack = EditorGUILayout.IntField("Range / Stack", _RangeModifierPerStack);
             _ActionPointModifierPerStack = EditorGUILayout.IntField("AP / Stack", _ActionPointModifierPerStack);
@@ -83,6 +87,8 @@ namespace TacticalPort.EditorTools
             SetInt(lSerializedObject, "_MaxStacks", Mathf.Max(1, _MaxStacks));
             SetBool(lSerializedObject, "_IsPassiveMarker", _IsPassiveMarker);
             SetInt(lSerializedObject, "_DamageModifierPerStack", _DamageModifierPerStack);
+            SetInt(lSerializedObject, "_MeleeDamageModifierPerStack", _MeleeDamageModifierPerStack);
+            SetInt(lSerializedObject, "_RangedDamageModifierPerStack", _RangedDamageModifierPerStack);
             SetInt(lSerializedObject, "_DamageReductionPerStack", Mathf.Max(0, _DamageReductionPerStack));
             SetInt(lSerializedObject, "_RangeModifierPerStack", _RangeModifierPerStack);
             SetInt(lSerializedObject, "_ActionPointModifierPerStack", _ActionPointModifierPerStack);

@@ -3,7 +3,7 @@
   <Project Path="TacticalPort.Networking.csproj" />
   <Project Path="TacticalPort.Core.csproj" />
   <Project Path="TacticalPort.CombatRuntime.csproj" />
-  <Project Path="DOTween.Modules.csproj" />
+  <Project Path="Assembly-CSharp-firstpass.csproj" />
   <Project Path="TacticalPort.Shared.csproj" />
   <Project Path="TacticalPort.View.csproj" />
   <Project Path="TacticalPort.Editor.csproj" />

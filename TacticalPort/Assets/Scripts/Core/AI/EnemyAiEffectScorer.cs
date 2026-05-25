@@ -127,7 +127,7 @@ namespace TacticalPort.Core
             {
                 case SkillPrimaryEffectType.Damage:
                     int lFalloffPower = EnemyAiImpactAnalyzer.ResolveAoeFalloffPower(pSkill.Power, pSkill, pUnit, pCenterCell);
-                    int lResolvedDamage = Math.Max(0, lActor.ResolveOutgoingDamage(lFalloffPower) - pUnit.GetDamageReduction());
+                    int lResolvedDamage = Math.Max(0, lActor.ResolveOutgoingDamage(lFalloffPower, pUnit) - pUnit.GetDamageReduction());
                     int lEffectiveDamage = Math.Min(pUnit.CurrentHealth, lResolvedDamage);
                     int lOverkillPenalty = Math.Max(0, lResolvedDamage - pUnit.CurrentHealth);
                     if (pIsAlly)

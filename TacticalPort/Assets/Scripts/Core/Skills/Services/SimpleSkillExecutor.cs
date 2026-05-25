@@ -30,9 +30,6 @@ namespace TacticalPort.Core
             if (!SkillTargetResolver.TryResolveTarget(pActor, pSkill, pTarget, pContext, out ResolvedSkillTarget lResolvedTarget, out BattleActionResult lValidation))
                 return lValidation;
 
-            if (pActor.Position != lResolvedTarget.TargetCell)
-                pActor.FaceTowards(lResolvedTarget.TargetCell);
-
             BattleActionResult lResult = SkillEffectResolver.ApplyEffect(pActor, pSkill, lResolvedTarget, pContext);
             if (lResult.IsSuccess)
                 pActor.RegisterSkillUse(pSkill, lResolvedTarget.UsageTargetKeys);

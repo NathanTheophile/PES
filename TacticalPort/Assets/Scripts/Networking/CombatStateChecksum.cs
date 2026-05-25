@@ -61,8 +61,6 @@ namespace TacticalPort.Networking
             pHash = Mix(pHash, (int)pUnit.Team);
             pHash = Mix(pHash, pUnit.Position.X);
             pHash = Mix(pHash, pUnit.Position.Y);
-            pHash = Mix(pHash, pUnit.FacingDirection.X);
-            pHash = Mix(pHash, pUnit.FacingDirection.Y);
             pHash = Mix(pHash, pUnit.CurrentHealth);
             pHash = Mix(pHash, pUnit.RemainingMovement);
             pHash = Mix(pHash, pUnit.RemainingActionPoints);

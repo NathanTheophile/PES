@@ -20,6 +20,8 @@ MonoBehaviour:
   _MoveRange: 0
   _ActionPointsPerTurn: 0
   _Initiative: 0
+  _MeleeDamagePercent: 100
+  _RangedDamagePercent: 100
   _PushDamageBonus: 0
   _FootprintWidth: 1
   _FootprintHeight: 1

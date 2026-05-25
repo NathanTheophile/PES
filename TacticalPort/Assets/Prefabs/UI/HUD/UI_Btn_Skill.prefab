@@ -160,17 +160,17 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2461128330600964201}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 4933421835846787113}
+  m_Father: {fileID: 7900513025426323158}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 100, y: 100}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &7407841644914104738
 CanvasRenderer:
@@ -193,14 +193,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0}
+  m_Color: {r: 0.85, g: 0.35500005, b: 0.33000004, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: -6212023529406698928, guid: c5f63d2fde6c52947b9c7262e63b9373, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -222,7 +222,7 @@ GameObject:
   - component: {fileID: 2035012203329742345}
   - component: {fileID: 3032272788133793792}
   m_Layer: 5
-  m_Name: Btn_Skill_Ornaments
+  m_Name: Btn_Skill_Ornament_L
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -244,8 +244,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 100, y: 100}
+  m_AnchoredPosition: {x: -25, y: -25}
+  m_SizeDelta: {x: 60, y: 60}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2035012203329742345
 CanvasRenderer:
@@ -268,14 +268,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.8113208, g: 0.34749022, b: 0.34749022, a: 1}
+  m_Color: {r: 0.6666667, g: 0.2784314, b: 0.25882354, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 03f4ac81c5384fb4e9de50db9a351560, type: 3}
+  m_Sprite: {fileID: -5246912882522242190, guid: a9eff96d1ca94594e9e7f1930349f9ff, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -343,7 +343,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.8113208, g: 0.34749022, b: 0.34749022, a: 1}
+  m_Color: {r: 0.6666667, g: 0.2784314, b: 0.25882354, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -351,6 +351,81 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_Sprite: {fileID: 21300000, guid: 9c1df86a95f786f4e9c5d1b2490323a4, type: 3}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!1 &4813143031714352324
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 9113628617116613794}
+  - component: {fileID: 7891962405881830822}
+  - component: {fileID: 676041460808208706}
+  m_Layer: 5
+  m_Name: Btn_Skill_Ornament_R
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &9113628617116613794
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4813143031714352324}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4933421835846787113}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 25, y: -25}
+  m_SizeDelta: {x: 60, y: 60}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &7891962405881830822
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4813143031714352324}
+  m_CullTransparentMesh: 1
+--- !u!114 &676041460808208706
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4813143031714352324}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 0.6666667, g: 0.2784314, b: 0.25882354, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 7938905072330523490, guid: a9eff96d1ca94594e9e7f1930349f9ff, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -966,7 +1041,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.8113208, g: 0.34749022, b: 0.34749022, a: 1}
+  m_Color: {r: 0.6666667, g: 0.2784314, b: 0.25882354, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -1013,9 +1088,9 @@ RectTransform:
   m_Children:
   - {fileID: 8543650151954851286}
   - {fileID: 7900513025426323158}
-  - {fileID: 3679138044424517217}
   - {fileID: 7521617986050075906}
   - {fileID: 4347794536482110799}
+  - {fileID: 9113628617116613794}
   m_Father: {fileID: 3883617067180734374}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -1052,7 +1127,8 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 3679138044424517217}
   m_Father: {fileID: 4933421835846787113}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -1081,7 +1157,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.8113208, g: 0.34749022, b: 0.34749022, a: 1}
+  m_Color: {r: 0.7, g: 0.29235294, b: 0.27176473, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -1111,6 +1187,7 @@ GameObject:
   - component: {fileID: 9198914064425899147}
   - component: {fileID: 2606848079123456791}
   - component: {fileID: 7439599663133080121}
+  - component: {fileID: 275598319041940133}
   m_Layer: 5
   m_Name: UI_Btn_Skill
   m_TagString: Untagged
@@ -1211,6 +1288,13 @@ MonoBehaviour:
   _TxtPower: {fileID: 5239139389352315182}
   _TxtDescription: {fileID: 3249254687074339792}
   _CanvasGroup: {fileID: 7439599663133080121}
+  _SkillBackground: {fileID: 2970541431392677589}
+  _SkillCircle: {fileID: 1383755595597415831}
+  _SkillIcon: {fileID: 134447311642752570}
+  _SkillHighlight: {fileID: 4609363191070742951}
+  _SkillOrnament: {fileID: 3032272788133793792}
+  _SkillOrnamentSecondary: {fileID: 0}
+  _InteractionAnimator: {fileID: 0}
 --- !u!225 &7439599663133080121
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -1223,6 +1307,483 @@ CanvasGroup:
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
+--- !u!114 &275598319041940133
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8832288903925841370}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e79ebf9717284ca0bd3db03a6965f4de, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TacticalPort.CombatRuntime::TacticalPort.UI.UIAnimatorTrigger
+  _UseUnscaledTime: 0
+  _KillOnDisable: 1
+  _ResetOnDisable: 0
+  _IgnoreHoverWhileSelected: 1
+  _ReturnToHoverWhenDeselectedAndPointerOver: 1
+  _HoverEnter:
+    Enabled: 1
+    StopCurrentBeforePlay: 1
+    ResetTargetsBeforePlay: 0
+    Tracks:
+    - TargetRectTransform: {fileID: 4933421835846787113}
+      TargetGraphic: {fileID: 0}
+      AnimationType: 3
+      StepMode: 0
+      ValueMode: 0
+      Ease: 6
+      Delay: 0
+      Duration: 0.2
+      Loops: 0
+      LoopType: 0
+      VectorValue: {x: 1.05, y: 1.05, z: 1}
+      ColorValue: {r: 0, g: 0, b: 0, a: 0}
+      FloatValue: 0
+      Vibrato: 0
+      Randomness: 0
+      Elasticity: 0
+      FadeOut: 0
+    - TargetRectTransform: {fileID: 4347794536482110799}
+      TargetGraphic: {fileID: 0}
+      AnimationType: 2
+      StepMode: 1
+      ValueMode: 1
+      Ease: 6
+      Delay: 0
+      Duration: 0.5
+      Loops: 0
+      LoopType: 0
+      VectorValue: {x: 0, y: 0, z: 15}
+      ColorValue: {r: 0, g: 0, b: 0, a: 0}
+      FloatValue: 0
+      Vibrato: 0
+      Randomness: 0
+      Elasticity: 0
+      FadeOut: 0
+    - TargetRectTransform: {fileID: 9113628617116613794}
+      TargetGraphic: {fileID: 0}
+      AnimationType: 2
+      StepMode: 1
+      ValueMode: 1
+      Ease: 6
+      Delay: 0
+      Duration: 0.5
+      Loops: 0
+      LoopType: 0
+      VectorValue: {x: 0, y: 0, z: -15}
+      ColorValue: {r: 0, g: 0, b: 0, a: 0}
+      FloatValue: 0
+      Vibrato: 0
+      Randomness: 0
+      Elasticity: 0
+      FadeOut: 0
+    - TargetRectTransform: {fileID: 7900513025426323158}
+      TargetGraphic: {fileID: 0}
+      AnimationType: 3
+      StepMode: 1
+      ValueMode: 0
+      Ease: 6
+      Delay: 0
+      Duration: 0.35
+      Loops: 0
+      LoopType: 0
+      VectorValue: {x: 1.15, y: 1.15, z: 1}
+      ColorValue: {r: 0, g: 0, b: 0, a: 0}
+      FloatValue: 0
+      Vibrato: 0
+      Randomness: 0
+      Elasticity: 0
+      FadeOut: 0
+    - TargetRectTransform: {fileID: 7521617986050075906}
+      TargetGraphic: {fileID: 0}
+      AnimationType: 3
+      StepMode: 1
+      ValueMode: 0
+      Ease: 6
+      Delay: 0
+      Duration: 0.35
+      Loops: 0
+      LoopType: 0
+      VectorValue: {x: 1, y: 0.5, z: 1}
+      ColorValue: {r: 0, g: 0, b: 0, a: 0}
+      FloatValue: 0
+      Vibrato: 0
+      Randomness: 0
+      Elasticity: 0
+      FadeOut: 0
+  _HoverExit:
+    Enabled: 1
+    StopCurrentBeforePlay: 1
+    ResetTargetsBeforePlay: 0
+    Tracks:
+    - TargetRectTransform: {fileID: 4933421835846787113}
+      TargetGraphic: {fileID: 0}
+      AnimationType: 3
+      StepMode: 0
+      ValueMode: 0
+      Ease: 6
+      Delay: 0
+      Duration: 0.2
+      Loops: 0
+      LoopType: 0
+      VectorValue: {x: 1, y: 1, z: 1}
+      ColorValue: {r: 0, g: 0, b: 0, a: 0}
+      FloatValue: 0
+      Vibrato: 0
+      Randomness: 0
+      Elasticity: 0
+      FadeOut: 0
+    - TargetRectTransform: {fileID: 7900513025426323158}
+      TargetGraphic: {fileID: 0}
+      AnimationType: 3
+      StepMode: 1
+      ValueMode: 0
+      Ease: 6
+      Delay: 0
+      Duration: 0.35
+      Loops: 0
+      LoopType: 0
+      VectorValue: {x: 1, y: 1, z: 1}
+      ColorValue: {r: 0, g: 0, b: 0, a: 0}
+      FloatValue: 0
+      Vibrato: 0
+      Randomness: 0
+      Elasticity: 0
+      FadeOut: 0
+    - TargetRectTransform: {fileID: 4347794536482110799}
+      TargetGraphic: {fileID: 0}
+      AnimationType: 2
+      StepMode: 1
+      ValueMode: 2
+      Ease: 6
+      Delay: 0
+      Duration: 0.5
+      Loops: 0
+      LoopType: 0
+      VectorValue: {x: 0, y: 0, z: 0}
+      ColorValue: {r: 0, g: 0, b: 0, a: 0}
+      FloatValue: 0
+      Vibrato: 0
+      Randomness: 0
+      Elasticity: 0
+      FadeOut: 0
+    - TargetRectTransform: {fileID: 9113628617116613794}
+      TargetGraphic: {fileID: 0}
+      AnimationType: 2
+      StepMode: 1
+      ValueMode: 2
+      Ease: 6
+      Delay: 0
+      Duration: 0.5
+      Loops: 0
+      LoopType: 0
+      VectorValue: {x: 0, y: 0, z: 0}
+      ColorValue: {r: 0, g: 0, b: 0, a: 0}
+      FloatValue: 0
+      Vibrato: 0
+      Randomness: 0
+      Elasticity: 0
+      FadeOut: 0
+    - TargetRectTransform: {fileID: 7521617986050075906}
+      TargetGraphic: {fileID: 0}
+      AnimationType: 3
+      StepMode: 1
+      ValueMode: 0
+      Ease: 6
+      Delay: 0
+      Duration: 0.35
+      Loops: 0
+      LoopType: 0
+      VectorValue: {x: 1, y: 1, z: 1}
+      ColorValue: {r: 0, g: 0, b: 0, a: 0}
+      FloatValue: 0
+      Vibrato: 0
+      Randomness: 0
+      Elasticity: 0
+      FadeOut: 0
+  _PointerDown:
+    Enabled: 1
+    StopCurrentBeforePlay: 1
+    ResetTargetsBeforePlay: 0
+    Tracks:
+    - TargetRectTransform: {fileID: 4933421835846787113}
+      TargetGraphic: {fileID: 0}
+      AnimationType: 3
+      StepMode: 0
+      ValueMode: 0
+      Ease: 6
+      Delay: 0
+      Duration: 0.05
+      Loops: 0
+      LoopType: 0
+      VectorValue: {x: 0.95, y: 0.95, z: 1}
+      ColorValue: {r: 0, g: 0, b: 0, a: 0}
+      FloatValue: 0
+      Vibrato: 0
+      Randomness: 0
+      Elasticity: 0
+      FadeOut: 0
+  _PointerUp:
+    Enabled: 1
+    StopCurrentBeforePlay: 1
+    ResetTargetsBeforePlay: 0
+    Tracks: []
+  _Click:
+    Enabled: 1
+    StopCurrentBeforePlay: 1
+    ResetTargetsBeforePlay: 0
+    Tracks:
+    - TargetRectTransform: {fileID: 4933421835846787113}
+      TargetGraphic: {fileID: 0}
+      AnimationType: 3
+      StepMode: 0
+      ValueMode: 0
+      Ease: 6
+      Delay: 0
+      Duration: 0.2
+      Loops: 0
+      LoopType: 0
+      VectorValue: {x: 1.05, y: 1.05, z: 1.05}
+      ColorValue: {r: 0, g: 0, b: 0, a: 0}
+      FloatValue: 0
+      Vibrato: 0
+      Randomness: 0
+      Elasticity: 0
+      FadeOut: 0
+    - TargetRectTransform: {fileID: 4347794536482110799}
+      TargetGraphic: {fileID: 0}
+      AnimationType: 2
+      StepMode: 1
+      ValueMode: 0
+      Ease: 6
+      Delay: 0
+      Duration: 0.35
+      Loops: 0
+      LoopType: 0
+      VectorValue: {x: 0, y: 0, z: -45}
+      ColorValue: {r: 0, g: 0, b: 0, a: 0}
+      FloatValue: 0
+      Vibrato: 0
+      Randomness: 0
+      Elasticity: 0
+      FadeOut: 0
+    - TargetRectTransform: {fileID: 9113628617116613794}
+      TargetGraphic: {fileID: 0}
+      AnimationType: 2
+      StepMode: 1
+      ValueMode: 0
+      Ease: 6
+      Delay: 0
+      Duration: 0.35
+      Loops: 0
+      LoopType: 0
+      VectorValue: {x: 0, y: 0, z: 45}
+      ColorValue: {r: 0, g: 0, b: 0, a: 0}
+      FloatValue: 0
+      Vibrato: 0
+      Randomness: 0
+      Elasticity: 0
+      FadeOut: 0
+    - TargetRectTransform: {fileID: 4347794536482110799}
+      TargetGraphic: {fileID: 0}
+      AnimationType: 1
+      StepMode: 1
+      ValueMode: 0
+      Ease: 6
+      Delay: 0
+      Duration: 0.35
+      Loops: 0
+      LoopType: 0
+      VectorValue: {x: -30, y: 0, z: 0}
+      ColorValue: {r: 0, g: 0, b: 0, a: 0}
+      FloatValue: 0
+      Vibrato: 0
+      Randomness: 0
+      Elasticity: 0
+      FadeOut: 0
+    - TargetRectTransform: {fileID: 9113628617116613794}
+      TargetGraphic: {fileID: 0}
+      AnimationType: 1
+      StepMode: 1
+      ValueMode: 0
+      Ease: 6
+      Delay: 0
+      Duration: 0.35
+      Loops: 0
+      LoopType: 0
+      VectorValue: {x: 30, y: 0, z: 0}
+      ColorValue: {r: 0, g: 0, b: 0, a: 0}
+      FloatValue: 0
+      Vibrato: 0
+      Randomness: 0
+      Elasticity: 0
+      FadeOut: 0
+    - TargetRectTransform: {fileID: 4347794536482110799}
+      TargetGraphic: {fileID: 0}
+      AnimationType: 3
+      StepMode: 1
+      ValueMode: 0
+      Ease: 6
+      Delay: 0
+      Duration: 0.35
+      Loops: 0
+      LoopType: 0
+      VectorValue: {x: 1.5, y: 1.5, z: 1}
+      ColorValue: {r: 0, g: 0, b: 0, a: 0}
+      FloatValue: 0
+      Vibrato: 0
+      Randomness: 0
+      Elasticity: 0
+      FadeOut: 0
+    - TargetRectTransform: {fileID: 9113628617116613794}
+      TargetGraphic: {fileID: 0}
+      AnimationType: 3
+      StepMode: 1
+      ValueMode: 0
+      Ease: 6
+      Delay: 0
+      Duration: 0.35
+      Loops: 0
+      LoopType: 0
+      VectorValue: {x: 1.5, y: 1.5, z: 1}
+      ColorValue: {r: 0, g: 0, b: 0, a: 0}
+      FloatValue: 0
+      Vibrato: 0
+      Randomness: 0
+      Elasticity: 0
+      FadeOut: 0
+  _Selected:
+    Enabled: 1
+    StopCurrentBeforePlay: 1
+    ResetTargetsBeforePlay: 0
+    Tracks: []
+  _Deselected:
+    Enabled: 1
+    StopCurrentBeforePlay: 1
+    ResetTargetsBeforePlay: 0
+    Tracks:
+    - TargetRectTransform: {fileID: 4933421835846787113}
+      TargetGraphic: {fileID: 0}
+      AnimationType: 3
+      StepMode: 0
+      ValueMode: 2
+      Ease: 6
+      Delay: 0
+      Duration: 0.2
+      Loops: 0
+      LoopType: 0
+      VectorValue: {x: 0, y: 0, z: 0}
+      ColorValue: {r: 0, g: 0, b: 0, a: 0}
+      FloatValue: 0
+      Vibrato: 0
+      Randomness: 0
+      Elasticity: 0
+      FadeOut: 0
+    - TargetRectTransform: {fileID: 4347794536482110799}
+      TargetGraphic: {fileID: 0}
+      AnimationType: 1
+      StepMode: 1
+      ValueMode: 2
+      Ease: 6
+      Delay: 0
+      Duration: 0.35
+      Loops: 0
+      LoopType: 0
+      VectorValue: {x: 0, y: 0, z: 0}
+      ColorValue: {r: 0, g: 0, b: 0, a: 0}
+      FloatValue: 0
+      Vibrato: 0
+      Randomness: 0
+      Elasticity: 0
+      FadeOut: 0
+    - TargetRectTransform: {fileID: 9113628617116613794}
+      TargetGraphic: {fileID: 0}
+      AnimationType: 1
+      StepMode: 1
+      ValueMode: 2
+      Ease: 6
+      Delay: 0
+      Duration: 0.35
+      Loops: 0
+      LoopType: 0
+      VectorValue: {x: 0, y: 0, z: 0}
+      ColorValue: {r: 0, g: 0, b: 0, a: 0}
+      FloatValue: 0
+      Vibrato: 0
+      Randomness: 0
+      Elasticity: 0
+      FadeOut: 0
+    - TargetRectTransform: {fileID: 4347794536482110799}
+      TargetGraphic: {fileID: 0}
+      AnimationType: 2
+      StepMode: 1
+      ValueMode: 2
+      Ease: 6
+      Delay: 0
+      Duration: 0.35
+      Loops: 0
+      LoopType: 0
+      VectorValue: {x: 0, y: 0, z: 0}
+      ColorValue: {r: 0, g: 0, b: 0, a: 0}
+      FloatValue: 0
+      Vibrato: 0
+      Randomness: 0
+      Elasticity: 0
+      FadeOut: 0
+    - TargetRectTransform: {fileID: 9113628617116613794}
+      TargetGraphic: {fileID: 0}
+      AnimationType: 2
+      StepMode: 1
+      ValueMode: 2
+      Ease: 6
+      Delay: 0
+      Duration: 0.35
+      Loops: 0
+      LoopType: 0
+      VectorValue: {x: 0, y: 0, z: 0}
+      ColorValue: {r: 0, g: 0, b: 0, a: 0}
+      FloatValue: 0
+      Vibrato: 0
+      Randomness: 0
+      Elasticity: 0
+      FadeOut: 0
+    - TargetRectTransform: {fileID: 4347794536482110799}
+      TargetGraphic: {fileID: 0}
+      AnimationType: 3
+      StepMode: 1
+      ValueMode: 2
+      Ease: 6
+      Delay: 0
+      Duration: 0.35
+      Loops: 0
+      LoopType: 0
+      VectorValue: {x: 0, y: 0, z: 0}
+      ColorValue: {r: 0, g: 0, b: 0, a: 0}
+      FloatValue: 0
+      Vibrato: 0
+      Randomness: 0
+      Elasticity: 0
+      FadeOut: 0
+    - TargetRectTransform: {fileID: 9113628617116613794}
+      TargetGraphic: {fileID: 0}
+      AnimationType: 3
+      StepMode: 1
+      ValueMode: 2
+      Ease: 6
+      Delay: 0
+      Duration: 0.35
+      Loops: 0
+      LoopType: 0
+      VectorValue: {x: 0, y: 0, z: 0}
+      ColorValue: {r: 0, g: 0, b: 0, a: 0}
+      FloatValue: 0
+      Vibrato: 0
+      Randomness: 0
+      Elasticity: 0
+      FadeOut: 0
 --- !u!1 &9109912296294918484
 GameObject:
   m_ObjectHideFlags: 0

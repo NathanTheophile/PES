@@ -66,7 +66,7 @@ namespace TacticalPort.EditorTools
             DrawSection("Range", "_RangeMin", "_RangeMax");
             DrawSection("Targeting", "_TargetAlignment", "_RequiresLineOfSight");
             DrawSection("Area", "_AoeShape", "_AoeSize");
-            DrawProperty("_AoeDamageFalloffPercentPerCell", "AoE Damage Falloff % / Cell");
+            DrawAoeDamageFalloffToggle();
         }
 
         private void DrawUsageTab()
@@ -105,6 +105,24 @@ namespace TacticalPort.EditorTools
                 EditorGUILayout.PropertyField(lProperty);
             else
                 EditorGUILayout.PropertyField(lProperty, new GUIContent(pLabel));
+
+            EditorGUILayout.Space(ItemSpacing);
+        }
+
+        private void DrawAoeDamageFalloffToggle()
+        {
+            SerializedProperty lShapeProperty = serializedObject.FindProperty("_AoeShape");
+            SerializedProperty lFalloffProperty = serializedObject.FindProperty("_AoeDamageFalloffPercentPerCell");
+            if (lShapeProperty == null || lFalloffProperty == null)
+                return;
+
+            bool lIsAreaSkill = (SkillAoeShape)lShapeProperty.enumValueIndex != SkillAoeShape.Single;
+            using (new EditorGUI.DisabledScope(!lIsAreaSkill))
+            {
+                bool lUseFalloff = lIsAreaSkill && lFalloffProperty.intValue > 0;
+                bool lNextValue = EditorGUILayout.Toggle("Use AoE Damage Falloff", lUseFalloff);
+                lFalloffProperty.intValue = lIsAreaSkill && lNextValue ? SkillDefinition.FixedAoeDamageFalloffPercentPerCell : 0;
+            }
 
             EditorGUILayout.Space(ItemSpacing);
         }

@@ -26,6 +26,8 @@ namespace TacticalPort.Data
         [SerializeField, Min(0)] private int _MoveRange = 4;
         [SerializeField, Min(0)] private int _ActionPointsPerTurn = 1;
         [SerializeField, Min(0)] private int _Initiative = 10;
+        [SerializeField, Min(0), InspectorName("Melee Damage %")] private int _MeleeDamagePercent = 100;
+        [SerializeField, Min(0), InspectorName("Ranged Damage %")] private int _RangedDamagePercent = 100;
         [SerializeField, Min(0)] private int _PushDamageBonus = 0;
         [SerializeField, Min(1)] private int _FootprintWidth = 1;
         [SerializeField, Min(1)] private int _FootprintHeight = 1;
@@ -62,6 +64,8 @@ namespace TacticalPort.Data
         public int MoveRange => Mathf.Max(0, _MoveRange);
         public int ActionPointsPerTurn => Mathf.Max(0, _ActionPointsPerTurn);
         public int Initiative => Mathf.Max(0, _Initiative);
+        public int MeleeDamagePercent => Mathf.Max(0, _MeleeDamagePercent);
+        public int RangedDamagePercent => Mathf.Max(0, _RangedDamagePercent);
         public int PushDamageBonus => Mathf.Max(0, _PushDamageBonus);
         public int FootprintWidth => Mathf.Max(1, _FootprintWidth);
         public int FootprintHeight => Mathf.Max(1, _FootprintHeight);
@@ -110,6 +114,8 @@ namespace TacticalPort.Data
             lDefinition._MoveRange = pSource.MoveRange;
             lDefinition._ActionPointsPerTurn = pSource.ActionPointsPerTurn;
             lDefinition._Initiative = pSource.Initiative;
+            lDefinition._MeleeDamagePercent = pSource.MeleeDamagePercent;
+            lDefinition._RangedDamagePercent = pSource.RangedDamagePercent;
             lDefinition._PushDamageBonus = pSource.PushDamageBonus;
             lDefinition._FootprintWidth = pSource.FootprintWidth;
             lDefinition._FootprintHeight = pSource.FootprintHeight;

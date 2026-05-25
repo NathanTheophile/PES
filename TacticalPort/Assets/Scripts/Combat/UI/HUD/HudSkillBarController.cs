@@ -24,6 +24,7 @@ namespace TacticalPort.UI
         private IBattleService _BattleService;
         private UnitId _DisplayedSkillUnitId = UnitId.None;
         private bool _CanUseSkills;
+        private int _SelectedSkillSlotIndex = -1;
         private Func<UnitRuntime, bool> _CanDisplaySkills;
         private Action<int> _OnSkillButtonClicked;
 
@@ -46,12 +47,20 @@ namespace TacticalPort.UI
             _BattleService = pBattleService;
         }
 
-        public void SetState(bool pCanUseSkills, Func<UnitRuntime, bool> pCanDisplaySkills, Action<int> pOnSkillButtonClicked)
+        public void SetState(
+            bool pCanUseSkills,
+            int pSelectedSkillSlotIndex,
+            Func<UnitRuntime, bool> pCanDisplaySkills,
+            Action<int> pOnSkillButtonClicked)
         {
-            if (_CanUseSkills == pCanUseSkills && _CanDisplaySkills == pCanDisplaySkills && _OnSkillButtonClicked == pOnSkillButtonClicked)
+            if (_CanUseSkills == pCanUseSkills
+                && _SelectedSkillSlotIndex == pSelectedSkillSlotIndex
+                && _CanDisplaySkills == pCanDisplaySkills
+                && _OnSkillButtonClicked == pOnSkillButtonClicked)
                 return;
 
             _CanUseSkills = pCanUseSkills;
+            _SelectedSkillSlotIndex = pSelectedSkillSlotIndex;
             _CanDisplaySkills = pCanDisplaySkills;
             _OnSkillButtonClicked = pOnSkillButtonClicked;
             Refresh();
@@ -152,6 +161,7 @@ namespace TacticalPort.UI
                 SkillButtonView lButtonView = UnityEngine.Object.Instantiate(_SkillButtonPrefab, _Root);
                 lButtonView.Bind(lSkill, () => _OnSkillButtonClicked?.Invoke(lCapturedIndex));
                 lButtonView.SetInteractable(_CanUseSkills);
+                lButtonView.SetSelected(lIndex == _SelectedSkillSlotIndex);
                 _RuntimeSkillButtons.Add(lButtonView);
                 _DisplayedSkills.Add(lSkill);
             }
@@ -174,6 +184,7 @@ namespace TacticalPort.UI
                     : null;
 
                 lButtonView.SetInteractable(IsSkillInteractable(lActiveUnit, lSkill));
+                lButtonView.SetSelected(lIndex == _SelectedSkillSlotIndex);
             }
         }
 
