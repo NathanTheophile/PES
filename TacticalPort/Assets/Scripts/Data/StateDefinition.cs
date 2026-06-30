@@ -5,6 +5,7 @@
 //  Data
 #endregion
 
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace TacticalPort.Data
@@ -14,22 +15,63 @@ namespace TacticalPort.Data
     {
         #region _____________________________/ VALUES
 
+        [TabGroup("Metadata")]
+        [LabelText("Id")]
         [SerializeField] private string _Id = string.Empty;
+
+        [TabGroup("Metadata")]
+        [LabelText("Display Name")]
         [SerializeField] private string _DisplayName = string.Empty;
+
+        [TabGroup("Metadata")]
+        [LabelText("Description")]
         [SerializeField, TextArea] private string _Description = string.Empty;
 
+        [TabGroup("Metadata")]
+        [LabelText("Icon")]
+        [PreviewField(64)]
+        [SerializeField] private Sprite _Icon;
+
+        [TabGroup("Rules")]
+        [LabelText("Duration Turns")]
         [SerializeField, Min(0)] private int _DurationTurns = 0;
+
+        [TabGroup("Rules")]
+        [LabelText("Max Stacks")]
         [SerializeField, Min(1)] private int _MaxStacks = 1;
+
+        [TabGroup("Rules")]
+        [LabelText("Passive Marker")]
+        [InfoBox("Passive marker states can be used to expose passive effects without applying numeric modifiers.", InfoMessageType.Info)]
         [SerializeField] private bool _IsPassiveMarker;
 
-        [SerializeField, InspectorName("Damage % Per Stack")] private int _DamageModifierPerStack = 0;
-        [SerializeField, InspectorName("Melee Damage % Per Stack")] private int _MeleeDamageModifierPerStack = 0;
-        [SerializeField, InspectorName("Ranged Damage % Per Stack")] private int _RangedDamageModifierPerStack = 0;
+        [TabGroup("Modifiers")]
+        [LabelText("Damage %/Stack")]
+        [SerializeField] private int _DamageModifierPerStack = 0;
+
+        [TabGroup("Modifiers")]
+        [LabelText("Melee %/Stack")]
+        [SerializeField] private int _MeleeDamageModifierPerStack = 0;
+
+        [TabGroup("Modifiers")]
+        [LabelText("Ranged %/Stack")]
+        [SerializeField] private int _RangedDamageModifierPerStack = 0;
+
+        [TabGroup("Modifiers")]
+        [LabelText("Reduction/Stack")]
         [SerializeField, Min(0)] private int _DamageReductionPerStack = 0;
+
+        [TabGroup("Modifiers")]
+        [LabelText("Range/Stack")]
         [SerializeField] private int _RangeModifierPerStack = 0;
+
+        [TabGroup("Modifiers")]
+        [LabelText("AP/Stack")]
         [SerializeField] private int _ActionPointModifierPerStack = 0;
+
+        [TabGroup("Modifiers")]
+        [LabelText("MP/Stack")]
         [SerializeField] private int _MovementModifierPerStack = 0;
-        [SerializeField] private Sprite _Icon;
 
         #endregion
 

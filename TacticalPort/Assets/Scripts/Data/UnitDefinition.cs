@@ -6,6 +6,7 @@
 #endregion
 
 using System.Collections.Generic;
+using Sirenix.OdinInspector;
 using TacticalPort.Shared;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -17,39 +18,126 @@ namespace TacticalPort.Data
     {
         #region _____________________________/ VALUES
 
+        [TabGroup("Metadata")]
+        [LabelText("Id")]
         [SerializeField] private string _Id = string.Empty;
+
+        [TabGroup("Metadata")]
+        [LabelText("Display Name")]
         [SerializeField] private string _DisplayName = string.Empty;
+
+        [TabGroup("Metadata")]
+        [LabelText("Description")]
         [SerializeField, TextArea] private string _Description = string.Empty;
 
+        [TabGroup("Stats")]
+        [LabelText("Team")]
         [SerializeField] private Team _Team = Team.Neutral;
+
+        [TabGroup("Stats")]
+        [LabelText("Max Health")]
         [SerializeField, Min(1)] private int _MaxHealth = 10;
+
+        [TabGroup("Stats")]
+        [LabelText("Move Range")]
         [SerializeField, Min(0)] private int _MoveRange = 4;
+
+        [TabGroup("Stats")]
+        [LabelText("AP/Turn")]
         [SerializeField, Min(0)] private int _ActionPointsPerTurn = 1;
+
+        [TabGroup("Stats")]
+        [LabelText("Initiative")]
         [SerializeField, Min(0)] private int _Initiative = 10;
-        [SerializeField, Min(0), InspectorName("Melee Damage %")] private int _MeleeDamagePercent = 100;
-        [SerializeField, Min(0), InspectorName("Ranged Damage %")] private int _RangedDamagePercent = 100;
+
+        [TabGroup("Stats")]
+        [LabelText("Melee Damage %")]
+        [SerializeField, Min(0)] private int _MeleeDamagePercent = 100;
+
+        [TabGroup("Stats")]
+        [LabelText("Ranged Damage %")]
+        [SerializeField, Min(0)] private int _RangedDamagePercent = 100;
+
+        [TabGroup("Stats")]
+        [LabelText("Push Damage Bonus")]
         [SerializeField, Min(0)] private int _PushDamageBonus = 0;
+
+        [TabGroup("Stats")]
+        [LabelText("Footprint Width")]
         [SerializeField, Min(1)] private int _FootprintWidth = 1;
+
+        [TabGroup("Stats")]
+        [LabelText("Footprint Height")]
         [SerializeField, Min(1)] private int _FootprintHeight = 1;
+
+        [TabGroup("AI")]
+        [LabelText("Target Priority")]
+        [HideIf(nameof(UsesEnemyAiProfile))]
         [SerializeField] private EnemyAiTargetPriority _EnemyAiTargetPriority = EnemyAiTargetPriority.WeakFirst;
+
+        [TabGroup("AI")]
+        [LabelText("Movement Policy")]
+        [HideIf(nameof(UsesEnemyAiProfile))]
         [SerializeField] private EnemyAiMovementPolicy _EnemyAiMovementPolicy = EnemyAiMovementPolicy.Auto;
+
+        [TabGroup("AI")]
+        [LabelText("Preferred Distance")]
+        [HideIf(nameof(UsesEnemyAiProfile))]
         [SerializeField, Min(0)] private int _EnemyAiPreferredDistance = 0;
+
+        [TabGroup("AI")]
+        [LabelText("Threat Radius")]
+        [HideIf(nameof(UsesEnemyAiProfile))]
         [SerializeField, Min(0)] private int _EnemyAiThreatRadius = 0;
+
+        [TabGroup("AI")]
+        [LabelText("Enemy AI Profile")]
+        [InlineEditor(InlineEditorObjectFieldModes.Foldout)]
         [SerializeField] private EnemyAiProfileDefinition _EnemyAiProfile;
+
+        [TabGroup("Skills")]
+        [ListDrawerSettings(Expanded = true, DraggableItems = true, ShowIndexLabels = true)]
+        [ValidateInput(nameof(HasValidSkillList), "Skills cannot contain null entries or duplicates.", InfoMessageType.Warning)]
         [SerializeField] private List<SkillDefinition> _Skills = new List<SkillDefinition>();
+
+        [TabGroup("AI")]
+        [ListDrawerSettings(Expanded = true, DraggableItems = false, ShowIndexLabels = true)]
         [SerializeField] private List<UnitSkillAiOverride> _SkillAiOverrides = new List<UnitSkillAiOverride>();
+
+        [TabGroup("States")]
+        [LabelText("Base States")]
+        [ListDrawerSettings(Expanded = true, DraggableItems = true, ShowIndexLabels = true)]
         [SerializeField] private List<UnitStateEntry> _BaseStates = new List<UnitStateEntry>();
+
+        [TabGroup("States")]
+        [LabelText("Phase States")]
+        [ListDrawerSettings(Expanded = true, DraggableItems = true, ShowIndexLabels = true)]
         [SerializeField] private List<UnitPhaseStateDefinition> _PhaseStates = new List<UnitPhaseStateDefinition>();
 
         [Tooltip("Combat view prefab used to instantiate this unit in the combat scene. Keep this as a component reference to avoid a Data -> View assembly dependency.")]
         [FormerlySerializedAs("_UnitViewPrefab")]
+        [TabGroup("Metadata")]
+        [LabelText("Combat View Prefab")]
         [SerializeField] private MonoBehaviour _CombatViewPrefab;
         [Tooltip("Optional 3D model prefab spawned by the combat view. This keeps the character asset centralized without making Data depend on presentation scripts.")]
+        [TabGroup("Metadata")]
+        [LabelText("Model Prefab")]
+        [AssetsOnly]
         [SerializeField] private GameObject _ModelPrefab;
         [Tooltip("2D image used by menus, team selection and compact combat UI.")]
+        [TabGroup("Metadata")]
+        [LabelText("Preview Sprite")]
+        [PreviewField(64)]
+        [AssetsOnly]
         [SerializeField] private Sprite _PreviewSprite;
         [Tooltip("Larger portrait image used by character details and timeline UI when available.")]
+        [TabGroup("Metadata")]
+        [LabelText("Portrait")]
+        [PreviewField(64)]
+        [AssetsOnly]
         [SerializeField] private Sprite _Portrait;
+        [TabGroup("Metadata")]
+        [LabelText("Tint")]
         [SerializeField] private Color _Tint = Color.white;
 
         #endregion
@@ -93,6 +181,87 @@ namespace TacticalPort.Data
         public Sprite Portrait => _Portrait;
         public Sprite DisplaySprite => _PreviewSprite != null ? _PreviewSprite : _Portrait;
         public Color Tint => _Tint;
+
+        #endregion
+
+        #region _____________________________| ODIN
+
+        [TabGroup("AI")]
+        [Button("Sync AI Overrides From Skills")]
+        [InfoBox("Overrides are synced from the Skills tab, so the skill kit is not entered twice.", InfoMessageType.Info)]
+        private void SyncAiOverridesFromSkills()
+        {
+            if (_SkillAiOverrides == null)
+                _SkillAiOverrides = new List<UnitSkillAiOverride>();
+
+            for (int lIndex = _SkillAiOverrides.Count - 1; lIndex >= 0; lIndex--)
+            {
+                UnitSkillAiOverride lOverride = _SkillAiOverrides[lIndex];
+                if (lOverride == null || lOverride.Skill == null || !ContainsSkill(_Skills, lOverride.Skill))
+                    _SkillAiOverrides.RemoveAt(lIndex);
+            }
+
+            if (_Skills == null)
+                return;
+
+            for (int lIndex = 0; lIndex < _Skills.Count; lIndex++)
+            {
+                SkillDefinition lSkill = _Skills[lIndex];
+                if (lSkill != null && !ContainsOverride(lSkill))
+                    _SkillAiOverrides.Add(new UnitSkillAiOverride(lSkill));
+            }
+        }
+
+        private bool UsesEnemyAiProfile() => _EnemyAiProfile != null;
+
+        private bool HasValidSkillList()
+        {
+            if (_Skills == null)
+                return true;
+
+            for (int lIndex = 0; lIndex < _Skills.Count; lIndex++)
+            {
+                SkillDefinition lSkill = _Skills[lIndex];
+                if (lSkill == null)
+                    return false;
+
+                for (int lOtherIndex = lIndex + 1; lOtherIndex < _Skills.Count; lOtherIndex++)
+                {
+                    if (_Skills[lOtherIndex] == lSkill)
+                        return false;
+                }
+            }
+
+            return true;
+        }
+
+        private bool ContainsOverride(SkillDefinition pSkill)
+        {
+            if (_SkillAiOverrides == null || pSkill == null)
+                return false;
+
+            for (int lIndex = 0; lIndex < _SkillAiOverrides.Count; lIndex++)
+            {
+                if (_SkillAiOverrides[lIndex]?.Skill == pSkill)
+                    return true;
+            }
+
+            return false;
+        }
+
+        private static bool ContainsSkill(IReadOnlyList<SkillDefinition> pSkills, SkillDefinition pSkill)
+        {
+            if (pSkills == null || pSkill == null)
+                return false;
+
+            for (int lIndex = 0; lIndex < pSkills.Count; lIndex++)
+            {
+                if (pSkills[lIndex] == pSkill)
+                    return true;
+            }
+
+            return false;
+        }
 
         #endregion
 

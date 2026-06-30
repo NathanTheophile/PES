@@ -44,6 +44,19 @@ namespace TacticalPort.Data
 
         #endregion
 
+        #region _____________________________| CONSTRUCTORS
+
+        public UnitSkillAiOverride()
+        {
+        }
+
+        public UnitSkillAiOverride(SkillDefinition pSkill)
+        {
+            _Skill = pSkill;
+        }
+
+        #endregion
+
         #region _____________________________/ ACCESSORS
 
         public SkillDefinition Skill => _Skill;

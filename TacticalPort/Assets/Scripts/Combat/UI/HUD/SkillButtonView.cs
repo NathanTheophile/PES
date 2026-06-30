@@ -20,7 +20,7 @@ namespace TacticalPort.UI
         #region _____________________________/ VALUES
 
         [SerializeField] private Button _Button;
-        [SerializeField] private GameObject _PanelTooltip;
+        [SerializeField] private TooltipPanelView _TooltipPanel;
         [SerializeField] private TMP_Text _TxtSkillName;
         [FormerlySerializedAs("_TxtEffectType")]
         [SerializeField] private TMP_Text _TxtAdditionalEffect;
@@ -35,6 +35,9 @@ namespace TacticalPort.UI
         [SerializeField] private Image _SkillHighlight;
         [SerializeField] private Image _SkillOrnament;
         [SerializeField] private Image _SkillOrnamentSecondary;
+        [Header("Tooltip Visual Feedback")]
+        [SerializeField] private Image _TooltipOrnament;
+        [SerializeField] private Image _TooltipOrnamentSecondary;
         [SerializeField] private UIInteractionAnimator _InteractionAnimator;
 
         private SkillDefinition _Skill;
@@ -49,6 +52,7 @@ namespace TacticalPort.UI
 
         private void Awake()
         {
+            ResolveRuntimeReferences();
             ValidateReferences();
             ConfigureButton();
             Refresh();
@@ -118,9 +122,8 @@ namespace TacticalPort.UI
             SetTooltipLine(_TxtAdditionalEffect, ResolveAdditionalEffectText());
             SetLabel(_TxtActionPointCostAndRange, ResolveActionPointCostAndRangeText());
             SetTooltipLine(_TxtPower, ResolvePowerText());
-            SetLabel(_TxtDescription, ResolveDescriptionText());
+            SetDescription(ResolveDescriptionText());
             ApplySkillVisuals();
-            RefreshTooltipLayout();
 
             bool lIsButtonInteractable = _Skill != null && _IsInteractable;
             if (_Button != null)
@@ -178,18 +181,17 @@ namespace TacticalPort.UI
 
         private void ShowTooltip()
         {
-            if (_PanelTooltip == null)
+            if (_TooltipPanel == null)
                 return;
 
-            _PanelTooltip.transform.SetAsLastSibling();
-            _PanelTooltip.SetActive(true);
-            RefreshTooltipLayout();
+            _TooltipPanel.transform.SetAsLastSibling();
+            _TooltipPanel.Show();
         }
 
         private void HideTooltip()
         {
-            if (_PanelTooltip != null)
-                _PanelTooltip.SetActive(false);
+            if (_TooltipPanel != null)
+                _TooltipPanel.Hide();
         }
 
         #endregion
@@ -221,6 +223,8 @@ namespace TacticalPort.UI
             ApplyColor(_SkillHighlight, lColor);
             ApplyColor(_SkillOrnament, lColor);
             ApplyColor(_SkillOrnamentSecondary, lColor);
+            ApplyColor(_TooltipOrnament, lColor);
+            ApplyColor(_TooltipOrnamentSecondary, lColor);
         }
 
         private void ResolveVisualReferences()
@@ -234,6 +238,8 @@ namespace TacticalPort.UI
             _SkillHighlight ??= FindChildImage("Btn_Skill_Highlight");
             _SkillOrnament ??= FindChildImage("Btn_Skill_Ornament_L") ?? FindChildImage("Btn_Skill_Ornament") ?? FindChildImage("Btn_Skill_Ornaments");
             _SkillOrnamentSecondary ??= FindChildImage("Btn_Skill_Ornament_R");
+            _TooltipOrnament ??= FindChildImage("Img_LeftCorner") ?? FindChildImage("Tooltip_Ornament_L");
+            _TooltipOrnamentSecondary ??= FindChildImage("Img_RightCorner") ?? FindChildImage("Tooltip_Ornament_R");
             _HasResolvedVisualReferences = true;
         }
 
@@ -241,6 +247,22 @@ namespace TacticalPort.UI
         {
             if (_InteractionAnimator == null)
                 _InteractionAnimator = GetComponent<UIInteractionAnimator>();
+        }
+
+        private void ResolveRuntimeReferences()
+        {
+            _TooltipPanel ??= GetComponentInChildren<TooltipPanelView>(true);
+        }
+
+        private void SetDescription(string pValue)
+        {
+            if (_TxtDescription != null)
+            {
+                SetLabel(_TxtDescription, pValue);
+                return;
+            }
+
+            _TooltipPanel?.SetDescription(pValue);
         }
 
         private Color ResolveSkillColor(SkillDefinition pSkill) =>
@@ -276,27 +298,16 @@ namespace TacticalPort.UI
                 pImage.color = pColor;
         }
 
-        private void RefreshTooltipLayout()
-        {
-            RectTransform lTooltipRect = _PanelTooltip != null ? _PanelTooltip.transform as RectTransform : null;
-            if (lTooltipRect == null || !lTooltipRect.gameObject.activeInHierarchy)
-                return;
-
-            Canvas.ForceUpdateCanvases();
-            LayoutRebuilder.ForceRebuildLayoutImmediate(lTooltipRect);
-        }
-
         private bool ValidateReferences()
         {
             bool lIsValid = true;
 
             lIsValid &= ValidateReference(_Button, nameof(_Button));
-            lIsValid &= ValidateReference(_PanelTooltip, nameof(_PanelTooltip));
+            lIsValid &= ValidateReference(_TooltipPanel, nameof(_TooltipPanel));
             lIsValid &= ValidateReference(_TxtSkillName, nameof(_TxtSkillName));
             lIsValid &= ValidateReference(_TxtAdditionalEffect, nameof(_TxtAdditionalEffect));
             lIsValid &= ValidateReference(_TxtActionPointCostAndRange, nameof(_TxtActionPointCostAndRange));
             lIsValid &= ValidateReference(_TxtPower, nameof(_TxtPower));
-            lIsValid &= ValidateReference(_TxtDescription, nameof(_TxtDescription));
             lIsValid &= ValidateReference(_CanvasGroup, nameof(_CanvasGroup));
 
             return lIsValid;

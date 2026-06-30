@@ -35,6 +35,8 @@ MonoBehaviour:
   _SkillAiOverrides: []
   _BaseStates: []
   _PhaseStates: []
-  _UnitViewPrefab: {fileID: 6292429647394850086, guid: 60114851700ded341b477fe2d2632b76, type: 3}
+  _CombatViewPrefab: {fileID: 6292429647394850086, guid: 60114851700ded341b477fe2d2632b76, type: 3}
+  _ModelPrefab: {fileID: 0}
+  _PreviewSprite: {fileID: 0}
   _Portrait: {fileID: 21300000, guid: 1aa45694fc993de4491b10414276dafb, type: 3}
   _Tint: {r: 0.6630282, g: 0.86415094, b: 0.5331648, a: 1}

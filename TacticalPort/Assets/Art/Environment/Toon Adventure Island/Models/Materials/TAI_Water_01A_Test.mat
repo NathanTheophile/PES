@@ -1,0 +1,59 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: TAI_Water_01A_Test
+  m_Shader: {fileID: 4800000, guid: ed8bc01f101111f4f95c19e6ac60ca3c, type: 3}
+  m_Parent: {fileID: 2100000, guid: 0e626ec275025c54fa20c0e9395a4c21, type: 2}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords:
+  - _RECEIVE_SHADOWS_OFF
+  - _WAVES_ON
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs: []
+    m_Ints: []
+    m_Floats:
+    - _EdgeFoamDistance: 0.266
+    - _EdgeFoamHardness: 0.098
+    - _EdgeFoamOpacity: 0.55
+    - _EdgeFoamScale: 0.668
+    - _EdgeFoamSpeed: 0.147
+    - _EdgeOpacity: 0.626
+    - _FresnelIntensity: 0.893
+    - _OpacityDepth: 21.83
+    - _ReflectionsCutoff: 0.066
+    - _ReflectionsCutoffScrollSpeed: 0.006
+    - _ReflectionsOpacity: 0.022
+    - _ReflectionsScale: 20.21
+    - _ReflectionsScrollSpeed: -0.036
+    - _RefractionCutoffScale: 16.59
+    - _RefractionIntensity: 0.162
+    - _RefractionScrollSpeed: -0.397
+    - _SurfaceFoamIntensity: -0.4
+    - _SurfaceFoamScale: 12.01
+    - _SurfaceFoamScrollSpeed: 0.034
+    - _WaveAmplitude: 1.04
+    - _WaveIntensity: 0.21
+    - _WaveSpeed: 2.136
+    - _Waves: 1
+    m_Colors:
+    - _DeepColor: {r: 0.5366678, g: 0.7094719, b: 0.7584905, a: 1}
+    - _EdgeFoamColor: {r: 0, g: 0.58806527, b: 1, a: 1}
+    - _FresnelColor: {r: 0.47861156, g: 0.7679844, b: 0.87169814, a: 1}
+    - _ShallowColor: {r: 0.29779282, g: 0.61574304, b: 0.6603774, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1

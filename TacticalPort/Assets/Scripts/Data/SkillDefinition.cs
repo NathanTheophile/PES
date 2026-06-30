@@ -6,6 +6,7 @@
 #endregion
 
 using TacticalPort.Shared;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace TacticalPort.Data
@@ -51,34 +52,135 @@ namespace TacticalPort.Data
 
         #region _____________________________/ VALUES
 
+        [TabGroup("Metadata")]
+        [LabelText("Id")]
         [SerializeField] private string _Id = string.Empty;
+
+        [TabGroup("Metadata")]
+        [LabelText("Display Name")]
         [SerializeField] private string _DisplayName = string.Empty;
+
+        [TabGroup("Metadata")]
+        [LabelText("Description")]
         [SerializeField, TextArea] private string _Description = string.Empty;
 
-        [SerializeField] private SkillPrimaryEffectType _PrimaryEffectType = SkillPrimaryEffectType.Damage;
-        [SerializeField] private SkillAdditionalEffectType _AdditionalEffectType = SkillAdditionalEffectType.None;
-        [SerializeField, Min(0)] private int _RangeMin = 0;
-        [SerializeField, Min(0)] private int _RangeMax = 0;
-        [SerializeField] private SkillTargetAlignment _TargetAlignment = SkillTargetAlignment.Any;
-        [SerializeField] private bool _RequiresLineOfSight;
-        [SerializeField] private bool _CanAffectCaster = true;
-        [SerializeField] private SkillAoeShape _AoeShape = SkillAoeShape.Single;
-        [SerializeField, Min(0)] private int _AoeSize = 0;
-        [SerializeField, HideInInspector, Range(0, 100)] private int _AoeDamageFalloffPercentPerCell = 0;
-        [SerializeField, Min(0)] private int _UsePerTurn = 0;
-        [SerializeField, Min(0)] private int _UsePerTarget = 0;
-        [SerializeField, Min(0)] private int _CooldownTurns = 0;
-        [SerializeField, Min(0)] private int _Power = 1;
-        [SerializeField, Min(0)] private int _ActionPointCost = 1;
-        [SerializeField, Min(0)] private int _PushDistance = 0;
-        [SerializeField] private UnitDefinition _SummonUnit;
-        [SerializeField] private SkillSummonTeamRule _SummonTeamRule = SkillSummonTeamRule.Definition;
-        [SerializeField, Min(1)] private int _GlyphDurationTurns = 1;
-        [SerializeField] private SkillGlyphTargetRule _GlyphTargetRule = SkillGlyphTargetRule.EnemiesOnly;
-        [SerializeField] private StateDefinition _AppliedState;
-        [SerializeField, Min(1)] private int _AppliedStateStacks = 1;
-        [SerializeField] private int _AppliedStateDurationTurns = -1;
+        [TabGroup("Metadata")]
+        [LabelText("Icon")]
+        [PreviewField(64)]
         [SerializeField] private Sprite _Icon;
+
+        [TabGroup("Casting")]
+        [LabelText("Primary Effect")]
+        [SerializeField] private SkillPrimaryEffectType _PrimaryEffectType = SkillPrimaryEffectType.Damage;
+
+        [TabGroup("Casting")]
+        [LabelText("Additional Effect")]
+        [SerializeField] private SkillAdditionalEffectType _AdditionalEffectType = SkillAdditionalEffectType.None;
+
+        [TabGroup("Casting")]
+        [LabelText("Can Affect Caster")]
+        [SerializeField] private bool _CanAffectCaster = true;
+
+        [TabGroup("Casting")]
+        [LabelText("Range Min")]
+        [ValidateInput(nameof(IsRangeValid), "Range Min must be lower than or equal to Range Max.")]
+        [SerializeField, Min(0)] private int _RangeMin = 0;
+
+        [TabGroup("Casting")]
+        [LabelText("Range Max")]
+        [ValidateInput(nameof(IsRangeValid), "Range Max must be greater than or equal to Range Min.")]
+        [SerializeField, Min(0)] private int _RangeMax = 0;
+
+        [TabGroup("Casting")]
+        [LabelText("Target Alignment")]
+        [SerializeField] private SkillTargetAlignment _TargetAlignment = SkillTargetAlignment.Any;
+
+        [TabGroup("Casting")]
+        [LabelText("Requires Line Of Sight")]
+        [SerializeField] private bool _RequiresLineOfSight;
+
+        [TabGroup("Casting")]
+        [LabelText("AoE Shape")]
+        [SerializeField] private SkillAoeShape _AoeShape = SkillAoeShape.Single;
+
+        [TabGroup("Casting")]
+        [ShowIf(nameof(HasAreaOfEffect))]
+        [LabelText("AoE Size")]
+        [SerializeField, Min(0)] private int _AoeSize = 0;
+
+        [SerializeField, HideInInspector, Range(0, 100)] private int _AoeDamageFalloffPercentPerCell = 0;
+
+        [TabGroup("Casting")]
+        [ShowIf(nameof(HasAreaOfEffect))]
+        [LabelText("Use AoE Falloff")]
+        [ShowInInspector]
+        private bool UseAoeDamageFalloffInInspector
+        {
+            get => UseAoeDamageFalloff;
+            set => _AoeDamageFalloffPercentPerCell = HasAreaOfEffect() && value ? FixedAoeDamageFalloffPercentPerCell : 0;
+        }
+
+        [TabGroup("Usage")]
+        [LabelText("AP Cost")]
+        [SerializeField, Min(0)] private int _ActionPointCost = 1;
+
+        [TabGroup("Usage")]
+        [LabelText("Use/Turn")]
+        [SerializeField, Min(0)] private int _UsePerTurn = 0;
+
+        [TabGroup("Usage")]
+        [LabelText("Use/Target")]
+        [SerializeField, Min(0)] private int _UsePerTarget = 0;
+
+        [TabGroup("Usage")]
+        [LabelText("Cooldown Turns")]
+        [SerializeField, Min(0)] private int _CooldownTurns = 0;
+
+        [TabGroup("Effects")]
+        [LabelText("Power")]
+        [SerializeField, Min(0)] private int _Power = 1;
+
+        [TabGroup("Effects")]
+        [ShowIf(nameof(UsesPushEffect))]
+        [LabelText("Push Distance")]
+        [SerializeField, Min(0)] private int _PushDistance = 0;
+
+        [TabGroup("Effects")]
+        [ShowIf(nameof(UsesSummonEffect))]
+        [Required("Summon Unit is required when Additional Effect is Summon.")]
+        [LabelText("Summon Unit")]
+        [SerializeField] private UnitDefinition _SummonUnit;
+
+        [TabGroup("Effects")]
+        [ShowIf(nameof(UsesSummonEffect))]
+        [LabelText("Summon Team")]
+        [SerializeField] private SkillSummonTeamRule _SummonTeamRule = SkillSummonTeamRule.Definition;
+
+        [TabGroup("Effects")]
+        [ShowIf(nameof(UsesGlyphEffect))]
+        [LabelText("Glyph Duration")]
+        [SerializeField, Min(1)] private int _GlyphDurationTurns = 1;
+
+        [TabGroup("Effects")]
+        [ShowIf(nameof(UsesGlyphEffect))]
+        [LabelText("Glyph Target")]
+        [SerializeField] private SkillGlyphTargetRule _GlyphTargetRule = SkillGlyphTargetRule.EnemiesOnly;
+
+        [TabGroup("Effects")]
+        [LabelText("Applied State")]
+        [InlineEditor(InlineEditorObjectFieldModes.Foldout)]
+        [SerializeField] private StateDefinition _AppliedState;
+
+        [TabGroup("Effects")]
+        [ShowIf(nameof(UsesAppliedState))]
+        [LabelText("State Stacks")]
+        [SerializeField, Min(1)] private int _AppliedStateStacks = 1;
+
+        [TabGroup("Effects")]
+        [ShowIf(nameof(UsesAppliedState))]
+        [LabelText("State Duration")]
+        [Tooltip("Use -1 to keep the duration defined by the state asset.")]
+        [SerializeField] private int _AppliedStateDurationTurns = -1;
 
         #endregion
 
@@ -113,6 +215,17 @@ namespace TacticalPort.Data
         public int AppliedStateStacks => Mathf.Max(1, _AppliedStateStacks);
         public int AppliedStateDurationTurns => _AppliedStateDurationTurns;
         public Sprite Icon => _Icon;
+
+        #endregion
+
+        #region _____________________________| ODIN
+
+        private bool IsRangeValid() => _RangeMin <= _RangeMax;
+        private bool HasAreaOfEffect() => _AoeShape != SkillAoeShape.Single;
+        private bool UsesPushEffect() => _AdditionalEffectType == SkillAdditionalEffectType.Push;
+        private bool UsesSummonEffect() => _AdditionalEffectType == SkillAdditionalEffectType.Summon;
+        private bool UsesGlyphEffect() => _AdditionalEffectType == SkillAdditionalEffectType.CreateGlyph;
+        private bool UsesAppliedState() => _AppliedState != null;
 
         #endregion
     }

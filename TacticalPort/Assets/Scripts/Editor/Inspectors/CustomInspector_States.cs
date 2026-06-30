@@ -10,7 +10,8 @@ using UnityEngine;
 
 namespace TacticalPort.EditorTools
 {
-    [CustomEditor(typeof(StateDefinition))]
+    // StateDefinition now uses Odin attributes directly. Keep this file temporarily
+    // as migration history while the Odin inspector is validated in Unity.
     public class CustomInspector_StateDefinition : UnityEditor.Editor
     {
         #region _____________________________/ VALUES
