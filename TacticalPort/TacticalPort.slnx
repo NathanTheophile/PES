@@ -3,6 +3,8 @@
   <Project Path="TacticalPort.Networking.csproj" />
   <Project Path="TacticalPort.Core.csproj" />
   <Project Path="TacticalPort.CombatRuntime.csproj" />
+  <Project Path="GiantGrey.TileWorldCreator.csproj" />
+  <Project Path="GiantGrey.TileWorldCreator.Samples.csproj" />
   <Project Path="Assembly-CSharp-firstpass.csproj" />
   <Project Path="TacticalPort.Shared.csproj" />
   <Project Path="TacticalPort.View.csproj" />
