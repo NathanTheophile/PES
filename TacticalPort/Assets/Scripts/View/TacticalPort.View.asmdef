@@ -6,7 +6,9 @@
         "TacticalPort.Data",
         "TacticalPort.State",
         "TacticalPort.Core",
-        "Unity.TextMeshPro"
+        "Unity.InputSystem",
+        "Unity.TextMeshPro",
+        "UnityEngine.UI"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

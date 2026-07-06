@@ -18,7 +18,7 @@ EditorBuildSettings:
     path: Assets/Scenes/S_TeamSelection.unity
     guid: cadaad80f8678fb45b71391116f2e10b
   - enabled: 1
-    path: Assets/Scenes/S_Poutch.unity
+    path: Assets/Scenes/Maps/S_Map_Base.unity
     guid: bb6f0e038990c7846a63c8d8a75ab498
   m_configObjects:
     com.unity.dt.app-ui: {fileID: 11400000, guid: 1b1c20d82303e4b5781c3ef50ac1449f, type: 2}

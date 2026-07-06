@@ -2,6 +2,9 @@ using TacticalPort.Data;
 using TacticalPort.Shared;
 using UnityEngine;
 using UnityEngine.Serialization;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace TacticalPort.View
 {
@@ -41,14 +44,33 @@ namespace TacticalPort.View
             if (!_IsSpawner)
             {
                 _AssignedTeam = MatchPlayerSlot.None;
+#if UNITY_EDITOR
+                NotifyBoardAuthoringChanged();
+#endif
                 return;
             }
 
             if (_IsSpawner && _AssignedTeam == MatchPlayerSlot.None)
                 _AssignedTeam = MatchPlayerSlot.TeamA;
+
+#if UNITY_EDITOR
+            NotifyBoardAuthoringChanged();
+#endif
         }
 
         #endregion
+
+#if UNITY_EDITOR
+        private void NotifyBoardAuthoringChanged()
+        {
+            if (Application.isPlaying || EditorApplication.isPlayingOrWillChangePlaymode)
+                return;
+
+            BoardAuthoring3D lBoardAuthoring = GetComponentInParent<BoardAuthoring3D>();
+            if (lBoardAuthoring != null)
+                lBoardAuthoring.InvalidateRuntimeScenario();
+        }
+#endif
     }
 }
 

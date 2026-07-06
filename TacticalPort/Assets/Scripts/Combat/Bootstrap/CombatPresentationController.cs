@@ -68,7 +68,7 @@ namespace TacticalPort.Bootstrap
                     _Context.SceneReferences?.HudManager?.SetLocalPlayerSlot(lLocalPlayerSlot);
                 }
 
-                lBoardView?.SetSpawnerCellsVisible(_Context.IsPlacementPhaseActive, ResolveVisibleSpawnerSlot());
+                lBoardView?.SetSpawnerCellsVisible(_Context.IsPlacementPhaseActive);
                 lBoardView?.SetOccupiedCells(ResolveVisibleUnitsForPresentation(), _Context.BattleService.ActiveUnit != null ? _Context.BattleService.ActiveUnit.Id : UnitId.None);
                 lBoardView?.SetGlyphCells(_Context.BattleService.GetActiveGlyphs());
                 lBoardView?.SetHazardCells(_Context.BattleService.GetTelegraphedHazards());
@@ -208,25 +208,6 @@ namespace TacticalPort.Bootstrap
                 lInstance.Bind(lRuntimeUnit, lRuntimeUnit.Definition, _Context.SceneReferences != null ? _Context.SceneReferences.BoardView : null);
                 _UnitViews[lRuntimeUnit.Id] = lInstance;
             }
-        }
-
-        private MatchPlayerSlot ResolveVisibleSpawnerSlot()
-        {
-            if (!_Context.IsPlacementPhaseActive || _Context.BattleService == null)
-                return MatchPlayerSlot.None;
-
-            foreach (UnitRuntime lUnit in _Context.BattleService.Units)
-            {
-                if (lUnit != null
-                    && lUnit.IsAlive
-                    && _Context.CanLocalPlayerControlUnit(lUnit)
-                    && _Context.TryGetPlacementSlotForTeam(lUnit.Team, out MatchPlayerSlot lSlot))
-                {
-                    return lSlot;
-                }
-            }
-
-            return MatchPlayerSlot.None;
         }
 
         #endregion

@@ -57,7 +57,7 @@ namespace TacticalPort.Combat
                 || !_Context.Bootstrap.TryGetPlacementSlotForTeam(lSelectedUnit.Team, out MatchPlayerSlot lSlot)
                 || !_Context.BoardView.IsSpawnerCell(pHoveredCell, lSlot))
             {
-                _Context.SetStatus("Choose a green spawn cell.");
+                _Context.SetStatus("Choose a blue spawn cell.");
                 return false;
             }
 
@@ -114,8 +114,8 @@ namespace TacticalPort.Combat
         public string ResolveModeMessage()
         {
             return TryGetSelectedUnit(out UnitRuntime lSelectedUnit)
-                ? $"Mode: Placement. Selected {lSelectedUnit.Definition.DisplayName}. Click an empty green spawn cell, then Ready."
-                : "Mode: Placement. Click one of your units, place it on an empty green spawn cell, then Ready.";
+                ? $"Mode: Placement. Selected {lSelectedUnit.Definition.DisplayName}. Click an empty blue spawn cell, then Ready."
+                : "Mode: Placement. Click one of your units, place it on an empty blue spawn cell, then Ready.";
         }
 
         #endregion

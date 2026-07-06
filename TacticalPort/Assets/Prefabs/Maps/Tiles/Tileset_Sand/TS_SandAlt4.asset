@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8967f5d29d0ef694ea719091a0894d43, type: 3}
+  m_Name: TS_SandAlt4
+  m_EditorClassIdentifier: GiantGrey.TileWorldCreator::GiantGrey.TileWorldCreator.TilePreset
+  previewThumbnail: {fileID: 0}
+  gridtype: 0
+  DUALGRD_cornerTile: {fileID: 0}
+  DUALGRD_invertedCornerTile: {fileID: 0}
+  DUALGRD_edgeTile: {fileID: 0}
+  DUALGRD_fillTile: {fileID: 0}
+  DUALGRD_doubleInteriorCornerTile: {fileID: 0}
+  NRMGRD_deadEndTile: {fileID: 7087383974632246640, guid: 0fbb2d3d8a6037748ad4b21bca357d4c, type: 3}
+  NRMGRD_singleTile: {fileID: 2972355657666000764, guid: 27f4f811c085c4b4bb4a8189c2f1afdb, type: 3}
+  NRMGRD_fillTile: {fileID: 9109710187871106070, guid: 3fbfd04d03a366c498a95e15fff6b0b9, type: 3}
+  NRMGRD_cornerWayTile: {fileID: 937854410304736637, guid: 463d49b9c81b63d4e95b194336ee2e38, type: 3}
+  NRMGRD_cornerFillTile: {fileID: 708606517887156996, guid: 4f49b135dcbfb654aa52856d3121e52a, type: 3}
+  NRMGRD_interiorCornerTile: {fileID: 2972355657666000764, guid: 27f4f811c085c4b4bb4a8189c2f1afdb, type: 3}
+  NRMGRD_doubleCornerTile: {fileID: 2972355657666000764, guid: 27f4f811c085c4b4bb4a8189c2f1afdb, type: 3}
+  NRMGRD_edgeWayTile: {fileID: 3377476067385089095, guid: bd62bd46c9e9c7143bfcff1be512e7e7, type: 3}
+  NRMGRD_edgeFillTile: {fileID: 8605338057779196400, guid: 75e5f451ec4bf5a40a8ecf00de79cee5, type: 3}
+  NRMGRD_threeWayTile: {fileID: 2972355657666000764, guid: 27f4f811c085c4b4bb4a8189c2f1afdb, type: 3}
+  NRMGRD_threeWayFillTile: {fileID: 2972355657666000764, guid: 27f4f811c085c4b4bb4a8189c2f1afdb, type: 3}
+  NRMGRD_edgeCornerFillTile: {fileID: 5551417851741298540, guid: dbc46b37759f841489583c0a14b742e8, type: 3}
+  NRMGRD_threeCornerTile: {fileID: 0}
+  NRMGRD_fourWayTile: {fileID: 0}
+  materialOverride: {fileID: 0}
+  cornerTileYRotationOffset: 0
+  invertedCornerTileYRotationOffset: 0
+  edgeTileYRotationOffset: 0
+  fillTileYRotationOffset: 0
+  doubleInteriorCornerTileYRotationOffset: 0
+  NRMGRD_deadEndTileYRotationOffset: 90
+  NRMGRD_singleTileYRotationOffset: 0
+  NRMGRD_fillTileYRotationOffset: 0
+  NRMGRD_cornerWayTileYRotationOffset: 0
+  NRMGRD_cornerFillTileYRotationOffset: 90
+  NRMGRD_interiorCornerTileYRotationOffset: 90
+  NRMGRD_doubleCornerTileYRotationOffset: 0
+  NRMGRD_edgeWayTileYRotationOffset: 90
+  NRMGRD_edgeFillTileYRotationOffset: 90
+  NRMGRD_threeWayTileYRotationOffset: 0
+  NRMGRD_threeWayFillTileYRotationOffset: 0
+  NRMGRD_edgeCornerFillTileYRotationOffset: 180
+  NRMGRD_threeCornerTileYRotationOffset: 0
+  NRMGRD_fourWayTileYRotationOffset: 0

@@ -21,7 +21,8 @@ namespace TacticalPort.View
 
     internal sealed class BoardMarkerLayerSet
     {
-        private readonly BoardMarkerLayer _SpawnerMarkers = new BoardMarkerLayer();
+        private readonly BoardMarkerLayer _OwnSpawnerMarkers = new BoardMarkerLayer();
+        private readonly BoardMarkerLayer _OpponentSpawnerMarkers = new BoardMarkerLayer();
         private readonly BoardMarkerLayer _PlayerOccupiedMarkers = new BoardMarkerLayer();
         private readonly BoardMarkerLayer _EnemyOccupiedMarkers = new BoardMarkerLayer();
         private readonly BoardMarkerLayer _ActiveOccupiedMarkers = new BoardMarkerLayer();
@@ -55,7 +56,8 @@ namespace TacticalPort.View
 
         public void Clear()
         {
-            _SpawnerMarkers.Clear();
+            _OwnSpawnerMarkers.Clear();
+            _OpponentSpawnerMarkers.Clear();
             _PlayerOccupiedMarkers.Clear();
             _EnemyOccupiedMarkers.Clear();
             _ActiveOccupiedMarkers.Clear();
@@ -68,15 +70,23 @@ namespace TacticalPort.View
             _BlockedSkillRangeMarkers.Clear();
         }
 
-        public void SyncSpawner(bool pVisible, IReadOnlyCollection<GridCoord> pCells, GameObject pPrefab)
+        public void SyncSpawners(
+            bool pVisible,
+            Vector3 pSpawnerWorldOffset,
+            IReadOnlyCollection<GridCoord> pOwnCells,
+            GameObject pOwnPrefab,
+            IReadOnlyCollection<GridCoord> pOpponentCells,
+            GameObject pOpponentPrefab)
         {
             if (!pVisible)
             {
-                _SpawnerMarkers.Clear();
+                _OwnSpawnerMarkers.Clear();
+                _OpponentSpawnerMarkers.Clear();
                 return;
             }
 
-            _SpawnerMarkers.Sync(pCells, pPrefab, ResolveWorldPosition, ResolveRoot, ApplyMarkerSorting);
+            _OwnSpawnerMarkers.Sync(pOwnCells, pOwnPrefab, ResolveWorldPosition, ResolveRoot, ApplyMarkerSorting, pSpawnerWorldOffset);
+            _OpponentSpawnerMarkers.Sync(pOpponentCells, pOpponentPrefab, ResolveWorldPosition, ResolveRoot, ApplyMarkerSorting, pSpawnerWorldOffset);
         }
 
         public void SyncOccupied(
@@ -201,7 +211,8 @@ namespace TacticalPort.View
                 GameObject pPrefab,
                 Func<GridCoord, Vector3> pResolveWorldPosition,
                 Func<Transform> pResolveRoot,
-                Action<BoardMarkerRuntimeMarker, GridCoord> pApplySorting)
+                Action<BoardMarkerRuntimeMarker, GridCoord> pApplySorting,
+                Vector3 pWorldOffset = default)
             {
                 if (pPrefab == null)
                 {
@@ -235,7 +246,7 @@ namespace TacticalPort.View
                     }
 
                     GameObject lMarkerObject = lMarker.GameObject;
-                    lMarkerObject.transform.position = pResolveWorldPosition != null ? pResolveWorldPosition.Invoke(lCoord) : Vector3.zero;
+                    lMarkerObject.transform.position = (pResolveWorldPosition != null ? pResolveWorldPosition.Invoke(lCoord) : Vector3.zero) + pWorldOffset;
                     pApplySorting?.Invoke(lMarker, lCoord);
                     lMarkerObject.SetActive(true);
                 }

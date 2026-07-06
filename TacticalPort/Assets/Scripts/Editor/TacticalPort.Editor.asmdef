@@ -11,7 +11,8 @@
         "TacticalPort.Matchmaking",
         "TacticalPort.Networking",
         "TacticalPort.App",
-        "TacticalPort.Menu"
+        "TacticalPort.Menu",
+        "GiantGrey.TileWorldCreator"
     ],
     "includePlatforms": [
         "Editor"

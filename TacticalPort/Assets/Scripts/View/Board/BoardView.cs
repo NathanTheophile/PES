@@ -9,6 +9,7 @@ using TacticalPort.Core;
 using TacticalPort.Data;
 using TacticalPort.Shared;
 using UnityEngine;
+using UnityEngine.Serialization;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -25,11 +26,18 @@ namespace TacticalPort.View
         [SerializeField] private Transform _SkillPreviewRoot;
         [Tooltip("Optional world offset applied to board markers. Keep zero for 3D tile feedback prefabs with their own local height.")]
         [SerializeField] private Vector3 _GroundMarkerWorldOffset = Vector3.zero;
+        [Tooltip("World Y offset applied to spawn feedback marker roots above their tile.")]
+        [SerializeField] private float _SpawnerMarkerYOffset = 0.5f;
         [Tooltip("Vertical offset applied to preview markers displayed on cells occupied by units.")]
         [SerializeField] private float _OccupiedPreviewYOffset = -0.05f;
 
         [Header("Cell State Prefabs")]
-        [SerializeField] private GameObject _SpawnerPreviewPrefab;
+        [FormerlySerializedAs("_TeamASpawnerPreviewPrefab")]
+        [Tooltip("Feedback prefab instantiated on the local player's spawn cells.")]
+        [SerializeField] private GameObject _OwnSpawnerPreviewPrefab;
+        [FormerlySerializedAs("_TeamBSpawnerPreviewPrefab")]
+        [Tooltip("Feedback prefab instantiated on the opponent's spawn cells.")]
+        [SerializeField] private GameObject _OpponentSpawnerPreviewPrefab;
         [SerializeField] private GameObject _PlayerOccupiedPreviewPrefab;
         [SerializeField] private GameObject _EnemyOccupiedPreviewPrefab;
         [SerializeField] private GameObject _ActiveOccupiedPreviewPrefab;
@@ -386,7 +394,13 @@ namespace TacticalPort.View
 
             _HasPendingCellStateRefresh = false;
             EnsureMarkerLayers();
-            _MarkerLayers.SyncSpawner(_ShowSpawnerCells, ResolveVisibleSpawnerCells(), _SpawnerPreviewPrefab);
+            _MarkerLayers.SyncSpawners(
+                _ShowSpawnerCells,
+                Vector3.up * _SpawnerMarkerYOffset,
+                ResolveVisibleSpawnerCells(_LocalPlayerSlot),
+                _OwnSpawnerPreviewPrefab,
+                ResolveVisibleSpawnerCells(ResolveOpponentSlot()),
+                _OpponentSpawnerPreviewPrefab);
             _MarkerLayers.SyncOccupied(
                 _OccupiedStatesByCoord,
                 _PlayerOccupiedPreviewPrefab,
@@ -443,10 +457,25 @@ namespace TacticalPort.View
         private Vector3 ResolveOccupiedPreviewOffset(GridCoord pCoord) =>
             _OccupiedStatesByCoord.ContainsKey(pCoord) ? Vector3.up * _OccupiedPreviewYOffset : Vector3.zero;
 
-        private IReadOnlyCollection<GridCoord> ResolveVisibleSpawnerCells() =>
-            _VisibleSpawnerSlot != MatchPlayerSlot.None && _SpawnerCellsBySlot.TryGetValue(_VisibleSpawnerSlot, out HashSet<GridCoord> lCells)
+        private IReadOnlyCollection<GridCoord> ResolveVisibleSpawnerCells(MatchPlayerSlot pSlot)
+        {
+            if (pSlot == MatchPlayerSlot.None)
+                return System.Array.Empty<GridCoord>();
+
+            if (_VisibleSpawnerSlot != MatchPlayerSlot.None && _VisibleSpawnerSlot != pSlot)
+                return System.Array.Empty<GridCoord>();
+
+            return _SpawnerCellsBySlot.TryGetValue(pSlot, out HashSet<GridCoord> lCells)
                 ? lCells
-                : _SpawnerCells;
+                : System.Array.Empty<GridCoord>();
+        }
+
+        private MatchPlayerSlot ResolveOpponentSlot() =>
+            _LocalPlayerSlot == MatchPlayerSlot.TeamA
+                ? MatchPlayerSlot.TeamB
+                : _LocalPlayerSlot == MatchPlayerSlot.TeamB
+                    ? MatchPlayerSlot.TeamA
+                    : MatchPlayerSlot.None;
 
         private void AddSpawnerCell(GridCoord pCoord, MatchPlayerSlot pSlot)
         {

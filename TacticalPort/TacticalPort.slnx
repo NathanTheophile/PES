@@ -1,4 +1,5 @@
 ﻿<Solution>
+  <Project Path="TacticalPort.Editor.csproj" />
   <Project Path="TacticalPort.Matchmaking.csproj" />
   <Project Path="TacticalPort.Networking.csproj" />
   <Project Path="TacticalPort.Core.csproj" />
@@ -8,7 +9,6 @@
   <Project Path="Assembly-CSharp-firstpass.csproj" />
   <Project Path="TacticalPort.Shared.csproj" />
   <Project Path="TacticalPort.View.csproj" />
-  <Project Path="TacticalPort.Editor.csproj" />
   <Project Path="TacticalPort.Data.csproj" />
   <Project Path="TacticalPort.App.Contracts.csproj" />
   <Project Path="TacticalPort.Menu.csproj" />
