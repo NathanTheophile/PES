@@ -474,7 +474,7 @@ Le système de grille supporte : déplacement orthogonal, cases non marchables, 
 
 ### Unités
 
-Les unités sont définies via ScriptableObject : HP max, équipe, portée de déplacement, AP par tour, initiative, dégâts mêlée/distance en pourcentage, compétences disponibles, profil IA ennemi, états de base, états conditionnels selon les PV, prefab visuel, portrait et teinte.
+Les unités sont définies via ScriptableObject : HP max, équipe, portée de déplacement, AP par tour, initiative, dégâts mêlée/distance en pourcentage, résistances mêlée/distance en pourcentage, compétences disponibles, profil IA ennemi, états de base, états conditionnels selon les PV, prefab visuel, portrait et teinte.
 
 Contenu actuellement présent :
 
@@ -494,9 +494,9 @@ Compétences actuellement créées :
 
 ### États
 
-Le système d'états supporte durée en tours, max stacks, marqueurs passifs, bonus/malus de dégâts génériques, mêlée et distance, réduction de dégâts, modificateur de portée, modificateur AP et modificateur mouvement.
+Le système d'états supporte durée en tours, max stacks, marqueurs passifs, bonus/malus de dégâts génériques, mêlée et distance, résistances mêlée/distance en pourcentage, modificateur de portée, modificateur AP et modificateur mouvement.
 
-État de test : New State, durée 5 tours, réduction de dégâts de 10.
+État de test : New State, durée 5 tours, résistance mêlée 10% et résistance distance 10%.
 
 ### IA ennemie
 
@@ -626,7 +626,7 @@ Le profil EnemyAiProfile_simplekit utilise une logique de distance : priorité c
 - Boucliers et réductions de dégâts centraux dans certaines compositions.
 - Variations AP/MP principalement via buffs et debuffs en combat.
 - Facing retiré du socle gameplay global.
-- Les dégâts mêlée/distance sont des pourcentages de personnage, modifiables par états.
+- Les dégâts mêlée/distance et les résistances mêlée/distance sont des pourcentages, modifiables par états.
 - Pas de RNG sur les dégâts de base.
 - Critiques possibles avec taux dépendant du sort et modifiable via buffs/debuffs.
 - Cooldowns variables selon puissance et fonction du sort.

@@ -144,7 +144,9 @@ namespace TacticalPort.Core
 
         public int GetRangedDamageModifier() => _States.GetRangedDamageModifier();
 
-        public int GetDamageReduction() => _States.GetDamageReduction();
+        public int GetMeleeResistancePercent() => ClampPercent(Definition.MeleeResistancePercent + _States.GetMeleeResistancePercent());
+
+        public int GetRangedResistancePercent() => ClampPercent(Definition.RangedResistancePercent + _States.GetRangedResistancePercent());
 
         public int GetRangeModifier() => _States.GetRangeModifier();
 
@@ -164,20 +166,32 @@ namespace TacticalPort.Core
         }
 
         public int ResolveOutgoingDamage(int pBaseDamage, UnitRuntime pTarget = null)
+            => ResolveOutgoingDamage(pBaseDamage, ResolveDamageRangeTo(pTarget));
+
+        public int ResolveOutgoingDamage(int pBaseDamage, DamageRangeType pDamageRange)
         {
             if (pBaseDamage <= 0)
                 return 0;
 
-            int lDamagePercent = ResolveDamagePercent(pTarget);
+            int lDamagePercent = ResolveDamagePercent(pDamageRange);
             return Math.Max(0, pBaseDamage * Math.Max(0, lDamagePercent) / 100);
         }
 
-        public int ApplyDamage(int pAmount)
+        public int ResolveIncomingDamage(int pAmount, DamageRangeType pDamageRange)
+        {
+            if (pAmount <= 0)
+                return 0;
+
+            int lResistancePercent = ResolveResistancePercent(pDamageRange);
+            return Math.Max(0, pAmount * (100 - lResistancePercent) / 100);
+        }
+
+        public int ApplyDamage(int pAmount, DamageRangeType pDamageRange = DamageRangeType.None)
         {
             if (pAmount <= 0 || !IsAlive)
                 return 0;
 
-            int lResolvedAmount = Math.Max(0, pAmount - GetDamageReduction());
+            int lResolvedAmount = ResolveIncomingDamage(pAmount, pDamageRange);
             if (lResolvedAmount <= 0)
                 return 0;
 
@@ -330,13 +344,38 @@ namespace TacticalPort.Core
             }
         }
 
-        private int ResolveDamagePercent(UnitRuntime pTarget)
+        public DamageRangeType ResolveDamageRangeTo(UnitRuntime pTarget)
         {
-            bool lIsMelee = pTarget != null && ResolveDistanceToUnit(pTarget) <= 1;
+            if (pTarget == null)
+                return DamageRangeType.Ranged;
+
+            return ResolveDistanceToUnit(pTarget) <= 1 ? DamageRangeType.Melee : DamageRangeType.Ranged;
+        }
+
+        private int ResolveDamagePercent(DamageRangeType pDamageRange)
+        {
+            bool lIsMelee = pDamageRange == DamageRangeType.Melee;
             int lBasePercent = lIsMelee ? Definition.MeleeDamagePercent : Definition.RangedDamagePercent;
             int lTypedModifier = lIsMelee ? GetMeleeDamageModifier() : GetRangedDamageModifier();
             return lBasePercent + lTypedModifier + GetDamageModifier();
         }
+
+        private int ResolveResistancePercent(DamageRangeType pDamageRange)
+        {
+            switch (pDamageRange)
+            {
+                case DamageRangeType.Melee:
+                    return GetMeleeResistancePercent();
+
+                case DamageRangeType.Ranged:
+                    return GetRangedResistancePercent();
+
+                default:
+                    return 0;
+            }
+        }
+
+        private static int ClampPercent(int pValue) => Math.Max(0, Math.Min(100, pValue));
 
         private int ResolveDistanceToUnit(UnitRuntime pTarget)
         {

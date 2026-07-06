@@ -50,7 +50,8 @@ namespace TacticalPort.EditorTools
                         "_DamageModifierPerStack",
                         "_MeleeDamageModifierPerStack",
                         "_RangedDamageModifierPerStack",
-                        "_DamageReductionPerStack",
+                        "_MeleeResistancePercentPerStack",
+                        "_RangedResistancePercentPerStack",
                         "_RangeModifierPerStack",
                         "_ActionPointModifierPerStack",
                         "_MovementModifierPerStack");

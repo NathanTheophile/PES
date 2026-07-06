@@ -24,7 +24,8 @@ namespace TacticalPort.EditorTools
         private int _DamageModifierPerStack = 0;
         private int _MeleeDamageModifierPerStack = 0;
         private int _RangedDamageModifierPerStack = 0;
-        private int _DamageReductionPerStack = 0;
+        private int _MeleeResistancePercentPerStack = 0;
+        private int _RangedResistancePercentPerStack = 0;
         private int _RangeModifierPerStack = 0;
         private int _ActionPointModifierPerStack = 0;
         private int _MovementModifierPerStack = 0;
@@ -61,7 +62,8 @@ namespace TacticalPort.EditorTools
             _DamageModifierPerStack = EditorGUILayout.IntField("Damage % / Stack", _DamageModifierPerStack);
             _MeleeDamageModifierPerStack = EditorGUILayout.IntField("Melee Damage % / Stack", _MeleeDamageModifierPerStack);
             _RangedDamageModifierPerStack = EditorGUILayout.IntField("Ranged Damage % / Stack", _RangedDamageModifierPerStack);
-            _DamageReductionPerStack = Mathf.Max(0, EditorGUILayout.IntField("Reduction / Stack", _DamageReductionPerStack));
+            _MeleeResistancePercentPerStack = Mathf.Clamp(EditorGUILayout.IntField("Melee Resistance % / Stack", _MeleeResistancePercentPerStack), 0, 100);
+            _RangedResistancePercentPerStack = Mathf.Clamp(EditorGUILayout.IntField("Ranged Resistance % / Stack", _RangedResistancePercentPerStack), 0, 100);
             _RangeModifierPerStack = EditorGUILayout.IntField("Range / Stack", _RangeModifierPerStack);
             _ActionPointModifierPerStack = EditorGUILayout.IntField("AP / Stack", _ActionPointModifierPerStack);
             _MovementModifierPerStack = EditorGUILayout.IntField("Move / Stack", _MovementModifierPerStack);
@@ -89,7 +91,8 @@ namespace TacticalPort.EditorTools
             SetInt(lSerializedObject, "_DamageModifierPerStack", _DamageModifierPerStack);
             SetInt(lSerializedObject, "_MeleeDamageModifierPerStack", _MeleeDamageModifierPerStack);
             SetInt(lSerializedObject, "_RangedDamageModifierPerStack", _RangedDamageModifierPerStack);
-            SetInt(lSerializedObject, "_DamageReductionPerStack", Mathf.Max(0, _DamageReductionPerStack));
+            SetInt(lSerializedObject, "_MeleeResistancePercentPerStack", Mathf.Clamp(_MeleeResistancePercentPerStack, 0, 100));
+            SetInt(lSerializedObject, "_RangedResistancePercentPerStack", Mathf.Clamp(_RangedResistancePercentPerStack, 0, 100));
             SetInt(lSerializedObject, "_RangeModifierPerStack", _RangeModifierPerStack);
             SetInt(lSerializedObject, "_ActionPointModifierPerStack", _ActionPointModifierPerStack);
             SetInt(lSerializedObject, "_MovementModifierPerStack", _MovementModifierPerStack);

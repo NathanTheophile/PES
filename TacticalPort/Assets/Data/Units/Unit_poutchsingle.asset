@@ -22,6 +22,8 @@ MonoBehaviour:
   _Initiative: 0
   _MeleeDamagePercent: 100
   _RangedDamagePercent: 100
+  _MeleeResistancePercent: 0
+  _RangedResistancePercent: 0
   _PushDamageBonus: 0
   _FootprintWidth: 1
   _FootprintHeight: 1

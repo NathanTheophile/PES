@@ -26,8 +26,9 @@ namespace TacticalPort.Core
 
                 int lBaseDamage = Math.Max(0, pSkill.Power);
                 int lFalloffDamage = ResolveAoeFalloffDamage(lBaseDamage, pSkill, lTarget, pResolvedTarget.TargetCell);
-                int lResolvedDamage = pActor.ResolveOutgoingDamage(lFalloffDamage, lTarget);
-                lTotalValue += lTarget.ApplyDamage(lResolvedDamage);
+                DamageRangeType lDamageRange = pActor.ResolveDamageRangeTo(lTarget);
+                int lResolvedDamage = pActor.ResolveOutgoingDamage(lFalloffDamage, lDamageRange);
+                lTotalValue += lTarget.ApplyDamage(lResolvedDamage, lDamageRange);
                 lAffectedUnitCount++;
                 lAffectedUnitIds.Add(lTarget.Id);
             }

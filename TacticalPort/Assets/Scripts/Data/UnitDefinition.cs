@@ -59,6 +59,14 @@ namespace TacticalPort.Data
         [SerializeField, Min(0)] private int _RangedDamagePercent = 100;
 
         [TabGroup("Stats")]
+        [LabelText("Melee Resistance %")]
+        [SerializeField, Range(0, 100)] private int _MeleeResistancePercent = 0;
+
+        [TabGroup("Stats")]
+        [LabelText("Ranged Resistance %")]
+        [SerializeField, Range(0, 100)] private int _RangedResistancePercent = 0;
+
+        [TabGroup("Stats")]
         [LabelText("Push Damage Bonus")]
         [SerializeField, Min(0)] private int _PushDamageBonus = 0;
 
@@ -154,6 +162,8 @@ namespace TacticalPort.Data
         public int Initiative => Mathf.Max(0, _Initiative);
         public int MeleeDamagePercent => Mathf.Max(0, _MeleeDamagePercent);
         public int RangedDamagePercent => Mathf.Max(0, _RangedDamagePercent);
+        public int MeleeResistancePercent => Mathf.Clamp(_MeleeResistancePercent, 0, 100);
+        public int RangedResistancePercent => Mathf.Clamp(_RangedResistancePercent, 0, 100);
         public int PushDamageBonus => Mathf.Max(0, _PushDamageBonus);
         public int FootprintWidth => Mathf.Max(1, _FootprintWidth);
         public int FootprintHeight => Mathf.Max(1, _FootprintHeight);
@@ -285,6 +295,8 @@ namespace TacticalPort.Data
             lDefinition._Initiative = pSource.Initiative;
             lDefinition._MeleeDamagePercent = pSource.MeleeDamagePercent;
             lDefinition._RangedDamagePercent = pSource.RangedDamagePercent;
+            lDefinition._MeleeResistancePercent = pSource.MeleeResistancePercent;
+            lDefinition._RangedResistancePercent = pSource.RangedResistancePercent;
             lDefinition._PushDamageBonus = pSource.PushDamageBonus;
             lDefinition._FootprintWidth = pSource.FootprintWidth;
             lDefinition._FootprintHeight = pSource.FootprintHeight;

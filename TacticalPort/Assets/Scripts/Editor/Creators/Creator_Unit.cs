@@ -28,6 +28,8 @@ namespace TacticalPort.EditorTools
         [SerializeField] private int _Initiative = 10;
         [SerializeField] private int _MeleeDamagePercent = 100;
         [SerializeField] private int _RangedDamagePercent = 100;
+        [SerializeField] private int _MeleeResistancePercent = 0;
+        [SerializeField] private int _RangedResistancePercent = 0;
         [SerializeField] private int _PushDamageBonus = 0;
         [SerializeField] private int _FootprintWidth = 1;
         [SerializeField] private int _FootprintHeight = 1;
@@ -81,6 +83,8 @@ namespace TacticalPort.EditorTools
             _Initiative = Mathf.Max(0, EditorGUILayout.IntField("Initiative", _Initiative));
             _MeleeDamagePercent = Mathf.Max(0, EditorGUILayout.IntField("Melee Damage %", _MeleeDamagePercent));
             _RangedDamagePercent = Mathf.Max(0, EditorGUILayout.IntField("Ranged Damage %", _RangedDamagePercent));
+            _MeleeResistancePercent = Mathf.Clamp(EditorGUILayout.IntField("Melee Resistance %", _MeleeResistancePercent), 0, 100);
+            _RangedResistancePercent = Mathf.Clamp(EditorGUILayout.IntField("Ranged Resistance %", _RangedResistancePercent), 0, 100);
             _PushDamageBonus = Mathf.Max(0, EditorGUILayout.IntField("Push Damage Bonus", _PushDamageBonus));
             _FootprintWidth = Mathf.Max(1, EditorGUILayout.IntField("Footprint Width", _FootprintWidth));
             _FootprintHeight = Mathf.Max(1, EditorGUILayout.IntField("Footprint Height", _FootprintHeight));
@@ -201,6 +205,8 @@ namespace TacticalPort.EditorTools
             SetInt(lSerializedObject, "_Initiative", Mathf.Max(0, _Initiative));
             SetInt(lSerializedObject, "_MeleeDamagePercent", Mathf.Max(0, _MeleeDamagePercent));
             SetInt(lSerializedObject, "_RangedDamagePercent", Mathf.Max(0, _RangedDamagePercent));
+            SetInt(lSerializedObject, "_MeleeResistancePercent", Mathf.Clamp(_MeleeResistancePercent, 0, 100));
+            SetInt(lSerializedObject, "_RangedResistancePercent", Mathf.Clamp(_RangedResistancePercent, 0, 100));
             SetInt(lSerializedObject, "_PushDamageBonus", Mathf.Max(0, _PushDamageBonus));
             SetInt(lSerializedObject, "_FootprintWidth", Mathf.Max(1, _FootprintWidth));
             SetInt(lSerializedObject, "_FootprintHeight", Mathf.Max(1, _FootprintHeight));

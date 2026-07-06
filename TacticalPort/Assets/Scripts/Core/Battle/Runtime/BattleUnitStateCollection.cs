@@ -17,7 +17,8 @@ namespace TacticalPort.Core
             Damage,
             MeleeDamage,
             RangedDamage,
-            DamageReduction,
+            MeleeResistance,
+            RangedResistance,
             Range,
             ActionPoint,
             Movement
@@ -52,7 +53,9 @@ namespace TacticalPort.Core
 
         public int GetRangedDamageModifier() => ResolveModifier(StateModifierType.RangedDamage);
 
-        public int GetDamageReduction() => Math.Max(0, ResolveModifier(StateModifierType.DamageReduction));
+        public int GetMeleeResistancePercent() => ClampPercent(ResolveModifier(StateModifierType.MeleeResistance));
+
+        public int GetRangedResistancePercent() => ClampPercent(ResolveModifier(StateModifierType.RangedResistance));
 
         public int GetRangeModifier() => ResolveModifier(StateModifierType.Range);
 
@@ -179,8 +182,11 @@ namespace TacticalPort.Core
                 case StateModifierType.RangedDamage:
                     return pState.RangedDamageModifierPerStack;
 
-                case StateModifierType.DamageReduction:
-                    return pState.DamageReductionPerStack;
+                case StateModifierType.MeleeResistance:
+                    return pState.MeleeResistancePercentPerStack;
+
+                case StateModifierType.RangedResistance:
+                    return pState.RangedResistancePercentPerStack;
 
                 case StateModifierType.Range:
                     return pState.RangeModifierPerStack;
@@ -195,6 +201,8 @@ namespace TacticalPort.Core
                     return 0;
             }
         }
+
+        private static int ClampPercent(int pValue) => Math.Max(0, Math.Min(100, pValue));
 
         private static string ResolveTemporaryStateKey(StateDefinition pState) =>
             pState != null && !string.IsNullOrWhiteSpace(pState.Id) ? $"temporary::{pState.Id}" : "temporary::";

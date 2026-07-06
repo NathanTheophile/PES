@@ -21,5 +21,6 @@ MonoBehaviour:
   _DamageModifierPerStack: 0
   _MeleeDamageModifierPerStack: 0
   _RangedDamageModifierPerStack: 0
-  _DamageReductionPerStack: 10
+  _MeleeResistancePercentPerStack: 10
+  _RangedResistancePercentPerStack: 10
   _RangeModifierPerStack: 0

@@ -24,4 +24,11 @@ namespace TacticalPort.Shared
         CreateGlyph = 5
     }
 
+    public enum DamageRangeType
+    {
+        None = 0,
+        Melee = 1,
+        Ranged = 2
+    }
+
 }
