@@ -151,9 +151,9 @@ namespace TacticalPort.Networking
             }
 
             if (lCurrentPending && !lIncomingPending)
-                pCurrentManifest.SetAssignment(pSlot, lIncoming.PlayerId, lIncoming.TeamPresetId, lIncoming.UnitIds);
+                pCurrentManifest.SetAssignment(pSlot, lIncoming.PlayerId, lIncoming.TeamPresetId, lIncoming.UnitIds, lIncoming.UnitBuilds);
             else if (!lIncomingPending && lIncoming.UnitIds != null && lIncoming.UnitIds.Count > 0)
-                pCurrentManifest.SetAssignment(pSlot, lCurrent.PlayerId, lIncoming.TeamPresetId, lIncoming.UnitIds);
+                pCurrentManifest.SetAssignment(pSlot, lCurrent.PlayerId, lIncoming.TeamPresetId, lIncoming.UnitIds, lIncoming.UnitBuilds);
 
             return true;
         }

@@ -12,7 +12,9 @@
         "TacticalPort.Networking",
         "TacticalPort.App",
         "TacticalPort.Menu",
-        "GiantGrey.TileWorldCreator"
+        "GiantGrey.TileWorldCreator",
+        "Unity.TextMeshPro",
+        "UnityEngine.UI"
     ],
     "includePlatforms": [
         "Editor"

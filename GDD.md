@@ -225,7 +225,9 @@ Pour le combat, chaque personnage équipe exactement 6 sorts actifs. Ce nombre e
 
 Chaque personnage dispose de 2 passifs disponibles, parmi lesquels le joueur en choisit 1 pour le combat. Le passif est sélectionné séparément des sorts actifs et ne consomme pas de slot de sort.
 
-Les sorts n'ont pas de variantes. Un sort correspond à une version claire et stable. La profondeur de build vient du choix des sorts équipés, pas de modifications internes des sorts.
+Les sorts n'ont pas de variantes de deckbuilding sélectionnables par le joueur. Un sort correspond à une entrée claire dans le pool du personnage, et la profondeur de build vient du choix des sorts équipés.
+
+Un sort peut toutefois disposer d'une variante runtime liée à une mécanique identitaire de personnage, comme une version améliorée déclenchée par une ressource ou un passif. Cette variante doit rester déterminée par l'état du combat, lisible par les deux joueurs, et ne doit pas créer un choix de deckbuilding supplémentaire.
 
 Le joueur choisit librement ses 6 sorts actifs dans le pool du personnage. Il n'y a pas de catégories imposées, pas de minimum ou maximum par type de sort, pas d'incompatibilités entre sorts et pas de prérequis entre sorts. Les catégories peuvent éventuellement exister dans la documentation ou l'analyse de design, mais elles ne contraignent pas le deckbuilding du joueur.
 
@@ -249,9 +251,11 @@ Les passifs sont équilibrés prioritairement autour du PvP. Le PvE peut s'adapt
 
 Le joueur peut modifier librement son équipe avant de lancer une recherche de combat. Le créateur d'équipe cible permet de choisir les personnages, les sorts équipés et le passif sélectionné pour chaque personnage. Une fois la recherche ou le combat lancé, l'équipe est verrouillée pour la partie.
 
-Les compositions complètes doivent pouvoir être sauvegardées sous forme de presets d'équipe. Un preset contient les 3 personnages, leur ordre de slot, leurs 6 sorts équipés et leur passif sélectionné.
+Les compositions complètes doivent pouvoir être sauvegardées sous forme de presets d'équipe. Un preset contient les 3 personnages, leur ordre de slot, leurs 6 sorts équipés, leur passif sélectionné et leurs allocations de statistiques.
 
-Dans le prototype actuel, la sélection d'équipe implémentée reste plus limitée que la cible design : elle sauvegarde principalement les identifiants des unités choisies localement. La sélection de sorts, de passif et les presets complets restent des objectifs de production à implémenter.
+Chaque personnage possède un capital de points de statistiques défini dans sa `UnitDefinition`, généralement compris entre 100 et 150. Le joueur peut dépenser moins que ce capital, mais jamais le dépasser. Les coûts de référence sont : 1 point par PV et par point d'initiative, 25 points par PA, 20 points par PM, et 5 points par point de dégâts ou de résistance mêlée/distance. Ce budget est individuel et ne constitue pas un coût de composition d'équipe.
+
+Le preset complet est désormais la cible du prototype : composition, sorts, passifs et allocations doivent persister ensemble et être validés avant le combat.
 
 Le build adverse n'est pas entièrement révélé pendant le combat. Le passif sélectionné peut être visible afin de fournir une information stratégique forte, tandis que les sorts équipés restent partiellement ou totalement à découvrir pendant le combat.
 
@@ -394,7 +398,7 @@ Une unité moyenne peut mourir entre 1 et 3 tours de focus selon son archétype,
 
 Le soin est présent mais limité. Il ne doit pas permettre d'annuler systématiquement les erreurs, ni créer des combats interminables. Son rôle doit être tactique : sauver une unité, prolonger une fenêtre de jeu, soutenir une stratégie précise ou forcer l'adversaire à investir davantage de ressources.
 
-Les boucliers et réductions de dégâts peuvent être centraux dans certaines compositions. Ils constituent un outil défensif majeur, mais doivent rester contrables par le timing, le focus, les effets de contrôle, le contournement ou les dégâts différés.
+Les boucliers et résistances en pourcentage peuvent être centraux dans certaines compositions. Ils constituent un outil défensif majeur, mais doivent rester contrables par le timing, le focus, les effets de contrôle, le contournement ou les dégâts différés.
 
 Les valeurs AP/MP peuvent varier principalement via les buffs et debuffs en combat. Les valeurs de base doivent rester suffisamment lisibles, tandis que les variations temporaires créent des fenêtres tactiques et des opportunités de combo.
 
@@ -416,7 +420,7 @@ Les critiques modifient uniquement les dégâts. Un critique ne déclenche pas d
 
 Le taux critique doit être visible sur les propres sorts du joueur. Les taux critiques adverses ne sont pas affichés librement, afin de conserver une part d'apprentissage et de connaissance des personnages.
 
-Les buffs et debuffs peuvent couvrir plusieurs familles : AP/MP, portée, dégâts infligés ou reçus, critique, bouclier/réduction, états de contrôle et éventuellement altération de ligne de vue ou ciblage. Toutes ces familles peuvent exister, mais elles doivent être hiérarchisées pour éviter une surcharge de lecture.
+Les buffs et debuffs peuvent couvrir plusieurs familles : AP/MP, portée, dégâts infligés, résistances en pourcentage, critique, boucliers, états de contrôle et éventuellement altération de ligne de vue ou ciblage. Toutes ces familles peuvent exister, mais elles doivent être hiérarchisées pour éviter une surcharge de lecture.
 
 Les états stackables sont un système central. Le stacking doit donc être pensé comme un outil important de profondeur tactique, de montée en puissance, de pression progressive ou de contre-jeu. Il doit toutefois rester lisible : le nombre de stacks, leur durée et leur effet doivent être clairement accessibles.
 
@@ -474,7 +478,7 @@ Le système de grille supporte : déplacement orthogonal, cases non marchables, 
 
 ### Unités
 
-Les unités sont définies via ScriptableObject : HP max, équipe, portée de déplacement, AP par tour, initiative, dégâts mêlée/distance en pourcentage, résistances mêlée/distance en pourcentage, compétences disponibles, profil IA ennemi, états de base, états conditionnels selon les PV, prefab visuel, portrait et teinte.
+Les unités sont définies via ScriptableObject : HP max, équipe, portée de déplacement, AP par tour, initiative, dégâts mêlée/distance en pourcentage, résistances mêlée/distance de base en pourcentage, compétences disponibles, profil IA ennemi, états de base, états conditionnels selon les PV, prefab visuel, portrait et teinte.
 
 Contenu actuellement présent :
 
@@ -487,6 +491,8 @@ Contenu actuellement présent :
 
 Les compétences sont data-driven via SkillDefinition. Le système supporte dégâts, soin, push, téléportation, échange de position, invocation, glyphes/pièges, états, coût AP, limite par tour, limite par cible, cooldown, portée min/max, ligne de vue, alignement orthogonal ou diagonal, AoE variées, falloff de dégâts AoE activable par skill et modificateurs de dégâts mêlée/distance.
 
+Les dégâts mêlée/distance sont des pourcentages. `100` représente la valeur neutre, au-dessus de `100` un bonus, et en dessous de `100` un malus. Les états peuvent modifier ces valeurs avec des bonus ou malus signés.
+
 Compétences actuellement créées :
 
 - Skill_SimpleHit : dégâts single target, portée 1-6, ligne de vue, 10 dégâts, coût 3 AP.
@@ -494,7 +500,9 @@ Compétences actuellement créées :
 
 ### États
 
-Le système d'états supporte durée en tours, max stacks, marqueurs passifs, bonus/malus de dégâts génériques, mêlée et distance, résistances mêlée/distance en pourcentage, modificateur de portée, modificateur AP et modificateur mouvement.
+Le système d'états supporte durée en tours, max stacks, marqueurs passifs, bonus/malus de dégâts génériques, mêlée et distance, modificateurs signés de résistances mêlée/distance en pourcentage, modificateur de portée, modificateur AP et modificateur mouvement.
+
+Les résistances mêlée/distance sont des valeurs dynamiques en pourcentage, pas des réductions fixes de dégâts. Une unité possède une résistance de base, puis les états ajoutent ou retirent des points de résistance en pourcentage. Le total final peut être positif ou négatif ; il est seulement plafonné à `100%` au runtime pour éviter les dégâts négatifs. Exemples : `+10% résistance mêlée`, `-20% résistance distance`.
 
 État de test : New State, durée 5 tours, résistance mêlée 10% et résistance distance 10%.
 
@@ -609,7 +617,7 @@ Le profil EnemyAiProfile_simplekit utilise une logique de distance : priorité c
 - Chaque personnage équipe exactement 6 sorts actifs.
 - Pool cible : 10 sorts par personnage, flexible pour futures versions.
 - 2 passifs par personnage, 1 passif choisi.
-- Pas de variantes de sorts.
+- Pas de variantes de sorts sélectionnables en deckbuilding ; variantes runtime autorisées si elles viennent d'une mécanique de personnage lisible.
 - Tous les sorts équipés de l'unité active sont affichés.
 - L'interface utilise un thème global configurable via `ThemeDefinition` et exposé au runtime par `ThemeManager`.
 - Les boutons de sorts utilisent les couleurs de skill du thème global : dégâts, utilitaire ou soin.
@@ -623,10 +631,10 @@ Le profil EnemyAiProfile_simplekit utilise une logique de distance : priorité c
 - Létalité variable selon personnages, compositions et situations.
 - Une unité peut mourir entre 1 et 3 tours de focus selon son archétype.
 - Soin présent mais limité.
-- Boucliers et réductions de dégâts centraux dans certaines compositions.
+- Boucliers et résistances en pourcentage centraux dans certaines compositions.
 - Variations AP/MP principalement via buffs et debuffs en combat.
 - Facing retiré du socle gameplay global.
-- Les dégâts mêlée/distance et les résistances mêlée/distance sont des pourcentages, modifiables par états.
+- Les dégâts mêlée/distance et les résistances mêlée/distance sont des pourcentages. Les états peuvent appliquer des modificateurs positifs ou négatifs, et les résistances finales peuvent devenir négatives.
 - Pas de RNG sur les dégâts de base.
 - Critiques possibles avec taux dépendant du sort et modifiable via buffs/debuffs.
 - Cooldowns variables selon puissance et fonction du sort.

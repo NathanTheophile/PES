@@ -19,6 +19,7 @@ namespace TacticalPort.EditorTools
         private string _Id = string.Empty;
         private string _DisplayName = "New Skill";
         private string _Description = string.Empty;
+        private SkillCategory _Category = SkillCategory.None;
         private SkillPrimaryEffectType _PrimaryEffectType = SkillPrimaryEffectType.Damage;
         private SkillAdditionalEffectType _AdditionalEffectType = SkillAdditionalEffectType.None;
         private int _RangeMin = 0;
@@ -32,6 +33,8 @@ namespace TacticalPort.EditorTools
         private int _UsePerTurn = 0;
         private int _UsePerTarget = 0;
         private int _CooldownTurns = 0;
+        private bool _IsPactoleVariant;
+        private SkillDefinition _PactoleVariant;
         private int _Power = 1;
         private int _ActionPointCost = 1;
         private int _PushDistance = 1;
@@ -39,6 +42,14 @@ namespace TacticalPort.EditorTools
         private SkillSummonTeamRule _SummonTeamRule = SkillSummonTeamRule.Definition;
         private int _GlyphDurationTurns = 1;
         private SkillGlyphTargetRule _GlyphTargetRule = SkillGlyphTargetRule.EnemiesOnly;
+        private StateDefinition _GlyphAppliedState;
+        private int _GlyphAppliedStateStacks = 1;
+        private int _GlyphAppliedStateDurationTurns = -1;
+        private StateDefinition _SummonSpawnState;
+        private int _SummonSpawnStateStacks = 1;
+        private int _SummonSpawnStateDurationTurns = -1;
+        private int _SummonSpawnStateAreaSize = 1;
+        private SkillGlyphTargetRule _SummonSpawnStateTargetRule = SkillGlyphTargetRule.EnemiesOnly;
         private StateDefinition _AppliedState;
         private int _AppliedStateStacks = 1;
         private int _AppliedStateDurationTurns = -1;
@@ -68,6 +79,7 @@ namespace TacticalPort.EditorTools
             _Description = EditorGUILayout.TextField("Description", _Description);
 
             DrawSectionHeader("Rules");
+            _Category = (SkillCategory)EditorGUILayout.EnumPopup("Category", _Category);
             _PrimaryEffectType = (SkillPrimaryEffectType)EditorGUILayout.EnumPopup("Effect Type", _PrimaryEffectType);
             _AdditionalEffectType = (SkillAdditionalEffectType)EditorGUILayout.EnumPopup("Additional Effect", _AdditionalEffectType);
             _RangeMin = Mathf.Max(0, EditorGUILayout.IntField("Range Min", _RangeMin));
@@ -93,6 +105,11 @@ namespace TacticalPort.EditorTools
             _Power = Mathf.Max(0, EditorGUILayout.IntField("Power", _Power));
             _ActionPointCost = Mathf.Max(0, EditorGUILayout.IntField("AP Cost", _ActionPointCost));
 
+            DrawSectionHeader("Pactole");
+            _IsPactoleVariant = EditorGUILayout.Toggle("Is Pactole Variant", _IsPactoleVariant);
+            using (new EditorGUI.DisabledScope(_IsPactoleVariant))
+                _PactoleVariant = (SkillDefinition)EditorGUILayout.ObjectField("Pactole Variant", _PactoleVariant, typeof(SkillDefinition), false);
+
             DrawAdvancedCombat();
 
             DrawSectionHeader("Presentation");
@@ -117,12 +134,26 @@ namespace TacticalPort.EditorTools
             {
                 _SummonUnit = (UnitDefinition)EditorGUILayout.ObjectField("Summon Unit", _SummonUnit, typeof(UnitDefinition), false);
                 _SummonTeamRule = (SkillSummonTeamRule)EditorGUILayout.EnumPopup("Summon Team Rule", _SummonTeamRule);
+                _SummonSpawnState = (StateDefinition)EditorGUILayout.ObjectField("Spawn State", _SummonSpawnState, typeof(StateDefinition), false);
+                if (_SummonSpawnState != null)
+                {
+                    _SummonSpawnStateStacks = Mathf.Max(1, EditorGUILayout.IntField("Spawn State Stacks", _SummonSpawnStateStacks));
+                    _SummonSpawnStateDurationTurns = EditorGUILayout.IntField("Spawn State Duration Override", _SummonSpawnStateDurationTurns);
+                    _SummonSpawnStateAreaSize = Mathf.Max(0, EditorGUILayout.IntField("Spawn State Area", _SummonSpawnStateAreaSize));
+                    _SummonSpawnStateTargetRule = (SkillGlyphTargetRule)EditorGUILayout.EnumPopup("Spawn State Target Rule", _SummonSpawnStateTargetRule);
+                }
             }
 
             if (_AdditionalEffectType == SkillAdditionalEffectType.CreateGlyph)
             {
                 _GlyphDurationTurns = Mathf.Max(1, EditorGUILayout.IntField("Glyph Duration", _GlyphDurationTurns));
                 _GlyphTargetRule = (SkillGlyphTargetRule)EditorGUILayout.EnumPopup("Glyph Target Rule", _GlyphTargetRule);
+                _GlyphAppliedState = (StateDefinition)EditorGUILayout.ObjectField("Glyph Applied State", _GlyphAppliedState, typeof(StateDefinition), false);
+                if (_GlyphAppliedState != null)
+                {
+                    _GlyphAppliedStateStacks = Mathf.Max(1, EditorGUILayout.IntField("Glyph State Stacks", _GlyphAppliedStateStacks));
+                    _GlyphAppliedStateDurationTurns = EditorGUILayout.IntField("Glyph State Duration Override", _GlyphAppliedStateDurationTurns);
+                }
             }
 
             _AppliedState = (StateDefinition)EditorGUILayout.ObjectField("Applied State", _AppliedState, typeof(StateDefinition), false);
@@ -150,6 +181,7 @@ namespace TacticalPort.EditorTools
             SetString(lSerializedObject, "_Id", lId);
             SetString(lSerializedObject, "_DisplayName", string.IsNullOrWhiteSpace(_DisplayName) ? lId : _DisplayName.Trim());
             SetString(lSerializedObject, "_Description", _Description);
+            SetEnum(lSerializedObject, "_Category", (int)_Category);
             SetEnum(lSerializedObject, "_PrimaryEffectType", (int)_PrimaryEffectType);
             SetEnum(lSerializedObject, "_AdditionalEffectType", (int)_AdditionalEffectType);
             SetInt(lSerializedObject, "_RangeMin", Mathf.Max(0, _RangeMin));
@@ -163,6 +195,8 @@ namespace TacticalPort.EditorTools
             SetInt(lSerializedObject, "_UsePerTurn", Mathf.Max(0, _UsePerTurn));
             SetInt(lSerializedObject, "_UsePerTarget", Mathf.Max(0, _UsePerTarget));
             SetInt(lSerializedObject, "_CooldownTurns", Mathf.Max(0, _CooldownTurns));
+            SetBool(lSerializedObject, "_IsPactoleVariant", _IsPactoleVariant);
+            SetObject(lSerializedObject, "_PactoleVariant", _IsPactoleVariant ? null : _PactoleVariant);
             SetInt(lSerializedObject, "_Power", Mathf.Max(0, _Power));
             SetInt(lSerializedObject, "_ActionPointCost", Mathf.Max(0, _ActionPointCost));
             SetInt(lSerializedObject, "_PushDistance", Mathf.Max(0, _PushDistance));
@@ -170,6 +204,14 @@ namespace TacticalPort.EditorTools
             SetEnum(lSerializedObject, "_SummonTeamRule", (int)_SummonTeamRule);
             SetInt(lSerializedObject, "_GlyphDurationTurns", Mathf.Max(1, _GlyphDurationTurns));
             SetEnum(lSerializedObject, "_GlyphTargetRule", (int)_GlyphTargetRule);
+            SetObject(lSerializedObject, "_GlyphAppliedState", _GlyphAppliedState);
+            SetInt(lSerializedObject, "_GlyphAppliedStateStacks", Mathf.Max(1, _GlyphAppliedStateStacks));
+            SetInt(lSerializedObject, "_GlyphAppliedStateDurationTurns", _GlyphAppliedStateDurationTurns);
+            SetObject(lSerializedObject, "_SummonSpawnState", _SummonSpawnState);
+            SetInt(lSerializedObject, "_SummonSpawnStateStacks", Mathf.Max(1, _SummonSpawnStateStacks));
+            SetInt(lSerializedObject, "_SummonSpawnStateDurationTurns", _SummonSpawnStateDurationTurns);
+            SetInt(lSerializedObject, "_SummonSpawnStateAreaSize", Mathf.Max(0, _SummonSpawnStateAreaSize));
+            SetEnum(lSerializedObject, "_SummonSpawnStateTargetRule", (int)_SummonSpawnStateTargetRule);
             SetObject(lSerializedObject, "_AppliedState", _AppliedState);
             SetInt(lSerializedObject, "_AppliedStateStacks", Mathf.Max(1, _AppliedStateStacks));
             SetInt(lSerializedObject, "_AppliedStateDurationTurns", _AppliedStateDurationTurns);

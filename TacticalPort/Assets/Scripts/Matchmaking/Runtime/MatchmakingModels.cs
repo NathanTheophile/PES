@@ -29,12 +29,35 @@ namespace TacticalPort.Matchmaking
     }
 
     [Serializable]
+    public sealed class MatchUnitStatAllocations
+    {
+        public int Health;
+        public int Power;
+        public int Movement;
+        public int MeleeDamage;
+        public int MeleeResistance;
+        public int RangedDamage;
+        public int RangedResistance;
+        public int Initiative;
+    }
+
+    [Serializable]
+    public sealed class MatchUnitBuild
+    {
+        public string UnitId = string.Empty;
+        public string PassiveId = string.Empty;
+        public List<string> SkillIds = new List<string>();
+        public MatchUnitStatAllocations StatAllocations = new MatchUnitStatAllocations();
+    }
+
+    [Serializable]
     public sealed class MatchPlayerAssignment
     {
         public string PlayerId = string.Empty;
         public MatchPlayerSlot Slot = MatchPlayerSlot.None;
         public string TeamPresetId = string.Empty;
         public List<string> UnitIds = new List<string>();
+        public List<MatchUnitBuild> UnitBuilds = new List<MatchUnitBuild>();
     }
 
     [Serializable]
@@ -173,7 +196,24 @@ namespace TacticalPort.Matchmaking
                 CopyUnitIds(pUnitIds, lAssignment);
         }
 
+        public void SetUnitBuilds(string pPlayerId, IReadOnlyList<MatchUnitBuild> pUnitBuilds)
+        {
+            MatchPlayerAssignment lAssignment = FindAssignment(pPlayerId);
+            if (lAssignment != null)
+                CopyUnitBuilds(pUnitBuilds, lAssignment);
+        }
+
         public void SetAssignment(MatchPlayerSlot pSlot, string pPlayerId, string pTeamPresetId, IReadOnlyList<string> pUnitIds)
+        {
+            SetAssignment(pSlot, pPlayerId, pTeamPresetId, pUnitIds, null);
+        }
+
+        public void SetAssignment(
+            MatchPlayerSlot pSlot,
+            string pPlayerId,
+            string pTeamPresetId,
+            IReadOnlyList<string> pUnitIds,
+            IReadOnlyList<MatchUnitBuild> pUnitBuilds)
         {
             if (pSlot == MatchPlayerSlot.None || string.IsNullOrWhiteSpace(pPlayerId))
                 return;
@@ -188,6 +228,7 @@ namespace TacticalPort.Matchmaking
             lAssignment.PlayerId = pPlayerId;
             lAssignment.TeamPresetId = pTeamPresetId ?? string.Empty;
             CopyUnitIds(pUnitIds, lAssignment);
+            CopyUnitBuilds(pUnitBuilds, lAssignment);
         }
 
         public void MergeCompositions(MatchManifest pOther)
@@ -204,6 +245,8 @@ namespace TacticalPort.Matchmaking
 
                 if (lIncoming.UnitIds != null && lIncoming.UnitIds.Count > 0)
                     CopyUnitIds(lIncoming.UnitIds, lLocal);
+                if (lIncoming.UnitBuilds != null && lIncoming.UnitBuilds.Count > 0)
+                    CopyUnitBuilds(lIncoming.UnitBuilds, lLocal);
             }
         }
 
@@ -244,6 +287,9 @@ namespace TacticalPort.Matchmaking
                     pFailure = $"Match manifest contains invalid slot '{lPlayer.Slot}' for player '{lPlayer.PlayerId}'.";
                     return false;
                 }
+
+                if (!TryValidateUnitBuilds(lPlayer, out pFailure))
+                    return false;
             }
 
             if (lTeamACount == 1 && lTeamBCount == 1)
@@ -287,6 +333,7 @@ namespace TacticalPort.Matchmaking
         {
             pTarget.UnitIds ??= new List<string>();
             pTarget.UnitIds.Clear();
+            pTarget.UnitBuilds?.Clear();
 
             if (pUnitIds == null)
                 return;
@@ -298,6 +345,111 @@ namespace TacticalPort.Matchmaking
                     pTarget.UnitIds.Add(lUnitId);
             }
         }
+
+        private static void CopyUnitBuilds(IReadOnlyList<MatchUnitBuild> pBuilds, MatchPlayerAssignment pTarget)
+        {
+            pTarget.UnitBuilds ??= new List<MatchUnitBuild>();
+            pTarget.UnitBuilds.Clear();
+            if (pBuilds == null)
+                return;
+
+            for (int lIndex = 0; lIndex < pBuilds.Count; lIndex++)
+            {
+                MatchUnitBuild lBuild = pBuilds[lIndex];
+                if (lBuild == null || string.IsNullOrWhiteSpace(lBuild.UnitId))
+                    continue;
+
+                MatchUnitBuild lCopy = new MatchUnitBuild
+                {
+                    UnitId = lBuild.UnitId,
+                    PassiveId = lBuild.PassiveId ?? string.Empty,
+                    StatAllocations = CopyStatAllocations(lBuild.StatAllocations)
+                };
+
+                if (lBuild.SkillIds != null)
+                {
+                    for (int lSkillIndex = 0; lSkillIndex < lBuild.SkillIds.Count; lSkillIndex++)
+                    {
+                        string lSkillId = lBuild.SkillIds[lSkillIndex];
+                        if (!string.IsNullOrWhiteSpace(lSkillId))
+                            lCopy.SkillIds.Add(lSkillId);
+                    }
+                }
+
+                pTarget.UnitBuilds.Add(lCopy);
+            }
+        }
+
+        private static MatchUnitStatAllocations CopyStatAllocations(MatchUnitStatAllocations pSource) => new MatchUnitStatAllocations
+        {
+            Health = pSource?.Health ?? 0,
+            Power = pSource?.Power ?? 0,
+            Movement = pSource?.Movement ?? 0,
+            MeleeDamage = pSource?.MeleeDamage ?? 0,
+            MeleeResistance = pSource?.MeleeResistance ?? 0,
+            RangedDamage = pSource?.RangedDamage ?? 0,
+            RangedResistance = pSource?.RangedResistance ?? 0,
+            Initiative = pSource?.Initiative ?? 0
+        };
+
+        private static bool TryValidateUnitBuilds(MatchPlayerAssignment pPlayer, out string pFailure)
+        {
+            pFailure = string.Empty;
+            if (pPlayer.UnitBuilds == null || pPlayer.UnitBuilds.Count == 0)
+                return true;
+
+            if (pPlayer.UnitIds == null || pPlayer.UnitBuilds.Count != pPlayer.UnitIds.Count)
+            {
+                pFailure = $"Match manifest build count does not match unit count for player '{pPlayer.PlayerId}'.";
+                return false;
+            }
+
+            for (int lIndex = 0; lIndex < pPlayer.UnitBuilds.Count; lIndex++)
+            {
+                MatchUnitBuild lBuild = pPlayer.UnitBuilds[lIndex];
+                if (lBuild == null || lBuild.UnitId != pPlayer.UnitIds[lIndex])
+                {
+                    pFailure = $"Match manifest build order does not match unit order for player '{pPlayer.PlayerId}'.";
+                    return false;
+                }
+
+                if (lBuild.SkillIds == null || lBuild.SkillIds.Count > 6)
+                {
+                    pFailure = $"Match manifest contains an invalid skill count for unit '{lBuild.UnitId}'.";
+                    return false;
+                }
+
+                HashSet<string> lSkillIds = new HashSet<string>(StringComparer.Ordinal);
+                for (int lSkillIndex = 0; lSkillIndex < lBuild.SkillIds.Count; lSkillIndex++)
+                {
+                    string lSkillId = lBuild.SkillIds[lSkillIndex];
+                    if (string.IsNullOrWhiteSpace(lSkillId) || !lSkillIds.Add(lSkillId))
+                    {
+                        pFailure = $"Match manifest contains an empty or duplicate skill for unit '{lBuild.UnitId}'.";
+                        return false;
+                    }
+                }
+
+                if (!HasNonNegativeStatAllocations(lBuild.StatAllocations))
+                {
+                    pFailure = $"Match manifest contains a negative stat allocation for unit '{lBuild.UnitId}'.";
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static bool HasNonNegativeStatAllocations(MatchUnitStatAllocations pStats) =>
+            pStats == null
+            || (pStats.Health >= 0
+                && pStats.Power >= 0
+                && pStats.Movement >= 0
+                && pStats.MeleeDamage >= 0
+                && pStats.MeleeResistance >= 0
+                && pStats.RangedDamage >= 0
+                && pStats.RangedResistance >= 0
+                && pStats.Initiative >= 0);
     }
 
     [Serializable]

@@ -59,11 +59,11 @@ namespace TacticalPort.Data
 
         [TabGroup("Modifiers")]
         [LabelText("Melee Resistance %/Stack")]
-        [SerializeField, Range(0, 100)] private int _MeleeResistancePercentPerStack = 0;
+        [SerializeField] private int _MeleeResistancePercentPerStack = 0;
 
         [TabGroup("Modifiers")]
         [LabelText("Ranged Resistance %/Stack")]
-        [SerializeField, Range(0, 100)] private int _RangedResistancePercentPerStack = 0;
+        [SerializeField] private int _RangedResistancePercentPerStack = 0;
 
         [TabGroup("Modifiers")]
         [LabelText("Range/Stack")]
@@ -90,8 +90,8 @@ namespace TacticalPort.Data
         public int DamageModifierPerStack => _DamageModifierPerStack;
         public int MeleeDamageModifierPerStack => _MeleeDamageModifierPerStack;
         public int RangedDamageModifierPerStack => _RangedDamageModifierPerStack;
-        public int MeleeResistancePercentPerStack => Mathf.Clamp(_MeleeResistancePercentPerStack, 0, 100);
-        public int RangedResistancePercentPerStack => Mathf.Clamp(_RangedResistancePercentPerStack, 0, 100);
+        public int MeleeResistancePercentPerStack => _MeleeResistancePercentPerStack;
+        public int RangedResistancePercentPerStack => _RangedResistancePercentPerStack;
         public int RangeModifierPerStack => _RangeModifierPerStack;
         public int ActionPointModifierPerStack => _ActionPointModifierPerStack;
         public int MovementModifierPerStack => _MovementModifierPerStack;

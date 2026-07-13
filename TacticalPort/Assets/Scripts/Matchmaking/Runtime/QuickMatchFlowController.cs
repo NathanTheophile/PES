@@ -8,6 +8,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using TacticalPort.State;
 using UnityEngine;
 
 namespace TacticalPort.Matchmaking
@@ -272,7 +273,7 @@ namespace TacticalPort.Matchmaking
             new QuickMatchRequest
             {
                 QueueName = _QueueName,
-                TeamPresetId = _TeamPresetId,
+                TeamPresetId = string.IsNullOrWhiteSpace(_TeamPresetId) ? TeamPresetState.ActivePresetId : _TeamPresetId,
                 Player = pIdentity
             };
 

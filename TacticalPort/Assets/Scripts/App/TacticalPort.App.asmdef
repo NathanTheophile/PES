@@ -7,6 +7,7 @@
         "TacticalPort.CombatRuntime",
         "TacticalPort.Matchmaking",
         "TacticalPort.Menu",
+        "TacticalPort.State",
         "Unity.TextMeshPro",
         "UnityEngine.UI"
     ],

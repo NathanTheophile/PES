@@ -17,8 +17,11 @@ namespace TacticalPort.State
 
         private static readonly List<UnitDefinition> _LocalSelectedUnits = new List<UnitDefinition>(3);
         private static readonly List<string> _LocalSelectedUnitIds = new List<string>(3);
+        private static readonly List<UnitCombatLoadout> _LocalLoadouts = new List<UnitCombatLoadout>(3);
         private static readonly List<UnitDefinition> _TeamAUnits = new List<UnitDefinition>(3);
         private static readonly List<UnitDefinition> _TeamBUnits = new List<UnitDefinition>(3);
+        private static readonly List<UnitCombatLoadout> _TeamALoadouts = new List<UnitCombatLoadout>(3);
+        private static readonly List<UnitCombatLoadout> _TeamBLoadouts = new List<UnitCombatLoadout>(3);
 
         #endregion
 
@@ -27,6 +30,7 @@ namespace TacticalPort.State
         public static bool HasLocalSelection => _LocalSelectedUnits.Count > 0 || _LocalSelectedUnitIds.Count > 0;
         public static IReadOnlyList<UnitDefinition> LocalSelectedUnits => _LocalSelectedUnits;
         public static IReadOnlyList<string> LocalSelectedUnitIds => _LocalSelectedUnitIds;
+        public static IReadOnlyList<UnitCombatLoadout> LocalLoadouts => _LocalLoadouts;
 
         #endregion
 
@@ -46,10 +50,17 @@ namespace TacticalPort.State
             CopyStrings(pUnitIds, _LocalSelectedUnitIds);
         }
 
+        public static void SetLocalLoadouts(IReadOnlyList<UnitCombatLoadout> pLoadouts)
+        {
+            CopyLoadouts(pLoadouts, _LocalLoadouts);
+            SetComposition(MatchPlayerSlot.TeamA, _LocalSelectedUnits, _LocalLoadouts);
+        }
+
         public static void Clear()
         {
             _LocalSelectedUnits.Clear();
             _LocalSelectedUnitIds.Clear();
+            _LocalLoadouts.Clear();
             ClearSlotCompositions();
         }
 
@@ -61,6 +72,8 @@ namespace TacticalPort.State
         {
             _TeamAUnits.Clear();
             _TeamBUnits.Clear();
+            _TeamALoadouts.Clear();
+            _TeamBLoadouts.Clear();
         }
 
         public static void AssignLocalSelectionToSlot(MatchPlayerSlot pSlot)
@@ -68,16 +81,26 @@ namespace TacticalPort.State
             if (!HasLocalSelection)
                 return;
 
-            SetComposition(pSlot, _LocalSelectedUnits);
+            SetComposition(pSlot, _LocalSelectedUnits, _LocalLoadouts);
         }
 
         public static void SetComposition(MatchPlayerSlot pSlot, IReadOnlyList<UnitDefinition> pUnits)
         {
+            SetComposition(pSlot, pUnits, null);
+        }
+
+        public static void SetComposition(
+            MatchPlayerSlot pSlot,
+            IReadOnlyList<UnitDefinition> pUnits,
+            IReadOnlyList<UnitCombatLoadout> pLoadouts)
+        {
             List<UnitDefinition> lTarget = ResolveMutableList(pSlot);
-            if (lTarget == null)
+            List<UnitCombatLoadout> lLoadoutTarget = ResolveMutableLoadoutList(pSlot);
+            if (lTarget == null || lLoadoutTarget == null)
                 return;
 
             CopyUnits(pUnits, lTarget);
+            CopyLoadouts(pLoadouts, lLoadoutTarget);
         }
 
         public static bool TryGetComposition(MatchPlayerSlot pSlot, out IReadOnlyList<UnitDefinition> pUnits)
@@ -93,11 +116,31 @@ namespace TacticalPort.State
             return false;
         }
 
+        public static bool TryGetLoadout(MatchPlayerSlot pSlot, int pUnitIndex, out UnitCombatLoadout pLoadout)
+        {
+            List<UnitCombatLoadout> lLoadouts = ResolveMutableLoadoutList(pSlot);
+            if (lLoadouts != null && pUnitIndex >= 0 && pUnitIndex < lLoadouts.Count)
+            {
+                pLoadout = lLoadouts[pUnitIndex];
+                return pLoadout != null;
+            }
+
+            pLoadout = null;
+            return false;
+        }
+
         private static List<UnitDefinition> ResolveMutableList(MatchPlayerSlot pSlot) =>
             pSlot == MatchPlayerSlot.TeamA
                 ? _TeamAUnits
                 : pSlot == MatchPlayerSlot.TeamB
                     ? _TeamBUnits
+                    : null;
+
+        private static List<UnitCombatLoadout> ResolveMutableLoadoutList(MatchPlayerSlot pSlot) =>
+            pSlot == MatchPlayerSlot.TeamA
+                ? _TeamALoadouts
+                : pSlot == MatchPlayerSlot.TeamB
+                    ? _TeamBLoadouts
                     : null;
 
         private static void CopyUnits(IReadOnlyList<UnitDefinition> pSource, ICollection<UnitDefinition> pTarget)
@@ -138,6 +181,16 @@ namespace TacticalPort.State
                 if (!string.IsNullOrWhiteSpace(pSource[lIndex]))
                     pTarget.Add(pSource[lIndex]);
             }
+        }
+
+        private static void CopyLoadouts(IReadOnlyList<UnitCombatLoadout> pSource, ICollection<UnitCombatLoadout> pTarget)
+        {
+            pTarget.Clear();
+            if (pSource == null)
+                return;
+
+            for (int lIndex = 0; lIndex < pSource.Count; lIndex++)
+                pTarget.Add(pSource[lIndex]);
         }
 
         #endregion

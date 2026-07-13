@@ -161,20 +161,10 @@ namespace TacticalPort.Networking
 
         private bool TryApplyLocalComposition(MatchManifest pManifest, string pPlayerId)
         {
-            if (!CombatTeamCompositionState.HasLocalSelection)
-                TeamSelectionState.LoadSavedUnitIds();
-
-            if (CombatTeamCompositionState.LocalSelectedUnitIds.Count > 0)
-            {
-                pManifest.SetUnitIds(pPlayerId, CombatTeamCompositionState.LocalSelectedUnitIds);
+            if (MatchCombatCompositionImporter.ExportLocalSelection(
+                    new PlayerIdentity(pPlayerId, string.Empty),
+                    pManifest))
                 return true;
-            }
-
-            if (CombatTeamCompositionState.LocalSelectedUnits.Count > 0)
-            {
-                pManifest.SetUnitIds(pPlayerId, CombatTeamCompositionState.LocalSelectedUnits);
-                return true;
-            }
 
             if (!_HasLoggedMissingLocalComposition)
             {
@@ -262,7 +252,12 @@ namespace TacticalPort.Networking
             }
 
             MatchManifest lHostManifest = lMatchContext.Manifest;
-            lHostManifest.SetAssignment(MatchPlayerSlot.TeamB, pMessage.PlayerId, lIncomingPlayer.TeamPresetId, lIncomingPlayer.UnitIds);
+            lHostManifest.SetAssignment(
+                MatchPlayerSlot.TeamB,
+                pMessage.PlayerId,
+                lIncomingPlayer.TeamPresetId,
+                lIncomingPlayer.UnitIds,
+                lIncomingPlayer.UnitBuilds);
             lMatchContext.SetManifest(lHostManifest);
             BroadcastManifestIfReady(lHostManifest);
             _Context.LogManifest($"Custom match player joined. PlayerId={pMessage.PlayerId}, MatchId={pMessage.MatchId}");

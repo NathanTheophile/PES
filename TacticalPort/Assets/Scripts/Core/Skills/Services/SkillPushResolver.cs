@@ -90,7 +90,9 @@ namespace TacticalPort.Core
             return BattleActionResult.Succeeded(
                 BattleActionType.Skill,
                 lMessage,
-                lAffectedUnitIds);
+                lAffectedUnitIds,
+                null,
+                lTotalCollisionDamage > 0 ? BattleActionOutcomeFlags.CollisionDamage : BattleActionOutcomeFlags.None);
         }
 
         private static PushResolution ResolvePushDestination(UnitRuntime pTarget, GridCoord pDirection, int pDistance, SkillExecutionContext pContext)

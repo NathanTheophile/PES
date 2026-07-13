@@ -55,14 +55,15 @@ namespace TacticalPort.UI
                 return false;
             }
 
-            SkillDefinition lSkill = lActiveUnit.Skills[pSkillSlotIndex];
-            if (lSkill == null)
+            SkillDefinition lBaseSkill = lActiveUnit.Skills[pSkillSlotIndex];
+            if (lBaseSkill == null)
             {
                 _Context.SetStatus("This skill slot is empty.");
                 return false;
             }
 
-            SkillId lSkillId = new SkillId(lSkill.Id);
+            SkillDefinition lSkill = lActiveUnit.ResolveSkillForDisplay(lBaseSkill);
+            SkillId lSkillId = new SkillId(lBaseSkill.Id);
             if (_SelectedSkillId == lSkillId)
             {
                 Cancel("Skill selection canceled.");
@@ -153,13 +154,13 @@ namespace TacticalPort.UI
             if (!HasSelectedSkill)
                 return;
 
-            if (!lActiveUnit.TryGetSkill(_SelectedSkillId, out SkillDefinition lSkill) || lSkill == null)
+            if (!lActiveUnit.TryGetSkill(_SelectedSkillId, out SkillDefinition lBaseSkill) || lBaseSkill == null)
             {
                 Cancel(null);
                 return;
             }
 
-            _SelectedSkill = lSkill;
+            _SelectedSkill = lActiveUnit.ResolveSkillForDisplay(lBaseSkill);
             _SelectedSkillSlotIndex = ResolveSkillSlotIndex(lActiveUnit, _SelectedSkillId);
         }
 

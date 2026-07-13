@@ -1,0 +1,25 @@
+{
+    "name": "TacticalPort.State.Tests",
+    "rootNamespace": "TacticalPort.State.Tests",
+    "references": [
+        "TacticalPort.State",
+        "TacticalPort.Data",
+        "TacticalPort.Matchmaking",
+        "TacticalPort.Menu",
+        "TacticalPort.Shared"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}

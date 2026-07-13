@@ -67,6 +67,11 @@ namespace TacticalPort.Data
         [SerializeField, Range(0, 100)] private int _RangedResistancePercent = 0;
 
         [TabGroup("Stats")]
+        [LabelText("Stat Point Budget")]
+        [Tooltip("Capital available in deckbuilding for this unit's stat allocations.")]
+        [SerializeField, Min(0)] private int _StatPointBudget = 120;
+
+        [TabGroup("Stats")]
         [LabelText("Push Damage Bonus")]
         [SerializeField, Min(0)] private int _PushDamageBonus = 0;
 
@@ -77,6 +82,14 @@ namespace TacticalPort.Data
         [TabGroup("Stats")]
         [LabelText("Footprint Height")]
         [SerializeField, Min(1)] private int _FootprintHeight = 1;
+
+        [TabGroup("Stats")]
+        [LabelText("Participates In Turn Order")]
+        [SerializeField] private bool _ParticipatesInTurnOrder = true;
+
+        [TabGroup("Stats")]
+        [LabelText("Counts For Victory")]
+        [SerializeField] private bool _CountsForVictory = true;
 
         [TabGroup("AI")]
         [LabelText("Target Priority")]
@@ -107,6 +120,15 @@ namespace TacticalPort.Data
         [ListDrawerSettings(Expanded = true, DraggableItems = true, ShowIndexLabels = true)]
         [ValidateInput(nameof(HasValidSkillList), "Skills cannot contain null entries or duplicates.", InfoMessageType.Warning)]
         [SerializeField] private List<SkillDefinition> _Skills = new List<SkillDefinition>();
+
+        [TabGroup("Passives")]
+        [ListDrawerSettings(Expanded = true, DraggableItems = true, ShowIndexLabels = true)]
+        [ValidateInput(nameof(HasValidPassiveList), "Passives cannot contain null entries or duplicates.", InfoMessageType.Warning)]
+        [SerializeField] private List<PassiveDefinition> _Passives = new List<PassiveDefinition>();
+
+        [TabGroup("Passives")]
+        [LabelText("Default Passive")]
+        [SerializeField] private PassiveDefinition _DefaultPassive;
 
         [TabGroup("AI")]
         [ListDrawerSettings(Expanded = true, DraggableItems = false, ShowIndexLabels = true)]
@@ -164,9 +186,12 @@ namespace TacticalPort.Data
         public int RangedDamagePercent => Mathf.Max(0, _RangedDamagePercent);
         public int MeleeResistancePercent => Mathf.Clamp(_MeleeResistancePercent, 0, 100);
         public int RangedResistancePercent => Mathf.Clamp(_RangedResistancePercent, 0, 100);
+        public int StatPointBudget => Mathf.Max(0, _StatPointBudget);
         public int PushDamageBonus => Mathf.Max(0, _PushDamageBonus);
         public int FootprintWidth => Mathf.Max(1, _FootprintWidth);
         public int FootprintHeight => Mathf.Max(1, _FootprintHeight);
+        public bool ParticipatesInTurnOrder => _ParticipatesInTurnOrder;
+        public bool CountsForVictory => _CountsForVictory;
         public bool IsBig => FootprintWidth > 1 || FootprintHeight > 1;
         public EnemyAiTargetPriority EnemyAiTargetPriority => _EnemyAiProfile != null ? _EnemyAiProfile.TargetPriority : _EnemyAiTargetPriority;
         public EnemyAiMovementPolicy EnemyAiMovementPolicy => _EnemyAiProfile != null ? _EnemyAiProfile.MovementPolicy : _EnemyAiMovementPolicy;
@@ -181,6 +206,8 @@ namespace TacticalPort.Data
         public bool EnemyAiDebugDecisions => _EnemyAiProfile != null && _EnemyAiProfile.DebugDecisions;
         public EnemyAiProfileDefinition EnemyAiProfile => _EnemyAiProfile;
         public IReadOnlyList<SkillDefinition> Skills => _Skills;
+        public IReadOnlyList<PassiveDefinition> Passives => _Passives;
+        public PassiveDefinition DefaultPassive => _DefaultPassive != null ? _DefaultPassive : ResolveFirstPassive();
         public IReadOnlyList<UnitSkillAiOverride> SkillAiOverrides => _SkillAiOverrides;
         public IReadOnlyList<UnitStateEntry> BaseStates => _BaseStates;
         public IReadOnlyList<UnitPhaseStateDefinition> PhaseStates => _PhaseStates;
@@ -259,6 +286,41 @@ namespace TacticalPort.Data
             return false;
         }
 
+        private bool HasValidPassiveList()
+        {
+            if (_Passives == null)
+                return true;
+
+            for (int lIndex = 0; lIndex < _Passives.Count; lIndex++)
+            {
+                PassiveDefinition lPassive = _Passives[lIndex];
+                if (lPassive == null)
+                    return false;
+
+                for (int lOtherIndex = lIndex + 1; lOtherIndex < _Passives.Count; lOtherIndex++)
+                {
+                    if (_Passives[lOtherIndex] == lPassive)
+                        return false;
+                }
+            }
+
+            return true;
+        }
+
+        private PassiveDefinition ResolveFirstPassive()
+        {
+            if (_Passives == null)
+                return null;
+
+            for (int lIndex = 0; lIndex < _Passives.Count; lIndex++)
+            {
+                if (_Passives[lIndex] != null)
+                    return _Passives[lIndex];
+            }
+
+            return null;
+        }
+
         private static bool ContainsSkill(IReadOnlyList<SkillDefinition> pSkills, SkillDefinition pSkill)
         {
             if (pSkills == null || pSkill == null)
@@ -279,6 +341,14 @@ namespace TacticalPort.Data
 
         public static UnitDefinition CreateRuntimeClone(UnitDefinition pSource, Team? pTeamOverride = null)
         {
+            return CreateRuntimeClone(pSource, pTeamOverride, null);
+        }
+
+        public static UnitDefinition CreateRuntimeClone(
+            UnitDefinition pSource,
+            Team? pTeamOverride,
+            UnitCombatLoadout pLoadout)
+        {
             if (pSource == null)
                 return null;
 
@@ -289,23 +359,29 @@ namespace TacticalPort.Data
             lDefinition._DisplayName = pSource.DisplayName;
             lDefinition._Description = pSource.Description;
             lDefinition._Team = pTeamOverride ?? pSource.Team;
-            lDefinition._MaxHealth = pSource.MaxHealth;
-            lDefinition._MoveRange = pSource.MoveRange;
-            lDefinition._ActionPointsPerTurn = pSource.ActionPointsPerTurn;
-            lDefinition._Initiative = pSource.Initiative;
-            lDefinition._MeleeDamagePercent = pSource.MeleeDamagePercent;
-            lDefinition._RangedDamagePercent = pSource.RangedDamagePercent;
-            lDefinition._MeleeResistancePercent = pSource.MeleeResistancePercent;
-            lDefinition._RangedResistancePercent = pSource.RangedResistancePercent;
+            UnitStatModifiers lStats = pLoadout?.StatModifiers ?? UnitStatModifiers.None;
+            lDefinition._MaxHealth = pSource.MaxHealth + lStats.Health;
+            lDefinition._MoveRange = pSource.MoveRange + lStats.Movement;
+            lDefinition._ActionPointsPerTurn = pSource.ActionPointsPerTurn + lStats.ActionPoints;
+            lDefinition._Initiative = pSource.Initiative + lStats.Initiative;
+            lDefinition._MeleeDamagePercent = pSource.MeleeDamagePercent + lStats.MeleeDamage;
+            lDefinition._RangedDamagePercent = pSource.RangedDamagePercent + lStats.RangedDamage;
+            lDefinition._MeleeResistancePercent = pSource.MeleeResistancePercent + lStats.MeleeResistance;
+            lDefinition._RangedResistancePercent = pSource.RangedResistancePercent + lStats.RangedResistance;
+            lDefinition._StatPointBudget = pSource.StatPointBudget;
             lDefinition._PushDamageBonus = pSource.PushDamageBonus;
             lDefinition._FootprintWidth = pSource.FootprintWidth;
             lDefinition._FootprintHeight = pSource.FootprintHeight;
+            lDefinition._ParticipatesInTurnOrder = pSource.ParticipatesInTurnOrder;
+            lDefinition._CountsForVictory = pSource.CountsForVictory;
             lDefinition._EnemyAiTargetPriority = pSource.EnemyAiTargetPriority;
             lDefinition._EnemyAiMovementPolicy = pSource.EnemyAiMovementPolicy;
             lDefinition._EnemyAiPreferredDistance = pSource.EnemyAiPreferredDistance;
             lDefinition._EnemyAiThreatRadius = pSource.EnemyAiThreatRadius;
             lDefinition._EnemyAiProfile = pSource.EnemyAiProfile;
-            lDefinition._Skills = CopyList(pSource._Skills);
+            lDefinition._Skills = pLoadout != null ? CopyList(pLoadout.Skills) : CopyList(pSource._Skills);
+            lDefinition._Passives = CopyList(pSource._Passives);
+            lDefinition._DefaultPassive = pLoadout?.Passive != null ? pLoadout.Passive : pSource.DefaultPassive;
             lDefinition._SkillAiOverrides = CopyList(pSource._SkillAiOverrides);
             lDefinition._BaseStates = CopyList(pSource._BaseStates);
             lDefinition._PhaseStates = CopyList(pSource._PhaseStates);
@@ -318,6 +394,18 @@ namespace TacticalPort.Data
         }
 
         private static List<T> CopyList<T>(List<T> pSource)
+        {
+            List<T> lResult = new List<T>();
+            if (pSource == null)
+                return lResult;
+
+            for (int lIndex = 0; lIndex < pSource.Count; lIndex++)
+                lResult.Add(pSource[lIndex]);
+
+            return lResult;
+        }
+
+        private static List<T> CopyList<T>(IReadOnlyList<T> pSource)
         {
             List<T> lResult = new List<T>();
             if (pSource == null)

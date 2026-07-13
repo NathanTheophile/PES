@@ -9,6 +9,7 @@
 
 using TacticalPort.Data;
 using TacticalPort.Shared;
+using System.Collections.Generic;
 
 namespace TacticalPort.Core
 {
@@ -52,10 +53,18 @@ namespace TacticalPort.Core
             if (lSummonedUnit == null)
                 return BattleActionResult.Failed(BattleActionType.Skill, "Summon failed.");
 
+            List<UnitId> lAffectedUnitIds = new List<UnitId> { pActor.Id, lSummonedUnit.Id };
+            int lSpawnStateCount = ApplySummonSpawnState(pActor, pSkill, lSummonedUnit, pContext, lAffectedUnitIds);
+            string lMessage = $"{pActor.Definition.DisplayName} summoned {lSummonedUnit.Definition.DisplayName}.";
+            if (lSpawnStateCount > 0)
+                lMessage += $" {pSkill.SummonSpawnState.DisplayName} applied to {lSpawnStateCount} unit(s).";
+
             return BattleActionResult.Succeeded(
                 BattleActionType.Skill,
-                $"{pActor.Definition.DisplayName} summoned {lSummonedUnit.Definition.DisplayName}.",
-                new[] { pActor.Id, lSummonedUnit.Id });
+                lMessage,
+                lAffectedUnitIds,
+                null,
+                BattleActionOutcomeFlags.Summon | (lSpawnStateCount > 0 ? BattleActionOutcomeFlags.StateApplied : BattleActionOutcomeFlags.None));
         }
 
         public static BattleActionResult ApplyGlyph(
@@ -77,14 +86,84 @@ namespace TacticalPort.Core
                     pSkill.GlyphDurationTurns,
                     pSkill.GlyphTargetRule,
                     lGlyphSkillId,
-                    lGlyphGroupId));
+                    lGlyphGroupId,
+                    pSkill.GlyphAppliedState,
+                    pSkill.GlyphAppliedStateStacks,
+                    pSkill.GlyphAppliedStateDurationTurns));
                 lGlyphCount++;
             }
 
             return BattleActionResult.Succeeded(
                 BattleActionType.Skill,
                 $"{pActor.Definition.DisplayName} placed {lGlyphCount} glyph(s).",
-                new[] { pActor.Id });
+                new[] { pActor.Id },
+                null,
+                lGlyphCount > 0 ? BattleActionOutcomeFlags.Glyph : BattleActionOutcomeFlags.None);
+        }
+
+        private static int ApplySummonSpawnState(
+            UnitRuntime pActor,
+            SkillDefinition pSkill,
+            UnitRuntime pSummonedUnit,
+            SkillExecutionContext pContext,
+            ICollection<UnitId> pAffectedUnitIds)
+        {
+            if (pActor == null || pSkill?.SummonSpawnState == null || pSummonedUnit == null || pContext == null)
+                return 0;
+
+            int lAffectedCount = 0;
+            foreach (UnitRuntime lCandidate in pContext.Units)
+            {
+                if (lCandidate == null
+                    || !lCandidate.IsAlive
+                    || lCandidate.Id == pSummonedUnit.Id
+                    || !CanAffectByRule(pActor.Team, lCandidate.Team, pSkill.SummonSpawnStateTargetRule)
+                    || !IsWithinSummonSpawnArea(pSummonedUnit, lCandidate, pSkill.SummonSpawnStateAreaSize))
+                {
+                    continue;
+                }
+
+                if (!lCandidate.TryApplyState(pSkill.SummonSpawnState, pSkill.SummonSpawnStateStacks, pSkill.SummonSpawnStateDurationTurns))
+                    continue;
+
+                lAffectedCount++;
+                pAffectedUnitIds?.Add(lCandidate.Id);
+            }
+
+            return lAffectedCount;
+        }
+
+        private static bool CanAffectByRule(Team pSourceTeam, Team pTargetTeam, SkillGlyphTargetRule pRule)
+        {
+            switch (pRule)
+            {
+                case SkillGlyphTargetRule.AlliesOnly:
+                    return pTargetTeam == pSourceTeam;
+
+                case SkillGlyphTargetRule.EnemiesOnly:
+                    return pTargetTeam != pSourceTeam;
+
+                default:
+                    return true;
+            }
+        }
+
+        private static bool IsWithinSummonSpawnArea(UnitRuntime pSource, UnitRuntime pTarget, int pAreaSize)
+        {
+            if (pSource == null || pTarget == null)
+                return false;
+
+            int lMaxDistance = System.Math.Max(0, pAreaSize);
+            foreach (GridCoord lSourceCell in pSource.EnumerateOccupiedCells())
+            {
+                foreach (GridCoord lTargetCell in pTarget.EnumerateOccupiedCells())
+                {
+                    if (lSourceCell.ManhattanDistanceTo(lTargetCell) <= lMaxDistance)
+                        return true;
+                }
+            }
+
+            return false;
         }
     }
 }

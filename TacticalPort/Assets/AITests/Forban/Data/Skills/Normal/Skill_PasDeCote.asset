@@ -1,0 +1,52 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f40c21058987b94b8a7de74797fdb53, type: 3}
+  m_Name: Skill_PasDeCote
+  m_EditorClassIdentifier: TacticalPort.Data::TacticalPort.Data.SkillDefinition
+  _Id: forban_pas_de_cote
+  _DisplayName: "Pas de C\xF4t\xE9"
+  _Description: 
+  _Icon: {fileID: 2412837224628278197, guid: 37e8bac507f4fd44d9107ed519750136, type: 3}
+  _Category: 3
+  _PrimaryEffectType: 0
+  _AdditionalEffectType: 2
+  _CanAffectCaster: 1
+  _RangeMin: 1
+  _RangeMax: 3
+  _TargetAlignment: 0
+  _RequiresLineOfSight: 0
+  _AoeShape: 0
+  _AoeSize: 0
+  _AoeDamageFalloffPercentPerCell: 0
+  _ActionPointCost: 2
+  _UsePerTurn: 1
+  _UsePerTarget: 0
+  _CooldownTurns: 2
+  _IsPactoleVariant: 0
+  _PactoleVariant: {fileID: 11400000, guid: 2c3011da979eeb941b15c2580f6f5665, type: 2}
+  _Power: 0
+  _PushDistance: 0
+  _SummonUnit: {fileID: 0}
+  _SummonTeamRule: 0
+  _GlyphDurationTurns: 1
+  _GlyphTargetRule: 2
+  _GlyphAppliedState: {fileID: 0}
+  _GlyphAppliedStateStacks: 1
+  _GlyphAppliedStateDurationTurns: -1
+  _SummonSpawnState: {fileID: 0}
+  _SummonSpawnStateStacks: 1
+  _SummonSpawnStateDurationTurns: -1
+  _SummonSpawnStateAreaSize: 1
+  _SummonSpawnStateTargetRule: 2
+  _AppliedState: {fileID: 0}
+  _AppliedStateStacks: 1
+  _AppliedStateDurationTurns: -1

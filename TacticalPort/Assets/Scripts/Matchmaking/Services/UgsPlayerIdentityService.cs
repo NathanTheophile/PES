@@ -26,6 +26,8 @@ namespace TacticalPort.Matchmaking
         public Task<PlayerIdentity> SignInAsync(CancellationToken pCancellationToken) =>
             UgsAuthentication.SignInAnonymouslyAsync(_ClearSessionBeforeSignIn, this, pCancellationToken);
 
+        public void PreserveAuthenticationSession() => _ClearSessionBeforeSignIn = false;
+
         #endregion
     }
 

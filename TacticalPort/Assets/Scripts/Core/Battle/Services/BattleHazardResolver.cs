@@ -97,6 +97,8 @@ namespace TacticalPort.Core
                         continue;
 
                     pActiveUnit.ApplyDamage(lGlyph.Power);
+                    if (lGlyph.AppliedState != null)
+                        pActiveUnit.TryApplyState(lGlyph.AppliedState, lGlyph.AppliedStateStacks, lGlyph.AppliedStateDurationTurns);
                 }
             }
         }

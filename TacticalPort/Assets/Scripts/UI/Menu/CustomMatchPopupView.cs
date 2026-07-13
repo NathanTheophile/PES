@@ -9,6 +9,7 @@ using System;
 using System.Threading;
 using TacticalPort.Matchmaking;
 using TacticalPort.Shared;
+using TacticalPort.State;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -212,7 +213,9 @@ namespace TacticalPort.UI
 
             if (pHost)
             {
-                PartyLobbySnapshot lLobby = await _PartyLobbyService.CreateLobbyAsync(new PartyLobbyRequest { MaxPlayers = 2 }, pCancellationToken);
+                PartyLobbySnapshot lLobby = await _PartyLobbyService.CreateLobbyAsync(
+                    new PartyLobbyRequest { MaxPlayers = 2, TeamPresetId = TeamPresetState.ActivePresetId },
+                    pCancellationToken);
                 _MatchContext.SetCustomRelayHostSession(pIdentity, lLobby);
                 SetStatus($"Custom lobby created. Code: {lLobby.JoinCode}. Waiting for player.");
                 return;
@@ -222,7 +225,7 @@ namespace TacticalPort.UI
             if (string.IsNullOrWhiteSpace(lJoinCode))
                 throw new InvalidOperationException("Custom lobby join code is empty.");
 
-            PartyLobbySnapshot lJoinedLobby = await _PartyLobbyService.JoinLobbyAsync(lJoinCode, string.Empty, pCancellationToken);
+            PartyLobbySnapshot lJoinedLobby = await _PartyLobbyService.JoinLobbyAsync(lJoinCode, TeamPresetState.ActivePresetId, pCancellationToken);
             _MatchContext.SetCustomRelayJoinSession(pIdentity, lJoinedLobby);
             SetStatus($"Joining custom lobby {lJoinedLobby.JoinCode}.");
         }

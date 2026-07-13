@@ -24,9 +24,12 @@ MonoBehaviour:
   _RangedDamagePercent: 100
   _MeleeResistancePercent: 0
   _RangedResistancePercent: 0
+  _StatPointBudget: 120
   _PushDamageBonus: 0
   _FootprintWidth: 1
   _FootprintHeight: 1
+  _ParticipatesInTurnOrder: 1
+  _CountsForVictory: 1
   _EnemyAiTargetPriority: 0
   _EnemyAiMovementPolicy: 0
   _EnemyAiPreferredDistance: 0
@@ -34,6 +37,8 @@ MonoBehaviour:
   _EnemyAiProfile: {fileID: 11400000, guid: 29f3f3c4417ba3d49965d80765a5bd6d, type: 2}
   _Skills:
   - {fileID: 11400000, guid: 813c5897eea23704ea75a379f3080fe5, type: 2}
+  _Passives: []
+  _DefaultPassive: {fileID: 0}
   _SkillAiOverrides:
   - _Skill: {fileID: 11400000, guid: 813c5897eea23704ea75a379f3080fe5, type: 2}
     _Priority: 0
@@ -46,6 +51,8 @@ MonoBehaviour:
     _KiteAfterUse: 0
   _BaseStates: []
   _PhaseStates: []
-  _UnitViewPrefab: {fileID: 6292429647394850086, guid: 60114851700ded341b477fe2d2632b76, type: 3}
+  _CombatViewPrefab: {fileID: 6292429647394850086, guid: 60114851700ded341b477fe2d2632b76, type: 3}
+  _ModelPrefab: {fileID: 0}
+  _PreviewSprite: {fileID: 0}
   _Portrait: {fileID: 0}
   _Tint: {r: 0.5698112, g: 0.30307886, b: 0.08493406, a: 1}

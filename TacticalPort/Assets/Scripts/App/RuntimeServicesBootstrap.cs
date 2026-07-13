@@ -5,7 +5,9 @@
 //  Bootstrap
 #endregion
 
+using System.Threading;
 using TacticalPort.Matchmaking;
+using TacticalPort.State;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -64,15 +66,34 @@ namespace TacticalPort.Bootstrap
             }
 
             _Instance = this;
+            PreserveAuthenticationSession();
             ConfigureQuickMatchFlow();
 
             if (_KeepAliveAcrossScenes)
                 DontDestroyOnLoad(gameObject);
         }
 
-        private void Start()
+        private async void Start()
         {
-            if (!_IsDuplicate && _LoadMenuOnStart)
+            if (_IsDuplicate)
+                return;
+
+            try
+            {
+                await _PlayerIdentityService.SignInAsync(CancellationToken.None);
+                TeamPresetState.ConfigureRepository(new CachedTeamPresetRepository(
+                    new UgsTeamPresetRepository(),
+                    new PlayerPrefsTeamPresetRepository()));
+                await TeamPresetState.InitializeAsync();
+            }
+            catch (System.Exception lException)
+            {
+                Debug.LogWarning($"Cloud team presets could not be initialized. Falling back to local storage. {lException.Message}", this);
+                TeamPresetState.ConfigureRepository(new PlayerPrefsTeamPresetRepository());
+                await TeamPresetState.InitializeAsync();
+            }
+
+            if (_LoadMenuOnStart)
                 LoadMainMenu();
         }
 
@@ -92,6 +113,12 @@ namespace TacticalPort.Bootstrap
                 _MatchRuntimeSessionLifecycle?.ConfigureGameServerAllocator(_GameServerAllocatorSource);
 
             _MatchRuntimeSessionLifecycle?.ConfigurePartyLobbyService(_PartyLobbyServiceSource);
+        }
+
+        private void PreserveAuthenticationSession()
+        {
+            _PlayerIdentityService?.PreserveAuthenticationSession();
+            _QuickMatchService?.PreserveAuthenticationSession();
         }
 
         private void LoadMainMenu()

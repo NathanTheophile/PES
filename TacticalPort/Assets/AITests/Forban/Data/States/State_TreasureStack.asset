@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8afb78d59e688054dacbfc0fe3a3af8e, type: 3}
+  m_Name: State_TreasureStack
+  m_EditorClassIdentifier: TacticalPort.Data::TacticalPort.Data.StateDefinition
+  _Id: forban_treasure_stack
+  _DisplayName: TreasureStack
+  _Description: Forban treasure resource marker.
+  _Icon: {fileID: -1379963354203584275, guid: 10a8bd7fdbf57b64fb7d3e4082febb01, type: 3}
+  _DurationTurns: 0
+  _MaxStacks: 5
+  _IsPassiveMarker: 1
+  _DamageModifierPerStack: 0
+  _MeleeDamageModifierPerStack: 0
+  _RangedDamageModifierPerStack: 0
+  _MeleeResistancePercentPerStack: 0
+  _RangedResistancePercentPerStack: 0
+  _RangeModifierPerStack: 0
+  _ActionPointModifierPerStack: 0
+  _MovementModifierPerStack: 0

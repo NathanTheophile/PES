@@ -24,9 +24,12 @@ MonoBehaviour:
   _RangedDamagePercent: 100
   _MeleeResistancePercent: 0
   _RangedResistancePercent: 0
+  _StatPointBudget: 120
   _PushDamageBonus: 0
   _FootprintWidth: 1
   _FootprintHeight: 1
+  _ParticipatesInTurnOrder: 1
+  _CountsForVictory: 1
   _EnemyAiTargetPriority: 0
   _EnemyAiMovementPolicy: 0
   _EnemyAiPreferredDistance: 0
@@ -34,6 +37,8 @@ MonoBehaviour:
   _EnemyAiProfile: {fileID: 0}
   _Skills:
   - {fileID: 11400000, guid: 813c5897eea23704ea75a379f3080fe5, type: 2}
+  _Passives: []
+  _DefaultPassive: {fileID: 0}
   _SkillAiOverrides: []
   _BaseStates: []
   _PhaseStates: []

@@ -53,9 +53,9 @@ namespace TacticalPort.Core
 
         public int GetRangedDamageModifier() => ResolveModifier(StateModifierType.RangedDamage);
 
-        public int GetMeleeResistancePercent() => ClampPercent(ResolveModifier(StateModifierType.MeleeResistance));
+        public int GetMeleeResistancePercent() => ResolveModifier(StateModifierType.MeleeResistance);
 
-        public int GetRangedResistancePercent() => ClampPercent(ResolveModifier(StateModifierType.RangedResistance));
+        public int GetRangedResistancePercent() => ResolveModifier(StateModifierType.RangedResistance);
 
         public int GetRangeModifier() => ResolveModifier(StateModifierType.Range);
 
@@ -201,8 +201,6 @@ namespace TacticalPort.Core
                     return 0;
             }
         }
-
-        private static int ClampPercent(int pValue) => Math.Max(0, Math.Min(100, pValue));
 
         private static string ResolveTemporaryStateKey(StateDefinition pState) =>
             pState != null && !string.IsNullOrWhiteSpace(pState.Id) ? $"temporary::{pState.Id}" : "temporary::";

@@ -65,6 +65,9 @@ namespace TacticalPort.Networking
             pHash = Mix(pHash, pUnit.RemainingMovement);
             pHash = Mix(pHash, pUnit.RemainingActionPoints);
             pHash = Mix(pHash, pUnit.IsAlive ? 1 : 0);
+            pHash = Mix(pHash, StableStringHash(pUnit.ActivePassive != null ? pUnit.ActivePassive.Id : string.Empty));
+            pHash = Mix(pHash, pUnit.TreasureCount);
+            pHash = Mix(pHash, pUnit.TreasureGainedThisTurn);
 
             List<BattleStateRuntime> lStates = new List<BattleStateRuntime>(pUnit.ActiveStates);
             lStates.Sort(CompareStates);
@@ -98,6 +101,9 @@ namespace TacticalPort.Networking
             pHash = Mix(pHash, (int)pGlyph.TargetRule);
             pHash = Mix(pHash, StableStringHash(pGlyph.SourceSkillId));
             pHash = Mix(pHash, StableStringHash(pGlyph.GlyphGroupId));
+            pHash = Mix(pHash, StableStringHash(pGlyph.AppliedState != null ? pGlyph.AppliedState.Id : string.Empty));
+            pHash = Mix(pHash, pGlyph.AppliedStateStacks);
+            pHash = Mix(pHash, pGlyph.AppliedStateDurationTurns);
         }
 
         private static void MixHazard(ref int pHash, TelegraphedHazardRuntime pHazard)

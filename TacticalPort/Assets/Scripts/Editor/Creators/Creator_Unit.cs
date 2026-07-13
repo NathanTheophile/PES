@@ -33,6 +33,8 @@ namespace TacticalPort.EditorTools
         [SerializeField] private int _PushDamageBonus = 0;
         [SerializeField] private int _FootprintWidth = 1;
         [SerializeField] private int _FootprintHeight = 1;
+        [SerializeField] private bool _ParticipatesInTurnOrder = true;
+        [SerializeField] private bool _CountsForVictory = true;
         [SerializeField] private UnitView _CombatViewPrefab;
         [SerializeField] private GameObject _ModelPrefab;
         [SerializeField] private Sprite _PreviewSprite;
@@ -40,6 +42,8 @@ namespace TacticalPort.EditorTools
         [SerializeField] private Color _Tint = Color.white;
         [SerializeField] private EnemyAiProfileDefinition _EnemyAiProfile;
         [SerializeField] private List<SkillDefinition> _Skills = new List<SkillDefinition>();
+        [SerializeField] private List<PassiveDefinition> _Passives = new List<PassiveDefinition>();
+        [SerializeField] private PassiveDefinition _DefaultPassive;
         [SerializeField] private List<UnitStateEntry> _BaseStates = new List<UnitStateEntry>();
         [SerializeField] private List<UnitPhaseStateDefinition> _PhaseStates = new List<UnitPhaseStateDefinition>();
 
@@ -88,6 +92,8 @@ namespace TacticalPort.EditorTools
             _PushDamageBonus = Mathf.Max(0, EditorGUILayout.IntField("Push Damage Bonus", _PushDamageBonus));
             _FootprintWidth = Mathf.Max(1, EditorGUILayout.IntField("Footprint Width", _FootprintWidth));
             _FootprintHeight = Mathf.Max(1, EditorGUILayout.IntField("Footprint Height", _FootprintHeight));
+            _ParticipatesInTurnOrder = EditorGUILayout.Toggle("Participates In Turn Order", _ParticipatesInTurnOrder);
+            _CountsForVictory = EditorGUILayout.Toggle("Counts For Victory", _CountsForVictory);
 
             DrawSectionHeader("Presentation");
             _CombatViewPrefab = (UnitView)EditorGUILayout.ObjectField("Combat View Prefab", _CombatViewPrefab, typeof(UnitView), false);
@@ -98,6 +104,8 @@ namespace TacticalPort.EditorTools
 
             GUILayout.Space(6f);
             DrawSkills();
+            GUILayout.Space(6f);
+            DrawPassives();
 
             DrawSectionHeader("AI");
             _EnemyAiProfile = (EnemyAiProfileDefinition)EditorGUILayout.ObjectField("AI Profile", _EnemyAiProfile, typeof(EnemyAiProfileDefinition), false);
@@ -133,6 +141,28 @@ namespace TacticalPort.EditorTools
 
             if (GUILayout.Button("Add Skill"))
                 _Skills.Add(null);
+        }
+
+        private void DrawPassives()
+        {
+            EditorGUILayout.LabelField("Passives", EditorStyles.boldLabel);
+            _DefaultPassive = (PassiveDefinition)EditorGUILayout.ObjectField("Default Passive", _DefaultPassive, typeof(PassiveDefinition), false);
+
+            int lRemoveIndex = -1;
+            for (int lIndex = 0; lIndex < _Passives.Count; lIndex++)
+            {
+                EditorGUILayout.BeginHorizontal();
+                _Passives[lIndex] = (PassiveDefinition)EditorGUILayout.ObjectField($"Passive {lIndex + 1}", _Passives[lIndex], typeof(PassiveDefinition), false);
+                if (GUILayout.Button("X", GUILayout.Width(24f)))
+                    lRemoveIndex = lIndex;
+                EditorGUILayout.EndHorizontal();
+            }
+
+            if (lRemoveIndex >= 0)
+                _Passives.RemoveAt(lRemoveIndex);
+
+            if (GUILayout.Button("Add Passive"))
+                _Passives.Add(null);
         }
 
         private void DrawSkillAiOverrides()
@@ -210,6 +240,8 @@ namespace TacticalPort.EditorTools
             SetInt(lSerializedObject, "_PushDamageBonus", Mathf.Max(0, _PushDamageBonus));
             SetInt(lSerializedObject, "_FootprintWidth", Mathf.Max(1, _FootprintWidth));
             SetInt(lSerializedObject, "_FootprintHeight", Mathf.Max(1, _FootprintHeight));
+            SetBool(lSerializedObject, "_ParticipatesInTurnOrder", _ParticipatesInTurnOrder);
+            SetBool(lSerializedObject, "_CountsForVictory", _CountsForVictory);
             SetObject(lSerializedObject, "_CombatViewPrefab", _CombatViewPrefab);
             SetObject(lSerializedObject, "_ModelPrefab", _ModelPrefab);
             SetObject(lSerializedObject, "_PreviewSprite", _PreviewSprite);
@@ -221,6 +253,12 @@ namespace TacticalPort.EditorTools
             lSkillsProperty.arraySize = _Skills.Count;
             for (int lIndex = 0; lIndex < _Skills.Count; lIndex++)
                 lSkillsProperty.GetArrayElementAtIndex(lIndex).objectReferenceValue = _Skills[lIndex];
+
+            SerializedProperty lPassivesProperty = lSerializedObject.FindProperty("_Passives");
+            lPassivesProperty.arraySize = _Passives.Count;
+            for (int lIndex = 0; lIndex < _Passives.Count; lIndex++)
+                lPassivesProperty.GetArrayElementAtIndex(lIndex).objectReferenceValue = _Passives[lIndex];
+            SetObject(lSerializedObject, "_DefaultPassive", _DefaultPassive);
 
             CopySerializableEntries(lSerializedObject.FindProperty("_BaseStates"), _SerializedObject.FindProperty("_BaseStates"));
             CopySerializableEntries(lSerializedObject.FindProperty("_PhaseStates"), _SerializedObject.FindProperty("_PhaseStates"));

@@ -144,13 +144,20 @@ namespace TacticalPort.View
                 if (lSpawnCell.Slot != pSlot)
                     continue;
 
-                UnitDefinition lSource = ResolveSpawnUnit(lSpawnCell, pFallbackRoster, pSelectedUnits, ref lSelectedIndex);
+                UnitDefinition lSource = ResolveSpawnUnit(
+                    lSpawnCell,
+                    pFallbackRoster,
+                    pSelectedUnits,
+                    ref lSelectedIndex,
+                    out int lSelectedUnitIndex);
                 if (lSource == null)
                     continue;
 
+                CombatTeamCompositionState.TryGetLoadout(pSlot, lSelectedUnitIndex, out UnitCombatLoadout lLoadout);
+
                 pUnits.Add(new UnitSpawnDefinition
                 {
-                    Unit = UnitDefinition.CreateRuntimeClone(lSource, pTeam),
+                    Unit = UnitDefinition.CreateRuntimeClone(lSource, pTeam, lLoadout),
                     StartCoordinate = new SerializableGridCoord(lSpawnCell.Coord.X, lSpawnCell.Coord.Y)
                 });
                 lAddedUnits++;
@@ -161,13 +168,19 @@ namespace TacticalPort.View
             SpawnCell pSpawnCell,
             IReadOnlyList<UnitDefinition> pFallbackRoster,
             IReadOnlyList<UnitDefinition> pSelectedUnits,
-            ref int pSelectedIndex)
+            ref int pSelectedIndex,
+            out int pSelectedUnitIndex)
         {
+            pSelectedUnitIndex = -1;
             while (pSelectedUnits != null && pSelectedIndex < pSelectedUnits.Count)
             {
-                UnitDefinition lSelectedUnit = pSelectedUnits[pSelectedIndex++];
+                int lCurrentIndex = pSelectedIndex++;
+                UnitDefinition lSelectedUnit = pSelectedUnits[lCurrentIndex];
                 if (lSelectedUnit != null)
+                {
+                    pSelectedUnitIndex = lCurrentIndex;
                     return lSelectedUnit;
+                }
             }
 
             if (pSpawnCell.FallbackUnit != null)

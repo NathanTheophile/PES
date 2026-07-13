@@ -26,7 +26,9 @@ namespace TacticalPort.Core
 
                 int lBaseDamage = Math.Max(0, pSkill.Power);
                 int lFalloffDamage = ResolveAoeFalloffDamage(lBaseDamage, pSkill, lTarget, pResolvedTarget.TargetCell);
-                DamageRangeType lDamageRange = pActor.ResolveDamageRangeTo(lTarget);
+                DamageRangeType lDamageRange = pSkill.CategoryDamageRange != DamageRangeType.None
+                    ? pSkill.CategoryDamageRange
+                    : pActor.ResolveDamageRangeTo(lTarget);
                 int lResolvedDamage = pActor.ResolveOutgoingDamage(lFalloffDamage, lDamageRange);
                 lTotalValue += lTarget.ApplyDamage(lResolvedDamage, lDamageRange);
                 lAffectedUnitCount++;
@@ -36,7 +38,9 @@ namespace TacticalPort.Core
             return BattleActionResult.Succeeded(
                 BattleActionType.Skill,
                 ResolveEffectMessage(pActor, pResolvedTarget, lAffectedUnitCount, lTotalValue, "dealt", "damage"),
-                lAffectedUnitIds);
+                lAffectedUnitIds,
+                null,
+                lAffectedUnitCount > 0 ? BattleActionOutcomeFlags.PrimaryDamage : BattleActionOutcomeFlags.None);
         }
 
         public static BattleActionResult ApplyHeal(UnitRuntime pActor, SkillDefinition pSkill, ResolvedSkillTarget pResolvedTarget)
@@ -58,7 +62,9 @@ namespace TacticalPort.Core
             return BattleActionResult.Succeeded(
                 BattleActionType.Skill,
                 ResolveEffectMessage(pActor, pResolvedTarget, lAffectedUnitCount, lTotalValue, "restored", "health"),
-                lAffectedUnitIds);
+                lAffectedUnitIds,
+                null,
+                lTotalValue > 0 ? BattleActionOutcomeFlags.Heal : BattleActionOutcomeFlags.None);
         }
 
         public static BattleActionResult ApplyState(UnitRuntime pActor, SkillDefinition pSkill, ResolvedSkillTarget pResolvedTarget)
@@ -85,7 +91,9 @@ namespace TacticalPort.Core
             return BattleActionResult.Succeeded(
                 BattleActionType.Skill,
                 lMessage,
-                lAffectedUnitIds);
+                lAffectedUnitIds,
+                null,
+                lAffectedCount > 0 ? BattleActionOutcomeFlags.StateApplied : BattleActionOutcomeFlags.None);
         }
 
         private static int ResolveAoeFalloffDamage(int pBaseDamage, SkillDefinition pSkill, UnitRuntime pTarget, GridCoord pCenterCell)

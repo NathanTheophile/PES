@@ -304,7 +304,11 @@ namespace TacticalPort.Networking
 
             _NextHandshakeTime = Time.unscaledTime + _HandshakeRetrySeconds;
             if (CombatTeamCompositionState.HasLocalSelection)
-                _MatchManifest.SetUnitIds(_PlayerSlots.LocalPlayerId, CombatTeamCompositionState.LocalSelectedUnits);
+            {
+                MatchCombatCompositionImporter.ExportLocalSelection(
+                    new PlayerIdentity(_PlayerSlots.LocalPlayerId, string.Empty),
+                    _MatchManifest);
+            }
 
             _ClientPlayers.SendToServer(new PurrNetCombatHandshakeMessage
             {

@@ -101,7 +101,7 @@ namespace TacticalPort.Core
 
         public void AddUnit(UnitRuntime pUnit, UnitId pAfterUnitId = default)
         {
-            if (pUnit == null || !pUnit.IsAlive)
+            if (pUnit == null || !pUnit.IsAlive || !pUnit.Definition.ParticipatesInTurnOrder)
                 return;
 
             if (CurrentTurn != null)
@@ -155,14 +155,14 @@ namespace TacticalPort.Core
 
             _TurnOrder.AddRange(
                 pUnits
-                    .Where(unit => unit != null && unit.IsAlive && unit.Team == Team.Neutral)
+                    .Where(unit => unit != null && unit.IsAlive && unit.Definition.ParticipatesInTurnOrder && unit.Team == Team.Neutral)
                     .OrderByDescending(unit => unit.Definition.Initiative)
                     .ThenBy(unit => unit.Id.Value));
         }
 
         private static List<UnitRuntime> BuildTeamOrder(IEnumerable<UnitRuntime> pUnits, Team pTeam) =>
             pUnits
-                .Where(unit => unit != null && unit.IsAlive && unit.Team == pTeam)
+                .Where(unit => unit != null && unit.IsAlive && unit.Definition.ParticipatesInTurnOrder && unit.Team == pTeam)
                 .OrderBy(unit => unit.Id.Value)
                 .ToList();
 

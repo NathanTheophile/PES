@@ -34,6 +34,8 @@ namespace TacticalPort.Matchmaking
 
         #endregion
 
+        public void PreserveAuthenticationSession() => _ClearSessionBeforeSignIn = false;
+
         #region _____________________________| TICKET
 
         public async Task<MatchTicketSnapshot> CreateTicketAsync(QuickMatchRequest pRequest, CancellationToken pCancellationToken)

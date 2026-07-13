@@ -49,6 +49,7 @@ namespace TacticalPort.Core
         #region _____________________________/ ACCESSORS
 
         public IGridService GridService { get; }
+        public IEnumerable<UnitRuntime> Units => _UnitsById != null ? _UnitsById.Values : Array.Empty<UnitRuntime>();
 
         #endregion
 

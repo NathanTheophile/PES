@@ -36,6 +36,7 @@ namespace TacticalPort.UI
         [SerializeField] private UnitInfoBoxView _ActiveUnitInfobox;
         [SerializeField] private UnitInfoBoxView _HoverUnitInfobox;
         [SerializeField] private EndCombatView _EndCombatView;
+        [SerializeField] private TreasureResourceView _TreasureResourceView;
 
         private IBattleService _BattleService;
         private HudSkillBarController _SkillBar;
@@ -170,6 +171,7 @@ namespace TacticalPort.UI
             SetText(_TxtStatus, _StatusMessage);
             SetText(_TxtMode, _SkillModeMessage);
             SetUnitStats(lActiveUnit);
+            _TreasureResourceView?.Refresh(lActiveUnit);
             _UnitFeedback?.Refresh(lActiveUnit);
             _SkillBar?.Refresh();
             RefreshActionButtons();

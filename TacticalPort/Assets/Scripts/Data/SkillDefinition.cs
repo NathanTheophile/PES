@@ -70,6 +70,10 @@ namespace TacticalPort.Data
         [SerializeField] private Sprite _Icon;
 
         [TabGroup("Casting")]
+        [LabelText("Category")]
+        [SerializeField] private SkillCategory _Category = SkillCategory.None;
+
+        [TabGroup("Casting")]
         [LabelText("Primary Effect")]
         [SerializeField] private SkillPrimaryEffectType _PrimaryEffectType = SkillPrimaryEffectType.Damage;
 
@@ -136,6 +140,15 @@ namespace TacticalPort.Data
         [LabelText("Cooldown Turns")]
         [SerializeField, Min(0)] private int _CooldownTurns = 0;
 
+        [TabGroup("Pactole")]
+        [LabelText("Is Pactole Variant")]
+        [SerializeField] private bool _IsPactoleVariant;
+
+        [TabGroup("Pactole")]
+        [HideIf(nameof(_IsPactoleVariant))]
+        [LabelText("Pactole Variant")]
+        [SerializeField] private SkillDefinition _PactoleVariant;
+
         [TabGroup("Effects")]
         [LabelText("Power")]
         [SerializeField, Min(0)] private int _Power = 1;
@@ -167,6 +180,46 @@ namespace TacticalPort.Data
         [SerializeField] private SkillGlyphTargetRule _GlyphTargetRule = SkillGlyphTargetRule.EnemiesOnly;
 
         [TabGroup("Effects")]
+        [ShowIf(nameof(UsesGlyphEffect))]
+        [LabelText("Glyph Applied State")]
+        [SerializeField] private StateDefinition _GlyphAppliedState;
+
+        [TabGroup("Effects")]
+        [ShowIf(nameof(UsesGlyphState))]
+        [LabelText("Glyph State Stacks")]
+        [SerializeField, Min(1)] private int _GlyphAppliedStateStacks = 1;
+
+        [TabGroup("Effects")]
+        [ShowIf(nameof(UsesGlyphState))]
+        [LabelText("Glyph State Duration")]
+        [SerializeField] private int _GlyphAppliedStateDurationTurns = -1;
+
+        [TabGroup("Effects")]
+        [ShowIf(nameof(UsesSummonEffect))]
+        [LabelText("Summon Spawn State")]
+        [SerializeField] private StateDefinition _SummonSpawnState;
+
+        [TabGroup("Effects")]
+        [ShowIf(nameof(UsesSummonSpawnState))]
+        [LabelText("Summon Spawn State Stacks")]
+        [SerializeField, Min(1)] private int _SummonSpawnStateStacks = 1;
+
+        [TabGroup("Effects")]
+        [ShowIf(nameof(UsesSummonSpawnState))]
+        [LabelText("Summon Spawn State Duration")]
+        [SerializeField] private int _SummonSpawnStateDurationTurns = -1;
+
+        [TabGroup("Effects")]
+        [ShowIf(nameof(UsesSummonSpawnState))]
+        [LabelText("Summon Spawn State Area")]
+        [SerializeField, Min(0)] private int _SummonSpawnStateAreaSize = 1;
+
+        [TabGroup("Effects")]
+        [ShowIf(nameof(UsesSummonSpawnState))]
+        [LabelText("Summon Spawn State Target")]
+        [SerializeField] private SkillGlyphTargetRule _SummonSpawnStateTargetRule = SkillGlyphTargetRule.EnemiesOnly;
+
+        [TabGroup("Effects")]
         [LabelText("Applied State")]
         [InlineEditor(InlineEditorObjectFieldModes.Foldout)]
         [SerializeField] private StateDefinition _AppliedState;
@@ -189,6 +242,8 @@ namespace TacticalPort.Data
         public string Id => string.IsNullOrWhiteSpace(_Id) ? name : _Id;
         public string DisplayName => string.IsNullOrWhiteSpace(_DisplayName) ? name : _DisplayName;
         public string Description => _Description;
+        public SkillCategory Category => _Category;
+        public bool HasExplicitCategory => _Category != SkillCategory.None;
         public SkillPrimaryEffectType PrimaryEffectType => _PrimaryEffectType;
         public SkillAdditionalEffectType AdditionalEffectType => _AdditionalEffectType;
         public int Range => RangeMax;
@@ -204,6 +259,8 @@ namespace TacticalPort.Data
         public int UsePerTurn => Mathf.Max(0, _UsePerTurn);
         public int UsePerTarget => Mathf.Max(0, _UsePerTarget);
         public int CooldownTurns => Mathf.Max(0, _CooldownTurns);
+        public bool IsPactoleVariant => _IsPactoleVariant;
+        public SkillDefinition PactoleVariant => _PactoleVariant;
         public int Power => Mathf.Max(0, _Power);
         public int ActionPointCost => Mathf.Max(0, _ActionPointCost);
         public int PushDistance => Mathf.Max(0, _PushDistance > 0 ? _PushDistance : _Power);
@@ -211,10 +268,26 @@ namespace TacticalPort.Data
         public SkillSummonTeamRule SummonTeamRule => _SummonTeamRule;
         public int GlyphDurationTurns => Mathf.Max(1, _GlyphDurationTurns);
         public SkillGlyphTargetRule GlyphTargetRule => _GlyphTargetRule;
+        public StateDefinition GlyphAppliedState => _GlyphAppliedState;
+        public int GlyphAppliedStateStacks => Mathf.Max(1, _GlyphAppliedStateStacks);
+        public int GlyphAppliedStateDurationTurns => _GlyphAppliedStateDurationTurns;
+        public StateDefinition SummonSpawnState => _SummonSpawnState;
+        public int SummonSpawnStateStacks => Mathf.Max(1, _SummonSpawnStateStacks);
+        public int SummonSpawnStateDurationTurns => _SummonSpawnStateDurationTurns;
+        public int SummonSpawnStateAreaSize => Mathf.Max(0, _SummonSpawnStateAreaSize);
+        public SkillGlyphTargetRule SummonSpawnStateTargetRule => _SummonSpawnStateTargetRule;
         public StateDefinition AppliedState => _AppliedState;
         public int AppliedStateStacks => Mathf.Max(1, _AppliedStateStacks);
         public int AppliedStateDurationTurns => _AppliedStateDurationTurns;
         public Sprite Icon => _Icon;
+
+        public DamageRangeType CategoryDamageRange =>
+            _Category switch
+            {
+                SkillCategory.MeleeAtk => DamageRangeType.Melee,
+                SkillCategory.RangedAtk => DamageRangeType.Ranged,
+                _ => DamageRangeType.None
+            };
 
         #endregion
 
@@ -225,6 +298,8 @@ namespace TacticalPort.Data
         private bool UsesPushEffect() => _AdditionalEffectType == SkillAdditionalEffectType.Push;
         private bool UsesSummonEffect() => _AdditionalEffectType == SkillAdditionalEffectType.Summon;
         private bool UsesGlyphEffect() => _AdditionalEffectType == SkillAdditionalEffectType.CreateGlyph;
+        private bool UsesGlyphState() => UsesGlyphEffect() && _GlyphAppliedState != null;
+        private bool UsesSummonSpawnState() => UsesSummonEffect() && _SummonSpawnState != null;
         private bool UsesAppliedState() => _AppliedState != null;
 
         #endregion

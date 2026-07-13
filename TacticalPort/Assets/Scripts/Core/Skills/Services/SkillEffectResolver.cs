@@ -20,7 +20,7 @@ namespace TacticalPort.Core
         {
             List<BattleActionResult> lResults = new List<BattleActionResult>();
 
-            bool lShouldApplyPrimaryEffect = pSkill.AdditionalEffectType != SkillAdditionalEffectType.CreateGlyph;
+            bool lShouldApplyPrimaryEffect = pSkill.PrimaryEffectType != SkillPrimaryEffectType.None;
             if (lShouldApplyPrimaryEffect)
             {
                 switch (pSkill.PrimaryEffectType)
@@ -71,6 +71,7 @@ namespace TacticalPort.Core
 
             HashSet<UnitId> lAffectedIds = new HashSet<UnitId>();
             List<string> lMessages = new List<string>();
+            BattleActionOutcomeFlags lOutcomeFlags = BattleActionOutcomeFlags.None;
 
             foreach (BattleActionResult lResult in pResults)
             {
@@ -79,6 +80,8 @@ namespace TacticalPort.Core
 
                 if (!string.IsNullOrWhiteSpace(lResult.Message))
                     lMessages.Add(lResult.Message);
+
+                lOutcomeFlags |= lResult.OutcomeFlags;
 
                 if (lResult.AffectedUnitIds == null)
                     continue;
@@ -97,7 +100,7 @@ namespace TacticalPort.Core
                 ? string.Join(" ", lMessages)
                 : $"{pActor.Definition.DisplayName} used a skill.";
 
-            return BattleActionResult.Succeeded(BattleActionType.Skill, lMessage, lAffectedIds);
+            return BattleActionResult.Succeeded(BattleActionType.Skill, lMessage, lAffectedIds, null, lOutcomeFlags);
         }
     }
 }

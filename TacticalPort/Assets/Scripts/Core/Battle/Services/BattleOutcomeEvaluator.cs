@@ -20,7 +20,7 @@ namespace TacticalPort.Core
             {
                 foreach (UnitRuntime lUnit in pUnits)
                 {
-                    if (lUnit == null || !lUnit.IsAlive)
+                    if (lUnit == null || !lUnit.IsAlive || !lUnit.Definition.CountsForVictory)
                         continue;
 
                     if (lUnit.Team == Team.TeamA)

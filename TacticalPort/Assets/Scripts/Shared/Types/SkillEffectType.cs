@@ -24,6 +24,15 @@ namespace TacticalPort.Shared
         CreateGlyph = 5
     }
 
+    public enum SkillCategory
+    {
+        None = 0,
+        MeleeAtk = 1,
+        RangedAtk = 2,
+        Utility = 3,
+        Heal = 4
+    }
+
     public enum DamageRangeType
     {
         None = 0,

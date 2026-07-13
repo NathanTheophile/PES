@@ -1,0 +1,138 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="980" viewBox="0 0 1440 980" role="img" aria-labelledby="title desc">
+  <title id="title">Panel de deckbuilding - wireframe propre</title>
+  <desc id="desc">Maquette propre du panel de deckbuilding avec modele personnage, skin, passif, six sorts equipes, statistiques et interactions popup.</desc>
+
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#344054"/>
+    </marker>
+    <style>
+      .bg { fill: #f4f6f8; }
+      .panel { fill: #ffffff; stroke: #101828; stroke-width: 3; rx: 18; }
+      .zone { fill: #f9fafb; stroke: #98a2b3; stroke-width: 2; rx: 14; }
+      .slot { fill: #ffffff; stroke: #667085; stroke-width: 3; rx: 12; }
+      .slot-empty { fill: #f2f4f7; stroke: #98a2b3; stroke-width: 3; rx: 12; }
+      .selected { fill: #e0f2fe; stroke: #0284c7; stroke-width: 4; rx: 12; }
+      .disabled { fill: #d0d5dd; stroke: #98a2b3; stroke-width: 3; rx: 12; opacity: .72; }
+      .button { fill: #101828; stroke: #101828; stroke-width: 2; rx: 10; }
+      .button-alt { fill: #ffffff; stroke: #475467; stroke-width: 2; rx: 10; }
+      .stat-bg { fill: #eaecf0; rx: 7; }
+      .stat-fill { fill: #475467; rx: 7; }
+      .stat-cell { fill: #ffffff; stroke: #98a2b3; stroke-width: 2; rx: 8; }
+      .stat-value { fill: #f2f4f7; stroke: #d0d5dd; stroke-width: 1.5; rx: 6; }
+      .accent { fill: #0284c7; }
+      .text { fill: #101828; font-family: Inter, Arial, sans-serif; font-size: 28px; }
+      .small { fill: #344054; font-family: Inter, Arial, sans-serif; font-size: 20px; }
+      .tiny { fill: #475467; font-family: Inter, Arial, sans-serif; font-size: 16px; }
+      .white { fill: #ffffff; font-family: Inter, Arial, sans-serif; font-size: 20px; font-weight: 700; }
+      .label { fill: #101828; font-family: Inter, Arial, sans-serif; font-size: 18px; font-weight: 700; }
+      .callout { fill: #344054; font-family: Inter, Arial, sans-serif; font-size: 22px; }
+      .muted { fill: #667085; font-family: Inter, Arial, sans-serif; font-size: 18px; }
+      .line { stroke: #344054; stroke-width: 2.5; fill: none; marker-end: url(#arrow); }
+      .divider { stroke: #d0d5dd; stroke-width: 2; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1440" height="980"/>
+
+  <text class="text" x="80" y="68" font-weight="800">Panel de deckbuilding</text>
+  <text class="small" x="80" y="102">1 personnage selectionne - 1 passif actif - 6 sorts equipes</text>
+
+  <rect class="panel" x="150" y="140" width="1140" height="610"/>
+  <line class="divider" x1="520" y1="165" x2="520" y2="725"/>
+
+  <!-- Zone personnage -->
+  <text class="label" x="190" y="198">NOM DU PERSONNAGE</text>
+  <rect class="zone" x="205" y="225" width="245" height="325"/>
+  <rect x="250" y="260" width="155" height="250" rx="68" fill="#ffffff" stroke="#475467" stroke-width="4"/>
+  <line x1="285" y1="318" x2="370" y2="318" stroke="#d0d5dd" stroke-width="4"/>
+  <line x1="285" y1="372" x2="370" y2="372" stroke="#d0d5dd" stroke-width="4"/>
+  <line x1="285" y1="426" x2="370" y2="426" stroke="#d0d5dd" stroke-width="4"/>
+  <text class="muted" x="257" y="538">Modele 3D</text>
+
+  <rect class="slot" x="410" y="520" width="52" height="52"/>
+  <text class="label" x="425" y="553">S</text>
+  <text class="tiny" x="403" y="590">Skin</text>
+
+  <rect class="button-alt" x="260" y="600" width="140" height="52"/>
+  <text class="label" x="287" y="634">CHANGER</text>
+
+  <!-- Passifs -->
+  <rect class="selected" x="560" y="320" width="110" height="76"/>
+  <text class="label" x="598" y="366">P1</text>
+  <rect class="disabled" x="560" y="425" width="110" height="76"/>
+  <text class="label" x="598" y="471">P2</text>
+
+  <!-- Sorts -->
+  <circle cx="760" cy="270" r="31" fill="#ffffff" stroke="#667085" stroke-width="3"/>
+  <circle cx="905" cy="270" r="31" fill="#ffffff" stroke="#667085" stroke-width="3"/>
+  <circle cx="1050" cy="270" r="31" fill="#ffffff" stroke="#667085" stroke-width="3"/>
+  <text class="label" x="742" y="278">PA</text>
+  <text class="label" x="887" y="278">PV</text>
+  <text class="label" x="1029" y="278">PM</text>
+
+  <rect class="slot-empty" x="705" y="320" width="110" height="76"/>
+  <rect class="slot-empty" x="850" y="320" width="110" height="76"/>
+  <rect class="slot-empty" x="995" y="320" width="110" height="76"/>
+  <rect class="slot-empty" x="705" y="425" width="110" height="76"/>
+  <rect class="slot-empty" x="850" y="425" width="110" height="76"/>
+  <rect class="slot-empty" x="995" y="425" width="110" height="76"/>
+  <text class="tiny" x="1128" y="411">6 sorts</text>
+
+  <!-- Stats -->
+  <text class="label" x="560" y="565">STATS</text>
+  <rect class="stat-cell" x="560" y="585" width="220" height="28"/>
+  <text class="tiny" x="575" y="605">Dmg M&#234;lee</text>
+  <rect class="stat-value" x="715" y="590" width="52" height="18"/>
+  <text class="tiny" x="733" y="605">100</text>
+
+  <rect class="stat-cell" x="800" y="585" width="220" height="28"/>
+  <text class="tiny" x="815" y="605">R&#233;s M&#234;lee</text>
+  <rect class="stat-value" x="955" y="590" width="52" height="18"/>
+  <text class="tiny" x="973" y="605">0</text>
+
+  <rect class="stat-cell" x="560" y="625" width="220" height="28"/>
+  <text class="tiny" x="575" y="645">Dmg Distance</text>
+  <rect class="stat-value" x="715" y="630" width="52" height="18"/>
+  <text class="tiny" x="733" y="645">100</text>
+
+  <rect class="stat-cell" x="800" y="625" width="220" height="28"/>
+  <text class="tiny" x="815" y="645">R&#233;s Distance</text>
+  <rect class="stat-value" x="955" y="630" width="52" height="18"/>
+  <text class="tiny" x="973" y="645">0</text>
+
+  <rect class="stat-cell" x="560" y="665" width="220" height="28"/>
+  <text class="tiny" x="575" y="685">Initiative</text>
+  <rect class="stat-value" x="715" y="670" width="52" height="18"/>
+  <text class="tiny" x="733" y="685">15</text>
+
+  <rect class="button" x="1060" y="605" width="56" height="56"/>
+  <text class="white" x="1070" y="639" font-size="16">EDIT</text>
+
+  <!-- Callouts -->
+  <path class="line" d="M 65 386 C 105 386, 135 386, 204 386"/>
+  <text class="callout" x="25" y="374">Modele 3D</text>
+  <text class="callout" x="25" y="402">du perso</text>
+
+  <path class="line" d="M 340 700 C 333 680, 327 666, 320 653"/>
+  <text class="callout" x="210" y="695">Bouton qui ouvre</text>
+  <text class="callout" x="210" y="724">une popup de tous</text>
+  <text class="callout" x="210" y="753">les persos en grille</text>
+
+  <path class="line" d="M 602 103 C 604 175, 610 255, 615 320"/>
+  <text class="callout" x="485" y="48">2 passifs : un seul actif</text>
+  <text class="callout" x="485" y="77">le passif non choisi est grise</text>
+
+  <path class="line" d="M 1160 410 C 1140 410, 1123 410, 1106 410"/>
+  <text class="callout" x="1180" y="404">Cliquer un sort</text>
+  <text class="callout" x="1180" y="433">ouvre le pool</text>
+  <text class="callout" x="1180" y="462">des skills du perso</text>
+
+  <path class="line" d="M 830 805 C 875 730, 990 655, 1061 633"/>
+  <text class="callout" x="720" y="815">Bouton pour editer</text>
+  <text class="callout" x="720" y="844">les stats</text>
+
+  <rect x="150" y="870" width="1140" height="82" rx="16" fill="#eef6ff" stroke="#7dd3fc" stroke-width="2"/>
+  <text class="small" x="180" y="903" font-weight="700">Lecture fonctionnelle</text>
+  <text class="tiny" x="180" y="932">Selectionner un personnage a gauche, choisir 1 passif sur 2, equiper 6 sorts, puis ajuster/consulter les stats via le bouton d'edition.</text>
+</svg>
