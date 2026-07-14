@@ -45,6 +45,26 @@ namespace TacticalPort.Data
         EnemiesOnly = 2
     }
 
+    public enum SkillTargetType
+    {
+        Cell = 0,
+        Unit = 1,
+        Self = 2
+    }
+
+    public enum SkillTargetRelation
+    {
+        Anyone = 0,
+        AlliesOnly = 1,
+        EnemiesOnly = 2
+    }
+
+    public enum SkillTargetScope
+    {
+        Area = 0,
+        AllMatchingUnits = 1
+    }
+
     [CreateAssetMenu(fileName = "SkillDefinition", menuName = "Project/Data/Skill Definition")]
     public sealed class SkillDefinition : ScriptableObject
     {
@@ -84,6 +104,18 @@ namespace TacticalPort.Data
         [TabGroup("Casting")]
         [LabelText("Can Affect Caster")]
         [SerializeField] private bool _CanAffectCaster = true;
+
+        [TabGroup("Casting")]
+        [LabelText("Target Type")]
+        [SerializeField] private SkillTargetType _TargetType = SkillTargetType.Cell;
+
+        [TabGroup("Casting")]
+        [LabelText("Target Relation")]
+        [SerializeField] private SkillTargetRelation _TargetRelation = SkillTargetRelation.Anyone;
+
+        [TabGroup("Casting")]
+        [LabelText("Target Scope")]
+        [SerializeField] private SkillTargetScope _TargetScope = SkillTargetScope.Area;
 
         [TabGroup("Casting")]
         [LabelText("Range Min")]
@@ -140,6 +172,12 @@ namespace TacticalPort.Data
         [LabelText("Cooldown Turns")]
         [SerializeField, Min(0)] private int _CooldownTurns = 0;
 
+        [TabGroup("Variant")]
+        [LabelText("Variant")]
+        [InlineEditor(InlineEditorObjectFieldModes.Foldout)]
+        [ValidateInput(nameof(IsVariantValid), "A skill cannot reference itself as its variant.")]
+        [SerializeField] private SkillDefinition _Variant;
+
         [TabGroup("Effects")]
         [LabelText("Power")]
         [SerializeField, Min(0)] private int _Power = 1;
@@ -152,8 +190,13 @@ namespace TacticalPort.Data
 
         [TabGroup("Effects")]
         [ShowIf(nameof(UsesPushEffect))]
-        [LabelText("Push Distance")]
+        [LabelText("Forced Movement Distance")]
         [SerializeField, Min(0)] private int _PushDistance = 0;
+
+        [TabGroup("Effects")]
+        [ShowIf(nameof(UsesPassiveProgressionEffect))]
+        [LabelText("Progression Steps")]
+        [SerializeField, Min(1)] private int _PassiveProgressionSteps = 1;
 
         [TabGroup("Effects")]
         [ShowIf(nameof(UsesSummonEffect))]
@@ -232,6 +275,22 @@ namespace TacticalPort.Data
         [Tooltip("Use -1 to keep the duration defined by the state asset.")]
         [SerializeField] private int _AppliedStateDurationTurns = -1;
 
+        [TabGroup("Effects")]
+        [LabelText("Caster Applied State")]
+        [InlineEditor(InlineEditorObjectFieldModes.Foldout)]
+        [SerializeField] private StateDefinition _CasterAppliedState;
+
+        [TabGroup("Effects")]
+        [ShowIf(nameof(UsesCasterAppliedState))]
+        [LabelText("Caster State Stacks")]
+        [SerializeField, Min(1)] private int _CasterAppliedStateStacks = 1;
+
+        [TabGroup("Effects")]
+        [ShowIf(nameof(UsesCasterAppliedState))]
+        [LabelText("Caster State Duration")]
+        [Tooltip("Use -1 to keep the duration defined by the state asset.")]
+        [SerializeField] private int _CasterAppliedStateDurationTurns = -1;
+
         #endregion
 
         #region _____________________________/ ACCESSORS
@@ -249,6 +308,9 @@ namespace TacticalPort.Data
         public SkillTargetAlignment TargetAlignment => _TargetAlignment;
         public bool RequiresLineOfSight => _RequiresLineOfSight;
         public bool CanAffectCaster => _CanAffectCaster;
+        public SkillTargetType TargetType => _TargetType;
+        public SkillTargetRelation TargetRelation => _TargetRelation;
+        public SkillTargetScope TargetScope => _TargetScope;
         public SkillAoeShape AoeShape => _AoeShape;
         public int AoeSize => Mathf.Max(0, _AoeShape == SkillAoeShape.Single ? 0 : _AoeSize);
         public bool UseAoeDamageFalloff => _AoeShape != SkillAoeShape.Single && _AoeDamageFalloffPercentPerCell > 0;
@@ -256,10 +318,12 @@ namespace TacticalPort.Data
         public int UsePerTurn => Mathf.Max(0, _UsePerTurn);
         public int UsePerTarget => Mathf.Max(0, _UsePerTarget);
         public int CooldownTurns => Mathf.Max(0, _CooldownTurns);
+        public SkillDefinition Variant => _Variant != this ? _Variant : null;
         public int Power => Mathf.Max(0, _Power);
         public bool HasLifeSteal => _HasLifeSteal && PrimaryEffectType == SkillPrimaryEffectType.Damage;
         public int EnergyCost => Mathf.Max(0, _EnergyCost);
         public int PushDistance => Mathf.Max(0, _PushDistance > 0 ? _PushDistance : _Power);
+        public int PassiveProgressionSteps => Mathf.Max(1, _PassiveProgressionSteps);
         public UnitDefinition SummonUnit => _SummonUnit;
         public SkillSummonTeamRule SummonTeamRule => _SummonTeamRule;
         public int GlyphDurationTurns => Mathf.Max(1, _GlyphDurationTurns);
@@ -275,6 +339,9 @@ namespace TacticalPort.Data
         public StateDefinition AppliedState => _AppliedState;
         public int AppliedStateStacks => Mathf.Max(1, _AppliedStateStacks);
         public int AppliedStateDurationTurns => _AppliedStateDurationTurns;
+        public StateDefinition CasterAppliedState => _CasterAppliedState;
+        public int CasterAppliedStateStacks => Mathf.Max(1, _CasterAppliedStateStacks);
+        public int CasterAppliedStateDurationTurns => _CasterAppliedStateDurationTurns;
         public Sprite Icon => _Icon;
 
         public DamageRangeType CategoryDamageRange =>
@@ -290,14 +357,17 @@ namespace TacticalPort.Data
         #region _____________________________| ODIN
 
         private bool IsRangeValid() => _RangeMin <= _RangeMax;
+        private bool IsVariantValid() => _Variant == null || _Variant != this;
         private bool UsesDamageEffect() => _PrimaryEffectType == SkillPrimaryEffectType.Damage;
         private bool HasAreaOfEffect() => _AoeShape != SkillAoeShape.Single;
-        private bool UsesPushEffect() => _AdditionalEffectType == SkillAdditionalEffectType.Push;
+        private bool UsesPushEffect() => _AdditionalEffectType is SkillAdditionalEffectType.Push or SkillAdditionalEffectType.Pull;
+        private bool UsesPassiveProgressionEffect() => _AdditionalEffectType == SkillAdditionalEffectType.AdvanceActivePassiveProgression;
         private bool UsesSummonEffect() => _AdditionalEffectType == SkillAdditionalEffectType.Summon;
         private bool UsesGlyphEffect() => _AdditionalEffectType == SkillAdditionalEffectType.CreateGlyph;
         private bool UsesGlyphState() => UsesGlyphEffect() && _GlyphAppliedState != null;
         private bool UsesSummonSpawnState() => UsesSummonEffect() && _SummonSpawnState != null;
         private bool UsesAppliedState() => _AppliedState != null;
+        private bool UsesCasterAppliedState() => _CasterAppliedState != null;
 
         #endregion
     }

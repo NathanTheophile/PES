@@ -18,21 +18,31 @@ namespace TacticalPort.Core
     {
         #region _____________________________| SKILLS
 
-        public BattleActionResult Validate(UnitRuntime pActor, SkillDefinition pSkill, SkillTarget pTarget, SkillExecutionContext pContext)
+        public BattleActionResult Validate(
+            UnitRuntime pActor,
+            SkillDefinition pBaseSkill,
+            SkillDefinition pEffectiveSkill,
+            SkillTarget pTarget,
+            SkillExecutionContext pContext)
         {
-            return SkillTargetResolver.TryResolveTarget(pActor, pSkill, pTarget, pContext, out ResolvedSkillTarget lResolvedTarget, out BattleActionResult lValidation)
+            return SkillTargetResolver.TryResolveTarget(pActor, pBaseSkill, pEffectiveSkill, pTarget, pContext, out ResolvedSkillTarget lResolvedTarget, out BattleActionResult lValidation)
                 ? BattleActionResult.Succeeded(BattleActionType.Skill, "Skill can be used.", SkillTargetResolver.ResolveAffectedUnitIds(pActor.Id, lResolvedTarget))
                 : lValidation;
         }
 
-        public BattleActionResult Execute(UnitRuntime pActor, SkillDefinition pSkill, SkillTarget pTarget, SkillExecutionContext pContext)
+        public BattleActionResult Execute(
+            UnitRuntime pActor,
+            SkillDefinition pBaseSkill,
+            SkillDefinition pEffectiveSkill,
+            SkillTarget pTarget,
+            SkillExecutionContext pContext)
         {
-            if (!SkillTargetResolver.TryResolveTarget(pActor, pSkill, pTarget, pContext, out ResolvedSkillTarget lResolvedTarget, out BattleActionResult lValidation))
+            if (!SkillTargetResolver.TryResolveTarget(pActor, pBaseSkill, pEffectiveSkill, pTarget, pContext, out ResolvedSkillTarget lResolvedTarget, out BattleActionResult lValidation))
                 return lValidation;
 
-            BattleActionResult lResult = SkillEffectResolver.ApplyEffect(pActor, pSkill, lResolvedTarget, pContext);
+            BattleActionResult lResult = SkillEffectResolver.ApplyEffect(pActor, pEffectiveSkill, lResolvedTarget, pContext);
             if (lResult.IsSuccess)
-                pActor.RegisterSkillUse(pSkill, lResolvedTarget.UsageTargetKeys);
+                pActor.RegisterSkillUse(pBaseSkill, lResolvedTarget.UsageTargetKeys);
 
             return lResult;
         }

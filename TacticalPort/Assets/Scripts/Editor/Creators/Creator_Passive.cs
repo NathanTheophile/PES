@@ -21,6 +21,10 @@ namespace TacticalPort.EditorTools
         private string _DisplayName = "New Passive";
         private string _Description = string.Empty;
         private Sprite _Icon;
+        private PassiveTrigger _Trigger = PassiveTrigger.None;
+        private StateProgressionDefinition _StateProgression;
+        private int _ProgressionStepsPerTrigger = 1;
+        private bool _TriggerOnOwnerVariantExecutions = true;
 
         #endregion
 
@@ -45,6 +49,16 @@ namespace TacticalPort.EditorTools
             _Id = EditorGUILayout.TextField("Id", _Id);
             _Description = EditorGUILayout.TextField("Description", _Description);
 
+            DrawSectionHeader("Gameplay");
+            _Trigger = (PassiveTrigger)EditorGUILayout.EnumPopup("Trigger", _Trigger);
+            _StateProgression = (StateProgressionDefinition)EditorGUILayout.ObjectField(
+                "State Progression",
+                _StateProgression,
+                typeof(StateProgressionDefinition),
+                false);
+            _ProgressionStepsPerTrigger = Mathf.Max(1, EditorGUILayout.IntField("Progression Steps / Trigger", _ProgressionStepsPerTrigger));
+            _TriggerOnOwnerVariantExecutions = EditorGUILayout.Toggle("Trigger On Owner Variant", _TriggerOnOwnerVariantExecutions);
+
             DrawSectionHeader("Presentation");
             _Icon = (Sprite)EditorGUILayout.ObjectField("Icon", _Icon, typeof(Sprite), false);
 
@@ -65,6 +79,10 @@ namespace TacticalPort.EditorTools
             SetString(lSerializedObject, "_DisplayName", string.IsNullOrWhiteSpace(_DisplayName) ? lId : _DisplayName.Trim());
             SetString(lSerializedObject, "_Description", _Description);
             SetObject(lSerializedObject, "_Icon", _Icon);
+            SetEnum(lSerializedObject, "_Trigger", (int)_Trigger);
+            SetObject(lSerializedObject, "_StateProgression", _StateProgression);
+            SetInt(lSerializedObject, "_ProgressionStepsPerTrigger", Mathf.Max(1, _ProgressionStepsPerTrigger));
+            SetBool(lSerializedObject, "_TriggerOnOwnerVariantExecutions", _TriggerOnOwnerVariantExecutions);
             ApplyAndSave(lSerializedObject);
             Creator_FileSaver.CreateAsset(lAsset, PassivesFolder, BuildFileName("Passive", lId, _DisplayName, "passive"));
             Close();

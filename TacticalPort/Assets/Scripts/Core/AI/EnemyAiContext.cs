@@ -168,9 +168,9 @@ namespace TacticalPort.Core
 
             for (int lIndex = 0; lIndex < lSkills.Count; lIndex++)
             {
-                SkillDefinition lSkill = lSkills[lIndex];
-                if (EnemyAiSkillScorer.IsOffensiveSkill(lSkill))
-                    lBestRange = Math.Max(lBestRange, pActor.GetSkillRangeMax(lSkill));
+                SkillDefinition lEffectiveSkill = pActor.ResolveEffectiveSkill(lSkills[lIndex]);
+                if (EnemyAiSkillScorer.IsOffensiveSkill(lEffectiveSkill))
+                    lBestRange = Math.Max(lBestRange, pActor.GetSkillRangeMax(lEffectiveSkill));
             }
 
             return lBestRange;

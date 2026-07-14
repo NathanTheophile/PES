@@ -18,24 +18,33 @@ namespace TacticalPort.Core
         }
 
         public static EnemyAiSkillEvaluation Evaluate(EnemyAiContext pContext, SkillDefinition pSkill, SkillTarget pTarget, BattleActionResult pValidation, UnitSkillAiOverride pRule = null)
+            => Evaluate(pContext, pSkill, pSkill, pTarget, pValidation, pRule);
+
+        public static EnemyAiSkillEvaluation Evaluate(
+            EnemyAiContext pContext,
+            SkillDefinition pBaseSkill,
+            SkillDefinition pEffectiveSkill,
+            SkillTarget pTarget,
+            BattleActionResult pValidation,
+            UnitSkillAiOverride pRule = null)
         {
-            if (pContext?.Actor == null || pContext.BattleService == null || pSkill == null || pTarget == null || pValidation == null)
+            if (pContext?.Actor == null || pContext.BattleService == null || pBaseSkill == null || pEffectiveSkill == null || pTarget == null || pValidation == null)
                 return default;
 
-            EnemyAiImpactSummary lImpact = EnemyAiImpactAnalyzer.Analyze(pContext, pSkill, pTarget, pValidation);
-            int lScore = EnemyAiEffectScorer.ScoreAffectedUnits(pContext, pSkill, pTarget, pValidation, lImpact);
-            lScore += EnemyAiEffectScorer.ScoreImpactShape(pContext, pSkill, lImpact);
-            lScore += EnemyAiEffectScorer.ScoreBoardEffect(pContext, pSkill, pTarget, lImpact);
-            lScore += ScoreTargetingIntent(pContext, pSkill, pTarget, lImpact);
-            lScore += ScoreRuleIntent(pContext, pSkill, pTarget, pValidation, pRule);
-            lScore -= pSkill.EnergyCost * 3;
+            EnemyAiImpactSummary lImpact = EnemyAiImpactAnalyzer.Analyze(pContext, pEffectiveSkill, pTarget, pValidation);
+            int lScore = EnemyAiEffectScorer.ScoreAffectedUnits(pContext, pEffectiveSkill, pTarget, pValidation, lImpact);
+            lScore += EnemyAiEffectScorer.ScoreImpactShape(pContext, pEffectiveSkill, lImpact);
+            lScore += EnemyAiEffectScorer.ScoreBoardEffect(pContext, pEffectiveSkill, pTarget, lImpact);
+            lScore += ScoreTargetingIntent(pContext, pEffectiveSkill, pTarget, lImpact);
+            lScore += ScoreRuleIntent(pContext, pEffectiveSkill, pTarget, pValidation, pRule);
+            lScore -= pEffectiveSkill.EnergyCost * 3;
 
             return new EnemyAiSkillEvaluation(
-                pSkill,
+                pBaseSkill,
                 pTarget,
                 pRule,
                 lScore,
-                $"AI used {pSkill.DisplayName} on {pTarget.Cell} (score {lScore}).");
+                $"AI used {pEffectiveSkill.DisplayName} on {pTarget.Cell} (score {lScore}).");
         }
 
         public static bool IsOffensiveSkill(SkillDefinition pSkill)
@@ -45,6 +54,7 @@ namespace TacticalPort.Core
 
             return pSkill.PrimaryEffectType == SkillPrimaryEffectType.Damage
                 || pSkill.AdditionalEffectType == SkillAdditionalEffectType.Push
+                || pSkill.AdditionalEffectType == SkillAdditionalEffectType.Pull
                 || pSkill.AdditionalEffectType == SkillAdditionalEffectType.SwitchPositions
                 || pSkill.AppliedState != null;
         }

@@ -53,6 +53,7 @@ namespace TacticalPort.Core
         public event Action<BattleTurnContext> TurnStarted;
         public event Action<UnitId> TurnEnded;
         public event Action<BattleActionResult> SkillUsed;
+        public event Action<SkillResolutionReport> SkillResolved;
         public event Action<TelegraphedHazardRuntime> HazardScheduled;
         public event Action<BattleActionResult> HazardsResolved;
 
@@ -155,7 +156,7 @@ namespace TacticalPort.Core
 
         public BattleActionResult ValidateSkill(UnitId pUnitId, SkillId pSkillId, SkillTarget pTarget)
         {
-            TryResolveSkillRequest(pUnitId, pSkillId, pTarget, out _, out _, out _, out BattleActionResult lError);
+            TryResolveSkillRequest(pUnitId, pSkillId, pTarget, out _, out _, out _, out _, out BattleActionResult lError);
             return lError;
         }
 
@@ -186,15 +187,30 @@ namespace TacticalPort.Core
 
         public BattleActionResult UseSkill(UnitId pUnitId, SkillId pSkillId, SkillTarget pTarget)
         {
-            if (!TryResolveSkillRequest(pUnitId, pSkillId, pTarget, out UnitRuntime lUnit, out SkillDefinition lSkill, out SkillExecutionContext lContext, out BattleActionResult lError))
+            if (!TryResolveSkillRequest(
+                    pUnitId,
+                    pSkillId,
+                    pTarget,
+                    out UnitRuntime lUnit,
+                    out SkillDefinition lBaseSkill,
+                    out SkillDefinition lEffectiveSkill,
+                    out SkillExecutionContext lContext,
+                    out BattleActionResult lError))
                 return lError;
 
             Phase = BattlePhase.ResolvingAction;
-            BattleActionResult lResult = _SkillExecutor.Execute(lUnit, lSkill, pTarget, lContext);
+            Dictionary<UnitId, int> lHealthBefore = CaptureHealthByUnit();
+            BattleActionResult lResult = _SkillExecutor.Execute(lUnit, lBaseSkill, lEffectiveSkill, pTarget, lContext);
+            SkillResolutionReport lReport = null;
 
             if (lResult.IsSuccess)
             {
-                lUnit.TrySpendEnergy(lSkill.EnergyCost);
+                lUnit.TrySpendEnergy(lEffectiveSkill.EnergyCost);
+                lReport = BuildSkillResolutionReport(lUnit.Id, lBaseSkill, lEffectiveSkill, lHealthBefore);
+                if (lReport.UsedVariant)
+                    lUnit.ConsumeSkillVariantEnablers();
+
+                BattlePassiveResolver.Resolve(lUnit, lReport, _UnitsById.Values);
                 BattleServiceMaintenance.RefreshPhaseStates(_UnitsById, lResult.AffectedUnitIds);
                 BattleServiceMaintenance.CleanupDefeatedUnits(_UnitsById.Values, _GridService, _TurnSystem);
                 BattleServiceMaintenance.CompleteTurnIfActiveUnitIsGone(_TurnSystem, _UnitsById);
@@ -205,6 +221,8 @@ namespace TacticalPort.Core
                 Phase = CurrentTurn != null ? BattlePhase.AwaitingAction : BattlePhase.TurnEnd;
 
             SkillUsed?.Invoke(lResult);
+            if (lReport != null)
+                SkillResolved?.Invoke(lReport);
             return lResult;
         }
 
@@ -326,7 +344,8 @@ namespace TacticalPort.Core
             SkillId pSkillId,
             SkillTarget pTarget,
             out UnitRuntime pUnit,
-            out SkillDefinition pSkill,
+            out SkillDefinition pBaseSkill,
+            out SkillDefinition pEffectiveSkill,
             out SkillExecutionContext pContext,
             out BattleActionResult pError)
         {
@@ -334,17 +353,20 @@ namespace TacticalPort.Core
 
             if (!CanControlCurrentUnit(pUnitId, BattleActionType.Skill, out pUnit, out pError))
             {
-                pSkill = null;
+                pBaseSkill = null;
+                pEffectiveSkill = null;
                 return false;
             }
 
-            if (!pUnit.TryGetSkill(pSkillId, out pSkill))
+            if (!pUnit.TryGetSkill(pSkillId, out pBaseSkill))
             {
+                pEffectiveSkill = null;
                 pError = BattleActionResult.Failed(BattleActionType.Skill, $"Skill '{pSkillId}' is not available for unit {pUnitId}.");
                 return false;
             }
 
-            if (!pUnit.CanSpendEnergy(pSkill.EnergyCost))
+            pEffectiveSkill = pUnit.ResolveEffectiveSkill(pBaseSkill);
+            if (!pUnit.CanSpendEnergy(pEffectiveSkill.EnergyCost))
             {
                 pError = BattleActionResult.Failed(BattleActionType.Skill, "Unit does not have enough Energy.");
                 return false;
@@ -358,8 +380,41 @@ namespace TacticalPort.Core
                 TrySummonUnit,
                 pGlyph => _GridService.AddOrReplaceGlyph(pGlyph),
                 TryScheduleHazard);
-            pError = _SkillExecutor.Validate(pUnit, pSkill, pTarget, pContext);
+            pError = _SkillExecutor.Validate(pUnit, pBaseSkill, pEffectiveSkill, pTarget, pContext);
             return pError.IsSuccess;
+        }
+
+        private Dictionary<UnitId, int> CaptureHealthByUnit()
+        {
+            Dictionary<UnitId, int> lHealthByUnit = new Dictionary<UnitId, int>(_UnitsById.Count);
+            foreach (KeyValuePair<UnitId, UnitRuntime> lPair in _UnitsById)
+            {
+                if (lPair.Value != null)
+                    lHealthByUnit[lPair.Key] = lPair.Value.CurrentHealth;
+            }
+
+            return lHealthByUnit;
+        }
+
+        private SkillResolutionReport BuildSkillResolutionReport(
+            UnitId pActorId,
+            SkillDefinition pBaseSkill,
+            SkillDefinition pEffectiveSkill,
+            IReadOnlyDictionary<UnitId, int> pHealthBefore)
+        {
+            List<SkillHealthLoss> lHealthLosses = new List<SkillHealthLoss>();
+            foreach (KeyValuePair<UnitId, int> lPair in pHealthBefore)
+            {
+                if (!_UnitsById.TryGetValue(lPair.Key, out UnitRuntime lUnit) || lUnit == null)
+                    continue;
+
+                int lHealthLost = Math.Max(0, lPair.Value - lUnit.CurrentHealth);
+                if (lHealthLost > 0)
+                    lHealthLosses.Add(new SkillHealthLoss(lPair.Key, lHealthLost));
+            }
+
+            lHealthLosses.Sort((pLeft, pRight) => pLeft.UnitId.Value.CompareTo(pRight.UnitId.Value));
+            return new SkillResolutionReport(pActorId, pBaseSkill, pEffectiveSkill, lHealthLosses);
         }
 
         private UnitRuntime TrySummonUnit(UnitDefinition pDefinition, SkillSummonTeamRule pTeamRule, UnitRuntime pSummoner, GridCoord pDestination)

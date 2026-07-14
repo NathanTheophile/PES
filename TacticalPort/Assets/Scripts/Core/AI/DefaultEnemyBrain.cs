@@ -72,22 +72,30 @@ namespace TacticalPort.Core
 
         private static void EvaluateSkill(
             EnemyAiContext pContext,
-            SkillDefinition pSkill,
+            SkillDefinition pBaseSkill,
             UnitSkillAiOverride pRule,
             ref EnemyAiSkillEvaluation pBestEvaluation)
         {
-            if (pSkill == null
-                || pContext.Actor.RemainingEnergy < pSkill.EnergyCost
+            SkillDefinition lEffectiveSkill = pContext.Actor.ResolveEffectiveSkill(pBaseSkill);
+            if (pBaseSkill == null
+                || lEffectiveSkill == null
+                || pContext.Actor.RemainingEnergy < lEffectiveSkill.EnergyCost
                 || !EnemyAiSkillRuleUtility.CanUseRule(pContext.Actor, pRule))
                 return;
 
-            foreach (GridCoord lCell in EnemyAiTargeting.EnumerateTargetCells(pContext, pSkill, pRule))
+            foreach (GridCoord lCell in EnemyAiTargeting.EnumerateTargetCells(pContext, lEffectiveSkill, pRule))
             {
                 SkillTarget lTarget = SkillTarget.ForCell(lCell);
-                if (!pContext.TryValidate(pSkill, lTarget, out BattleActionResult lValidation))
+                if (!pContext.TryValidate(pBaseSkill, lTarget, out BattleActionResult lValidation))
                     continue;
 
-                EnemyAiSkillEvaluation lEvaluation = EnemyAiSkillScorer.Evaluate(pContext, pSkill, lTarget, lValidation, pRule);
+                EnemyAiSkillEvaluation lEvaluation = EnemyAiSkillScorer.Evaluate(
+                    pContext,
+                    pBaseSkill,
+                    lEffectiveSkill,
+                    lTarget,
+                    lValidation,
+                    pRule);
                 if (lEvaluation.Score <= pBestEvaluation.Score)
                     continue;
 

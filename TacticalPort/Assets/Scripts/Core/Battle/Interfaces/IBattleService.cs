@@ -23,6 +23,7 @@ namespace TacticalPort.Core
         event Action<BattleTurnContext> TurnStarted;
         event Action<UnitId> TurnEnded;
         event Action<BattleActionResult> SkillUsed;
+        event Action<SkillResolutionReport> SkillResolved;
         event Action<TelegraphedHazardRuntime> HazardScheduled;
         event Action<BattleActionResult> HazardsResolved;
 

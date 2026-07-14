@@ -49,6 +49,7 @@ namespace TacticalPort.Core
         private readonly Team? _TeamOverride;
         private PassiveDefinition _ActivePassive;
         private int _WearRemainder;
+        private bool _IsTurnActive;
 
         #endregion
 
@@ -70,6 +71,7 @@ namespace TacticalPort.Core
         public IReadOnlyList<GridCoord> OccupiedCellOffsets => _OccupiedCellOffsets;
         public IReadOnlyList<BattleStateRuntime> ActiveStates => _States.States;
         public PassiveDefinition ActivePassive => _ActivePassive;
+        public bool IsTurnActive => _IsTurnActive;
         public event Action<int, bool> ValueChanged;
 
         #endregion
@@ -78,11 +80,13 @@ namespace TacticalPort.Core
 
         public void BeginTurn()
         {
+            _IsTurnActive = true;
             _SkillUsage.TickCooldowns();
             _SkillUsage.ClearTurnUses();
             _States.RemoveExpiredStates();
             if (!IsAlive)
             {
+                _IsTurnActive = false;
                 RemainingMobility = 0;
                 RemainingEnergy = 0;
                 return;
@@ -95,6 +99,7 @@ namespace TacticalPort.Core
         public void EndTurn()
         {
             _States.TickDurationsAtTurnEnd();
+            _IsTurnActive = false;
             ClearTurnResources();
         }
 
@@ -248,34 +253,107 @@ namespace TacticalPort.Core
 
         public void SetPersistentState(string pStateKey, StateDefinition pState, int pStacks = 1)
         {
+            int lPreviousEnergyModifier = GetEnergyModifier();
+            int lPreviousMobilityModifier = GetMobilityModifier();
             _States.SetPersistentState(pStateKey, pState, pStacks);
-            ClampTurnResourcesToCurrentMax();
+            RefreshTurnResourcesAfterModifierChange(lPreviousEnergyModifier, lPreviousMobilityModifier);
         }
 
         public bool TryApplyState(StateDefinition pState, int pStacks = 1, int pDurationTurns = -1)
         {
+            int lPreviousEnergyModifier = GetEnergyModifier();
+            int lPreviousMobilityModifier = GetMobilityModifier();
             if (!_States.TryApplyState(pState, pStacks, pDurationTurns))
                 return false;
 
-            ClampTurnResourcesToCurrentMax();
+            RefreshTurnResourcesAfterModifierChange(lPreviousEnergyModifier, lPreviousMobilityModifier);
             return true;
         }
 
         public bool RemoveTemporaryState(StateDefinition pState)
         {
+            int lPreviousEnergyModifier = GetEnergyModifier();
+            int lPreviousMobilityModifier = GetMobilityModifier();
             if (!_States.RemoveTemporaryState(pState))
                 return false;
 
-            ClampTurnResourcesToCurrentMax();
+            RefreshTurnResourcesAfterModifierChange(lPreviousEnergyModifier, lPreviousMobilityModifier);
             return true;
         }
 
         public bool RemoveStateByKey(string pStateKey)
         {
+            int lPreviousEnergyModifier = GetEnergyModifier();
+            int lPreviousMobilityModifier = GetMobilityModifier();
             if (!_States.RemoveStateByKey(pStateKey))
                 return false;
 
-            ClampTurnResourcesToCurrentMax();
+            RefreshTurnResourcesAfterModifierChange(lPreviousEnergyModifier, lPreviousMobilityModifier);
+            return true;
+        }
+
+        public SkillDefinition ResolveEffectiveSkill(SkillDefinition pBaseSkill) =>
+            pBaseSkill?.Variant != null && HasSkillVariantEnabler() ? pBaseSkill.Variant : pBaseSkill;
+
+        public int ConsumeSkillVariantEnablers()
+        {
+            List<BattleStateRuntime> lVariantStates = new List<BattleStateRuntime>();
+            for (int lIndex = 0; lIndex < _States.States.Count; lIndex++)
+            {
+                BattleStateRuntime lState = _States.States[lIndex];
+                if (lState?.Definition != null && lState.Definition.EnablesSkillVariant)
+                    lVariantStates.Add(lState);
+            }
+
+            int lConsumedCount = 0;
+            for (int lIndex = 0; lIndex < lVariantStates.Count; lIndex++)
+            {
+                BattleStateRuntime lState = lVariantStates[lIndex];
+                int lPreviousEnergyModifier = GetEnergyModifier();
+                int lPreviousMobilityModifier = GetMobilityModifier();
+                if (!_States.ReplaceStateByKey(lState.Key, lState.Definition.VariantConsumedReplacementState))
+                    continue;
+
+                RefreshTurnResourcesAfterModifierChange(lPreviousEnergyModifier, lPreviousMobilityModifier);
+                lConsumedCount++;
+            }
+
+            return lConsumedCount;
+        }
+
+        public int GetStateProgressionIndex(StateProgressionDefinition pProgression)
+        {
+            if (pProgression?.States == null)
+                return -1;
+
+            string lProgressionKey = ResolveProgressionKey(pProgression);
+            for (int lStateIndex = 0; lStateIndex < _States.States.Count; lStateIndex++)
+            {
+                BattleStateRuntime lRuntimeState = _States.States[lStateIndex];
+                if (lRuntimeState == null || lRuntimeState.Key != lProgressionKey)
+                    continue;
+
+                for (int lProgressionIndex = 0; lProgressionIndex < pProgression.States.Count; lProgressionIndex++)
+                {
+                    if (pProgression.States[lProgressionIndex] == lRuntimeState.Definition)
+                        return lProgressionIndex;
+                }
+            }
+
+            return -1;
+        }
+
+        public bool AdvanceStateProgression(StateProgressionDefinition pProgression, int pSteps = 1)
+        {
+            if (pProgression?.States == null || pProgression.States.Count == 0 || pSteps <= 0)
+                return false;
+
+            int lCurrentIndex = GetStateProgressionIndex(pProgression);
+            int lNextIndex = Math.Min(pProgression.States.Count - 1, lCurrentIndex + pSteps);
+            if (lNextIndex <= lCurrentIndex || pProgression.States[lNextIndex] == null)
+                return false;
+
+            SetPersistentState(ResolveProgressionKey(pProgression), pProgression.States[lNextIndex], 1);
             return true;
         }
 
@@ -339,6 +417,38 @@ namespace TacticalPort.Core
             RemainingMobility = Math.Max(0, Math.Min(RemainingMobility, Definition.MobilityPerTurn + GetMobilityModifier()));
             RemainingEnergy = Math.Max(0, Math.Min(RemainingEnergy, Definition.EnergyPerTurn + GetEnergyModifier()));
         }
+
+        private void RefreshTurnResourcesAfterModifierChange(int pPreviousEnergyModifier, int pPreviousMobilityModifier)
+        {
+            if (!_IsTurnActive || !IsAlive)
+            {
+                if (!_IsTurnActive)
+                    ClearTurnResources();
+                else
+                    ClampTurnResourcesToCurrentMax();
+                return;
+            }
+
+            int lEnergyDelta = GetEnergyModifier() - pPreviousEnergyModifier;
+            int lMobilityDelta = GetMobilityModifier() - pPreviousMobilityModifier;
+            RemainingEnergy = Math.Max(0, RemainingEnergy + lEnergyDelta);
+            RemainingMobility = Math.Max(0, RemainingMobility + lMobilityDelta);
+            ClampTurnResourcesToCurrentMax();
+        }
+
+        private bool HasSkillVariantEnabler()
+        {
+            for (int lIndex = 0; lIndex < _States.States.Count; lIndex++)
+            {
+                if (_States.States[lIndex]?.Definition?.EnablesSkillVariant == true)
+                    return true;
+            }
+
+            return false;
+        }
+
+        private static string ResolveProgressionKey(StateProgressionDefinition pProgression) =>
+            pProgression != null ? $"progression::{pProgression.Id}" : "progression::";
 
         private static List<SkillDefinition> BuildRuntimeSkills(UnitDefinition pDefinition)
         {

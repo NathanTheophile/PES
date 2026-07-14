@@ -36,30 +36,38 @@ namespace TacticalPort.Core
         private static void EvaluateSkillFromCell(
             EnemyAiContext pContext,
             GridCoord pCell,
-            SkillDefinition pSkill,
+            SkillDefinition pBaseSkill,
             UnitSkillAiOverride pRule,
             ref EnemyAiSkillEvaluation pBestEvaluation)
         {
             UnitRuntime lActor = pContext.Actor;
-            if (pSkill == null
-                || lActor.RemainingEnergy < pSkill.EnergyCost
+            SkillDefinition lEffectiveSkill = lActor.ResolveEffectiveSkill(pBaseSkill);
+            if (pBaseSkill == null
+                || lEffectiveSkill == null
+                || lActor.RemainingEnergy < lEffectiveSkill.EnergyCost
                 || !EnemyAiSkillRuleUtility.CanUseRule(lActor, pRule))
             {
                 return;
             }
 
-            foreach (GridCoord lTargetCell in EnumerateTargetCellsFromCell(pContext, pCell, pSkill, pRule))
+            foreach (GridCoord lTargetCell in EnumerateTargetCellsFromCell(pContext, pCell, lEffectiveSkill, pRule))
             {
                 SkillTarget lTarget = SkillTarget.ForCell(lTargetCell);
                 bool lIsCurrentCell = pCell == lActor.Position;
                 bool lIsValid = lIsCurrentCell
-                    ? pContext.TryValidate(pSkill, lTarget, out BattleActionResult lValidation)
-                    : TryBuildFutureValidation(pContext, pCell, pSkill, lTarget, out lValidation);
+                    ? pContext.TryValidate(pBaseSkill, lTarget, out BattleActionResult lValidation)
+                    : TryBuildFutureValidation(pContext, pCell, lEffectiveSkill, lTarget, out lValidation);
 
                 if (!lIsValid)
                     continue;
 
-                EnemyAiSkillEvaluation lEvaluation = EnemyAiSkillScorer.Evaluate(pContext, pSkill, lTarget, lValidation, pRule);
+                EnemyAiSkillEvaluation lEvaluation = EnemyAiSkillScorer.Evaluate(
+                    pContext,
+                    pBaseSkill,
+                    lEffectiveSkill,
+                    lTarget,
+                    lValidation,
+                    pRule);
                 if (lEvaluation.Score > pBestEvaluation.Score)
                     pBestEvaluation = lEvaluation;
             }
@@ -74,7 +82,8 @@ namespace TacticalPort.Core
             HashSet<GridCoord> lCells = new HashSet<GridCoord>();
             UnitRuntime lActor = pContext.Actor;
 
-            if (pRule != null && pRule.TargetTeam == EnemyAiTargetTeam.Self)
+            if (pSkill.TargetType == SkillTargetType.Self
+                || pRule != null && pRule.TargetTeam == EnemyAiTargetTeam.Self)
             {
                 lCells.Add(pCell);
             }
@@ -119,6 +128,13 @@ namespace TacticalPort.Core
         {
             pValidation = null;
             UnitRuntime lActor = pContext.Actor;
+            UnitRuntime lPrimaryTarget = TryResolveOccupant(pContext, pTarget.Cell);
+            if (pSkill.TargetType == SkillTargetType.Unit && lPrimaryTarget == null)
+                return false;
+
+            if (pSkill.TargetType == SkillTargetType.Self && pTarget.Cell != pSourceCell)
+                return false;
+
             int lDistance = pSourceCell.ManhattanDistanceTo(pTarget.Cell);
             int lRangeMin = lActor.GetSkillRangeMin(pSkill);
             int lRangeMax = lActor.GetSkillRangeMax(pSkill);
@@ -129,11 +145,13 @@ namespace TacticalPort.Core
             if (!GridLineOfSightUtility.MatchesAlignment(pSourceCell, pTarget.Cell, pSkill.TargetAlignment))
                 return false;
 
-            UnitRuntime lPrimaryTarget = TryResolveOccupant(pContext, pTarget.Cell);
             if (pSkill.RequiresLineOfSight && pSourceCell != pTarget.Cell && !HasApproximateLineOfSight(pContext, pSourceCell, pTarget.Cell, lPrimaryTarget))
                 return false;
 
             List<UnitId> lAffectedUnitIds = ResolveAffectedUnitIds(pContext, pSourceCell, pSkill, pTarget.Cell);
+            if (pSkill.TargetType == SkillTargetType.Unit && !lAffectedUnitIds.Contains(lPrimaryTarget.Id))
+                return false;
+
             if (RequiresAffectedUnit(pSkill) && lAffectedUnitIds.Count == 0)
                 return false;
 
@@ -164,11 +182,23 @@ namespace TacticalPort.Core
             if (pContext?.BattleService?.Units == null)
                 return lAffectedUnitIds;
 
+            if (pSkill.TargetScope == SkillTargetScope.AllMatchingUnits)
+            {
+                foreach (UnitRuntime lUnit in pContext.BattleService.Units)
+                {
+                    if (CanAffectUnit(pContext.Actor, pSkill, lUnit))
+                        lAffectedUnitIds.Add(lUnit.Id);
+                }
+
+                lAffectedUnitIds.Sort((pLeft, pRight) => pLeft.Value.CompareTo(pRight.Value));
+                return lAffectedUnitIds;
+            }
+
             GridCoord lDirection = GridLineOfSightUtility.ResolveAreaDirection(pSourceCell, pTargetCell);
             int lAoeSize = pSkill.AoeShape == SkillAoeShape.Single ? 0 : System.Math.Max(0, pSkill.AoeSize);
             foreach (UnitRuntime lUnit in pContext.BattleService.Units)
             {
-                if (lUnit == null || !lUnit.IsAlive)
+                if (!CanAffectUnit(pContext.Actor, pSkill, lUnit))
                     continue;
 
                 bool lIsAffected = false;
@@ -318,9 +348,31 @@ namespace TacticalPort.Core
                 }
             }
 
-            return pSkill.PrimaryEffectType == SkillPrimaryEffectType.Heal
-                ? pActor.Team
-                : pActor.Team == Team.TeamA ? Team.TeamB : Team.TeamA;
+            if (pSkill.TargetRelation == SkillTargetRelation.AlliesOnly)
+                return pActor.Team;
+
+            return pSkill.TargetRelation == SkillTargetRelation.EnemiesOnly
+                || pSkill.PrimaryEffectType != SkillPrimaryEffectType.Heal
+                    ? pActor.Team == Team.TeamA ? Team.TeamB : Team.TeamA
+                    : pActor.Team;
+        }
+
+        private static bool CanAffectUnit(UnitRuntime pActor, SkillDefinition pSkill, UnitRuntime pTarget)
+        {
+            if (pActor == null || pSkill == null || pTarget == null || !pTarget.IsAlive)
+                return false;
+
+            if (pTarget.Id == pActor.Id && !pSkill.CanAffectCaster)
+                return false;
+
+            return pSkill.TargetRelation switch
+            {
+                SkillTargetRelation.AlliesOnly => pTarget.Team == pActor.Team,
+                SkillTargetRelation.EnemiesOnly =>
+                    pActor.Team == Team.TeamA && pTarget.Team == Team.TeamB
+                    || pActor.Team == Team.TeamB && pTarget.Team == Team.TeamA,
+                _ => true
+            };
         }
     }
 }

@@ -21,7 +21,9 @@ namespace TacticalPort.Shared
         Teleport = 2,
         SwitchPositions = 3,
         Summon = 4,
-        CreateGlyph = 5
+        CreateGlyph = 5,
+        Pull = 6,
+        AdvanceActivePassiveProgression = 7
     }
 
     public enum SkillCategory

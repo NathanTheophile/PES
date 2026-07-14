@@ -62,7 +62,7 @@ namespace TacticalPort.UI
                 return false;
             }
 
-            SkillDefinition lSkill = lBaseSkill;
+            SkillDefinition lSkill = lActiveUnit.ResolveEffectiveSkill(lBaseSkill);
             SkillId lSkillId = new SkillId(lBaseSkill.Id);
             if (_SelectedSkillId == lSkillId)
             {
@@ -160,7 +160,7 @@ namespace TacticalPort.UI
                 return;
             }
 
-            _SelectedSkill = lBaseSkill;
+            _SelectedSkill = lActiveUnit.ResolveEffectiveSkill(lBaseSkill);
             _SelectedSkillSlotIndex = ResolveSkillSlotIndex(lActiveUnit, _SelectedSkillId);
         }
 

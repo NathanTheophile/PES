@@ -128,6 +128,23 @@ namespace TacticalPort.Core
             return false;
         }
 
+        public bool ReplaceStateByKey(string pStateKey, StateDefinition pReplacementState, int pStacks = 1)
+        {
+            BattleStateRuntime lExistingState = FindStateByKey(pStateKey);
+            if (lExistingState == null)
+                return false;
+
+            if (pReplacementState == null)
+                return RemoveStateByKey(pStateKey);
+
+            lExistingState.Reconfigure(
+                pReplacementState,
+                pStacks,
+                lExistingState.RemainingTurns,
+                lExistingState.IsPersistent);
+            return true;
+        }
+
         public void TickDurationsAtTurnEnd()
         {
             for (int lIndex = _States.Count - 1; lIndex >= 0; lIndex--)

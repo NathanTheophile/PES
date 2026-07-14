@@ -41,6 +41,10 @@ namespace TacticalPort.Core
                     lResults.Add(SkillPushResolver.ApplyPush(pActor, pSkill, pResolvedTarget, pContext));
                     break;
 
+                case SkillAdditionalEffectType.Pull:
+                    lResults.Add(SkillPullResolver.ApplyPull(pActor, pSkill, pResolvedTarget, pContext));
+                    break;
+
                 case SkillAdditionalEffectType.Teleport:
                     lResults.Add(SkillPlacementResolver.ApplyTeleport(pActor, pResolvedTarget, pContext));
                     break;
@@ -56,12 +60,44 @@ namespace TacticalPort.Core
                 case SkillAdditionalEffectType.CreateGlyph:
                     lResults.Add(SkillPlacementResolver.ApplyGlyph(pActor, pSkill, pResolvedTarget, pContext));
                     break;
+
+                case SkillAdditionalEffectType.AdvanceActivePassiveProgression:
+                    lResults.Add(ApplyActivePassiveProgression(pActor, pSkill));
+                    break;
             }
 
+            BattleActionResult lAppliedStateResult = null;
             if (pSkill.AppliedState != null)
-                lResults.Add(SkillDamageResolver.ApplyState(pActor, pSkill, pResolvedTarget));
+            {
+                lAppliedStateResult = SkillDamageResolver.ApplyState(pActor, pSkill, pResolvedTarget);
+                lResults.Add(lAppliedStateResult);
+            }
+
+            bool lCanApplyCasterState = pSkill.AppliedState == null
+                || (lAppliedStateResult != null
+                    && (lAppliedStateResult.OutcomeFlags & BattleActionOutcomeFlags.StateApplied) != 0);
+            if (pSkill.CasterAppliedState != null && lCanApplyCasterState)
+                lResults.Add(SkillDamageResolver.ApplyStateToCaster(pActor, pSkill));
 
             return CombineEffectResults(pActor, lResults);
+        }
+
+        private static BattleActionResult ApplyActivePassiveProgression(UnitRuntime pActor, SkillDefinition pSkill)
+        {
+            StateProgressionDefinition lProgression = pActor?.ActivePassive?.StateProgression;
+            bool lAdvanced = pActor != null
+                && lProgression != null
+                && pActor.AdvanceStateProgression(lProgression, pSkill.PassiveProgressionSteps);
+
+            string lMessage = lAdvanced
+                ? $"{pActor.Definition.DisplayName} advanced {lProgression.name}."
+                : string.Empty;
+            return BattleActionResult.Succeeded(
+                BattleActionType.Skill,
+                lMessage,
+                pActor != null ? new[] { pActor.Id } : null,
+                null,
+                lAdvanced ? BattleActionOutcomeFlags.StateApplied : BattleActionOutcomeFlags.None);
         }
 
         private static BattleActionResult CombineEffectResults(UnitRuntime pActor, List<BattleActionResult> pResults)
@@ -100,7 +136,9 @@ namespace TacticalPort.Core
                 ? string.Join(" ", lMessages)
                 : $"{pActor.Definition.DisplayName} used a skill.";
 
-            return BattleActionResult.Succeeded(BattleActionType.Skill, lMessage, lAffectedIds, null, lOutcomeFlags);
+            List<UnitId> lOrderedAffectedIds = new List<UnitId>(lAffectedIds);
+            lOrderedAffectedIds.Sort((pLeft, pRight) => pLeft.Value.CompareTo(pRight.Value));
+            return BattleActionResult.Succeeded(BattleActionType.Skill, lMessage, lOrderedAffectedIds, null, lOutcomeFlags);
         }
     }
 }

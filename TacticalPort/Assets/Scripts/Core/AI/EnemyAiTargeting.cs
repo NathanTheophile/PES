@@ -36,7 +36,8 @@ namespace TacticalPort.Core
             if (lActor == null || pSkill == null)
                 yield break;
 
-            if (pRule != null && pRule.TargetTeam == EnemyAiTargetTeam.Self)
+            if (pSkill.TargetType == SkillTargetType.Self
+                || (pRule != null && pRule.TargetTeam == EnemyAiTargetTeam.Self))
             {
                 lCells.Add(lActor.Position);
             }
@@ -209,6 +210,12 @@ namespace TacticalPort.Core
                         return pActor.Team;
                 }
             }
+
+            if (pSkill.TargetRelation == SkillTargetRelation.AlliesOnly)
+                return pActor.Team;
+
+            if (pSkill.TargetRelation == SkillTargetRelation.EnemiesOnly)
+                return pActor.Team == Team.TeamA ? Team.TeamB : Team.TeamA;
 
             return pSkill.PrimaryEffectType == SkillPrimaryEffectType.Heal
                 ? pActor.Team

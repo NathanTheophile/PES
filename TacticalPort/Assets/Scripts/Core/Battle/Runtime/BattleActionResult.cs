@@ -7,10 +7,55 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using TacticalPort.Data;
 using TacticalPort.Shared;
 
 namespace TacticalPort.Core
 {
+    public readonly struct SkillHealthLoss
+    {
+        public SkillHealthLoss(UnitId pUnitId, int pAmount)
+        {
+            UnitId = pUnitId;
+            Amount = Math.Max(0, pAmount);
+        }
+
+        public UnitId UnitId { get; }
+        public int Amount { get; }
+    }
+
+    public sealed class SkillResolutionReport
+    {
+        public SkillResolutionReport(
+            UnitId pActorId,
+            SkillDefinition pBaseSkill,
+            SkillDefinition pEffectiveSkill,
+            IReadOnlyList<SkillHealthLoss> pHealthLosses)
+        {
+            ActorId = pActorId;
+            BaseSkill = pBaseSkill;
+            EffectiveSkill = pEffectiveSkill;
+            HealthLosses = pHealthLosses ?? Array.Empty<SkillHealthLoss>();
+        }
+
+        public UnitId ActorId { get; }
+        public SkillDefinition BaseSkill { get; }
+        public SkillDefinition EffectiveSkill { get; }
+        public bool UsedVariant => BaseSkill != null && EffectiveSkill != null && BaseSkill != EffectiveSkill;
+        public IReadOnlyList<SkillHealthLoss> HealthLosses { get; }
+
+        public int GetHealthLost(UnitId pUnitId)
+        {
+            for (int lIndex = 0; lIndex < HealthLosses.Count; lIndex++)
+            {
+                if (HealthLosses[lIndex].UnitId == pUnitId)
+                    return HealthLosses[lIndex].Amount;
+            }
+
+            return 0;
+        }
+    }
+
     [Flags]
     public enum BattleActionOutcomeFlags
     {

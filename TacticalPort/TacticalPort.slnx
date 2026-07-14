@@ -9,11 +9,11 @@
   <Project Path="Assembly-CSharp-firstpass.csproj" />
   <Project Path="TacticalPort.Shared.csproj" />
   <Project Path="TacticalPort.View.csproj" />
+  <Project Path="TacticalPort.State.Tests.csproj" />
   <Project Path="TacticalPort.Data.csproj" />
   <Project Path="TacticalPort.App.Contracts.csproj" />
   <Project Path="TacticalPort.State.csproj" />
   <Project Path="TacticalPort.Menu.csproj" />
-  <Project Path="TacticalPort.State.Tests.csproj" />
   <Project Path="TacticalPort.Matchmaking.Contracts.csproj" />
   <Project Path="Sirenix.OdinInspector.Modules.UnityMathematics.csproj" />
   <Project Path="TacticalPort.App.csproj" />

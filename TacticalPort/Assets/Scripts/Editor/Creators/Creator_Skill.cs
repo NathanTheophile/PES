@@ -27,16 +27,21 @@ namespace TacticalPort.EditorTools
         private SkillTargetAlignment _TargetAlignment = SkillTargetAlignment.Any;
         private bool _RequiresLineOfSight;
         private bool _CanAffectCaster = true;
+        private SkillTargetType _TargetType = SkillTargetType.Cell;
+        private SkillTargetRelation _TargetRelation = SkillTargetRelation.Anyone;
+        private SkillTargetScope _TargetScope = SkillTargetScope.Area;
         private SkillAoeShape _AoeShape = SkillAoeShape.Single;
         private int _AoeSize = 0;
         private bool _UseAoeDamageFalloff;
         private int _UsePerTurn = 0;
         private int _UsePerTarget = 0;
         private int _CooldownTurns = 0;
+        private SkillDefinition _Variant;
         private int _Power = 1;
         private bool _HasLifeSteal;
         private int _EnergyCost = 1;
         private int _PushDistance = 1;
+        private int _PassiveProgressionSteps = 1;
         private UnitDefinition _SummonUnit;
         private SkillSummonTeamRule _SummonTeamRule = SkillSummonTeamRule.Definition;
         private int _GlyphDurationTurns = 1;
@@ -52,6 +57,9 @@ namespace TacticalPort.EditorTools
         private StateDefinition _AppliedState;
         private int _AppliedStateStacks = 1;
         private int _AppliedStateDurationTurns = -1;
+        private StateDefinition _CasterAppliedState;
+        private int _CasterAppliedStateStacks = 1;
+        private int _CasterAppliedStateDurationTurns = -1;
         private Sprite _Icon;
 
         #endregion
@@ -86,6 +94,9 @@ namespace TacticalPort.EditorTools
             _TargetAlignment = (SkillTargetAlignment)EditorGUILayout.EnumPopup("Target Alignment", _TargetAlignment);
             _RequiresLineOfSight = EditorGUILayout.Toggle("Requires Line Of Sight", _RequiresLineOfSight);
             _CanAffectCaster = EditorGUILayout.Toggle("Can Affect Caster", _CanAffectCaster);
+            _TargetType = (SkillTargetType)EditorGUILayout.EnumPopup("Target Type", _TargetType);
+            _TargetRelation = (SkillTargetRelation)EditorGUILayout.EnumPopup("Target Relation", _TargetRelation);
+            _TargetScope = (SkillTargetScope)EditorGUILayout.EnumPopup("Target Scope", _TargetScope);
             _AoeShape = (SkillAoeShape)EditorGUILayout.EnumPopup("AoE Shape", _AoeShape);
             if (_AoeShape != SkillAoeShape.Single)
             {
@@ -101,6 +112,7 @@ namespace TacticalPort.EditorTools
             _UsePerTurn = Mathf.Max(0, EditorGUILayout.IntField("Use / Turn", _UsePerTurn));
             _UsePerTarget = Mathf.Max(0, EditorGUILayout.IntField("Use / Target / Turn", _UsePerTarget));
             _CooldownTurns = Mathf.Max(0, EditorGUILayout.IntField("Cooldown", _CooldownTurns));
+            _Variant = (SkillDefinition)EditorGUILayout.ObjectField("Variant", _Variant, typeof(SkillDefinition), false);
             _Power = Mathf.Max(0, EditorGUILayout.IntField("Power", _Power));
             if (_PrimaryEffectType == SkillPrimaryEffectType.Damage)
                 _HasLifeSteal = EditorGUILayout.Toggle("Life Steal (50%)", _HasLifeSteal);
@@ -121,8 +133,10 @@ namespace TacticalPort.EditorTools
         {
             DrawSectionHeader("Advanced Combat");
 
-            if (_AdditionalEffectType == SkillAdditionalEffectType.Push)
-                _PushDistance = Mathf.Max(1, EditorGUILayout.IntField("Push Distance", _PushDistance));
+            if (_AdditionalEffectType is SkillAdditionalEffectType.Push or SkillAdditionalEffectType.Pull)
+                _PushDistance = Mathf.Max(1, EditorGUILayout.IntField("Forced Movement Distance", _PushDistance));
+            else if (_AdditionalEffectType == SkillAdditionalEffectType.AdvanceActivePassiveProgression)
+                _PassiveProgressionSteps = Mathf.Max(1, EditorGUILayout.IntField("Progression Steps", _PassiveProgressionSteps));
             else if (_AdditionalEffectType == SkillAdditionalEffectType.Teleport)
                 EditorGUILayout.HelpBox("Teleport has no extra parameters for now.", MessageType.None);
             else if (_AdditionalEffectType == SkillAdditionalEffectType.SwitchPositions)
@@ -165,6 +179,18 @@ namespace TacticalPort.EditorTools
                 _AppliedStateStacks = 1;
                 _AppliedStateDurationTurns = -1;
             }
+
+            _CasterAppliedState = (StateDefinition)EditorGUILayout.ObjectField("Caster Applied State", _CasterAppliedState, typeof(StateDefinition), false);
+            if (_CasterAppliedState != null)
+            {
+                _CasterAppliedStateStacks = Mathf.Max(1, EditorGUILayout.IntField("Caster State Stacks", _CasterAppliedStateStacks));
+                _CasterAppliedStateDurationTurns = EditorGUILayout.IntField("Caster State Duration Override", _CasterAppliedStateDurationTurns);
+            }
+            else
+            {
+                _CasterAppliedStateStacks = 1;
+                _CasterAppliedStateDurationTurns = -1;
+            }
         }
 
         #endregion
@@ -187,16 +213,21 @@ namespace TacticalPort.EditorTools
             SetEnum(lSerializedObject, "_TargetAlignment", (int)_TargetAlignment);
             SetBool(lSerializedObject, "_RequiresLineOfSight", _RequiresLineOfSight);
             SetBool(lSerializedObject, "_CanAffectCaster", _CanAffectCaster);
+            SetEnum(lSerializedObject, "_TargetType", (int)_TargetType);
+            SetEnum(lSerializedObject, "_TargetRelation", (int)_TargetRelation);
+            SetEnum(lSerializedObject, "_TargetScope", (int)_TargetScope);
             SetEnum(lSerializedObject, "_AoeShape", (int)_AoeShape);
             SetInt(lSerializedObject, "_AoeSize", _AoeShape == SkillAoeShape.Single ? 0 : Mathf.Max(1, _AoeSize));
             SetInt(lSerializedObject, "_AoeDamageFalloffPercentPerCell", _AoeShape != SkillAoeShape.Single && _UseAoeDamageFalloff ? SkillDefinition.FixedAoeDamageFalloffPercentPerCell : 0);
             SetInt(lSerializedObject, "_UsePerTurn", Mathf.Max(0, _UsePerTurn));
             SetInt(lSerializedObject, "_UsePerTarget", Mathf.Max(0, _UsePerTarget));
             SetInt(lSerializedObject, "_CooldownTurns", Mathf.Max(0, _CooldownTurns));
+            SetObject(lSerializedObject, "_Variant", _Variant);
             SetInt(lSerializedObject, "_Power", Mathf.Max(0, _Power));
             SetBool(lSerializedObject, "_HasLifeSteal", _PrimaryEffectType == SkillPrimaryEffectType.Damage && _HasLifeSteal);
             SetInt(lSerializedObject, "_EnergyCost", Mathf.Max(0, _EnergyCost));
             SetInt(lSerializedObject, "_PushDistance", Mathf.Max(0, _PushDistance));
+            SetInt(lSerializedObject, "_PassiveProgressionSteps", Mathf.Max(1, _PassiveProgressionSteps));
             SetObject(lSerializedObject, "_SummonUnit", _SummonUnit);
             SetEnum(lSerializedObject, "_SummonTeamRule", (int)_SummonTeamRule);
             SetInt(lSerializedObject, "_GlyphDurationTurns", Mathf.Max(1, _GlyphDurationTurns));
@@ -212,6 +243,9 @@ namespace TacticalPort.EditorTools
             SetObject(lSerializedObject, "_AppliedState", _AppliedState);
             SetInt(lSerializedObject, "_AppliedStateStacks", Mathf.Max(1, _AppliedStateStacks));
             SetInt(lSerializedObject, "_AppliedStateDurationTurns", _AppliedStateDurationTurns);
+            SetObject(lSerializedObject, "_CasterAppliedState", _CasterAppliedState);
+            SetInt(lSerializedObject, "_CasterAppliedStateStacks", Mathf.Max(1, _CasterAppliedStateStacks));
+            SetInt(lSerializedObject, "_CasterAppliedStateDurationTurns", _CasterAppliedStateDurationTurns);
             SetObject(lSerializedObject, "_Icon", _Icon);
 
             ApplyAndSave(lSerializedObject);

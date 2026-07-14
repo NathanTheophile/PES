@@ -13,7 +13,7 @@ namespace TacticalPort.Core
 {
     public interface ISkillExecutor
     {
-        BattleActionResult Validate(UnitRuntime actor, SkillDefinition skill, SkillTarget target, SkillExecutionContext context);
-        BattleActionResult Execute(UnitRuntime actor, SkillDefinition skill, SkillTarget target, SkillExecutionContext context);
+        BattleActionResult Validate(UnitRuntime actor, SkillDefinition baseSkill, SkillDefinition effectiveSkill, SkillTarget target, SkillExecutionContext context);
+        BattleActionResult Execute(UnitRuntime actor, SkillDefinition baseSkill, SkillDefinition effectiveSkill, SkillTarget target, SkillExecutionContext context);
     }
 }

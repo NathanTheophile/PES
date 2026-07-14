@@ -45,6 +45,16 @@ namespace TacticalPort.Data
         [InfoBox("Passive marker states can be used to expose passive effects without applying numeric modifiers.", InfoMessageType.Info)]
         [SerializeField] private bool _IsPassiveMarker;
 
+        [TabGroup("Rules")]
+        [LabelText("Enables Skill Variant")]
+        [SerializeField] private bool _EnablesSkillVariant;
+
+        [TabGroup("Rules")]
+        [ShowIf(nameof(_EnablesSkillVariant))]
+        [LabelText("Variant Consumed Replacement")]
+        [ValidateInput(nameof(IsVariantReplacementValid), "A state cannot replace itself when consuming a variant.")]
+        [SerializeField] private StateDefinition _VariantConsumedReplacementState;
+
         [TabGroup("Modifiers")]
         [LabelText("General Damage %/Stack")]
         [SerializeField] private int _DamageModifierPerStack = 0;
@@ -96,6 +106,8 @@ namespace TacticalPort.Data
         public int DurationTurns => Mathf.Max(0, _DurationTurns);
         public int MaxStacks => Mathf.Max(1, _MaxStacks);
         public bool IsPassiveMarker => _IsPassiveMarker;
+        public bool EnablesSkillVariant => _EnablesSkillVariant;
+        public StateDefinition VariantConsumedReplacementState => _VariantConsumedReplacementState != this ? _VariantConsumedReplacementState : null;
         public int DamageModifierPerStack => _DamageModifierPerStack;
         public int MeleeDamageModifierPerStack => _MeleeDamageModifierPerStack;
         public int RangedDamageModifierPerStack => _RangedDamageModifierPerStack;
@@ -106,6 +118,8 @@ namespace TacticalPort.Data
         public int RangeModifierPerStack => _RangeModifierPerStack;
         public int EnergyModifierPerStack => _EnergyModifierPerStack;
         public int MobilityModifierPerStack => _MobilityModifierPerStack;
+
+        private bool IsVariantReplacementValid() => _VariantConsumedReplacementState == null || _VariantConsumedReplacementState != this;
 
         #endregion
     }

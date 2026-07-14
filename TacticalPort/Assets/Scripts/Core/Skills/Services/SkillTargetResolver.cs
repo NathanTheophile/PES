@@ -14,13 +14,14 @@ namespace TacticalPort.Core
     {
         public static bool TryResolveTarget(
             UnitRuntime pActor,
-            SkillDefinition pSkill,
+            SkillDefinition pBaseSkill,
+            SkillDefinition pEffectiveSkill,
             SkillTarget pTarget,
             SkillExecutionContext pContext,
             out ResolvedSkillTarget pResolvedTarget,
             out BattleActionResult pFailure)
         {
-            BattleActionResult lBaseValidation = ValidateBaseInputs(pActor, pSkill, pTarget, pContext);
+            BattleActionResult lBaseValidation = ValidateBaseInputs(pActor, pEffectiveSkill, pTarget, pContext);
             if (!lBaseValidation.IsSuccess)
             {
                 pResolvedTarget = null;
@@ -34,23 +35,32 @@ namespace TacticalPort.Core
                 return false;
             }
 
-            if (!ValidateTargetGeometry(pActor, pSkill, lResolvedTarget, pContext, out pFailure))
+            if (!ValidateTargetType(pActor, pEffectiveSkill, lResolvedTarget, out pFailure)
+                || !ValidateTargetGeometry(pActor, pEffectiveSkill, lResolvedTarget, pContext, out pFailure))
             {
                 pResolvedTarget = null;
                 return false;
             }
 
-            PopulateAffectedCells(pActor, pSkill, lResolvedTarget.TargetCell, pContext, lResolvedTarget.AffectedCells);
-            PopulateAffectedUnits(pActor, pSkill, pContext, lResolvedTarget.AffectedCells, lResolvedTarget.AffectedUnits);
+            PopulateAffectedCells(pActor, pEffectiveSkill, lResolvedTarget.TargetCell, pContext, lResolvedTarget.AffectedCells);
+            PopulateAffectedUnits(pActor, pEffectiveSkill, pContext, lResolvedTarget.AffectedCells, lResolvedTarget.AffectedUnits);
             PopulateUsageTargetKeys(lResolvedTarget);
 
-            if (!ValidateEffectSpecificTargeting(pActor, pSkill, lResolvedTarget, pContext, out pFailure))
+            if (pEffectiveSkill.TargetType == SkillTargetType.Unit
+                && !ContainsUnit(lResolvedTarget.AffectedUnits, lResolvedTarget.PrimaryTargetUnit))
+            {
+                pResolvedTarget = null;
+                pFailure = BattleActionResult.Failed(BattleActionType.Skill, "The selected unit does not match this skill's target relation.");
+                return false;
+            }
+
+            if (!ValidateEffectSpecificTargeting(pActor, pEffectiveSkill, lResolvedTarget, pContext, out pFailure))
             {
                 pResolvedTarget = null;
                 return false;
             }
 
-            if (!pActor.TryValidateSkillUsage(pSkill, lResolvedTarget.UsageTargetKeys, out string lUsageFailureReason))
+            if (!pActor.TryValidateSkillUsage(pBaseSkill, lResolvedTarget.UsageTargetKeys, out string lUsageFailureReason))
             {
                 pResolvedTarget = null;
                 pFailure = BattleActionResult.Failed(BattleActionType.Skill, lUsageFailureReason);
@@ -60,6 +70,28 @@ namespace TacticalPort.Core
             pResolvedTarget = lResolvedTarget;
             pFailure = null;
             return true;
+        }
+
+        private static bool ValidateTargetType(
+            UnitRuntime pActor,
+            SkillDefinition pSkill,
+            ResolvedSkillTarget pResolvedTarget,
+            out BattleActionResult pFailure)
+        {
+            switch (pSkill.TargetType)
+            {
+                case SkillTargetType.Unit when pResolvedTarget.PrimaryTargetUnit == null:
+                    pFailure = BattleActionResult.Failed(BattleActionType.Skill, "A living unit target is required.");
+                    return false;
+
+                case SkillTargetType.Self when pActor == null || pResolvedTarget.TargetCell != pActor.Position:
+                    pFailure = BattleActionResult.Failed(BattleActionType.Skill, "This skill must target its caster.");
+                    return false;
+
+                default:
+                    pFailure = null;
+                    return true;
+            }
         }
 
         public static IEnumerable<UnitId> ResolveAffectedUnitIds(UnitId pActorId, ResolvedSkillTarget pResolvedTarget)
@@ -270,13 +302,26 @@ namespace TacticalPort.Core
             pUnits.Clear();
             HashSet<UnitId> lVisitedUnits = new HashSet<UnitId>();
 
+            if (pSkill.TargetScope == SkillTargetScope.AllMatchingUnits)
+            {
+                List<UnitRuntime> lCandidates = new List<UnitRuntime>();
+                foreach (UnitRuntime lUnit in pContext.Units)
+                {
+                    if (CanAffectUnit(pActor, pSkill, lUnit))
+                        lCandidates.Add(lUnit);
+                }
+
+                lCandidates.Sort((pLeft, pRight) => pLeft.Id.Value.CompareTo(pRight.Id.Value));
+                for (int lIndex = 0; lIndex < lCandidates.Count; lIndex++)
+                    pUnits.Add(lCandidates[lIndex]);
+                return;
+            }
+
             foreach (GridCoord lCell in pCells)
             {
                 if (!pContext.GridService.TryGetOccupant(lCell, out UnitId lOccupantId)
                     || !pContext.TryGetUnit(lOccupantId, out UnitRuntime lUnit)
-                    || lUnit == null
-                    || !lUnit.IsAlive
-                    || (!pSkill.CanAffectCaster && pActor != null && lUnit.Id == pActor.Id)
+                    || !CanAffectUnit(pActor, pSkill, lUnit)
                     || !lVisitedUnits.Add(lUnit.Id))
                 {
                     continue;
@@ -284,6 +329,46 @@ namespace TacticalPort.Core
 
                 pUnits.Add(lUnit);
             }
+        }
+
+        private static bool CanAffectUnit(UnitRuntime pActor, SkillDefinition pSkill, UnitRuntime pTarget)
+        {
+            if (pActor == null || pSkill == null || pTarget == null || !pTarget.IsAlive)
+                return false;
+
+            bool lIsCaster = pTarget.Id == pActor.Id;
+            if (lIsCaster && !pSkill.CanAffectCaster)
+                return false;
+
+            switch (pSkill.TargetRelation)
+            {
+                case SkillTargetRelation.AlliesOnly:
+                    return pTarget.Team == pActor.Team;
+
+                case SkillTargetRelation.EnemiesOnly:
+                    return IsOpposingPlayableTeam(pActor.Team, pTarget.Team);
+
+                default:
+                    return true;
+            }
+        }
+
+        private static bool IsOpposingPlayableTeam(Team pSource, Team pTarget) =>
+            (pSource == Team.TeamA && pTarget == Team.TeamB)
+            || (pSource == Team.TeamB && pTarget == Team.TeamA);
+
+        private static bool ContainsUnit(IReadOnlyList<UnitRuntime> pUnits, UnitRuntime pUnit)
+        {
+            if (pUnits == null || pUnit == null)
+                return false;
+
+            for (int lIndex = 0; lIndex < pUnits.Count; lIndex++)
+            {
+                if (pUnits[lIndex]?.Id == pUnit.Id)
+                    return true;
+            }
+
+            return false;
         }
 
         private static void PopulateUsageTargetKeys(ResolvedSkillTarget pResolvedTarget)

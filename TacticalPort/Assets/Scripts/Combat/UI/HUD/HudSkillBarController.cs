@@ -138,7 +138,7 @@ namespace TacticalPort.UI
 
             for (int lIndex = 0; lIndex < pSkills.Count; lIndex++)
             {
-                SkillDefinition lDisplaySkill = pSkills[lIndex];
+                SkillDefinition lDisplaySkill = pUnit.ResolveEffectiveSkill(pSkills[lIndex]);
                 if (_RuntimeSkillButtons[lIndex] == null || _DisplayedSkills[lIndex] != lDisplaySkill)
                     return true;
             }
@@ -157,7 +157,7 @@ namespace TacticalPort.UI
 
             for (int lIndex = 0; lIndex < pSkills.Count; lIndex++)
             {
-                SkillDefinition lSkill = pSkills[lIndex];
+                SkillDefinition lSkill = pUnit.ResolveEffectiveSkill(pSkills[lIndex]);
                 int lCapturedIndex = lIndex;
                 SkillButtonView lButtonView = UnityEngine.Object.Instantiate(_SkillButtonPrefab, _Root);
                 lButtonView.Bind(lSkill, () => _OnSkillButtonClicked?.Invoke(lCapturedIndex));
@@ -180,9 +180,10 @@ namespace TacticalPort.UI
                 if (lButtonView == null)
                     continue;
 
-                SkillDefinition lSkill = lActiveUnit != null && lIndex >= 0 && lIndex < lActiveUnit.Skills.Count
+                SkillDefinition lBaseSkill = lActiveUnit != null && lIndex >= 0 && lIndex < lActiveUnit.Skills.Count
                     ? lActiveUnit.Skills[lIndex]
                     : null;
+                SkillDefinition lSkill = lActiveUnit?.ResolveEffectiveSkill(lBaseSkill);
 
                 if (lIndex >= 0 && lIndex < _DisplayedSkills.Count && _DisplayedSkills[lIndex] != lSkill)
                 {
@@ -191,23 +192,23 @@ namespace TacticalPort.UI
                     _DisplayedSkills[lIndex] = lSkill;
                 }
 
-                lButtonView.SetInteractable(IsSkillInteractable(lActiveUnit, lSkill));
+                lButtonView.SetInteractable(IsSkillInteractable(lActiveUnit, lBaseSkill, lSkill));
                 lButtonView.SetSelected(lIndex == _SelectedSkillSlotIndex);
             }
         }
 
-        private bool IsSkillInteractable(UnitRuntime pUnit, SkillDefinition pSkill)
+        private bool IsSkillInteractable(UnitRuntime pUnit, SkillDefinition pBaseSkill, SkillDefinition pEffectiveSkill)
         {
-            if (!_CanUseSkills || pUnit == null || pSkill == null)
+            if (!_CanUseSkills || pUnit == null || pBaseSkill == null || pEffectiveSkill == null)
                 return false;
 
-            if (!pUnit.CanSpendEnergy(pSkill.EnergyCost))
+            if (!pUnit.CanSpendEnergy(pEffectiveSkill.EnergyCost))
                 return false;
 
-            if (pUnit.GetRemainingCooldown(pSkill) > 0)
+            if (pUnit.GetRemainingCooldown(pBaseSkill) > 0)
                 return false;
 
-            return pSkill.UsePerTurn <= 0 || pUnit.GetSkillUsesThisTurn(pSkill) < pSkill.UsePerTurn;
+            return pBaseSkill.UsePerTurn <= 0 || pUnit.GetSkillUsesThisTurn(pBaseSkill) < pBaseSkill.UsePerTurn;
         }
 
         private void SetVisible(bool pIsVisible)

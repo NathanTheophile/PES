@@ -205,8 +205,8 @@ namespace TacticalPort.UI
             }
 
             SetText(_HealthText, $"Health: {pUnit.CurrentHealth}/{pUnit.CurrentMaxHealth} | Wear: {pUnit.EffectiveWearPercent}%");
-            SetText(_MobilityText, $"Mobility: {pUnit.RemainingMobility}/{pUnit.Definition.MobilityPerTurn}");
-            SetText(_EnergyText, $"Energy: {pUnit.RemainingEnergy}/{pUnit.Definition.EnergyPerTurn}");
+            SetText(_MobilityText, $"Mobility: {pUnit.RemainingMobility}/{Math.Max(0, pUnit.Definition.MobilityPerTurn + pUnit.GetMobilityModifier())}");
+            SetText(_EnergyText, $"Energy: {pUnit.RemainingEnergy}/{Math.Max(0, pUnit.Definition.EnergyPerTurn + pUnit.GetEnergyModifier())}");
         }
 
         #endregion

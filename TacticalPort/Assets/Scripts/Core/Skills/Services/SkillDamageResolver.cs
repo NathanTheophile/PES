@@ -112,6 +112,26 @@ namespace TacticalPort.Core
                 lAffectedCount > 0 ? BattleActionOutcomeFlags.StateApplied : BattleActionOutcomeFlags.None);
         }
 
+        public static BattleActionResult ApplyStateToCaster(UnitRuntime pActor, SkillDefinition pSkill)
+        {
+            bool lApplied = pActor != null
+                && pSkill?.CasterAppliedState != null
+                && pActor.TryApplyState(
+                    pSkill.CasterAppliedState,
+                    pSkill.CasterAppliedStateStacks,
+                    pSkill.CasterAppliedStateDurationTurns);
+
+            string lMessage = lApplied
+                ? $"{pActor.Definition.DisplayName} gained {pSkill.CasterAppliedState.DisplayName}."
+                : string.Empty;
+            return BattleActionResult.Succeeded(
+                BattleActionType.Skill,
+                lMessage,
+                pActor != null ? new[] { pActor.Id } : null,
+                null,
+                lApplied ? BattleActionOutcomeFlags.StateApplied : BattleActionOutcomeFlags.None);
+        }
+
         private static int ResolveAoeFalloffDamage(int pBaseDamage, SkillDefinition pSkill, UnitRuntime pTarget, GridCoord pCenterCell)
         {
             if (pBaseDamage <= 0 || pSkill == null || pSkill.AoeDamageFalloffPercentPerCell <= 0)
