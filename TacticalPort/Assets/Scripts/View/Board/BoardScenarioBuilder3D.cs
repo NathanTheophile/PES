@@ -54,7 +54,7 @@ namespace TacticalPort.View
             }
 
             if (lSpawnCells.Count > 0)
-                AppendSelectedTeamSpawns(lUnits, lSpawnCells, lFallbackRoster, pScenario);
+                AppendSelectedTeamSpawns(lUnits, lSpawnCells, lFallbackRoster);
             else
                 lUnits.AddRange(lDirectUnits);
 
@@ -103,28 +103,22 @@ namespace TacticalPort.View
         private static void AppendSelectedTeamSpawns(
             ICollection<UnitSpawnDefinition> pUnits,
             IReadOnlyList<SpawnCell> pSpawnCells,
-            IReadOnlyList<UnitDefinition> pFallbackRoster,
-            SceneScenarioDefinition pScenario)
+            IReadOnlyList<UnitDefinition> pFallbackRoster)
         {
             if (pUnits == null || pSpawnCells == null || pSpawnCells.Count == 0)
                 return;
 
-            IReadOnlyList<UnitDefinition> lTeamAUnits = ResolveComposition(pScenario, MatchPlayerSlot.TeamA);
-            IReadOnlyList<UnitDefinition> lTeamBUnits = ResolveComposition(pScenario, MatchPlayerSlot.TeamB);
+            IReadOnlyList<UnitDefinition> lTeamAUnits = ResolveComposition(MatchPlayerSlot.TeamA);
+            IReadOnlyList<UnitDefinition> lTeamBUnits = ResolveComposition(MatchPlayerSlot.TeamB);
 
             AppendSpawnedTeam(pUnits, pSpawnCells, pFallbackRoster, MatchPlayerSlot.TeamA, Team.TeamA, lTeamAUnits, ResolveTeamSize(lTeamAUnits));
             AppendSpawnedTeam(pUnits, pSpawnCells, pFallbackRoster, MatchPlayerSlot.TeamB, Team.TeamB, lTeamBUnits, ResolveTeamSize(lTeamBUnits));
         }
 
-        private static IReadOnlyList<UnitDefinition> ResolveComposition(SceneScenarioDefinition pScenario, MatchPlayerSlot pSlot)
-        {
-            if (CombatTeamCompositionState.TryGetComposition(pSlot, out IReadOnlyList<UnitDefinition> lRuntimeUnits))
-                return lRuntimeUnits;
-
-            return pScenario != null && pScenario.TryGetComposition(pSlot, out IReadOnlyList<UnitDefinition> lSceneUnits)
-                ? lSceneUnits
+        private static IReadOnlyList<UnitDefinition> ResolveComposition(MatchPlayerSlot pSlot) =>
+            CombatTeamCompositionState.TryGetComposition(pSlot, out IReadOnlyList<UnitDefinition> lRuntimeUnits)
+                ? lRuntimeUnits
                 : null;
-        }
 
         private static int ResolveTeamSize(IReadOnlyList<UnitDefinition> pUnits) =>
             pUnits != null && pUnits.Count > 0 ? pUnits.Count : DefaultTeamSize;

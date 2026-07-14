@@ -55,7 +55,7 @@ namespace TacticalPort.State.Tests
         }
 
         [Test]
-        public async Task CachedRepositoryMigratesLocalTeamWhenCloudIsEmpty()
+        public async Task CachedRepositoryUploadsLocalTeamWhenCloudIsEmpty()
         {
             MemoryTeamPresetRepository lCloud = new MemoryTeamPresetRepository();
             MemoryTeamPresetRepository lLocal = new MemoryTeamPresetRepository(CreateConfiguredSnapshot("local-unit"));

@@ -9,7 +9,6 @@ using TacticalPort.Core;
 using TacticalPort.Data;
 using TacticalPort.Shared;
 using UnityEngine;
-using UnityEngine.Serialization;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -32,10 +31,8 @@ namespace TacticalPort.View
         [SerializeField] private float _OccupiedPreviewYOffset = -0.05f;
 
         [Header("Cell State Prefabs")]
-        [FormerlySerializedAs("_TeamASpawnerPreviewPrefab")]
         [Tooltip("Feedback prefab instantiated on the local player's spawn cells.")]
         [SerializeField] private GameObject _OwnSpawnerPreviewPrefab;
-        [FormerlySerializedAs("_TeamBSpawnerPreviewPrefab")]
         [Tooltip("Feedback prefab instantiated on the opponent's spawn cells.")]
         [SerializeField] private GameObject _OpponentSpawnerPreviewPrefab;
         [SerializeField] private GameObject _PlayerOccupiedPreviewPrefab;

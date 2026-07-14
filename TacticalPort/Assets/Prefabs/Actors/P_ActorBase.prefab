@@ -47,7 +47,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 45da5c6831e87e548ae64860bbafe875, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TacticalPort.View.UnitView
-  _SpriteRenderer: {fileID: 143113661708094281}
+  _SpriteFallbackRenderer: {fileID: 143113661708094281}
   _DefeatedTint: {r: 0.45, g: 0.45, b: 0.45, a: 0.8}
   _BaseSortingOrder: 1000
   _BodySortingOrderOffset: 20

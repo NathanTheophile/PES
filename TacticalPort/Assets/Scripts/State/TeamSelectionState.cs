@@ -6,15 +6,12 @@
 #endregion
 
 using TacticalPort.Data;
-using UnityEngine;
 
 namespace TacticalPort.State
 {
     public static class TeamSelectionState
     {
         #region _____________________________/ VALUES
-
-        private const string LegacySavedUnitIdsKey = "TacticalPort.TeamSelection.UnitIds.v1";
 
         public static bool HasSelection => CombatTeamCompositionState.HasLocalSelection;
         public static System.Collections.Generic.IReadOnlyList<UnitDefinition> SelectedUnits => CombatTeamCompositionState.LocalSelectedUnits;
@@ -76,15 +73,7 @@ namespace TacticalPort.State
                 return true;
             }
 
-            string lRawIds = PlayerPrefs.GetString(LegacySavedUnitIdsKey, string.Empty);
-            if (string.IsNullOrWhiteSpace(lRawIds))
-                return false;
-
-            string[] lIds = lRawIds.Split('|');
-            CombatTeamCompositionState.SetLocalSelectedUnitIds(lIds);
-            TeamPresetState.SetActiveUnitIds(lIds);
-            TeamPresetState.SaveWithoutBlocking();
-            return SelectedUnitIds.Count > 0;
+            return false;
         }
 
         #endregion

@@ -101,7 +101,7 @@ namespace TacticalPort.State.Tests
         }
 
         [Test]
-        public void NewSerializedFieldsRoundTripWithNeutralCompatibleDefaults()
+        public void NewSerializedFieldsRoundTripWithNeutralDefaults()
         {
             UnitDefinition lSourceUnit = CreateUnitDefinition(Team.TeamA, 100, pGeneralDamage: 12, pGeneralResistance: 7);
             UnitDefinition lRoundTripUnit = Track(ScriptableObject.CreateInstance<UnitDefinition>());

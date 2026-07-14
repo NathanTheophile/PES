@@ -12,7 +12,7 @@ namespace TacticalPort.State.Tests
     public sealed class MatchUnitBuildTests
     {
         [Test]
-        public void LegacyManifestWithoutBuildsRemainsValid()
+        public void ManifestWithoutOptionalBuildsRemainsValid()
         {
             MatchManifest lManifest = CreateManifest();
             lManifest.SetAssignment(MatchPlayerSlot.TeamA, "player-a", "preset-a", new[] { "unit-a" });
@@ -57,7 +57,7 @@ namespace TacticalPort.State.Tests
         }
 
         [Test]
-        public void LegacyManifestTieBreakerIsDeterministicFromMatchId()
+        public void MissingManifestTieBreakerIsDeterministicFromMatchId()
         {
             MatchManifest lFirst = new MatchManifest { MatchId = "authoritative-match-id" };
             MatchManifest lSecond = new MatchManifest { MatchId = "authoritative-match-id" };

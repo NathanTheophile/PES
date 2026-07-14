@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using TacticalPort.App;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.Serialization;
 
 namespace TacticalPort.Matchmaking
 {
@@ -24,7 +23,6 @@ namespace TacticalPort.Matchmaking
         [SerializeField] private MatchRuntimeContext _MatchContext;
         [Tooltip("Quick match flow reset when a match session is cleaned up.")]
         [SerializeField] private QuickMatchFlowController _QuickMatchFlowController;
-        [FormerlySerializedAs("_PurrNetMatchConnector")]
         [Tooltip("Component implementing IMatchConnectionController, stopped before the match context is cleared.")]
         [SerializeField] private MonoBehaviour _MatchConnectionControllerSource;
 

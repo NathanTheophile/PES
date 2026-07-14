@@ -315,7 +315,6 @@ namespace TacticalPort.EditorTools
             SerializedProperty lCharacter = lObject.FindProperty("_Character");
             lCharacter.FindPropertyRelative("Name").objectReferenceValue = pCharacter.Name;
             lCharacter.FindPropertyRelative("Portrait").objectReferenceValue = pCharacter.Portrait;
-            lCharacter.FindPropertyRelative("Description").objectReferenceValue = pCharacter.Description;
             lCharacter.FindPropertyRelative("Preview").objectReferenceValue = pCharacter.Preview;
 
             lObject.FindProperty("_EnergyValue").FindPropertyRelative("Value").objectReferenceValue = pBuild.Energy.Value;
@@ -524,7 +523,7 @@ namespace TacticalPort.EditorTools
                 lName.fontStyle = FontStyles.Bold;
                 lName.color = TextColor;
                 lName.alignment = TextAlignmentOptions.Center;
-                lName.enableWordWrapping = false;
+                lName.textWrappingMode = TextWrappingModes.NoWrap;
                 lName.overflowMode = TextOverflowModes.Ellipsis;
                 SetChildRect(lName.rectTransform, new Vector2(84f, 24f), new Vector2(0f, 14f));
             }
@@ -536,7 +535,7 @@ namespace TacticalPort.EditorTools
                 lMeta.fontSize = 9f;
                 lMeta.color = MutedTextColor;
                 lMeta.alignment = TextAlignmentOptions.Center;
-                lMeta.enableWordWrapping = false;
+                lMeta.textWrappingMode = TextWrappingModes.NoWrap;
                 lMeta.overflowMode = TextOverflowModes.Ellipsis;
                 lMeta.gameObject.SetActive(!string.IsNullOrEmpty(pMetaText));
                 SetChildRect(lMeta.rectTransform, new Vector2(86f, 18f), new Vector2(0f, -24f));
@@ -633,7 +632,7 @@ namespace TacticalPort.EditorTools
 
             TMP_Text lDescription = CreateText("Txt_Description", lPanel.transform, string.Empty, 18f, FontStyles.Normal, Color.white, pSize - new Vector2(28f, 26f), Vector2.zero);
             lDescription.alignment = TextAlignmentOptions.TopLeft;
-            lDescription.enableWordWrapping = true;
+            lDescription.textWrappingMode = TextWrappingModes.Normal;
             lDescription.overflowMode = TextOverflowModes.Overflow;
 
             ConfigureTooltipPanel(lPanel, pSize, pPosition);
@@ -701,7 +700,7 @@ namespace TacticalPort.EditorTools
             lText.fontStyle = pStyle;
             lText.color = pColor;
             lText.alignment = TextAlignmentOptions.Left;
-            lText.enableWordWrapping = true;
+            lText.textWrappingMode = TextWrappingModes.Normal;
             lText.overflowMode = TextOverflowModes.Ellipsis;
             lText.raycastTarget = false;
             return lText;
@@ -869,7 +868,6 @@ namespace TacticalPort.EditorTools
         {
             public TMP_Text Name;
             public Image Portrait;
-            public TMP_Text Description;
             public DeckbuildingUnitPreviewView Preview;
             public Button ChangeButton;
         }

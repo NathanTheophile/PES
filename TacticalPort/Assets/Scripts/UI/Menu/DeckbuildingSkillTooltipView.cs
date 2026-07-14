@@ -202,7 +202,7 @@ namespace TacticalPort.UI
                 {
                     _DescriptionText.enableAutoSizing = false;
                     _DescriptionText.fontSize = _FontSize;
-                    _DescriptionText.enableWordWrapping = true;
+                    _DescriptionText.textWrappingMode = TextWrappingModes.Normal;
                     _DescriptionText.text = _Skill != null ? BuildTooltipText(_Skill) : BuildTooltipText(_Passive);
                 }
                 return;

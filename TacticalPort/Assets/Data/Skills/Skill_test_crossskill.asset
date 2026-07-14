@@ -31,8 +31,6 @@ MonoBehaviour:
   _UsePerTurn: 2
   _UsePerTarget: 2
   _CooldownTurns: 0
-  _IsPactoleVariant: 0
-  _PactoleVariant: {fileID: 0}
   _Power: 10
   _HasLifeSteal: 0
   _PushDistance: 1

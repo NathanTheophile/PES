@@ -9,7 +9,6 @@ using TacticalPort.App;
 using TacticalPort.Shared;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace TacticalPort.UI
@@ -25,7 +24,6 @@ namespace TacticalPort.UI
         [Tooltip("Message displayed by the persistent loading screen when returning to frontend.")]
         [SerializeField] private string _LoadingMessage = "Returning to menu...";
         [Tooltip("Optional persistent transition service. If missing, the view tries the active service before falling back to SceneManager.")]
-        [FormerlySerializedAs("_SceneTransitionController")]
         [SerializeField] private MonoBehaviour _SceneTransitionServiceSource;
 
         private readonly List<Button> _ResolvedMainMenuButtons = new List<Button>();

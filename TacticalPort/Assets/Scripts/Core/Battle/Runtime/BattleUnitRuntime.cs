@@ -13,11 +13,8 @@ namespace TacticalPort.Core
 {
     public sealed class UnitRuntime
     {
-        private const int MaxTreasureGainPerTurn = 2;
         public const int BaseWearPercent = 5;
         public const int MaxWearPercent = 50;
-        private const string TreasureStackStateKey = "resource::treasure";
-        private const string FullTreasureStateKey = "resource::treasure_full";
 
         #region _____________________________| INIT
 
@@ -39,7 +36,6 @@ namespace TacticalPort.Core
             RemainingEnergy = 0;
             _ActivePassive = ResolveInitialPassive(pDefinition);
             InitializePersistentStates();
-            SyncTreasureStates();
         }
 
         #endregion
@@ -52,8 +48,6 @@ namespace TacticalPort.Core
         private readonly BattleUnitSkillUsageTracker _SkillUsage = new BattleUnitSkillUsageTracker();
         private readonly Team? _TeamOverride;
         private PassiveDefinition _ActivePassive;
-        private int _TreasureCount;
-        private int _TreasureGainedThisTurn;
         private int _WearRemainder;
 
         #endregion
@@ -76,13 +70,7 @@ namespace TacticalPort.Core
         public IReadOnlyList<GridCoord> OccupiedCellOffsets => _OccupiedCellOffsets;
         public IReadOnlyList<BattleStateRuntime> ActiveStates => _States.States;
         public PassiveDefinition ActivePassive => _ActivePassive;
-        public bool HasTreasureResource => _ActivePassive != null && _ActivePassive.UsesTreasureResource;
-        public int TreasureCount => HasTreasureResource ? _TreasureCount : 0;
-        public int MaxTreasure => HasTreasureResource ? _ActivePassive.MaxTreasure : 0;
-        public int TreasureGainedThisTurn => _TreasureGainedThisTurn;
-        public bool IsTreasureFull => HasTreasureResource && _TreasureCount >= MaxTreasure;
         public event Action<int, bool> ValueChanged;
-        public event Action<UnitRuntime> ResourceChanged;
 
         #endregion
 
@@ -93,8 +81,6 @@ namespace TacticalPort.Core
             _SkillUsage.TickCooldowns();
             _SkillUsage.ClearTurnUses();
             _States.RemoveExpiredStates();
-            _TreasureGainedThisTurn = 0;
-
             if (!IsAlive)
             {
                 RemainingMobility = 0;
@@ -213,21 +199,6 @@ namespace TacticalPort.Core
             return Math.Max(0, pBaseDamage * Math.Max(0, lDamagePercent) / 100);
         }
 
-        public SkillDefinition ResolveSkillForExecution(SkillDefinition pSkill)
-        {
-            if (pSkill == null || pSkill.IsPactoleVariant)
-                return pSkill;
-
-            return IsTreasureFull && pSkill.PactoleVariant != null
-                ? pSkill.PactoleVariant
-                : pSkill;
-        }
-
-        public SkillDefinition ResolveSkillForDisplay(SkillDefinition pSkill) => ResolveSkillForExecution(pSkill);
-
-        public bool CanUsePactoleVariant(SkillDefinition pSkill) =>
-            pSkill != null && !pSkill.IsPactoleVariant && pSkill.PactoleVariant != null && IsTreasureFull;
-
         public int ResolveIncomingDamage(int pAmount, DamageRangeType pDamageRange)
         {
             if (pAmount <= 0)
@@ -314,46 +285,7 @@ namespace TacticalPort.Core
                 return false;
 
             _ActivePassive = pPassive;
-            _TreasureCount = 0;
-            _TreasureGainedThisTurn = 0;
-            SyncTreasureStates();
             ClampTurnResourcesToCurrentMax();
-            ResourceChanged?.Invoke(this);
-            return true;
-        }
-
-        public int AddTreasure(int pAmount, bool pRespectTurnLimit = true)
-        {
-            if (!HasTreasureResource || pAmount <= 0)
-                return 0;
-
-            int lRemainingCapacity = Math.Max(0, MaxTreasure - _TreasureCount);
-            int lRemainingTurnGain = pRespectTurnLimit
-                ? Math.Max(0, MaxTreasureGainPerTurn - _TreasureGainedThisTurn)
-                : int.MaxValue;
-            int lAdded = Math.Min(pAmount, Math.Min(lRemainingCapacity, lRemainingTurnGain));
-            if (lAdded <= 0)
-                return 0;
-
-            _TreasureCount += lAdded;
-            if (pRespectTurnLimit)
-                _TreasureGainedThisTurn += lAdded;
-
-            SyncTreasureStates();
-            ClampTurnResourcesToCurrentMax();
-            ResourceChanged?.Invoke(this);
-            return lAdded;
-        }
-
-        public bool TryConsumePactoleTreasure()
-        {
-            if (!IsTreasureFull)
-                return false;
-
-            _TreasureCount = Math.Max(0, _TreasureCount - MaxTreasure);
-            SyncTreasureStates();
-            ClampTurnResourcesToCurrentMax();
-            ResourceChanged?.Invoke(this);
             return true;
         }
 
@@ -373,11 +305,6 @@ namespace TacticalPort.Core
                     return true;
                 }
 
-                if (lCandidate?.PactoleVariant != null && new SkillId(lCandidate.PactoleVariant.Id) == pSkillId)
-                {
-                    pSkill = lCandidate;
-                    return true;
-                }
             }
 
             pSkill = null;
@@ -457,25 +384,6 @@ namespace TacticalPort.Core
 
                 SetPersistentState($"base::{lIndex}", lEntry.State, lEntry.Stacks);
             }
-        }
-
-        private void SyncTreasureStates()
-        {
-            if (!HasTreasureResource)
-            {
-                RemoveStateByKey(TreasureStackStateKey);
-                RemoveStateByKey(FullTreasureStateKey);
-                return;
-            }
-
-            _TreasureCount = Math.Max(0, Math.Min(MaxTreasure, _TreasureCount));
-            SetPersistentState(TreasureStackStateKey, _ActivePassive.TreasureStackState, _TreasureCount);
-
-            StateDefinition lFullState = _ActivePassive.FullTreasureState;
-            if (lFullState != null && IsTreasureFull)
-                SetPersistentState(FullTreasureStateKey, lFullState, 1);
-            else
-                RemoveStateByKey(FullTreasureStateKey);
         }
 
         private static PassiveDefinition ResolveInitialPassive(UnitDefinition pDefinition) => pDefinition != null ? pDefinition.DefaultPassive : null;

@@ -32,30 +32,6 @@ namespace TacticalPort.Data
         [PreviewField(64)]
         [SerializeField] private Sprite _Icon;
 
-        [TabGroup("Resource")]
-        [LabelText("Uses Treasure Resource")]
-        [SerializeField] private bool _UsesTreasureResource;
-
-        [TabGroup("Resource")]
-        [ShowIf(nameof(_UsesTreasureResource))]
-        [LabelText("Max Treasure")]
-        [SerializeField, Min(1)] private int _MaxTreasure = 5;
-
-        [TabGroup("Resource")]
-        [ShowIf(nameof(_UsesTreasureResource))]
-        [LabelText("Treasure Stack State")]
-        [SerializeField] private StateDefinition _TreasureStackState;
-
-        [TabGroup("Resource")]
-        [ShowIf(nameof(_UsesTreasureResource))]
-        [LabelText("Full Treasure State")]
-        [SerializeField] private StateDefinition _FullTreasureState;
-
-        [TabGroup("Pactole")]
-        [ShowIf(nameof(_UsesTreasureResource))]
-        [LabelText("Refund Treasure On Pactole Hit")]
-        [SerializeField] private bool _RefundTreasureOnPactoleHit;
-
         #endregion
 
         #region _____________________________/ ACCESSORS
@@ -64,12 +40,6 @@ namespace TacticalPort.Data
         public string DisplayName => string.IsNullOrWhiteSpace(_DisplayName) ? name : _DisplayName;
         public string Description => _Description;
         public Sprite Icon => _Icon;
-        public bool UsesTreasureResource => _UsesTreasureResource;
-        public int MaxTreasure => Mathf.Max(1, _MaxTreasure);
-        public StateDefinition TreasureStackState => _TreasureStackState;
-        public StateDefinition FullTreasureState => _FullTreasureState;
-        public bool RefundTreasureOnPactoleHit => _UsesTreasureResource && _RefundTreasureOnPactoleHit;
-
         #endregion
     }
 }

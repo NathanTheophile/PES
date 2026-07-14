@@ -33,8 +33,6 @@ namespace TacticalPort.EditorTools
         private int _UsePerTurn = 0;
         private int _UsePerTarget = 0;
         private int _CooldownTurns = 0;
-        private bool _IsPactoleVariant;
-        private SkillDefinition _PactoleVariant;
         private int _Power = 1;
         private bool _HasLifeSteal;
         private int _EnergyCost = 1;
@@ -109,11 +107,6 @@ namespace TacticalPort.EditorTools
             else
                 _HasLifeSteal = false;
             _EnergyCost = Mathf.Max(0, EditorGUILayout.IntField("Energy Cost", _EnergyCost));
-
-            DrawSectionHeader("Pactole");
-            _IsPactoleVariant = EditorGUILayout.Toggle("Is Pactole Variant", _IsPactoleVariant);
-            using (new EditorGUI.DisabledScope(_IsPactoleVariant))
-                _PactoleVariant = (SkillDefinition)EditorGUILayout.ObjectField("Pactole Variant", _PactoleVariant, typeof(SkillDefinition), false);
 
             DrawAdvancedCombat();
 
@@ -200,8 +193,6 @@ namespace TacticalPort.EditorTools
             SetInt(lSerializedObject, "_UsePerTurn", Mathf.Max(0, _UsePerTurn));
             SetInt(lSerializedObject, "_UsePerTarget", Mathf.Max(0, _UsePerTarget));
             SetInt(lSerializedObject, "_CooldownTurns", Mathf.Max(0, _CooldownTurns));
-            SetBool(lSerializedObject, "_IsPactoleVariant", _IsPactoleVariant);
-            SetObject(lSerializedObject, "_PactoleVariant", _IsPactoleVariant ? null : _PactoleVariant);
             SetInt(lSerializedObject, "_Power", Mathf.Max(0, _Power));
             SetBool(lSerializedObject, "_HasLifeSteal", _PrimaryEffectType == SkillPrimaryEffectType.Damage && _HasLifeSteal);
             SetInt(lSerializedObject, "_EnergyCost", Mathf.Max(0, _EnergyCost));

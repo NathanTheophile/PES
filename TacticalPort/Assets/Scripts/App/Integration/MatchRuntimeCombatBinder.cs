@@ -10,7 +10,6 @@ using TacticalPort.App;
 using TacticalPort.Matchmaking;
 using TacticalPort.Shared;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace TacticalPort.Bootstrap
 {
@@ -21,10 +20,8 @@ namespace TacticalPort.Bootstrap
         [Tooltip("Injected by RuntimeServicesBootstrap when an online combat scene loads. May be assigned directly for isolated scene tests.")]
         [SerializeField] private MatchRuntimeContext _MatchContext;
         [SerializeField] private CombatBootstrap _CombatBootstrap;
-        [FormerlySerializedAs("_PurrNetCombatBridge")]
         [Tooltip("Component implementing IMatchCombatNetworkBridge. Usually the PurrNet combat adapter in online scenes.")]
         [SerializeField] private MonoBehaviour _MatchCombatNetworkBridgeSource;
-        [FormerlySerializedAs("_InitializePurrNetBridge")]
         [SerializeField] private bool _InitializeMatchCombatNetworkBridge = true;
         [SerializeField] private bool _LogContext = true;
 

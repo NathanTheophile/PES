@@ -51,7 +51,7 @@ namespace TacticalPort.Networking
         [SerializeField] private bool _AllowServerWithoutMatchContext = true;
 
         [Header("Endpoint Policy")]
-        [Tooltip("Legacy compatibility toggle. Future custom/dedicated flows should keep this enabled so session endpoints drive the transport.")]
+        [Tooltip("Uses the endpoint supplied by the active match session when available. Disable only for explicit Inspector endpoint debugging.")]
         [SerializeField] private bool _UseMatchEndpointWhenAvailable = true;
         [Tooltip("Dedicated server builds on EdgeGap receive the internal UDP port through ARBITRIUM_PORT_<PORT_NAME>_INTERNAL.")]
         [SerializeField] private bool _UseEdgeGapInjectedServerPort = true;

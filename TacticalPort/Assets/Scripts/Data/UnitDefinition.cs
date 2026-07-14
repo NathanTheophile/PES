@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using TacticalPort.Shared;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace TacticalPort.Data
 {
@@ -127,12 +126,12 @@ namespace TacticalPort.Data
         [SerializeField] private EnemyAiProfileDefinition _EnemyAiProfile;
 
         [TabGroup("Skills")]
-        [ListDrawerSettings(Expanded = true, DraggableItems = true, ShowIndexLabels = true)]
+        [ListDrawerSettings(ShowFoldout = true, DraggableItems = true, ShowIndexLabels = true)]
         [ValidateInput(nameof(HasValidSkillList), "Skills cannot contain null entries or duplicates.", InfoMessageType.Warning)]
         [SerializeField] private List<SkillDefinition> _Skills = new List<SkillDefinition>();
 
         [TabGroup("Passives")]
-        [ListDrawerSettings(Expanded = true, DraggableItems = true, ShowIndexLabels = true)]
+        [ListDrawerSettings(ShowFoldout = true, DraggableItems = true, ShowIndexLabels = true)]
         [ValidateInput(nameof(HasValidPassiveList), "Passives cannot contain null entries or duplicates.", InfoMessageType.Warning)]
         [SerializeField] private List<PassiveDefinition> _Passives = new List<PassiveDefinition>();
 
@@ -141,21 +140,20 @@ namespace TacticalPort.Data
         [SerializeField] private PassiveDefinition _DefaultPassive;
 
         [TabGroup("AI")]
-        [ListDrawerSettings(Expanded = true, DraggableItems = false, ShowIndexLabels = true)]
+        [ListDrawerSettings(ShowFoldout = true, DraggableItems = false, ShowIndexLabels = true)]
         [SerializeField] private List<UnitSkillAiOverride> _SkillAiOverrides = new List<UnitSkillAiOverride>();
 
         [TabGroup("States")]
         [LabelText("Base States")]
-        [ListDrawerSettings(Expanded = true, DraggableItems = true, ShowIndexLabels = true)]
+        [ListDrawerSettings(ShowFoldout = true, DraggableItems = true, ShowIndexLabels = true)]
         [SerializeField] private List<UnitStateEntry> _BaseStates = new List<UnitStateEntry>();
 
         [TabGroup("States")]
         [LabelText("Phase States")]
-        [ListDrawerSettings(Expanded = true, DraggableItems = true, ShowIndexLabels = true)]
+        [ListDrawerSettings(ShowFoldout = true, DraggableItems = true, ShowIndexLabels = true)]
         [SerializeField] private List<UnitPhaseStateDefinition> _PhaseStates = new List<UnitPhaseStateDefinition>();
 
         [Tooltip("Combat view prefab used to instantiate this unit in the combat scene. Keep this as a component reference to avoid a Data -> View assembly dependency.")]
-        [FormerlySerializedAs("_UnitViewPrefab")]
         [TabGroup("Metadata")]
         [LabelText("Combat View Prefab")]
         [SerializeField] private MonoBehaviour _CombatViewPrefab;

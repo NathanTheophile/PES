@@ -46,7 +46,7 @@ namespace TacticalPort.State
             }
 
             if (lHasCache)
-                await TryMigrateCacheToPrimaryAsync(lCachedSnapshot.Clone(), pCancellationToken);
+                await TryUploadCacheToPrimaryAsync(lCachedSnapshot.Clone(), pCancellationToken);
             return lCachedSnapshot;
         }
 
@@ -57,7 +57,7 @@ namespace TacticalPort.State
             await _Primary.SaveAsync(lSnapshot, pCancellationToken);
         }
 
-        private async Task TryMigrateCacheToPrimaryAsync(TeamPresetRepositorySnapshot pSnapshot, CancellationToken pCancellationToken)
+        private async Task TryUploadCacheToPrimaryAsync(TeamPresetRepositorySnapshot pSnapshot, CancellationToken pCancellationToken)
         {
             try
             {
@@ -65,7 +65,7 @@ namespace TacticalPort.State
             }
             catch (Exception lException) when (lException is not OperationCanceledException)
             {
-                Debug.LogWarning($"Local team presets could not be migrated to Cloud Save yet. {lException.Message}");
+                Debug.LogWarning($"Local team presets could not be uploaded to Cloud Save yet. {lException.Message}");
             }
         }
 

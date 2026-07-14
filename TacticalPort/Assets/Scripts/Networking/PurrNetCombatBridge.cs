@@ -13,7 +13,6 @@ using TacticalPort.Matchmaking;
 using TacticalPort.Shared;
 using TacticalPort.State;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace TacticalPort.Networking
 {
@@ -23,7 +22,6 @@ namespace TacticalPort.Networking
 
         private const float NETWORK_MAINTENANCE_INTERVAL_SECONDS = 0.1f;
 
-        [FormerlySerializedAs("_Bootstrap")]
         [Tooltip("MonoBehaviour implementing ICombatNetworkRuntime. Assign the scene CombatBootstrap.")]
         [SerializeField] private MonoBehaviour _CombatRuntimeSource;
         [SerializeField] private bool _AllowOfflineFallback = true;

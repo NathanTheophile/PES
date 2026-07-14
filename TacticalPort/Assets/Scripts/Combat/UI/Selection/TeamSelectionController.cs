@@ -12,7 +12,6 @@ using TacticalPort.State;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace TacticalPort.UI
@@ -54,10 +53,8 @@ namespace TacticalPort.UI
         [SerializeField] private Button _SaveButton;
         [SerializeField, HideInInspector] private Button _LaunchButton;
         [SerializeField] private TMP_Text _SaveButtonLabel;
-        [FormerlySerializedAs("_EmbeddedScreenRouter")]
         [SerializeField] private MonoBehaviour _EmbeddedMenuRouterSource;
         [Tooltip("Optional persistent transition service used only by the standalone scene return path.")]
-        [FormerlySerializedAs("_SceneTransitionController")]
         [SerializeField] private MonoBehaviour _SceneTransitionServiceSource;
         [SerializeField] private bool _UseEmbeddedReturn;
 

@@ -10,7 +10,6 @@ using TacticalPort.Data;
 using TacticalPort.Shared;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace TacticalPort.View
 {
@@ -28,9 +27,8 @@ namespace TacticalPort.View
         [SerializeField] private string _TintColorProperty = "_BaseColor";
         [Tooltip("When enabled, UnitView instantiates UnitDefinition.ModelPrefab under the model root when binding.")]
         [SerializeField] private bool _InstantiateDefinitionModelPrefab = true;
-        [Tooltip("Legacy 2D fallback while old prefabs are migrated to 3D models.")]
-        [FormerlySerializedAs("_SpriteRenderer")]
-        [SerializeField] private SpriteRenderer _LegacySpriteRenderer;
+        [Tooltip("Optional 2D fallback used when the unit does not provide a 3D model.")]
+        [SerializeField] private SpriteRenderer _SpriteFallbackRenderer;
         [SerializeField] private Color _DefeatedTint;
         [SerializeField] private int _BaseSortingOrder = 1000;
         [SerializeField] private int _BodySortingOrderOffset = 20;
@@ -59,8 +57,6 @@ namespace TacticalPort.View
         #region _____________________________/ ACCESSORS
 
         public UnitId UnitId => _Runtime != null ? _Runtime.Id : UnitId.None;
-        public Sprite BodySprite => _LegacySpriteRenderer != null ? _LegacySpriteRenderer.sprite : null;
-
         #endregion
 
         #region _____________________________| UNITY
@@ -158,19 +154,19 @@ namespace TacticalPort.View
         private void ApplyVisualState()
         {
             Color lTint = _Runtime != null && _Runtime.IsAlive ? ResolveAliveTint() : _DefeatedTint;
-            ApplyLegacySpriteState(lTint);
+            ApplySpriteFallbackState(lTint);
             ApplyRendererTint(lTint);
         }
 
-        private void ApplyLegacySpriteState(Color pTint)
+        private void ApplySpriteFallbackState(Color pTint)
         {
-            if (_LegacySpriteRenderer == null)
+            if (_SpriteFallbackRenderer == null)
                 return;
 
-            _LegacySpriteRenderer.enabled = true;
-            _LegacySpriteRenderer.color = pTint;
-            _LegacySpriteRenderer.sortingOrder = ResolveSortingOrder(_BodySortingOrderOffset);
-            _LegacySpriteRenderer.transform.localScale = _BaseSpriteLocalScale;
+            _SpriteFallbackRenderer.enabled = true;
+            _SpriteFallbackRenderer.color = pTint;
+            _SpriteFallbackRenderer.sortingOrder = ResolveSortingOrder(_BodySortingOrderOffset);
+            _SpriteFallbackRenderer.transform.localScale = _BaseSpriteLocalScale;
         }
 
         private void ApplyRendererTint(Color pTint)
@@ -225,10 +221,10 @@ namespace TacticalPort.View
 
         private void CacheVisualReferences()
         {
-            if (_LegacySpriteRenderer != null && _LegacySpriteRenderer.transform != null)
+            if (_SpriteFallbackRenderer != null && _SpriteFallbackRenderer.transform != null)
             {
-                _BaseSpriteLocalScale = _LegacySpriteRenderer.transform.localScale;
-                _BaseSpriteColor = _LegacySpriteRenderer.color;
+                _BaseSpriteLocalScale = _SpriteFallbackRenderer.transform.localScale;
+                _BaseSpriteColor = _SpriteFallbackRenderer.color;
                 _HasBaseSpriteColor = true;
             }
 

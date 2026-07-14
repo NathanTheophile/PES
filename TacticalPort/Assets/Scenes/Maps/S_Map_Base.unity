@@ -219,8 +219,6 @@ MonoBehaviour:
     _ScenarioId: sample_scene
     _DisplayName: Sample Combat
     _DefaultMovementCost: 1
-    _TeamAComposition: []
-    _TeamBComposition: []
   _TilesRoot: {fileID: 1633267329}
   _CellSize: 1
   _CellWorldOffset: {x: 0, y: 0, z: 0}
@@ -1908,7 +1906,7 @@ MonoBehaviour:
   _parent: {fileID: 0}
   _invertedPathToNearestParent: 
   _directChildren: []
-  _Bootstrap: {fileID: 2013131648}
+  _CombatRuntimeSource: {fileID: 2013131648}
   _AllowOfflineFallback: 1
   _RequireRemoteReady: 1
   _AcceptClientManifestWhenServerHasNoManifest: 1

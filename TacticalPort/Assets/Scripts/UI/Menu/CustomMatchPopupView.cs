@@ -12,7 +12,6 @@ using TacticalPort.Shared;
 using TacticalPort.State;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace TacticalPort.UI
@@ -44,7 +43,6 @@ namespace TacticalPort.UI
         [SerializeField] private Button _HostButton;
         [SerializeField] private Button _JoinButton;
         [SerializeField] private Button _CancelButton;
-        [FormerlySerializedAs("_PanelRoot")]
         [SerializeField] private GameObject _PopupRoot;
         [SerializeField] private TMP_InputField _JoinCodeInput;
         [SerializeField] private TMP_InputField _AddressInput;
@@ -61,7 +59,6 @@ namespace TacticalPort.UI
         [SerializeField] private DedicatedServerTestSlotSource _DedicatedServerTestSlotSource = DedicatedServerTestSlotSource.AutoFromClonePath;
         [Tooltip("Used only when Direct Ip Mode is DedicatedServerTest. Set clone 0 to TeamA and clone 1 to TeamB.")]
         [SerializeField] private MatchPlayerSlot _DedicatedServerTestSlot = MatchPlayerSlot.TeamA;
-        [FormerlySerializedAs("_HidePanelOnAwake")]
         [SerializeField] private bool _HidePopupOnAwake = true;
 
         private IPlayerIdentityService _PlayerIdentityService;

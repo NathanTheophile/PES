@@ -9,7 +9,6 @@ using TacticalPort.Data;
 using TacticalPort.Shared;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
@@ -22,7 +21,6 @@ namespace TacticalPort.UI
         [SerializeField] private Button _Button;
         [SerializeField] private TooltipPanelView _TooltipPanel;
         [SerializeField] private TMP_Text _TxtSkillName;
-        [FormerlySerializedAs("_TxtEffectType")]
         [SerializeField] private TMP_Text _TxtAdditionalEffect;
         [SerializeField] private TMP_Text _TxtEnergyCostAndRange;
         [SerializeField] private TMP_Text _TxtPower;

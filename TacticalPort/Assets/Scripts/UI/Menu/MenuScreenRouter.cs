@@ -7,7 +7,6 @@
 
 using TacticalPort.App;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace TacticalPort.UI
 {
@@ -16,11 +15,8 @@ namespace TacticalPort.UI
         #region _____________________________/ VALUES
 
         [SerializeField] private GameObject _MainMenuScreen;
-        [FormerlySerializedAs("_TeamSelectionScreen")]
         [SerializeField] private GameObject _TeamSelectionPopup;
-        [FormerlySerializedAs("_CustomMatchPanel")]
         [SerializeField] private GameObject _CustomMatchPopup;
-        [FormerlySerializedAs("_NetworkDebugPanel")]
         [SerializeField] private GameObject _NetworkDebugPopup;
         [SerializeField] private bool _ShowMainMenuOnAwake = true;
         [SerializeField] private bool _HideCustomMatchOnAwake = true;

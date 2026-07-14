@@ -1213,7 +1213,6 @@ MonoBehaviour:
   _ActiveUnitInfobox: {fileID: 2981143309211102316}
   _HoverUnitInfobox: {fileID: 374404656687792033}
   _EndCombatView: {fileID: 4770023015918467487}
-  _TreasureResourceView: {fileID: 0}
 --- !u!1 &8596076129974403446
 GameObject:
   m_ObjectHideFlags: 0

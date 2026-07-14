@@ -1,7 +1,6 @@
 using TacticalPort.Data;
 using TacticalPort.Shared;
 using UnityEngine;
-using UnityEngine.Serialization;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -16,7 +15,6 @@ namespace TacticalPort.View
         [SerializeField] private bool _BlocksLineOfSight;
         [SerializeField, Min(1)] private int _MovementCost = 1;
         [SerializeField] private bool _IsSpawner;
-        [FormerlySerializedAs("_SpawnZone")]
         [SerializeField] private MatchPlayerSlot _AssignedTeam;
         [SerializeField] private UnitDefinition _OccupantDefinition;
         [SerializeField] private int _HeightLevel;

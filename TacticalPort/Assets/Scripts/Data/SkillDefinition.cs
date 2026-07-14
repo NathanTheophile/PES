@@ -140,15 +140,6 @@ namespace TacticalPort.Data
         [LabelText("Cooldown Turns")]
         [SerializeField, Min(0)] private int _CooldownTurns = 0;
 
-        [TabGroup("Pactole")]
-        [LabelText("Is Pactole Variant")]
-        [SerializeField] private bool _IsPactoleVariant;
-
-        [TabGroup("Pactole")]
-        [HideIf(nameof(_IsPactoleVariant))]
-        [LabelText("Pactole Variant")]
-        [SerializeField] private SkillDefinition _PactoleVariant;
-
         [TabGroup("Effects")]
         [LabelText("Power")]
         [SerializeField, Min(0)] private int _Power = 1;
@@ -265,8 +256,6 @@ namespace TacticalPort.Data
         public int UsePerTurn => Mathf.Max(0, _UsePerTurn);
         public int UsePerTarget => Mathf.Max(0, _UsePerTarget);
         public int CooldownTurns => Mathf.Max(0, _CooldownTurns);
-        public bool IsPactoleVariant => _IsPactoleVariant;
-        public SkillDefinition PactoleVariant => _PactoleVariant;
         public int Power => Mathf.Max(0, _Power);
         public bool HasLifeSteal => _HasLifeSteal && PrimaryEffectType == SkillPrimaryEffectType.Damage;
         public int EnergyCost => Mathf.Max(0, _EnergyCost);

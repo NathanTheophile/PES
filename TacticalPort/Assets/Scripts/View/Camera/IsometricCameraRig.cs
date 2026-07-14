@@ -7,7 +7,6 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
-using UnityEngine.Serialization;
 
 namespace TacticalPort.View.Cameras
 {
@@ -39,15 +38,15 @@ namespace TacticalPort.View.Cameras
         [SerializeField, Min(1f)] private float _Distance = 18f;
 
         [Header("Zoom")]
-        [SerializeField, FormerlySerializedAs("_ManualOrthographicSize"), Min(0.1f)] private float _OrthographicSize = 8f;
-        [SerializeField, FormerlySerializedAs("_MinOrthographicSize"), Min(0.1f)] private float _MinOrthographicSize = 4f;
+        [SerializeField, Min(0.1f)] private float _OrthographicSize = 8f;
+        [SerializeField, Min(0.1f)] private float _MinOrthographicSize = 4f;
         [SerializeField, Min(0.1f)] private float _MaxOrthographicSize = 18f;
         [SerializeField, Range(2, 12)] private int _ZoomStepCount = 4;
         [SerializeField] private bool _EnableScrollZoom = true;
         [SerializeField] private bool _BlockScrollZoomOverUi = true;
         [SerializeField] private bool _EnableZoomInertia = true;
         [SerializeField, Min(0f)] private float _ZoomInertiaDamping = 10f;
-        [SerializeField, FormerlySerializedAs("_MinZoomInertiaVelocity"), Min(0f)] private float _MinZoomInertiaDelta = 0.01f;
+        [SerializeField, Min(0f)] private float _MinZoomInertiaDelta = 0.01f;
 
         [Header("Runtime Follow")]
         [SerializeField] private bool _FollowTargetAtRuntime;

@@ -61,8 +61,6 @@ namespace TacticalPort.Core
             pHash = Mix(pHash, pUnit.RemainingEnergy);
             pHash = Mix(pHash, pUnit.IsAlive ? 1 : 0);
             pHash = Mix(pHash, StableStringHash(pUnit.ActivePassive != null ? pUnit.ActivePassive.Id : string.Empty));
-            pHash = Mix(pHash, pUnit.TreasureCount);
-            pHash = Mix(pHash, pUnit.TreasureGainedThisTurn);
 
             List<BattleStateRuntime> lStates = new List<BattleStateRuntime>(pUnit.ActiveStates);
             lStates.Sort(CompareStates);

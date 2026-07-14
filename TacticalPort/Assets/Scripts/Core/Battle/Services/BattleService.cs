@@ -155,7 +155,7 @@ namespace TacticalPort.Core
 
         public BattleActionResult ValidateSkill(UnitId pUnitId, SkillId pSkillId, SkillTarget pTarget)
         {
-            TryResolveSkillRequest(pUnitId, pSkillId, pTarget, out _, out _, out _, out _, out BattleActionResult lError);
+            TryResolveSkillRequest(pUnitId, pSkillId, pTarget, out _, out _, out _, out BattleActionResult lError);
             return lError;
         }
 
@@ -186,17 +186,15 @@ namespace TacticalPort.Core
 
         public BattleActionResult UseSkill(UnitId pUnitId, SkillId pSkillId, SkillTarget pTarget)
         {
-            if (!TryResolveSkillRequest(pUnitId, pSkillId, pTarget, out UnitRuntime lUnit, out SkillDefinition lBaseSkill, out SkillDefinition lSkill, out SkillExecutionContext lContext, out BattleActionResult lError))
+            if (!TryResolveSkillRequest(pUnitId, pSkillId, pTarget, out UnitRuntime lUnit, out SkillDefinition lSkill, out SkillExecutionContext lContext, out BattleActionResult lError))
                 return lError;
 
             Phase = BattlePhase.ResolvingAction;
-            Dictionary<UnitId, int> lHealthBefore = CaptureHealthByUnit();
             BattleActionResult lResult = _SkillExecutor.Execute(lUnit, lSkill, pTarget, lContext);
 
             if (lResult.IsSuccess)
             {
                 lUnit.TrySpendEnergy(lSkill.EnergyCost);
-                ResolveTreasureAfterSkill(lUnit, lBaseSkill, lSkill, lResult, lHealthBefore);
                 BattleServiceMaintenance.RefreshPhaseStates(_UnitsById, lResult.AffectedUnitIds);
                 BattleServiceMaintenance.CleanupDefeatedUnits(_UnitsById.Values, _GridService, _TurnSystem);
                 BattleServiceMaintenance.CompleteTurnIfActiveUnitIsGone(_TurnSystem, _UnitsById);
@@ -328,13 +326,11 @@ namespace TacticalPort.Core
             SkillId pSkillId,
             SkillTarget pTarget,
             out UnitRuntime pUnit,
-            out SkillDefinition pBaseSkill,
             out SkillDefinition pSkill,
             out SkillExecutionContext pContext,
             out BattleActionResult pError)
         {
             pContext = null;
-            pBaseSkill = null;
 
             if (!CanControlCurrentUnit(pUnitId, BattleActionType.Skill, out pUnit, out pError))
             {
@@ -342,14 +338,12 @@ namespace TacticalPort.Core
                 return false;
             }
 
-            if (!pUnit.TryGetSkill(pSkillId, out pBaseSkill))
+            if (!pUnit.TryGetSkill(pSkillId, out pSkill))
             {
-                pSkill = null;
                 pError = BattleActionResult.Failed(BattleActionType.Skill, $"Skill '{pSkillId}' is not available for unit {pUnitId}.");
                 return false;
             }
 
-            pSkill = pUnit.ResolveSkillForExecution(pBaseSkill);
             if (!pUnit.CanSpendEnergy(pSkill.EnergyCost))
             {
                 pError = BattleActionResult.Failed(BattleActionType.Skill, "Unit does not have enough Energy.");
@@ -367,118 +361,6 @@ namespace TacticalPort.Core
             pError = _SkillExecutor.Validate(pUnit, pSkill, pTarget, pContext);
             return pError.IsSuccess;
         }
-
-        private Dictionary<UnitId, int> CaptureHealthByUnit()
-        {
-            Dictionary<UnitId, int> lHealthByUnit = new Dictionary<UnitId, int>();
-            foreach (KeyValuePair<UnitId, UnitRuntime> lPair in _UnitsById)
-            {
-                if (lPair.Value != null)
-                    lHealthByUnit[lPair.Key] = lPair.Value.CurrentHealth;
-            }
-
-            return lHealthByUnit;
-        }
-
-        private void ResolveTreasureAfterSkill(
-            UnitRuntime pActor,
-            SkillDefinition pBaseSkill,
-            SkillDefinition pExecutedSkill,
-            BattleActionResult pResult,
-            IReadOnlyDictionary<UnitId, int> pHealthBefore)
-        {
-            if (pActor == null || pExecutedSkill == null || pResult == null || !pResult.IsSuccess || !pActor.HasTreasureResource)
-                return;
-
-            bool lUsedPactole = pExecutedSkill.IsPactoleVariant;
-            bool lTouchedEnemy = DidAffectEnemy(pActor, pResult);
-            bool lDamagedEnemy = DidDamageEnemy(pActor, pHealthBefore);
-            bool lDefeatedEnemy = DidDefeatEnemy(pActor, pHealthBefore);
-
-            if (lUsedPactole)
-            {
-                pActor.TryConsumePactoleTreasure();
-                if (pActor.ActivePassive != null && pActor.ActivePassive.RefundTreasureOnPactoleHit && lTouchedEnemy)
-                    pActor.AddTreasure(1, false);
-
-                return;
-            }
-
-            if (CanSkillGenerateTreasure(pBaseSkill)
-                && (pResult.OutcomeFlags & BattleActionOutcomeFlags.PrimaryDamage) != 0
-                && lTouchedEnemy)
-            {
-                pActor.AddTreasure(1);
-            }
-
-            if ((pResult.OutcomeFlags & BattleActionOutcomeFlags.CollisionDamage) != 0 && lDamagedEnemy)
-                pActor.AddTreasure(1);
-
-            if (lDefeatedEnemy)
-                pActor.AddTreasure(1);
-        }
-
-        private bool DidAffectEnemy(UnitRuntime pActor, BattleActionResult pResult)
-        {
-            if (pActor == null || pResult?.AffectedUnitIds == null)
-                return false;
-
-            for (int lIndex = 0; lIndex < pResult.AffectedUnitIds.Count; lIndex++)
-            {
-                UnitId lUnitId = pResult.AffectedUnitIds[lIndex];
-                if (_UnitsById.TryGetValue(lUnitId, out UnitRuntime lUnit) && IsEnemy(pActor, lUnit))
-                    return true;
-            }
-
-            return false;
-        }
-
-        private bool DidDamageEnemy(UnitRuntime pActor, IReadOnlyDictionary<UnitId, int> pHealthBefore)
-        {
-            if (pActor == null || pHealthBefore == null)
-                return false;
-
-            foreach (KeyValuePair<UnitId, int> lPair in pHealthBefore)
-            {
-                if (!_UnitsById.TryGetValue(lPair.Key, out UnitRuntime lUnit) || !IsEnemy(pActor, lUnit))
-                    continue;
-
-                if (lUnit.CurrentHealth < lPair.Value)
-                    return true;
-            }
-
-            return false;
-        }
-
-        private bool DidDefeatEnemy(UnitRuntime pActor, IReadOnlyDictionary<UnitId, int> pHealthBefore)
-        {
-            if (pActor == null || pHealthBefore == null)
-                return false;
-
-            foreach (KeyValuePair<UnitId, int> lPair in pHealthBefore)
-            {
-                if (lPair.Value <= 0 || !_UnitsById.TryGetValue(lPair.Key, out UnitRuntime lUnit) || !IsEnemy(pActor, lUnit))
-                    continue;
-
-                if (!lUnit.IsAlive)
-                    return true;
-            }
-
-            return false;
-        }
-
-        private static bool CanSkillGenerateTreasure(SkillDefinition pSkill) =>
-            pSkill != null
-            && !pSkill.IsPactoleVariant
-            && pSkill.PrimaryEffectType == SkillPrimaryEffectType.Damage
-            && (pSkill.Category == SkillCategory.MeleeAtk || pSkill.Category == SkillCategory.RangedAtk);
-
-        private static bool IsEnemy(UnitRuntime pActor, UnitRuntime pTarget) =>
-            pActor != null
-            && pTarget != null
-            && pActor.Team != Team.Neutral
-            && pTarget.Team != Team.Neutral
-            && pActor.Team != pTarget.Team;
 
         private UnitRuntime TrySummonUnit(UnitDefinition pDefinition, SkillSummonTeamRule pTeamRule, UnitRuntime pSummoner, GridCoord pDestination)
         {

@@ -138,7 +138,7 @@ namespace TacticalPort.UI
 
             for (int lIndex = 0; lIndex < pSkills.Count; lIndex++)
             {
-                SkillDefinition lDisplaySkill = pUnit.ResolveSkillForDisplay(pSkills[lIndex]);
+                SkillDefinition lDisplaySkill = pSkills[lIndex];
                 if (_RuntimeSkillButtons[lIndex] == null || _DisplayedSkills[lIndex] != lDisplaySkill)
                     return true;
             }
@@ -157,7 +157,7 @@ namespace TacticalPort.UI
 
             for (int lIndex = 0; lIndex < pSkills.Count; lIndex++)
             {
-                SkillDefinition lSkill = pUnit.ResolveSkillForDisplay(pSkills[lIndex]);
+                SkillDefinition lSkill = pSkills[lIndex];
                 int lCapturedIndex = lIndex;
                 SkillButtonView lButtonView = UnityEngine.Object.Instantiate(_SkillButtonPrefab, _Root);
                 lButtonView.Bind(lSkill, () => _OnSkillButtonClicked?.Invoke(lCapturedIndex));
@@ -181,7 +181,7 @@ namespace TacticalPort.UI
                     continue;
 
                 SkillDefinition lSkill = lActiveUnit != null && lIndex >= 0 && lIndex < lActiveUnit.Skills.Count
-                    ? lActiveUnit.ResolveSkillForDisplay(lActiveUnit.Skills[lIndex])
+                    ? lActiveUnit.Skills[lIndex]
                     : null;
 
                 if (lIndex >= 0 && lIndex < _DisplayedSkills.Count && _DisplayedSkills[lIndex] != lSkill)

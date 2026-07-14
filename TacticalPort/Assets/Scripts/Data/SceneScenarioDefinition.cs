@@ -6,8 +6,6 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
-using TacticalPort.Shared;
 using UnityEngine;
 
 namespace TacticalPort.Data
@@ -24,10 +22,6 @@ namespace TacticalPort.Data
         [Header("Board")]
         [SerializeField, Min(1)] private int _DefaultMovementCost = 1;
 
-        [Header("Temporary Slot Compositions")]
-        [SerializeField] private List<UnitDefinition> _TeamAComposition = new List<UnitDefinition>();
-        [SerializeField] private List<UnitDefinition> _TeamBComposition = new List<UnitDefinition>();
-
         #endregion
 
         #region _____________________________/ ACCESSORS
@@ -38,26 +32,5 @@ namespace TacticalPort.Data
 
         #endregion
 
-        #region _____________________________| COMPOSITIONS
-
-        public bool TryGetComposition(MatchPlayerSlot pSlot, out IReadOnlyList<UnitDefinition> pUnits)
-        {
-            List<UnitDefinition> lUnits = pSlot == MatchPlayerSlot.TeamA
-                ? _TeamAComposition
-                : pSlot == MatchPlayerSlot.TeamB
-                    ? _TeamBComposition
-                    : null;
-
-            if (lUnits != null && lUnits.Count > 0)
-            {
-                pUnits = lUnits;
-                return true;
-            }
-
-            pUnits = null;
-            return false;
-        }
-
-        #endregion
     }
 }

@@ -132,7 +132,7 @@ Le créateur d’équipe gère aujourd’hui :
 
 ### Contenu actuel
 
-Forban est le premier personnage de production expérimentale. Ses données comprennent dix compétences et deux passifs, avec des variantes runtime liées à sa mécanique. Son kit doit encore être simplifié, vérifié et équilibré avant d’être considéré comme finalisé.
+Le roster de production est volontairement vide afin de repartir sur des personnages conçus selon l'architecture et les règles stabilisées.
 
 Des unités, compétences, états et adversaires simples restent présents comme contenu de test. Ils ne définissent pas le roster cible.
 
@@ -377,8 +377,7 @@ L’IA peut choisir des compétences, évaluer les cibles, prendre en compte dom
 
 ### Priorité immédiate
 
-- Finaliser et simplifier le gameplay de Forban avant le personnage suivant.
-- Réaliser les sept autres personnages complets du prochain jalon.
+- Concevoir et réaliser les huit personnages complets du prochain jalon.
 - Concevoir et intégrer la seconde carte compétitive.
 - Implémenter le masquage visuel effectif des positions adverses pendant le déploiement.
 - Implémenter le timer de déploiement de 45 secondes.

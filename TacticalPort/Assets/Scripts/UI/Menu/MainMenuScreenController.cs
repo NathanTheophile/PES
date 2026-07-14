@@ -7,7 +7,6 @@
 using TacticalPort.App;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace TacticalPort.UI
@@ -21,11 +20,9 @@ namespace TacticalPort.UI
         [SerializeField] private string _LoadingMessage = "Loading team selection...";
         [SerializeField] private Button _TeamButton;
         [SerializeField] private Button _CustomMatchButton;
-        [FormerlySerializedAs("_ScreenRouter")]
         [Tooltip("Menu router on this object or a parent. Assign explicitly if the router lives elsewhere in the prefab hierarchy.")]
         [SerializeField] private MenuScreenRouter _MenuRouter;
         [Tooltip("Optional persistent transition service used only when falling back to standalone scene navigation.")]
-        [FormerlySerializedAs("_SceneTransitionController")]
         [SerializeField] private MonoBehaviour _SceneTransitionServiceSource;
         [SerializeField] private bool _UseEmbeddedTeamSelection;
         [SerializeField, HideInInspector] private Button _PlayTestButton;
