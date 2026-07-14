@@ -18,8 +18,8 @@ namespace TacticalPort.UI
         [SerializeField] private Image _PortraitImage;
         [SerializeField] private TMP_Text _NameText;
         [SerializeField] private TMP_Text _HealthText;
-        [SerializeField] private TMP_Text _ActionPointsText;
-        [SerializeField] private TMP_Text _MovementText;
+        [SerializeField] private TMP_Text _EnergyText;
+        [SerializeField] private TMP_Text _MobilityText;
 
         private UnitRuntime _DisplayedUnit;
 
@@ -62,18 +62,18 @@ namespace TacticalPort.UI
             if (_DisplayedUnit == null)
             {
                 SetText(_NameText, "-");
-                SetText(_HealthText, "HP: -");
-                SetText(_ActionPointsText, "AP: -");
-                SetText(_MovementText, "MP: -");
+                SetText(_HealthText, "Health: -");
+                SetText(_EnergyText, "Energy: -");
+                SetText(_MobilityText, "Mobility: -");
                 SetPortrait(null);
                 return;
             }
 
             SetPortrait(_DisplayedUnit.Definition.DisplaySprite);
             SetText(_NameText, _DisplayedUnit.Definition.DisplayName);
-            SetText(_HealthText, $"HP: {_DisplayedUnit.CurrentHealth}/{_DisplayedUnit.Definition.MaxHealth}");
-            SetText(_ActionPointsText, $"AP: {_DisplayedUnit.RemainingActionPoints}/{_DisplayedUnit.Definition.ActionPointsPerTurn}");
-            SetText(_MovementText, $"MP: {_DisplayedUnit.RemainingMovement}/{_DisplayedUnit.Definition.MoveRange}");
+            SetText(_HealthText, $"Health: {_DisplayedUnit.CurrentHealth}/{_DisplayedUnit.CurrentMaxHealth} | Wear: {_DisplayedUnit.EffectiveWearPercent}%");
+            SetText(_EnergyText, $"Energy: {_DisplayedUnit.RemainingEnergy}/{_DisplayedUnit.Definition.EnergyPerTurn}");
+            SetText(_MobilityText, $"Mobility: {_DisplayedUnit.RemainingMobility}/{_DisplayedUnit.Definition.MobilityPerTurn}");
         }
 
         #endregion
@@ -101,8 +101,8 @@ namespace TacticalPort.UI
             LogMissingReference(_PortraitImage, nameof(_PortraitImage));
             LogMissingReference(_NameText, nameof(_NameText));
             LogMissingReference(_HealthText, nameof(_HealthText));
-            LogMissingReference(_ActionPointsText, nameof(_ActionPointsText));
-            LogMissingReference(_MovementText, nameof(_MovementText));
+            LogMissingReference(_EnergyText, nameof(_EnergyText));
+            LogMissingReference(_MobilityText, nameof(_MobilityText));
         }
 
         private void LogMissingReference(Object pReference, string pFieldName)

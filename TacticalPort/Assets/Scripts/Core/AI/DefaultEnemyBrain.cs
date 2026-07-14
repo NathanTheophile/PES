@@ -28,7 +28,7 @@ namespace TacticalPort.Core
             if (TryChooseSkill(pContext, out EnemyAiAction lSkillAction))
                 return lSkillAction;
 
-            if (pContext.Actor.RemainingMovement > 0
+            if (pContext.Actor.RemainingMobility > 0
                 && EnemyAiMovementEvaluator.TryChooseMovement(pContext, lProfile, out GridCoord lDestination, out string lMoveReason))
             {
                 return EnemyAiAction.Move(lDestination, lMoveReason);
@@ -40,11 +40,11 @@ namespace TacticalPort.Core
         private static bool ShouldRepositionBeforeSkill(EnemyAiContext pContext, EnemyAiProfile pProfile)
         {
             UnitRuntime lActor = pContext?.Actor;
-            if (lActor == null || lActor.RemainingMovement <= 0 || pProfile.MovementMode != EnemyAiMovementMode.Kite)
+            if (lActor == null || lActor.RemainingMobility <= 0 || pProfile.MovementMode != EnemyAiMovementMode.Kite)
                 return false;
 
-            int lTurnActionPoints = lActor.Definition.ActionPointsPerTurn + lActor.GetActionPointModifier();
-            bool lHasAlreadyActed = lActor.RemainingActionPoints < lTurnActionPoints;
+            int lTurnEnergy = lActor.Definition.EnergyPerTurn + lActor.GetEnergyModifier();
+            bool lHasAlreadyActed = lActor.RemainingEnergy < lTurnEnergy;
             return pContext.ForceKiteThisDecision || lHasAlreadyActed || lActor.Definition.EnemyAiMovementPolicy == EnemyAiMovementPolicy.KeepDistance;
         }
 
@@ -77,7 +77,7 @@ namespace TacticalPort.Core
             ref EnemyAiSkillEvaluation pBestEvaluation)
         {
             if (pSkill == null
-                || pContext.Actor.RemainingActionPoints < pSkill.ActionPointCost
+                || pContext.Actor.RemainingEnergy < pSkill.EnergyCost
                 || !EnemyAiSkillRuleUtility.CanUseRule(pContext.Actor, pRule))
                 return;
 

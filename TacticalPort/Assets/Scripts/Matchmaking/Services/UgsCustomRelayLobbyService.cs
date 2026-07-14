@@ -29,7 +29,7 @@ namespace TacticalPort.Matchmaking
         private const string ReadyKey = "ready";
 
         [SerializeField] private string _LobbyName = "Private Match";
-        [SerializeField] private string _MapId = "custom-relay";
+        [SerializeField] private string _MapId = "alpha-1";
         [SerializeField, Min(2)] private int _MaxPlayers = 2;
         [SerializeField, Min(1)] private int _RelayMaxConnections = 1;
         [Tooltip("Leave empty to let UGS pick the best Relay region.")]
@@ -217,7 +217,7 @@ namespace TacticalPort.Matchmaking
             MatchManifest lManifest = new MatchManifest
             {
                 MatchId = BuildMatchId(pLobby),
-                MapId = string.IsNullOrWhiteSpace(_MapId) ? "custom-relay" : _MapId
+                MapId = string.IsNullOrWhiteSpace(_MapId) ? "alpha-1" : _MapId
             };
 
             AddLobbyPlayers(lManifest, pLobby);
@@ -268,7 +268,7 @@ namespace TacticalPort.Matchmaking
             new Dictionary<string, DataObject>
             {
                 [RelayJoinCodeKey] = new DataObject(DataObject.VisibilityOptions.Member, pRelayJoinCode ?? string.Empty),
-                [MapIdKey] = new DataObject(DataObject.VisibilityOptions.Member, string.IsNullOrWhiteSpace(_MapId) ? "custom-relay" : _MapId)
+                [MapIdKey] = new DataObject(DataObject.VisibilityOptions.Member, string.IsNullOrWhiteSpace(_MapId) ? "alpha-1" : _MapId)
             };
 
         private static PlayerDataObject BuildPlayerData(string pValue) =>

@@ -36,7 +36,8 @@ namespace TacticalPort.EditorTools
         private bool _IsPactoleVariant;
         private SkillDefinition _PactoleVariant;
         private int _Power = 1;
-        private int _ActionPointCost = 1;
+        private bool _HasLifeSteal;
+        private int _EnergyCost = 1;
         private int _PushDistance = 1;
         private UnitDefinition _SummonUnit;
         private SkillSummonTeamRule _SummonTeamRule = SkillSummonTeamRule.Definition;
@@ -103,7 +104,11 @@ namespace TacticalPort.EditorTools
             _UsePerTarget = Mathf.Max(0, EditorGUILayout.IntField("Use / Target / Turn", _UsePerTarget));
             _CooldownTurns = Mathf.Max(0, EditorGUILayout.IntField("Cooldown", _CooldownTurns));
             _Power = Mathf.Max(0, EditorGUILayout.IntField("Power", _Power));
-            _ActionPointCost = Mathf.Max(0, EditorGUILayout.IntField("AP Cost", _ActionPointCost));
+            if (_PrimaryEffectType == SkillPrimaryEffectType.Damage)
+                _HasLifeSteal = EditorGUILayout.Toggle("Life Steal (50%)", _HasLifeSteal);
+            else
+                _HasLifeSteal = false;
+            _EnergyCost = Mathf.Max(0, EditorGUILayout.IntField("Energy Cost", _EnergyCost));
 
             DrawSectionHeader("Pactole");
             _IsPactoleVariant = EditorGUILayout.Toggle("Is Pactole Variant", _IsPactoleVariant);
@@ -198,7 +203,8 @@ namespace TacticalPort.EditorTools
             SetBool(lSerializedObject, "_IsPactoleVariant", _IsPactoleVariant);
             SetObject(lSerializedObject, "_PactoleVariant", _IsPactoleVariant ? null : _PactoleVariant);
             SetInt(lSerializedObject, "_Power", Mathf.Max(0, _Power));
-            SetInt(lSerializedObject, "_ActionPointCost", Mathf.Max(0, _ActionPointCost));
+            SetBool(lSerializedObject, "_HasLifeSteal", _PrimaryEffectType == SkillPrimaryEffectType.Damage && _HasLifeSteal);
+            SetInt(lSerializedObject, "_EnergyCost", Mathf.Max(0, _EnergyCost));
             SetInt(lSerializedObject, "_PushDistance", Mathf.Max(0, _PushDistance));
             SetObject(lSerializedObject, "_SummonUnit", _SummonUnit);
             SetEnum(lSerializedObject, "_SummonTeamRule", (int)_SummonTeamRule);

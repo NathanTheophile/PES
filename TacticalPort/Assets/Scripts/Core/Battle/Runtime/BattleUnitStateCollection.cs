@@ -19,9 +19,11 @@ namespace TacticalPort.Core
             RangedDamage,
             MeleeResistance,
             RangedResistance,
+            GeneralResistance,
+            Wear,
             Range,
-            ActionPoint,
-            Movement
+            Energy,
+            Mobility
         }
 
         private readonly List<BattleStateRuntime> _States = new List<BattleStateRuntime>();
@@ -57,11 +59,15 @@ namespace TacticalPort.Core
 
         public int GetRangedResistancePercent() => ResolveModifier(StateModifierType.RangedResistance);
 
+        public int GetGeneralResistancePercent() => ResolveModifier(StateModifierType.GeneralResistance);
+
+        public int GetWearPercent() => ResolveModifier(StateModifierType.Wear);
+
         public int GetRangeModifier() => ResolveModifier(StateModifierType.Range);
 
-        public int GetActionPointModifier() => ResolveModifier(StateModifierType.ActionPoint);
+        public int GetEnergyModifier() => ResolveModifier(StateModifierType.Energy);
 
-        public int GetMovementModifier() => ResolveModifier(StateModifierType.Movement);
+        public int GetMobilityModifier() => ResolveModifier(StateModifierType.Mobility);
 
         public void SetPersistentState(string pStateKey, StateDefinition pState, int pStacks)
         {
@@ -188,14 +194,20 @@ namespace TacticalPort.Core
                 case StateModifierType.RangedResistance:
                     return pState.RangedResistancePercentPerStack;
 
+                case StateModifierType.GeneralResistance:
+                    return pState.GeneralResistancePercentPerStack;
+
+                case StateModifierType.Wear:
+                    return pState.WearPercentPerStack;
+
                 case StateModifierType.Range:
                     return pState.RangeModifierPerStack;
 
-                case StateModifierType.ActionPoint:
-                    return pState.ActionPointModifierPerStack;
+                case StateModifierType.Energy:
+                    return pState.EnergyModifierPerStack;
 
-                case StateModifierType.Movement:
-                    return pState.MovementModifierPerStack;
+                case StateModifierType.Mobility:
+                    return pState.MobilityModifierPerStack;
 
                 default:
                     return 0;

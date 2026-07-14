@@ -16,6 +16,7 @@ namespace TacticalPort.UI
     {
         #region _____________________________/ VALUES
 
+        [Tooltip("Injected by RuntimeServicesBootstrap when S_MainMenu is loaded. May be assigned directly for isolated scene tests.")]
         [SerializeField] private QuickMatchFlowController _FlowController;
         [SerializeField] private Button _QuickMatchButton;
         [SerializeField] private Button _CancelQuickMatchButton;
@@ -46,6 +47,17 @@ namespace TacticalPort.UI
         #endregion
 
         #region _____________________________| FLOW
+
+        public void ConfigureFlowController(QuickMatchFlowController pFlowController)
+        {
+            if (_FlowController != null)
+                _FlowController.StateChanged -= HandleStateChanged;
+
+            _FlowController = pFlowController;
+
+            if (isActiveAndEnabled)
+                BindFlowController();
+        }
 
         private void HandleStartQuickMatchClicked()
         {
@@ -190,9 +202,6 @@ namespace TacticalPort.UI
 
         private bool EnsureFlowController()
         {
-            if (_FlowController == null)
-                _FlowController = FindAnyObjectByType<QuickMatchFlowController>();
-
             if (_FlowController != null)
                 return true;
 
@@ -230,17 +239,6 @@ namespace TacticalPort.UI
                 ? transform.root.GetComponentsInChildren<Transform>(true)
                 : GetComponentsInChildren<Transform>(true);
 
-            for (int lNameIndex = 0; lNameIndex < pNames.Length; lNameIndex++)
-            {
-                for (int lIndex = 0; lIndex < lTransforms.Length; lIndex++)
-                {
-                    Transform lTransform = lTransforms[lIndex];
-                    if (lTransform != null && lTransform.name == pNames[lNameIndex])
-                        return lTransform.gameObject;
-                }
-            }
-
-            lTransforms = FindObjectsByType<Transform>(FindObjectsInactive.Include);
             for (int lNameIndex = 0; lNameIndex < pNames.Length; lNameIndex++)
             {
                 for (int lIndex = 0; lIndex < lTransforms.Length; lIndex++)

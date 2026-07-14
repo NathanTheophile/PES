@@ -1,19 +1,16 @@
 #region _____________________________/ INFOS
 //  AUTHOR : Nathan THEOPHILE (2025)
 //  Engine : Unity
-//  Note : MY_CONST, myPublic, m_MyProtected, _MyPrivate, lMyLocal, MyFunc(), pMyParam, onMyEvent, OnMyCallback, MyStruct
+//  Note : Deterministic battle-state checksum shared by runtime adapters
 #endregion
 
 using System.Collections.Generic;
-using TacticalPort.Core;
 using TacticalPort.Shared;
 
-namespace TacticalPort.Networking
+namespace TacticalPort.Core
 {
-    public static class CombatStateChecksum
+    public static class BattleStateChecksum
     {
-        #region _____________________________| COMPUTE
-
         public static int Compute(IBattleService pBattleService)
         {
             if (pBattleService == null)
@@ -30,27 +27,22 @@ namespace TacticalPort.Networking
 
                 List<UnitRuntime> lUnits = new List<UnitRuntime>(pBattleService.Units);
                 lUnits.Sort((pLeft, pRight) => GetUnitIdValue(pLeft).CompareTo(GetUnitIdValue(pRight)));
-
                 foreach (UnitRuntime lUnit in lUnits)
                     MixUnit(ref lHash, lUnit);
 
                 List<GridGlyphRuntime> lGlyphs = new List<GridGlyphRuntime>(pBattleService.GetActiveGlyphs());
-                lGlyphs.Sort((pLeft, pRight) => CompareGlyphs(pLeft, pRight));
+                lGlyphs.Sort(CompareGlyphs);
                 foreach (GridGlyphRuntime lGlyph in lGlyphs)
                     MixGlyph(ref lHash, lGlyph);
 
                 List<TelegraphedHazardRuntime> lHazards = new List<TelegraphedHazardRuntime>(pBattleService.GetTelegraphedHazards());
-                lHazards.Sort((pLeft, pRight) => CompareHazards(pLeft, pRight));
+                lHazards.Sort(CompareHazards);
                 foreach (TelegraphedHazardRuntime lHazard in lHazards)
                     MixHazard(ref lHash, lHazard);
 
                 return lHash;
             }
         }
-
-        #endregion
-
-        #region _____________________________| HELPERS
 
         private static void MixUnit(ref int pHash, UnitRuntime pUnit)
         {
@@ -59,11 +51,14 @@ namespace TacticalPort.Networking
 
             pHash = Mix(pHash, pUnit.Id.Value);
             pHash = Mix(pHash, (int)pUnit.Team);
+            pHash = Mix(pHash, pUnit.TeamSlotIndex);
             pHash = Mix(pHash, pUnit.Position.X);
             pHash = Mix(pHash, pUnit.Position.Y);
             pHash = Mix(pHash, pUnit.CurrentHealth);
-            pHash = Mix(pHash, pUnit.RemainingMovement);
-            pHash = Mix(pHash, pUnit.RemainingActionPoints);
+            pHash = Mix(pHash, pUnit.CurrentMaxHealth);
+            pHash = Mix(pHash, pUnit.WearRemainder);
+            pHash = Mix(pHash, pUnit.RemainingMobility);
+            pHash = Mix(pHash, pUnit.RemainingEnergy);
             pHash = Mix(pHash, pUnit.IsAlive ? 1 : 0);
             pHash = Mix(pHash, StableStringHash(pUnit.ActivePassive != null ? pUnit.ActivePassive.Id : string.Empty));
             pHash = Mix(pHash, pUnit.TreasureCount);
@@ -129,16 +124,12 @@ namespace TacticalPort.Networking
         }
 
         private static int Mix(int pHash, int pValue) => pHash * 31 + pValue;
-
         private static int GetUnitIdValue(UnitRuntime pUnit) => pUnit != null ? pUnit.Id.Value : 0;
 
         private static int CompareGlyphs(GridGlyphRuntime pLeft, GridGlyphRuntime pRight)
         {
             int lResult = CompareStrings(pLeft != null ? pLeft.GlyphGroupId : string.Empty, pRight != null ? pRight.GlyphGroupId : string.Empty);
-            if (lResult != 0)
-                return lResult;
-
-            return CompareCells(pLeft != null ? pLeft.Cell : default, pRight != null ? pRight.Cell : default);
+            return lResult != 0 ? lResult : CompareCells(pLeft != null ? pLeft.Cell : default, pRight != null ? pRight.Cell : default);
         }
 
         private static int CompareHazards(TelegraphedHazardRuntime pLeft, TelegraphedHazardRuntime pRight) =>
@@ -147,12 +138,11 @@ namespace TacticalPort.Networking
         private static int CompareStates(BattleStateRuntime pLeft, BattleStateRuntime pRight)
         {
             int lResult = CompareStrings(pLeft != null ? pLeft.Key : string.Empty, pRight != null ? pRight.Key : string.Empty);
-            if (lResult != 0)
-                return lResult;
-
-            return CompareStrings(
-                pLeft?.Definition != null ? pLeft.Definition.Id : string.Empty,
-                pRight?.Definition != null ? pRight.Definition.Id : string.Empty);
+            return lResult != 0
+                ? lResult
+                : CompareStrings(
+                    pLeft?.Definition != null ? pLeft.Definition.Id : string.Empty,
+                    pRight?.Definition != null ? pRight.Definition.Id : string.Empty);
         }
 
         private static int CompareCells(GridCoord pLeft, GridCoord pRight)
@@ -178,7 +168,5 @@ namespace TacticalPort.Networking
                 return lHash;
             }
         }
-
-        #endregion
     }
 }

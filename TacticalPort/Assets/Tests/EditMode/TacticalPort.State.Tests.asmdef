@@ -4,7 +4,10 @@
     "references": [
         "TacticalPort.State",
         "TacticalPort.Data",
+        "TacticalPort.Matchmaking.Contracts",
         "TacticalPort.Matchmaking",
+        "TacticalPort.App",
+        "TacticalPort.Core",
         "TacticalPort.Menu",
         "TacticalPort.Shared"
     ],

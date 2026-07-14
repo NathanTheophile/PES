@@ -15,7 +15,7 @@ using UnityEngine;
 
 namespace TacticalPort.Bootstrap
 {
-    public sealed class CombatBootstrap : MonoBehaviour, ICombatCommandExecutionContext, ICombatPresentationContext
+    public sealed class CombatBootstrap : MonoBehaviour, ICombatCommandExecutionContext, ICombatPresentationContext, ICombatNetworkRuntime
     {
         #region _____________________________/ VALUES
 
@@ -37,6 +37,7 @@ namespace TacticalPort.Bootstrap
         private ICombatCommandSink _CommandSink;
         private LocalCombatCommandSink _LocalCommandSink;
         private bool _IsBootstrapped;
+        private Team _PerfectVelocityTieStartingTeam = Team.TeamA;
 
         #endregion
 
@@ -104,6 +105,20 @@ namespace TacticalPort.Bootstrap
 
         #region _____________________________| BOOTSTRAP
 
+        public void ConfigurePerfectVelocityTieStartingTeam(Team pTeam)
+        {
+            Team lTeam = pTeam == Team.TeamB ? Team.TeamB : Team.TeamA;
+            if (_IsBootstrapped)
+            {
+                if (_PerfectVelocityTieStartingTeam != lTeam)
+                    Debug.LogWarning($"{nameof(CombatBootstrap)} ignored a late Velocity tie-break configuration.", this);
+
+                return;
+            }
+
+            _PerfectVelocityTieStartingTeam = lTeam;
+        }
+
         public void BootstrapCombat()
         {
             if (_SceneReferences == null)
@@ -128,7 +143,7 @@ namespace TacticalPort.Bootstrap
             }
 
             _BattleService = BattleRuntimeCompositionRoot.CreateDefaultBattleService();
-            _BattleService.Initialize(lActiveScenario);
+            _BattleService.Initialize(lActiveScenario, _PerfectVelocityTieStartingTeam);
             _EnemyTurnController = new EnemyTurnController(this, _EnemyTurnDelaySeconds);
             _CommandExecutor = new CombatCommandExecutor(this);
             _PresentationController = new CombatPresentationController(this);
@@ -300,6 +315,18 @@ namespace TacticalPort.Bootstrap
             ApplyActionFeedback(lResult);
             return lResult;
         }
+
+        public bool TryGetUnitTeam(UnitId pUnitId, out Team pTeam)
+        {
+            pTeam = Team.Neutral;
+            if (_BattleService == null || !_BattleService.TryGetUnit(pUnitId, out UnitRuntime lUnit) || lUnit == null)
+                return false;
+
+            pTeam = lUnit.Team;
+            return true;
+        }
+
+        public int ComputeStateChecksum() => BattleStateChecksum.Compute(_BattleService);
 
         public void ApplyRemoteCommandResult(BattleActionResult pResult)
         {

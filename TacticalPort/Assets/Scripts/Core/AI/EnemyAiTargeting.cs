@@ -216,7 +216,7 @@ namespace TacticalPort.Core
         }
 
         private static int ResolveMissingHealth(UnitRuntime pUnit) =>
-            pUnit != null ? Math.Max(0, pUnit.Definition.MaxHealth - pUnit.CurrentHealth) : 0;
+            pUnit != null ? Math.Max(0, pUnit.CurrentMaxHealth - pUnit.CurrentHealth) : 0;
 
         private static bool ShouldEnumerateWholeSkillRange(SkillDefinition pSkill)
         {
@@ -261,7 +261,7 @@ namespace TacticalPort.Core
 
             foreach (SkillDefinition lSkill in lActor.Skills)
             {
-                if (lSkill == null || lActor.RemainingActionPoints < lSkill.ActionPointCost)
+                if (lSkill == null || lActor.RemainingEnergy < lSkill.EnergyCost)
                     continue;
 
                 foreach (UnitRuntime lTarget in lTargets)

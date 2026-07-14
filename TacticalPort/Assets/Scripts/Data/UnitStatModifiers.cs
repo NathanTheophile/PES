@@ -10,11 +10,11 @@ namespace TacticalPort.Data
     public enum UnitStatType
     {
         Health = 0,
-        ActionPoints = 1,
-        Movement = 2,
+        Energy = 1,
+        Mobility = 2,
         MeleeDamage = 3,
         RangedDamage = 4,
-        Initiative = 5,
+        Velocity = 5,
         MeleeResistance = 6,
         RangedResistance = 7,
         RemainingPoints = 8
@@ -25,32 +25,32 @@ namespace TacticalPort.Data
         public static readonly UnitStatModifiers None = new UnitStatModifiers();
 
         public int Health { get; }
-        public int ActionPoints { get; }
-        public int Movement { get; }
+        public int Energy { get; }
+        public int Mobility { get; }
         public int MeleeDamage { get; }
         public int MeleeResistance { get; }
         public int RangedDamage { get; }
         public int RangedResistance { get; }
-        public int Initiative { get; }
+        public int Velocity { get; }
 
         public UnitStatModifiers(
             int pHealth = 0,
-            int pActionPoints = 0,
-            int pMovement = 0,
+            int pEnergy = 0,
+            int pMobility = 0,
             int pMeleeDamage = 0,
             int pMeleeResistance = 0,
             int pRangedDamage = 0,
             int pRangedResistance = 0,
-            int pInitiative = 0)
+            int pVelocity = 0)
         {
             Health = pHealth;
-            ActionPoints = pActionPoints;
-            Movement = pMovement;
+            Energy = pEnergy;
+            Mobility = pMobility;
             MeleeDamage = pMeleeDamage;
             MeleeResistance = pMeleeResistance;
             RangedDamage = pRangedDamage;
             RangedResistance = pRangedResistance;
-            Initiative = pInitiative;
+            Velocity = pVelocity;
         }
     }
 }

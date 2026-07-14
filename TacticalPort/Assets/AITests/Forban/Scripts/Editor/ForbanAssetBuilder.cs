@@ -712,7 +712,7 @@ namespace TacticalPort.AITests.Forban.Editor
             for (int lIndex = 0; lIndex < lForban.Skills.Count; lIndex++)
                 Check(lForban.Skills[lIndex] != null && lForban.Skills[lIndex].PactoleVariant != null, $"Skill {lIndex + 1} has a Pactole variant.", lFailures);
 
-            Check(lForban.MaxHealth == 420 && lForban.MoveRange == 3 && lForban.ActionPointsPerTurn == 6, "Forban base resources are correct.", lFailures);
+            Check(lForban.MaxHealth == 420 && lForban.MobilityPerTurn == 3 && lForban.EnergyPerTurn == 6, "Forban base resources are correct.", lFailures);
             Check(lForban.MeleeDamagePercent == 100 && lForban.RangedDamagePercent == 105, "Forban damage percentages are correct.", lFailures);
             Check(lForban.PushDamageBonus == 15, "Forban push damage bonus is correct.", lFailures);
             Check(lFragile != null && lFragile.MeleeResistancePercentPerStack == -10 && lFragile.RangedResistancePercentPerStack == -10, "Fragile applies negative resistance modifiers.", lFailures);
@@ -837,7 +837,7 @@ namespace TacticalPort.AITests.Forban.Editor
             SkillPrimaryEffectType pPrimaryEffect,
             SkillAdditionalEffectType pAdditionalEffect,
             int pPower,
-            int pActionPointCost,
+            int pEnergyCost,
             int pRangeMin,
             int pRangeMax,
             bool pRequiresLineOfSight,
@@ -886,7 +886,7 @@ namespace TacticalPort.AITests.Forban.Editor
             SetEnum(lSerializedObject, "_AoeShape", (int)pAoeShape);
             SetInt(lSerializedObject, "_AoeSize", pAoeShape == SkillAoeShape.Single ? 0 : pAoeSize);
             SetInt(lSerializedObject, "_AoeDamageFalloffPercentPerCell", pUseAoeFalloff ? SkillDefinition.FixedAoeDamageFalloffPercentPerCell : 0);
-            SetInt(lSerializedObject, "_ActionPointCost", pActionPointCost);
+            SetInt(lSerializedObject, "_EnergyCost", pEnergyCost);
             SetInt(lSerializedObject, "_UsePerTurn", pUsePerTurn);
             SetInt(lSerializedObject, "_UsePerTarget", pUsePerTarget);
             SetInt(lSerializedObject, "_CooldownTurns", pCooldown);
@@ -928,8 +928,8 @@ namespace TacticalPort.AITests.Forban.Editor
             int pMeleeResistanceModifier = 0,
             int pRangedResistanceModifier = 0,
             int pRangeModifier = 0,
-            int pActionPointModifier = 0,
-            int pMovementModifier = 0)
+            int pEnergyModifier = 0,
+            int pMobilityModifier = 0)
         {
             StateDefinition lAsset = LoadOrCreate<StateDefinition>($"{StatesFolder}/{pFileName}.asset");
             SerializedObject lSerializedObject = new SerializedObject(lAsset);
@@ -946,8 +946,8 @@ namespace TacticalPort.AITests.Forban.Editor
             SetInt(lSerializedObject, "_MeleeResistancePercentPerStack", pMeleeResistanceModifier);
             SetInt(lSerializedObject, "_RangedResistancePercentPerStack", pRangedResistanceModifier);
             SetInt(lSerializedObject, "_RangeModifierPerStack", pRangeModifier);
-            SetInt(lSerializedObject, "_ActionPointModifierPerStack", pActionPointModifier);
-            SetInt(lSerializedObject, "_MovementModifierPerStack", pMovementModifier);
+            SetInt(lSerializedObject, "_EnergyModifierPerStack", pEnergyModifier);
+            SetInt(lSerializedObject, "_MobilityModifierPerStack", pMobilityModifier);
             Apply(lSerializedObject, lAsset);
             return lAsset;
         }
@@ -984,9 +984,9 @@ namespace TacticalPort.AITests.Forban.Editor
             string pDescription,
             Team pTeam,
             int pMaxHealth,
-            int pMoveRange,
-            int pActionPoints,
-            int pInitiative,
+            int pMobilityPerTurn,
+            int pEnergy,
+            int pVelocity,
             int pMeleeDamage,
             int pRangedDamage,
             int pMeleeResistance,
@@ -1007,9 +1007,9 @@ namespace TacticalPort.AITests.Forban.Editor
             SetString(lSerializedObject, "_Description", pDescription);
             SetEnum(lSerializedObject, "_Team", (int)pTeam);
             SetInt(lSerializedObject, "_MaxHealth", pMaxHealth);
-            SetInt(lSerializedObject, "_MoveRange", pMoveRange);
-            SetInt(lSerializedObject, "_ActionPointsPerTurn", pActionPoints);
-            SetInt(lSerializedObject, "_Initiative", pInitiative);
+            SetInt(lSerializedObject, "_MobilityPerTurn", pMobilityPerTurn);
+            SetInt(lSerializedObject, "_EnergyPerTurn", pEnergy);
+            SetInt(lSerializedObject, "_Velocity", pVelocity);
             SetInt(lSerializedObject, "_MeleeDamagePercent", pMeleeDamage);
             SetInt(lSerializedObject, "_RangedDamagePercent", pRangedDamage);
             SetInt(lSerializedObject, "_MeleeResistancePercent", pMeleeResistance);

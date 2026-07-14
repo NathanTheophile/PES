@@ -27,7 +27,7 @@ namespace TacticalPort.View
         private readonly BoardMarkerLayer _EnemyOccupiedMarkers = new BoardMarkerLayer();
         private readonly BoardMarkerLayer _ActiveOccupiedMarkers = new BoardMarkerLayer();
         private readonly BoardMarkerLayer _HoverMarkers = new BoardMarkerLayer();
-        private readonly BoardMarkerLayer _MoveRangeMarkers = new BoardMarkerLayer();
+        private readonly BoardMarkerLayer _MobilityPerTurnMarkers = new BoardMarkerLayer();
         private readonly BoardMarkerLayer _AreaPreviewMarkers = new BoardMarkerLayer();
         private readonly BoardMarkerLayer _GlyphMarkers = new BoardMarkerLayer();
         private readonly BoardMarkerLayer _TelegraphMarkers = new BoardMarkerLayer();
@@ -62,7 +62,7 @@ namespace TacticalPort.View
             _EnemyOccupiedMarkers.Clear();
             _ActiveOccupiedMarkers.Clear();
             _HoverMarkers.Clear();
-            _MoveRangeMarkers.Clear();
+            _MobilityPerTurnMarkers.Clear();
             _AreaPreviewMarkers.Clear();
             _GlyphMarkers.Clear();
             _TelegraphMarkers.Clear();
@@ -104,7 +104,7 @@ namespace TacticalPort.View
             _HoverMarkers.Sync(pCells, pPrefab, ResolveWorldPosition, ResolveRoot, ApplyMarkerSorting);
 
         public void SyncMovement(IReadOnlyCollection<GridCoord> pCells, GameObject pPrefab) =>
-            _MoveRangeMarkers.Sync(pCells, pPrefab, ResolveWorldPosition, ResolveRoot, ApplyMarkerSorting);
+            _MobilityPerTurnMarkers.Sync(pCells, pPrefab, ResolveWorldPosition, ResolveRoot, ApplyMarkerSorting);
 
         public void SyncAreaPreview(IReadOnlyCollection<GridCoord> pCells, GameObject pPrefab) =>
             _AreaPreviewMarkers.Sync(pCells, pPrefab, ResolveWorldPosition, ResolveRoot, ApplyMarkerSorting);

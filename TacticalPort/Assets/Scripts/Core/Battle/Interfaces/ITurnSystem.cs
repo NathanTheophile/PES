@@ -13,8 +13,9 @@ namespace TacticalPort.Core
     {
         BattleTurnContext CurrentTurn { get; }
         int RoundIndex { get; }
+        IReadOnlyList<UnitRuntime> TurnOrder { get; }
 
-        void Initialize(IEnumerable<UnitRuntime> units);
+        void Initialize(IEnumerable<UnitRuntime> units, Team perfectVelocityTieStartingTeam = Team.TeamA);
         bool TryStartNextTurn(out BattleTurnContext turnContext);
         void CompleteCurrentTurn();
         void AddUnit(UnitRuntime unit, UnitId afterUnitId = default);

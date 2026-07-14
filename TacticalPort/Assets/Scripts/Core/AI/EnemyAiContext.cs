@@ -134,11 +134,11 @@ namespace TacticalPort.Core
 
             int lBestOffensiveRange = ResolveBestOffensiveRange(lActor);
             bool lCanFightAtRange = lBestOffensiveRange >= 3;
-            bool lLowHealth = lActor.CurrentHealth * 100 <= lActor.Definition.MaxHealth * 45;
+            bool lLowHealth = lActor.CurrentHealth * 100 <= lActor.CurrentMaxHealth * 45;
             int lNearestThreatDistance = ResolveNearestThreatDistance(pContext, lHostileTeam);
             int lThreatRadius = lSettings.ThreatRadius > 0 ? lSettings.ThreatRadius : 2;
             bool lThreatened = lNearestThreatDistance <= lThreatRadius;
-            bool lHasActed = lActor.RemainingActionPoints < Math.Max(0, lActor.Definition.ActionPointsPerTurn + lActor.GetActionPointModifier());
+            bool lHasActed = lActor.RemainingEnergy < Math.Max(0, lActor.Definition.EnergyPerTurn + lActor.GetEnergyModifier());
             bool lShouldForceKite = pContext.ForceKiteThisDecision || (lActor.Definition.EnemyAiKiteAfterSuccessfulAction && lHasActed);
 
             EnemyAiMovementMode lMovementMode = lShouldForceKite

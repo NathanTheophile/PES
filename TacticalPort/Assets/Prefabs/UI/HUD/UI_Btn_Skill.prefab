@@ -586,7 +586,7 @@ GameObject:
   - component: {fileID: 6550274890394059253}
   - component: {fileID: 6576506516242514871}
   m_Layer: 5
-  m_Name: Txt_ActionPointCostAndRange
+  m_Name: Txt_EnergyCostAndRange
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -639,7 +639,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: ActionPointCost PA - Range
+  m_text: Energy Cost - Range
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -1027,7 +1027,7 @@ MonoBehaviour:
   _TooltipPanel: {fileID: 0}
   _TxtSkillName: {fileID: 1168811684729298938}
   _TxtAdditionalEffect: {fileID: 6638367367294732460}
-  _TxtActionPointCostAndRange: {fileID: 6576506516242514871}
+  _TxtEnergyCostAndRange: {fileID: 6576506516242514871}
   _TxtPower: {fileID: 5239139389352315182}
   _TxtDescription: {fileID: 0}
   _CanvasGroup: {fileID: 7439599663133080121}

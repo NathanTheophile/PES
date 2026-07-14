@@ -20,7 +20,7 @@ namespace TacticalPort.Matchmaking
         [SerializeField] private string _LocalPlayerId = "local-player";
         [SerializeField] private string _OpponentPlayerId = "local-opponent";
         [SerializeField] private string _OpponentTeamPresetId = string.Empty;
-        [SerializeField] private string _MapId = "poutch";
+        [SerializeField] private string _MapId = "alpha-1";
 
         private MatchTicketSnapshot _CurrentTicket;
 

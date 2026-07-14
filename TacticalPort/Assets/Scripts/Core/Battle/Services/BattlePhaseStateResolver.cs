@@ -63,7 +63,7 @@ namespace TacticalPort.Core
             if (pUnit == null || pPhaseState?.State == null || !pUnit.IsAlive)
                 return false;
 
-            int lThresholdHealth = (int)Math.Ceiling(pUnit.Definition.MaxHealth * pPhaseState.HealthThresholdNormalized);
+            int lThresholdHealth = (int)Math.Ceiling(pUnit.CurrentMaxHealth * pPhaseState.HealthThresholdNormalized);
             return pUnit.CurrentHealth <= Math.Max(0, lThresholdHealth);
         }
     }

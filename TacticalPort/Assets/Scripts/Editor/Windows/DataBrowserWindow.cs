@@ -243,13 +243,13 @@ namespace TacticalPort.EditorTools
             if (pSkill.AdditionalEffectType != SkillAdditionalEffectType.None)
                 lSubtitle += $" + {pSkill.AdditionalEffectType}";
 
-            lSubtitle += $" | Range {pSkill.RangeMin}-{pSkill.RangeMax} | AP {pSkill.ActionPointCost}";
+            lSubtitle += $" | Range {pSkill.RangeMin}-{pSkill.RangeMax} | Energy {pSkill.EnergyCost}";
             return new AssetEntry(pSkill, pPath, pSkill.DisplayName, lSubtitle);
         }
 
         private static AssetEntry BuildUnitEntry(UnitDefinition pUnit, string pPath)
         {
-            string lSubtitle = $"{pUnit.Id} | {pUnit.Team} | HP {pUnit.MaxHealth} | AP {pUnit.ActionPointsPerTurn} | Skills {pUnit.Skills.Count}";
+            string lSubtitle = $"{pUnit.Id} | {pUnit.Team} | Health {pUnit.MaxHealth} | Energy {pUnit.EnergyPerTurn} | Skills {pUnit.Skills.Count}";
             return new AssetEntry(pUnit, pPath, pUnit.DisplayName, lSubtitle);
         }
 

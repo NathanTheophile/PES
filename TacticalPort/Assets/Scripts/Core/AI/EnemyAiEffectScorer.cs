@@ -142,14 +142,14 @@ namespace TacticalPort.Core
                         - lOverkillPenalty;
 
                 case SkillPrimaryEffectType.Heal:
-                    int lMissingHealth = Math.Max(0, pUnit.Definition.MaxHealth - pUnit.CurrentHealth);
+                    int lMissingHealth = Math.Max(0, pUnit.CurrentMaxHealth - pUnit.CurrentHealth);
                     int lEffectiveHeal = Math.Min(lMissingHealth, pSkill.Power);
                     if (pIsAlly)
                     {
                         if (lEffectiveHeal <= 0)
                             return -12;
 
-                        int lEmergencyBonus = pUnit.CurrentHealth * 100 <= pUnit.Definition.MaxHealth * 35 ? 18 : 0;
+                        int lEmergencyBonus = pUnit.CurrentHealth * 100 <= pUnit.CurrentMaxHealth * 35 ? 18 : 0;
                         return WeightScore(lEffectiveHeal * 7 + lEmergencyBonus, lSettings.HealWeight);
                     }
 

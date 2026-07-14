@@ -2,6 +2,7 @@
     "name": "TacticalPort.Matchmaking",
     "rootNamespace": "TacticalPort.Matchmaking",
     "references": [
+        "TacticalPort.Matchmaking.Contracts",
         "TacticalPort.Shared",
         "TacticalPort.Data",
         "TacticalPort.State",

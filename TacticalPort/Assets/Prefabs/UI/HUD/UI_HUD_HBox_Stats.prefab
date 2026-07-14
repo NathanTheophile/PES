@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 5880239364669538876}
   - component: {fileID: 7178595894716426511}
   m_Layer: 5
-  m_Name: Txt_AP
+  m_Name: Txt_Energy
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -149,7 +149,7 @@ GameObject:
   - component: {fileID: 3147474166101191152}
   - component: {fileID: 7271209709560421833}
   m_Layer: 5
-  m_Name: Txt_HP
+  m_Name: Txt_Health
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -286,7 +286,7 @@ GameObject:
   - component: {fileID: 6660089758358340374}
   - component: {fileID: 8108210228993547296}
   m_Layer: 5
-  m_Name: Txt_MP
+  m_Name: Txt_Mobility
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

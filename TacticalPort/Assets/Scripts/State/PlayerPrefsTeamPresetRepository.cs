@@ -13,7 +13,7 @@ namespace TacticalPort.State
 {
     public sealed class PlayerPrefsTeamPresetRepository : ITeamPresetRepository
     {
-        public const string SaveKey = "TacticalPort.TeamPresets.v1";
+        public const string SaveKey = "TacticalPort.TeamPresets.v2";
 
         public Task<TeamPresetRepositorySnapshot> LoadAsync(CancellationToken pCancellationToken = default)
         {
@@ -37,10 +37,15 @@ namespace TacticalPort.State
         public Task SaveAsync(TeamPresetRepositorySnapshot pSnapshot, CancellationToken pCancellationToken = default)
         {
             pCancellationToken.ThrowIfCancellationRequested();
+            SaveSnapshot(pSnapshot ?? new TeamPresetRepositorySnapshot());
+            return Task.CompletedTask;
+        }
+
+        private static void SaveSnapshot(TeamPresetRepositorySnapshot pSnapshot)
+        {
             string lJson = JsonUtility.ToJson(pSnapshot ?? new TeamPresetRepositorySnapshot());
             PlayerPrefs.SetString(SaveKey, lJson);
             PlayerPrefs.Save();
-            return Task.CompletedTask;
         }
     }
 }

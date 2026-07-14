@@ -24,7 +24,7 @@ namespace TacticalPort.UI
         [SerializeField] private TMP_Text _TxtSkillName;
         [FormerlySerializedAs("_TxtEffectType")]
         [SerializeField] private TMP_Text _TxtAdditionalEffect;
-        [SerializeField] private TMP_Text _TxtActionPointCostAndRange;
+        [SerializeField] private TMP_Text _TxtEnergyCostAndRange;
         [SerializeField] private TMP_Text _TxtPower;
         [SerializeField] private TMP_Text _TxtDescription;
         [SerializeField] private CanvasGroup _CanvasGroup;
@@ -120,7 +120,7 @@ namespace TacticalPort.UI
         {
             SetLabel(_TxtSkillName, ResolveSkillNameText());
             SetTooltipLine(_TxtAdditionalEffect, ResolveAdditionalEffectText());
-            SetLabel(_TxtActionPointCostAndRange, ResolveActionPointCostAndRangeText());
+            SetLabel(_TxtEnergyCostAndRange, ResolveEnergyCostAndRangeText());
             SetTooltipLine(_TxtPower, ResolvePowerText());
             SetDescription(ResolveDescriptionText());
             ApplySkillVisuals();
@@ -155,7 +155,7 @@ namespace TacticalPort.UI
             };
         }
 
-        private string ResolveActionPointCostAndRangeText() => _Skill != null ? $"AP {_Skill.ActionPointCost} - Range {_Skill.Range}" : string.Empty;
+        private string ResolveEnergyCostAndRangeText() => _Skill != null ? $"Energy {_Skill.EnergyCost} - Range {_Skill.Range}" : string.Empty;
 
         private string ResolvePowerText()
         {
@@ -165,9 +165,10 @@ namespace TacticalPort.UI
             switch (_Skill.PrimaryEffectType)
             {
                 case SkillPrimaryEffectType.Damage:
-                    return _Skill.UseAoeDamageFalloff
+                    string lDamage = _Skill.UseAoeDamageFalloff
                         ? $"Deals {_Skill.Power} (-{_Skill.AoeDamageFalloffPercentPerCell}%/cell)"
                         : $"Deals {_Skill.Power}";
+                    return _Skill.HasLifeSteal ? $"{lDamage} | Life Steal 50%" : lDamage;
 
                 case SkillPrimaryEffectType.Heal:
                     return $"Heals {_Skill.Power}";
@@ -177,7 +178,15 @@ namespace TacticalPort.UI
             }
         }
 
-        private string ResolveDescriptionText() => _Skill != null ? _Skill.Description : string.Empty;
+        private string ResolveDescriptionText()
+        {
+            if (_Skill == null)
+                return string.Empty;
+
+            return _Skill.HasLifeSteal
+                ? $"{_Skill.Description}\nLife Steal: 50% of enemy health removed".Trim()
+                : _Skill.Description;
+        }
 
         private void ShowTooltip()
         {
@@ -306,7 +315,7 @@ namespace TacticalPort.UI
             lIsValid &= ValidateReference(_TooltipPanel, nameof(_TooltipPanel));
             lIsValid &= ValidateReference(_TxtSkillName, nameof(_TxtSkillName));
             lIsValid &= ValidateReference(_TxtAdditionalEffect, nameof(_TxtAdditionalEffect));
-            lIsValid &= ValidateReference(_TxtActionPointCostAndRange, nameof(_TxtActionPointCostAndRange));
+            lIsValid &= ValidateReference(_TxtEnergyCostAndRange, nameof(_TxtEnergyCostAndRange));
             lIsValid &= ValidateReference(_TxtPower, nameof(_TxtPower));
             lIsValid &= ValidateReference(_CanvasGroup, nameof(_CanvasGroup));
 

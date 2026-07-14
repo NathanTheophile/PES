@@ -92,8 +92,8 @@ namespace TacticalPort.UI
             if (_HealthSlider != null)
             {
                 _HealthSlider.minValue = 0;
-                _HealthSlider.maxValue = Mathf.Max(1, _Unit.Definition.MaxHealth);
-                _HealthSlider.value = Mathf.Clamp(_Unit.CurrentHealth, 0, _Unit.Definition.MaxHealth);
+                _HealthSlider.maxValue = Mathf.Max(1, _Unit.CurrentMaxHealth);
+                _HealthSlider.value = Mathf.Clamp(_Unit.CurrentHealth, 0, _Unit.CurrentMaxHealth);
                 _HealthSlider.interactable = false;
             }
 

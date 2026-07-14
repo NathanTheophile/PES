@@ -105,13 +105,13 @@ MonoBehaviour:
   _Character:
     Name: {fileID: 1960094641659903743}
     Portrait: {fileID: 877160220691709245}
-    Description: {fileID: 0}
+    Description: {fileID: 809902285916308753}
     Preview: {fileID: 3148709275134763038}
-  _ActionPointsValue:
+  _EnergyValue:
     Value: {fileID: 6439989002451185}
   _HealthValue:
     Value: {fileID: 7596198015626474978}
-  _MoveRangeValue:
+  _MobilityValue:
     Value: {fileID: 3566163944060286713}
   _PassiveSlots:
   - Button: {fileID: 7647186672501120733}
@@ -427,7 +427,7 @@ GameObject:
   - component: {fileID: 3132668299293430181}
   - component: {fileID: 6439989002451185}
   m_Layer: 0
-  m_Name: Txt_AP
+  m_Name: Txt_Energy
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1230,7 +1230,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 0 PA | Range 0-0
+  m_text: Energy 0 | Range 0-0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: e2c2d9ed6685b93488ea2ada296991cd, type: 2}
   m_sharedMaterial: {fileID: -6861359528211525756, guid: e2c2d9ed6685b93488ea2ada296991cd, type: 2}
@@ -1442,7 +1442,7 @@ GameObject:
   - component: {fileID: 6647474519276441049}
   - component: {fileID: 7362403532928833902}
   m_Layer: 0
-  m_Name: Img_AP_Fill
+  m_Name: Img_Energy_Fill
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3165,7 +3165,7 @@ GameObject:
   - component: {fileID: 5040602807358675477}
   - component: {fileID: 3441642103243761853}
   m_Layer: 0
-  m_Name: Img_AP
+  m_Name: Img_Energy
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3257,7 +3257,7 @@ GameObject:
   - component: {fileID: 8262417212103338790}
   - component: {fileID: 6430550324981221642}
   m_Layer: 0
-  m_Name: Img_MP_Fill
+  m_Name: Img_Mobility_Fill
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3535,7 +3535,7 @@ GameObject:
   - component: {fileID: 1707600233698389735}
   - component: {fileID: 7383568370615552265}
   m_Layer: 0
-  m_Name: Img_HP_Fill
+  m_Name: Img_Health_Fill
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3748,7 +3748,7 @@ GameObject:
   - component: {fileID: 8599769125295824893}
   - component: {fileID: 1662087677378695898}
   m_Layer: 0
-  m_Name: Img_HP
+  m_Name: Img_Health
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6501,7 +6501,7 @@ GameObject:
   - component: {fileID: 6985745070316910585}
   - component: {fileID: 2342679684043418435}
   m_Layer: 5
-  m_Name: Txt_ActionPointCostAndRange
+  m_Name: Txt_EnergyCostAndRange
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6554,7 +6554,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 2 PA | 1-1
+  m_text: Energy 2 | 1-1
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -7330,7 +7330,7 @@ GameObject:
   - component: {fileID: 2134749022250701626}
   - component: {fileID: 3566163944060286713}
   m_Layer: 0
-  m_Name: Txt_MP
+  m_Name: Txt_Mobility
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7574,7 +7574,7 @@ GameObject:
   - component: {fileID: 1154215044827722481}
   - component: {fileID: 7501670426952273905}
   m_Layer: 0
-  m_Name: Img_MP
+  m_Name: Img_Mobility
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8022,7 +8022,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'SPELLS
+  m_text: 'SKILLS
 
 '
   m_isRightToLeft: 0
@@ -8871,7 +8871,7 @@ GameObject:
   - component: {fileID: 1220901657359891174}
   - component: {fileID: 7596198015626474978}
   m_Layer: 0
-  m_Name: Txt_HP
+  m_Name: Txt_Health
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -9731,7 +9731,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6576506516242514871, guid: 2e54de94d3d566e4588021487e75343f, type: 3}
       propertyPath: m_text
-      value: 3 PA | 2-5
+      value: Energy 3 | 2-5
       objectReference: {fileID: 0}
     - target: {fileID: 6576506516242514871, guid: 2e54de94d3d566e4588021487e75343f, type: 3}
       propertyPath: m_fontSize
@@ -11503,7 +11503,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6576506516242514871, guid: 2e54de94d3d566e4588021487e75343f, type: 3}
       propertyPath: m_text
-      value: 3 PA | 1-3
+      value: Energy 3 | 1-3
       objectReference: {fileID: 0}
     - target: {fileID: 6576506516242514871, guid: 2e54de94d3d566e4588021487e75343f, type: 3}
       propertyPath: m_fontSize
@@ -11914,7 +11914,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6576506516242514871, guid: 2e54de94d3d566e4588021487e75343f, type: 3}
       propertyPath: m_text
-      value: 3 PA | 1-1
+      value: Energy 3 | 1-1
       objectReference: {fileID: 0}
     - target: {fileID: 6576506516242514871, guid: 2e54de94d3d566e4588021487e75343f, type: 3}
       propertyPath: m_fontSize
@@ -12592,7 +12592,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6576506516242514871, guid: 2e54de94d3d566e4588021487e75343f, type: 3}
       propertyPath: m_text
-      value: 4 PA | 2-4
+      value: Energy 4 | 2-4
       objectReference: {fileID: 0}
     - target: {fileID: 6576506516242514871, guid: 2e54de94d3d566e4588021487e75343f, type: 3}
       propertyPath: m_fontSize
@@ -13003,7 +13003,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6576506516242514871, guid: 2e54de94d3d566e4588021487e75343f, type: 3}
       propertyPath: m_text
-      value: 3 PA | 2-4
+      value: Energy 3 | 2-4
       objectReference: {fileID: 0}
     - target: {fileID: 6576506516242514871, guid: 2e54de94d3d566e4588021487e75343f, type: 3}
       propertyPath: m_fontSize
@@ -14960,7 +14960,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6576506516242514871, guid: 2e54de94d3d566e4588021487e75343f, type: 3}
       propertyPath: m_text
-      value: 2 PA | 1-1
+      value: Energy 2 | 1-1
       objectReference: {fileID: 0}
     - target: {fileID: 6576506516242514871, guid: 2e54de94d3d566e4588021487e75343f, type: 3}
       propertyPath: m_fontSize

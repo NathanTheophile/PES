@@ -201,7 +201,7 @@ namespace TacticalPort.UI
             if (!_CanUseSkills || pUnit == null || pSkill == null)
                 return false;
 
-            if (!pUnit.CanSpendActionPoints(pSkill.ActionPointCost))
+            if (!pUnit.CanSpendEnergy(pSkill.EnergyCost))
                 return false;
 
             if (pUnit.GetRemainingCooldown(pSkill) > 0)

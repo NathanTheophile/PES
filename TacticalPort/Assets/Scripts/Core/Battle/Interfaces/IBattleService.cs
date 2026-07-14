@@ -19,13 +19,14 @@ namespace TacticalPort.Core
         UnitRuntime ActiveUnit { get; }
         bool HasActiveTurn { get; }
         IReadOnlyCollection<UnitRuntime> Units { get; }
+        IReadOnlyList<UnitRuntime> TurnOrder { get; }
         event Action<BattleTurnContext> TurnStarted;
         event Action<UnitId> TurnEnded;
         event Action<BattleActionResult> SkillUsed;
         event Action<TelegraphedHazardRuntime> HazardScheduled;
         event Action<BattleActionResult> HazardsResolved;
 
-        void Initialize(BattleScenarioDefinition pScenario);
+        void Initialize(BattleScenarioDefinition pScenario, Team pPerfectVelocityTieStartingTeam = Team.TeamA);
         void EnterPlacementPhase();
         bool TryStartNextTurn(out BattleTurnContext turnContext);
         BattleActionResult RepositionUnitDuringPlacement(UnitId unitId, GridCoord destination);

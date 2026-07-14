@@ -52,9 +52,11 @@ namespace TacticalPort.EditorTools
                         "_RangedDamageModifierPerStack",
                         "_MeleeResistancePercentPerStack",
                         "_RangedResistancePercentPerStack",
+                        "_GeneralResistancePercentPerStack",
+                        "_WearPercentPerStack",
                         "_RangeModifierPerStack",
-                        "_ActionPointModifierPerStack",
-                        "_MovementModifierPerStack");
+                        "_EnergyModifierPerStack",
+                        "_MobilityModifierPerStack");
                     break;
             }
 

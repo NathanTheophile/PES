@@ -176,11 +176,12 @@ namespace TacticalPort.UI
         {
             _SortedUnitsBuffer.Clear();
 
-            if (_BattleService?.Units == null)
+            if (_BattleService?.TurnOrder == null)
                 return;
 
-            foreach (UnitRuntime lUnit in _BattleService.Units)
+            for (int lIndex = 0; lIndex < _BattleService.TurnOrder.Count; lIndex++)
             {
+                UnitRuntime lUnit = _BattleService.TurnOrder[lIndex];
                 if (lUnit == null)
                     continue;
 
@@ -190,7 +191,14 @@ namespace TacticalPort.UI
                 _SortedUnitsBuffer.Add(lUnit);
             }
 
-            _SortedUnitsBuffer.Sort(CompareUnitsByInitiative);
+            if (!_ShowDefeatedUnits || _BattleService.Units == null)
+                return;
+
+            foreach (UnitRuntime lUnit in _BattleService.Units)
+            {
+                if (lUnit != null && !lUnit.IsAlive && !_SortedUnitsBuffer.Contains(lUnit))
+                    _SortedUnitsBuffer.Add(lUnit);
+            }
         }
 
         private bool ShouldRebuild()
@@ -205,23 +213,6 @@ namespace TacticalPort.UI
             }
 
             return false;
-        }
-
-        private static int CompareUnitsByInitiative(UnitRuntime pLeft, UnitRuntime pRight)
-        {
-            if (pLeft == pRight)
-                return 0;
-
-            if (pLeft == null)
-                return 1;
-
-            if (pRight == null)
-                return -1;
-
-            int lInitiativeComparison = pRight.Definition.Initiative.CompareTo(pLeft.Definition.Initiative);
-            return lInitiativeComparison != 0
-                ? lInitiativeComparison
-                : pLeft.Id.Value.CompareTo(pRight.Id.Value);
         }
 
         private void SubscribeToBattleService()

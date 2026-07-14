@@ -177,7 +177,7 @@ MonoBehaviour:
   _EnemyOccupiedPreviewPrefab: {fileID: 7447484977701585054, guid: bda086eb0a2dc3b418befa7c035e08c4, type: 3}
   _ActiveOccupiedPreviewPrefab: {fileID: 8981710668080815227, guid: b5781b5c8af355849b72c2312f61f148, type: 3}
   _HoverPreviewPrefab: {fileID: 5572423456231554085, guid: d3c8bd197a019d146912904029074663, type: 3}
-  _MoveRangePreviewPrefab: {fileID: 799936921749911259, guid: f40443c6daf00bf41a39dec4467e3881, type: 3}
+  _MobilityPerTurnPreviewPrefab: {fileID: 799936921749911259, guid: f40443c6daf00bf41a39dec4467e3881, type: 3}
   _AreaPreviewPrefab: {fileID: 8981710668080815227, guid: b5781b5c8af355849b72c2312f61f148, type: 3}
   _GlyphPreviewPrefab: {fileID: 8981710668080815227, guid: b5781b5c8af355849b72c2312f61f148, type: 3}
   _TelegraphPreviewPrefab: {fileID: 8981710668080815227, guid: b5781b5c8af355849b72c2312f61f148, type: 3}

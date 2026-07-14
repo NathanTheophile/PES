@@ -72,13 +72,15 @@ namespace TacticalPort.EditorTools
                 "Core Stats",
                 "_Team",
                 "_MaxHealth",
-                "_MoveRange",
-                "_ActionPointsPerTurn",
-                "_Initiative",
+                "_MobilityPerTurn",
+                "_EnergyPerTurn",
+                "_Velocity",
                 "_MeleeDamagePercent",
                 "_RangedDamagePercent",
+                "_GeneralDamagePercent",
                 "_MeleeResistancePercent",
                 "_RangedResistancePercent",
+                "_GeneralResistancePercent",
                 "_PushDamageBonus");
 
             DrawSection("Footprint", "_FootprintWidth", "_FootprintHeight");

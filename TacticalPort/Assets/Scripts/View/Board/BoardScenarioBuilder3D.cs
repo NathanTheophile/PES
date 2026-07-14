@@ -58,6 +58,8 @@ namespace TacticalPort.View
             else
                 lUnits.AddRange(lDirectUnits);
 
+            AssignMissingTeamSlotIndices(lUnits);
+
             return BattleScenarioDefinition.CreateRuntime(
                 pScenario.ScenarioId,
                 pScenario.DisplayName,
@@ -158,7 +160,8 @@ namespace TacticalPort.View
                 pUnits.Add(new UnitSpawnDefinition
                 {
                     Unit = UnitDefinition.CreateRuntimeClone(lSource, pTeam, lLoadout),
-                    StartCoordinate = new SerializableGridCoord(lSpawnCell.Coord.X, lSpawnCell.Coord.Y)
+                    StartCoordinate = new SerializableGridCoord(lSpawnCell.Coord.X, lSpawnCell.Coord.Y),
+                    TeamSlotIndex = lSelectedUnitIndex >= 0 ? lSelectedUnitIndex : lAddedUnits
                 });
                 lAddedUnits++;
             }
@@ -210,6 +213,39 @@ namespace TacticalPort.View
                 Slot = pSlot;
                 FallbackUnit = pFallbackUnit;
             }
+        }
+
+        private static void AssignMissingTeamSlotIndices(IList<UnitSpawnDefinition> pUnits)
+        {
+            if (pUnits == null)
+                return;
+
+            int lNextTeamAIndex = FindNextTeamSlotIndex(pUnits, Team.TeamA);
+            int lNextTeamBIndex = FindNextTeamSlotIndex(pUnits, Team.TeamB);
+            for (int lIndex = 0; lIndex < pUnits.Count; lIndex++)
+            {
+                UnitSpawnDefinition lSpawn = pUnits[lIndex];
+                if (lSpawn?.Unit == null || lSpawn.TeamSlotIndex >= 0)
+                    continue;
+
+                if (lSpawn.Unit.Team == Team.TeamA)
+                    lSpawn.TeamSlotIndex = lNextTeamAIndex++;
+                else if (lSpawn.Unit.Team == Team.TeamB)
+                    lSpawn.TeamSlotIndex = lNextTeamBIndex++;
+            }
+        }
+
+        private static int FindNextTeamSlotIndex(IList<UnitSpawnDefinition> pUnits, Team pTeam)
+        {
+            int lNextIndex = 0;
+            for (int lIndex = 0; lIndex < pUnits.Count; lIndex++)
+            {
+                UnitSpawnDefinition lSpawn = pUnits[lIndex];
+                if (lSpawn?.Unit != null && lSpawn.Unit.Team == pTeam && lSpawn.TeamSlotIndex >= lNextIndex)
+                    lNextIndex = lSpawn.TeamSlotIndex + 1;
+            }
+
+            return lNextIndex;
         }
     }
 }

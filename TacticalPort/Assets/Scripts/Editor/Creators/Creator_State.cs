@@ -26,9 +26,11 @@ namespace TacticalPort.EditorTools
         private int _RangedDamageModifierPerStack = 0;
         private int _MeleeResistancePercentPerStack = 0;
         private int _RangedResistancePercentPerStack = 0;
+        private int _GeneralResistancePercentPerStack = 0;
+        private int _WearPercentPerStack = 0;
         private int _RangeModifierPerStack = 0;
-        private int _ActionPointModifierPerStack = 0;
-        private int _MovementModifierPerStack = 0;
+        private int _EnergyModifierPerStack = 0;
+        private int _MobilityModifierPerStack = 0;
 
         #endregion
 
@@ -59,14 +61,16 @@ namespace TacticalPort.EditorTools
             _IsPassiveMarker = EditorGUILayout.Toggle("Passive Marker", _IsPassiveMarker);
 
             DrawSectionHeader("Modifiers");
-            _DamageModifierPerStack = EditorGUILayout.IntField("Damage % / Stack", _DamageModifierPerStack);
+            _DamageModifierPerStack = EditorGUILayout.IntField("General Damage % / Stack", _DamageModifierPerStack);
             _MeleeDamageModifierPerStack = EditorGUILayout.IntField("Melee Damage % / Stack", _MeleeDamageModifierPerStack);
             _RangedDamageModifierPerStack = EditorGUILayout.IntField("Ranged Damage % / Stack", _RangedDamageModifierPerStack);
             _MeleeResistancePercentPerStack = EditorGUILayout.IntField("Melee Resistance % / Stack", _MeleeResistancePercentPerStack);
             _RangedResistancePercentPerStack = EditorGUILayout.IntField("Ranged Resistance % / Stack", _RangedResistancePercentPerStack);
+            _GeneralResistancePercentPerStack = EditorGUILayout.IntField("General Resistance % / Stack", _GeneralResistancePercentPerStack);
+            _WearPercentPerStack = EditorGUILayout.IntField("Wear % / Stack", _WearPercentPerStack);
             _RangeModifierPerStack = EditorGUILayout.IntField("Range / Stack", _RangeModifierPerStack);
-            _ActionPointModifierPerStack = EditorGUILayout.IntField("AP / Stack", _ActionPointModifierPerStack);
-            _MovementModifierPerStack = EditorGUILayout.IntField("Move / Stack", _MovementModifierPerStack);
+            _EnergyModifierPerStack = EditorGUILayout.IntField("Energy / Stack", _EnergyModifierPerStack);
+            _MobilityModifierPerStack = EditorGUILayout.IntField("Mobility / Stack", _MobilityModifierPerStack);
 
             if (DrawCreateButton("Create State Definition"))
                 CreateAsset();
@@ -93,9 +97,11 @@ namespace TacticalPort.EditorTools
             SetInt(lSerializedObject, "_RangedDamageModifierPerStack", _RangedDamageModifierPerStack);
             SetInt(lSerializedObject, "_MeleeResistancePercentPerStack", _MeleeResistancePercentPerStack);
             SetInt(lSerializedObject, "_RangedResistancePercentPerStack", _RangedResistancePercentPerStack);
+            SetInt(lSerializedObject, "_GeneralResistancePercentPerStack", _GeneralResistancePercentPerStack);
+            SetInt(lSerializedObject, "_WearPercentPerStack", _WearPercentPerStack);
             SetInt(lSerializedObject, "_RangeModifierPerStack", _RangeModifierPerStack);
-            SetInt(lSerializedObject, "_ActionPointModifierPerStack", _ActionPointModifierPerStack);
-            SetInt(lSerializedObject, "_MovementModifierPerStack", _MovementModifierPerStack);
+            SetInt(lSerializedObject, "_EnergyModifierPerStack", _EnergyModifierPerStack);
+            SetInt(lSerializedObject, "_MobilityModifierPerStack", _MobilityModifierPerStack);
 
             ApplyAndSave(lSerializedObject);
 

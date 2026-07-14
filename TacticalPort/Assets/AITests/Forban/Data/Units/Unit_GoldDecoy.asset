@@ -18,13 +18,15 @@ MonoBehaviour:
     unit occupancy.
   _Team: 0
   _MaxHealth: 60
-  _MoveRange: 0
-  _ActionPointsPerTurn: 0
-  _Initiative: 0
+  _MobilityPerTurn: 0
+  _EnergyPerTurn: 0
+  _Velocity: 0
   _MeleeDamagePercent: 100
   _RangedDamagePercent: 100
+  _GeneralDamagePercent: 0
   _MeleeResistancePercent: 0
   _RangedResistancePercent: 0
+  _GeneralResistancePercent: 0
   _StatPointBudget: 120
   _PushDamageBonus: 0
   _FootprintWidth: 1

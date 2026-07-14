@@ -11,13 +11,13 @@ namespace TacticalPort.State.Tests
         public void CostsMatchDeckbuildingRules()
         {
             Assert.That(UnitStatAllocationRules.GetCostPerPoint(UnitStatType.Health), Is.EqualTo(1));
-            Assert.That(UnitStatAllocationRules.GetCostPerPoint(UnitStatType.ActionPoints), Is.EqualTo(25));
-            Assert.That(UnitStatAllocationRules.GetCostPerPoint(UnitStatType.Movement), Is.EqualTo(20));
+            Assert.That(UnitStatAllocationRules.GetCostPerPoint(UnitStatType.Energy), Is.EqualTo(25));
+            Assert.That(UnitStatAllocationRules.GetCostPerPoint(UnitStatType.Mobility), Is.EqualTo(20));
             Assert.That(UnitStatAllocationRules.GetCostPerPoint(UnitStatType.MeleeDamage), Is.EqualTo(5));
             Assert.That(UnitStatAllocationRules.GetCostPerPoint(UnitStatType.RangedDamage), Is.EqualTo(5));
             Assert.That(UnitStatAllocationRules.GetCostPerPoint(UnitStatType.MeleeResistance), Is.EqualTo(5));
             Assert.That(UnitStatAllocationRules.GetCostPerPoint(UnitStatType.RangedResistance), Is.EqualTo(5));
-            Assert.That(UnitStatAllocationRules.GetCostPerPoint(UnitStatType.Initiative), Is.EqualTo(1));
+            Assert.That(UnitStatAllocationRules.GetCostPerPoint(UnitStatType.Velocity), Is.EqualTo(1));
         }
 
         [Test]
@@ -29,7 +29,7 @@ namespace TacticalPort.State.Tests
                 SetPrivateField(lUnit, "_StatPointBudget", 120);
                 UnitStatAllocationPreset lAllocation = new UnitStatAllocationPreset
                 {
-                    Power = 4,
+                    Energy = 4,
                     MeleeDamage = 4
                 };
 
@@ -54,19 +54,19 @@ namespace TacticalPort.State.Tests
             try
             {
                 SetPrivateField(lUnit, "_MaxHealth", 100);
-                SetPrivateField(lUnit, "_ActionPointsPerTurn", 6);
-                SetPrivateField(lUnit, "_MoveRange", 3);
+                SetPrivateField(lUnit, "_EnergyPerTurn", 6);
+                SetPrivateField(lUnit, "_MobilityPerTurn", 3);
                 lClone = UnitDefinition.CreateRuntimeClone(
                     lUnit,
                     null,
                     new UnitCombatLoadout(
                         null,
                         null,
-                        new UnitStatModifiers(pHealth: 10, pActionPoints: 2, pMovement: 1)));
+                        new UnitStatModifiers(pHealth: 10, pEnergy: 2, pMobility: 1)));
 
                 Assert.That(lClone.MaxHealth, Is.EqualTo(110));
-                Assert.That(lClone.ActionPointsPerTurn, Is.EqualTo(8));
-                Assert.That(lClone.MoveRange, Is.EqualTo(4));
+                Assert.That(lClone.EnergyPerTurn, Is.EqualTo(8));
+                Assert.That(lClone.MobilityPerTurn, Is.EqualTo(4));
             }
             finally
             {

@@ -1,0 +1,17 @@
+{
+    "name": "TacticalPort.Combat.Contracts",
+    "rootNamespace": "TacticalPort.Combat",
+    "references": [
+        "TacticalPort.Shared",
+        "TacticalPort.Core"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true
+}

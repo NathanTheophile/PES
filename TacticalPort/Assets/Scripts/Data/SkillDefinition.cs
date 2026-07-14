@@ -125,8 +125,8 @@ namespace TacticalPort.Data
         }
 
         [TabGroup("Usage")]
-        [LabelText("AP Cost")]
-        [SerializeField, Min(0)] private int _ActionPointCost = 1;
+        [LabelText("Energy Cost")]
+        [SerializeField, Min(0)] private int _EnergyCost = 1;
 
         [TabGroup("Usage")]
         [LabelText("Use/Turn")]
@@ -152,6 +152,12 @@ namespace TacticalPort.Data
         [TabGroup("Effects")]
         [LabelText("Power")]
         [SerializeField, Min(0)] private int _Power = 1;
+
+        [TabGroup("Effects")]
+        [ShowIf(nameof(UsesDamageEffect))]
+        [LabelText("Life Steal")]
+        [Tooltip("Heals the caster for 50% of health actually removed from enemy units.")]
+        [SerializeField] private bool _HasLifeSteal;
 
         [TabGroup("Effects")]
         [ShowIf(nameof(UsesPushEffect))]
@@ -262,7 +268,8 @@ namespace TacticalPort.Data
         public bool IsPactoleVariant => _IsPactoleVariant;
         public SkillDefinition PactoleVariant => _PactoleVariant;
         public int Power => Mathf.Max(0, _Power);
-        public int ActionPointCost => Mathf.Max(0, _ActionPointCost);
+        public bool HasLifeSteal => _HasLifeSteal && PrimaryEffectType == SkillPrimaryEffectType.Damage;
+        public int EnergyCost => Mathf.Max(0, _EnergyCost);
         public int PushDistance => Mathf.Max(0, _PushDistance > 0 ? _PushDistance : _Power);
         public UnitDefinition SummonUnit => _SummonUnit;
         public SkillSummonTeamRule SummonTeamRule => _SummonTeamRule;
@@ -294,6 +301,7 @@ namespace TacticalPort.Data
         #region _____________________________| ODIN
 
         private bool IsRangeValid() => _RangeMin <= _RangeMax;
+        private bool UsesDamageEffect() => _PrimaryEffectType == SkillPrimaryEffectType.Damage;
         private bool HasAreaOfEffect() => _AoeShape != SkillAoeShape.Single;
         private bool UsesPushEffect() => _AdditionalEffectType == SkillAdditionalEffectType.Push;
         private bool UsesSummonEffect() => _AdditionalEffectType == SkillAdditionalEffectType.Summon;

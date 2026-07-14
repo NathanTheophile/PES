@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1001 &3030906868081523899
+--- !u!1001 &1564226736792003431
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -9,16 +9,24 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 1524062973237560714, guid: d3c8bd197a019d146912904029074663, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.95
+      objectReference: {fileID: 0}
+    - target: {fileID: 1524062973237560714, guid: d3c8bd197a019d146912904029074663, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0.95
+      objectReference: {fileID: 0}
+    - target: {fileID: 1524062973237560714, guid: d3c8bd197a019d146912904029074663, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 1524062973237560714, guid: d3c8bd197a019d146912904029074663, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: 0.001
       objectReference: {fileID: 0}
     - target: {fileID: 1524062973237560714, guid: d3c8bd197a019d146912904029074663, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: -6
       objectReference: {fileID: 0}
     - target: {fileID: 1524062973237560714, guid: d3c8bd197a019d146912904029074663, type: 3}
       propertyPath: m_LocalRotation.w
@@ -48,14 +56,30 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3227865616507483551, guid: d3c8bd197a019d146912904029074663, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3227865616507483551, guid: d3c8bd197a019d146912904029074663, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3227865616507483551, guid: d3c8bd197a019d146912904029074663, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3227865616507483551, guid: d3c8bd197a019d146912904029074663, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5572423456231554085, guid: d3c8bd197a019d146912904029074663, type: 3}
       propertyPath: m_Name
-      value: P_TileFeedbackSpellTarget
+      value: P_TileFeedbackSkillAvailable
       objectReference: {fileID: 0}
     - target: {fileID: 9129487532325714446, guid: d3c8bd197a019d146912904029074663, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: b41a8fa07608889408a7aa9c5a0670fc, type: 2}
+      objectReference: {fileID: 2100000, guid: 88ffc764598b2f744bd11d4ebd771632, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

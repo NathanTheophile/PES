@@ -1,0 +1,16 @@
+{
+    "name": "TacticalPort.Matchmaking.Contracts",
+    "rootNamespace": "TacticalPort.Matchmaking",
+    "references": [
+        "TacticalPort.Shared"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true
+}

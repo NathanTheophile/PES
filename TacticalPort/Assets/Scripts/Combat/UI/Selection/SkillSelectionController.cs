@@ -182,7 +182,7 @@ namespace TacticalPort.UI
                 return "Mode: Move. Click a blue cell to move, or choose a skill.";
 
             string lHoveredLabel = ResolveHoveredLabel(pHoverController);
-            return $"Mode: {_SelectedSkill.DisplayName} Range {CombatInteractionContext.ResolveRangeLabel(_SelectedSkill)}, AP {_SelectedSkill.ActionPointCost}. {lHoveredLabel} Right click or Esc to cancel.";
+            return $"Mode: {_SelectedSkill.DisplayName} Range {CombatInteractionContext.ResolveRangeLabel(_SelectedSkill)}, Energy {_SelectedSkill.EnergyCost}. {lHoveredLabel} Right click or Esc to cancel.";
         }
 
         #endregion

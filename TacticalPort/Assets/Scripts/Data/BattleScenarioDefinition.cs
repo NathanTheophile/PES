@@ -98,12 +98,27 @@ namespace TacticalPort.Data
                 return false;
             }
 
+            HashSet<(Team Team, int Slot)> lTeamSlots = new HashSet<(Team, int)>();
             for (int lIndex = 0; lIndex < _Units.Count; lIndex++)
             {
                 UnitSpawnDefinition lSpawn = _Units[lIndex];
                 if (lSpawn == null || lSpawn.Unit == null)
                 {
                     pFailureReason = $"Scenario spawn #{lIndex + 1} is missing a unit definition.";
+                    return false;
+                }
+
+                if (lSpawn.TeamSlotIndex < -1)
+                {
+                    pFailureReason = $"Scenario spawn #{lIndex + 1} has an invalid team slot index.";
+                    return false;
+                }
+
+                if (lSpawn.TeamSlotIndex >= 0
+                    && lSpawn.Unit.Team is Team.TeamA or Team.TeamB
+                    && !lTeamSlots.Add((lSpawn.Unit.Team, lSpawn.TeamSlotIndex)))
+                {
+                    pFailureReason = $"Scenario contains duplicate slot {lSpawn.TeamSlotIndex + 1} for {lSpawn.Unit.Team}.";
                     return false;
                 }
             }

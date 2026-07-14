@@ -10,8 +10,8 @@ Backlog court, orienté “valider les systèmes”, pas “porter tout le roste
 | P0 | `Rubber Bazooka` | mêlée linéaire, dégâts + push + collision | Très bon test du resolver de push |
 | P0 | `Gunpowder Star` | projectile + `Circle` AoE | Valide centre AoE + dégâts multi-cibles |
 | P0 | `Lunch` ou `Cura Fervente` | self-heal / ally-heal | Valide `range 0`, soin, limites d’usage |
-| P0 | `Run Away!` | buff de mobilité sur le tour courant | Valide le modèle `MP` runtime |
-| P1 | `Tatsu Maki` | AoE centrée sur soi + refund d’AP sur kill | Bon test d’événements `on kill` |
+| P0 | `Run Away!` | buff de mobilité sur le tour courant | Valide le modèle `Mobility` runtime |
+| P1 | `Tatsu Maki` | AoE centrée sur soi + remboursement d’`Energy` sur élimination | Bon test d’événements `on kill` |
 | P1 | `Caltrop Hell` | glyphes/pièges persistants | À faire après le cœur combat |
 | P1 | `Call Reinforcements` | invocation | À garder séparé du MVP si besoin |
 | P1 | `Purrsuit` / `Effortless Pursuit` | auto-déplacement offensif | Utile une fois le déplacement forcé propre |
@@ -26,6 +26,6 @@ Backlog court, orienté “valider les systèmes”, pas “porter tout le roste
 ## Définition de done par skill
 
 - La portée et les cellules ciblables correspondent au design Unity retenu.
-- Les coûts `AP/MP`, limites d’usage et cooldown sont respectés.
+- Les coûts d’`Energy` et de `Mobility`, limites d’usage et cooldown sont respectés.
 - Les effets gameplay sont découplés des VFX.
 - La skill fonctionne côté joueur et côté IA simple si nécessaire.

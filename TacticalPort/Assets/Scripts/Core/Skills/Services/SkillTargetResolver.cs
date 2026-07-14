@@ -97,8 +97,8 @@ namespace TacticalPort.Core
             if (pContext == null || pContext.GridService == null)
                 return BattleActionResult.Failed(BattleActionType.Skill, "Skill context is missing.");
 
-            if (pActor.RemainingActionPoints < pSkill.ActionPointCost)
-                return BattleActionResult.Failed(BattleActionType.Skill, "Not enough action points.");
+            if (pActor.RemainingEnergy < pSkill.EnergyCost)
+                return BattleActionResult.Failed(BattleActionType.Skill, "Not enough Energy.");
 
             return BattleActionResult.Succeeded(BattleActionType.Skill, "Skill inputs are valid.", new[] { pActor.Id });
         }

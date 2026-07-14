@@ -176,7 +176,7 @@ Use one Unity editor plus two ParrelSync clients.
    - both clients receive the same MatchId;
    - logs show a dedicated endpoint IP and external UDP port;
    - EdgeGap dashboard shows one deployment for the match;
-   - both clients load `S_Poutch`;
+   - both clients load `S_Map_Alpha_1`;
    - TeamA/TeamB assignments are correct;
    - placement, ready, movement, and skills replicate.
 6. Return to the main menu from both clients.

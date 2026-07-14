@@ -46,7 +46,7 @@ namespace TacticalPort.Data
         [SerializeField] private bool _IsPassiveMarker;
 
         [TabGroup("Modifiers")]
-        [LabelText("Damage %/Stack")]
+        [LabelText("General Damage %/Stack")]
         [SerializeField] private int _DamageModifierPerStack = 0;
 
         [TabGroup("Modifiers")]
@@ -66,16 +66,25 @@ namespace TacticalPort.Data
         [SerializeField] private int _RangedResistancePercentPerStack = 0;
 
         [TabGroup("Modifiers")]
+        [LabelText("General Resistance %/Stack")]
+        [SerializeField] private int _GeneralResistancePercentPerStack = 0;
+
+        [TabGroup("Modifiers")]
+        [LabelText("Wear %/Stack")]
+        [Tooltip("Added to the universal 5% wear applied by skill damage.")]
+        [SerializeField] private int _WearPercentPerStack = 0;
+
+        [TabGroup("Modifiers")]
         [LabelText("Range/Stack")]
         [SerializeField] private int _RangeModifierPerStack = 0;
 
         [TabGroup("Modifiers")]
-        [LabelText("AP/Stack")]
-        [SerializeField] private int _ActionPointModifierPerStack = 0;
+        [LabelText("Energy/Stack")]
+        [SerializeField] private int _EnergyModifierPerStack = 0;
 
         [TabGroup("Modifiers")]
-        [LabelText("MP/Stack")]
-        [SerializeField] private int _MovementModifierPerStack = 0;
+        [LabelText("Mobility/Stack")]
+        [SerializeField] private int _MobilityModifierPerStack = 0;
 
         #endregion
 
@@ -92,9 +101,11 @@ namespace TacticalPort.Data
         public int RangedDamageModifierPerStack => _RangedDamageModifierPerStack;
         public int MeleeResistancePercentPerStack => _MeleeResistancePercentPerStack;
         public int RangedResistancePercentPerStack => _RangedResistancePercentPerStack;
+        public int GeneralResistancePercentPerStack => _GeneralResistancePercentPerStack;
+        public int WearPercentPerStack => _WearPercentPerStack;
         public int RangeModifierPerStack => _RangeModifierPerStack;
-        public int ActionPointModifierPerStack => _ActionPointModifierPerStack;
-        public int MovementModifierPerStack => _MovementModifierPerStack;
+        public int EnergyModifierPerStack => _EnergyModifierPerStack;
+        public int MobilityModifierPerStack => _MobilityModifierPerStack;
 
         #endregion
     }

@@ -17,6 +17,7 @@ namespace TacticalPort.Core
         {
             int lAffectedUnitCount = 0;
             int lTotalValue = 0;
+            int lLifeStealDamage = 0;
             List<UnitId> lAffectedUnitIds = new List<UnitId> { pActor.Id };
 
             foreach (UnitRuntime lTarget in pResolvedTarget.AffectedUnits)
@@ -30,17 +31,32 @@ namespace TacticalPort.Core
                     ? pSkill.CategoryDamageRange
                     : pActor.ResolveDamageRangeTo(lTarget);
                 int lResolvedDamage = pActor.ResolveOutgoingDamage(lFalloffDamage, lDamageRange);
-                lTotalValue += lTarget.ApplyDamage(lResolvedDamage, lDamageRange);
+                int lAppliedDamage = lTarget.ApplySkillDamage(lResolvedDamage, lDamageRange);
+                lTotalValue += lAppliedDamage;
+                if (IsEnemy(pActor, lTarget))
+                    lLifeStealDamage += lAppliedDamage;
+
                 lAffectedUnitCount++;
                 lAffectedUnitIds.Add(lTarget.Id);
             }
 
+            int lLifeStealHealing = pSkill.HasLifeSteal ? pActor.RestoreHealth(lLifeStealDamage / 2) : 0;
+            BattleActionOutcomeFlags lOutcomeFlags = lAffectedUnitCount > 0
+                ? BattleActionOutcomeFlags.PrimaryDamage
+                : BattleActionOutcomeFlags.None;
+            if (lLifeStealHealing > 0)
+                lOutcomeFlags |= BattleActionOutcomeFlags.Heal;
+
+            string lMessage = ResolveEffectMessage(pActor, pResolvedTarget, lAffectedUnitCount, lTotalValue, "dealt", "damage");
+            if (lLifeStealHealing > 0)
+                lMessage += $" {pActor.Definition.DisplayName} stole {lLifeStealHealing} health.";
+
             return BattleActionResult.Succeeded(
                 BattleActionType.Skill,
-                ResolveEffectMessage(pActor, pResolvedTarget, lAffectedUnitCount, lTotalValue, "dealt", "damage"),
+                lMessage,
                 lAffectedUnitIds,
                 null,
-                lAffectedUnitCount > 0 ? BattleActionOutcomeFlags.PrimaryDamage : BattleActionOutcomeFlags.None);
+                lOutcomeFlags);
         }
 
         public static BattleActionResult ApplyHeal(UnitRuntime pActor, SkillDefinition pSkill, ResolvedSkillTarget pResolvedTarget)
@@ -134,6 +150,12 @@ namespace TacticalPort.Core
 
             return lBestDistance == int.MaxValue ? 0 : lBestDistance;
         }
+
+        private static bool IsEnemy(UnitRuntime pActor, UnitRuntime pTarget) =>
+            pActor != null
+            && pTarget != null
+            && ((pActor.Team == Team.TeamA && pTarget.Team == Team.TeamB)
+                || (pActor.Team == Team.TeamB && pTarget.Team == Team.TeamA));
 
     }
 }

@@ -220,25 +220,25 @@ namespace TacticalPort.Matchmaking
         private static MatchUnitStatAllocations CopyStatAllocations(UnitStatAllocationPreset pSource) => new MatchUnitStatAllocations
         {
             Health = pSource?.Health ?? 0,
-            Power = pSource?.Power ?? 0,
-            Movement = pSource?.Movement ?? 0,
+            Energy = pSource?.Energy ?? 0,
+            Mobility = pSource?.Mobility ?? 0,
             MeleeDamage = pSource?.MeleeDamage ?? 0,
             MeleeResistance = pSource?.MeleeResistance ?? 0,
             RangedDamage = pSource?.RangedDamage ?? 0,
             RangedResistance = pSource?.RangedResistance ?? 0,
-            Initiative = pSource?.Initiative ?? 0
+            Velocity = pSource?.Velocity ?? 0
         };
 
         private static UnitStatAllocationPreset CopyStatAllocations(MatchUnitStatAllocations pSource) => new UnitStatAllocationPreset
         {
             Health = pSource?.Health ?? 0,
-            Power = pSource?.Power ?? 0,
-            Movement = pSource?.Movement ?? 0,
+            Energy = pSource?.Energy ?? 0,
+            Mobility = pSource?.Mobility ?? 0,
             MeleeDamage = pSource?.MeleeDamage ?? 0,
             MeleeResistance = pSource?.MeleeResistance ?? 0,
             RangedDamage = pSource?.RangedDamage ?? 0,
             RangedResistance = pSource?.RangedResistance ?? 0,
-            Initiative = pSource?.Initiative ?? 0
+            Velocity = pSource?.Velocity ?? 0
         };
 
         private static PassiveDefinition FindPassive(IReadOnlyList<PassiveDefinition> pPassives, string pPassiveId)

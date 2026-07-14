@@ -27,7 +27,7 @@ namespace TacticalPort.Matchmaking
         #region _____________________________/ VALUES
 
         [SerializeField] private string _DefaultQueueName = "quickmatch1v1unranked";
-        [SerializeField] private string _DefaultMapId = "poutch";
+        [SerializeField] private string _DefaultMapId = "alpha-1";
         [SerializeField] private bool _ClearSessionBeforeSignIn;
         [SerializeField] private bool _FetchMatchmakingResults = true;
         [SerializeField] private bool _LogTicketEvents;

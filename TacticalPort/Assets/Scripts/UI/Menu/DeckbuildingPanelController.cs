@@ -84,13 +84,6 @@ namespace TacticalPort.UI
             public DeckbuildingSkillTooltipView Tooltip;
         }
 
-        private sealed class DraftUnitBuild
-        {
-            public PassiveDefinition Passive;
-            public readonly List<SkillDefinition> Skills = new List<SkillDefinition>(EquippedSkillCount);
-            public UnitStatAllocationPreset StatAllocations = new UnitStatAllocationPreset();
-        }
-
         #endregion
 
         #region _____________________________/ VALUES
@@ -106,9 +99,9 @@ namespace TacticalPort.UI
 
         [Header("Main Panel")]
         [SerializeField] private CharacterPreviewView _Character = new CharacterPreviewView();
-        [SerializeField] private CoreValueView _ActionPointsValue = new CoreValueView();
+        [SerializeField] private CoreValueView _EnergyValue = new CoreValueView();
         [SerializeField] private CoreValueView _HealthValue = new CoreValueView();
-        [SerializeField] private CoreValueView _MoveRangeValue = new CoreValueView();
+        [SerializeField] private CoreValueView _MobilityValue = new CoreValueView();
         [SerializeField] private List<PassiveSlotView> _PassiveSlots = new List<PassiveSlotView>(MaxPassives);
         [SerializeField] private List<SkillSlotView> _SkillSlots = new List<SkillSlotView>(EquippedSkillCount);
         [SerializeField] private List<StatCellView> _Stats = new List<StatCellView>(5);
@@ -139,11 +132,9 @@ namespace TacticalPort.UI
         [SerializeField] private Color _SelectedCellColor = new Color(0.75f, 0.9f, 1f, 1f);
         [SerializeField] private Color _DisabledCellColor = new Color(0.72f, 0.75f, 0.8f, 1f);
 
-        private readonly List<UnitDefinition> _SelectedUnits = new List<UnitDefinition>(DefaultTeamSize);
-        private readonly Dictionary<UnitDefinition, DraftUnitBuild> _DraftBuilds = new Dictionary<UnitDefinition, DraftUnitBuild>();
+        private TeamPresetDraft _Draft;
         private int _PendingSkillSlotIndex = -1;
         private bool _HasHookedStaticButtons;
-        private bool _HasPendingChanges;
 
         public event Action TeamSelectionChanged;
         public event Action Closed;
@@ -177,7 +168,7 @@ namespace TacticalPort.UI
             SetActive(gameObject, true);
             EnsureStaticButtonsHooked();
             InitializeSelection();
-            _CurrentSlotIndex = Mathf.Clamp(_CurrentSlotIndex, 0, Mathf.Max(0, _SelectedUnits.Count - 1));
+            _CurrentSlotIndex = Mathf.Clamp(_CurrentSlotIndex, 0, Mathf.Max(0, (_Draft?.SelectedUnits.Count ?? 0) - 1));
             HideAllPopups();
             RefreshMainPanel();
         }
@@ -217,26 +208,16 @@ namespace TacticalPort.UI
         private void InitializeSelection()
         {
             TeamPresetState.EnsureInitializedForLocalUse();
-            List<UnitDefinition> lAvailableUnits = GetAvailableUnits();
-            _SelectedUnits.Clear();
-            _DraftBuilds.Clear();
-            _HasPendingChanges = false;
+            if (!TeamSelectionState.HasSelection)
+                TeamSelectionState.LoadSavedUnitIds();
 
-            if (lAvailableUnits.Count == 0)
-            {
-                UpdateValidateButtonState();
-                return;
-            }
-
-            if (!TryLoadCurrentSelection(lAvailableUnits, _SelectedUnits))
-                FillDefaultSelection(lAvailableUnits, _SelectedUnits);
-
-            FillMissingSlots(lAvailableUnits, _SelectedUnits);
-            _CurrentSlotIndex = Mathf.Clamp(_CurrentSlotIndex, 0, Mathf.Max(0, _SelectedUnits.Count - 1));
-            for (int lIndex = 0; lIndex < _SelectedUnits.Count; lIndex++)
-                EnsureDraftBuild(_SelectedUnits[lIndex]);
-
-            _HasPendingChanges = !MatchesPersistedPreset();
+            _Draft = new TeamPresetDraft(
+                _TeamSize,
+                _AvailableUnits,
+                TeamSelectionState.SelectedUnits,
+                TeamSelectionState.SelectedUnitIds,
+                TeamPresetState.ActivePreset);
+            _CurrentSlotIndex = Mathf.Clamp(_CurrentSlotIndex, 0, Mathf.Max(0, _Draft.SelectedUnits.Count - 1));
             UpdateValidateButtonState();
         }
 
@@ -260,7 +241,11 @@ namespace TacticalPort.UI
                 _Character.Name.text = pUnit != null ? pUnit.DisplayName : "Empty";
 
             if (_Character.Description != null)
-                _Character.Description.text = string.Empty;
+            {
+                _Character.Description.text = pUnit != null
+                    ? $"{pUnit.Description}\nGeneral Damage: {pUnit.GeneralDamagePercent}% | General Resistance: {pUnit.GeneralResistancePercent}%"
+                    : string.Empty;
+            }
 
             if (_Character.Preview != null)
             {
@@ -281,14 +266,14 @@ namespace TacticalPort.UI
         private void BindCoreValues(UnitDefinition pUnit)
         {
             UnitStatAllocationPreset lStats = EnsureDraftBuild(pUnit)?.StatAllocations;
-            SetCoreValue(_ActionPointsValue, pUnit != null
-                ? UnitStatAllocationRules.GetEffectiveValue(pUnit, lStats, UnitStatType.ActionPoints).ToString()
+            SetCoreValue(_EnergyValue, pUnit != null
+                ? UnitStatAllocationRules.GetEffectiveValue(pUnit, lStats, UnitStatType.Energy).ToString()
                 : "-");
             SetCoreValue(_HealthValue, pUnit != null
                 ? UnitStatAllocationRules.GetEffectiveValue(pUnit, lStats, UnitStatType.Health).ToString()
                 : "-");
-            SetCoreValue(_MoveRangeValue, pUnit != null
-                ? UnitStatAllocationRules.GetEffectiveValue(pUnit, lStats, UnitStatType.Movement).ToString()
+            SetCoreValue(_MobilityValue, pUnit != null
+                ? UnitStatAllocationRules.GetEffectiveValue(pUnit, lStats, UnitStatType.Mobility).ToString()
                 : "-");
         }
 
@@ -361,7 +346,7 @@ namespace TacticalPort.UI
 
         private void BindStats(UnitDefinition pUnit)
         {
-            DraftUnitBuild lBuild = EnsureDraftBuild(pUnit);
+            TeamPresetDraft.UnitBuild lBuild = EnsureDraftBuild(pUnit);
             UnitStatAllocationPreset lStats = lBuild?.StatAllocations;
             for (int lIndex = 0; lIndex < _StatAllocationViews.Count; lIndex++)
             {
@@ -399,7 +384,9 @@ namespace TacticalPort.UI
             BindStat(1, "Res Melee", pUnit != null ? pUnit.MeleeResistancePercent.ToString() : "-");
             BindStat(2, "Dmg Distance", pUnit != null ? pUnit.RangedDamagePercent.ToString() : "-");
             BindStat(3, "Res Distance", pUnit != null ? pUnit.RangedResistancePercent.ToString() : "-");
-            BindStat(4, "Initiative", pUnit != null ? pUnit.Initiative.ToString() : "-");
+            BindStat(4, "Velocity", pUnit != null ? pUnit.Velocity.ToString() : "-");
+            BindStat(5, "Dmg General", pUnit != null ? pUnit.GeneralDamagePercent.ToString() : "-");
+            BindStat(6, "Res General", pUnit != null ? pUnit.GeneralResistancePercent.ToString() : "-");
         }
 
         private bool CanChangeStat(
@@ -408,28 +395,16 @@ namespace TacticalPort.UI
             UnitStatType pStat,
             int pDelta)
         {
-            if (pUnit == null || pAllocations == null || pStat == UnitStatType.RemainingPoints)
-                return false;
-
-            UnitStatAllocationPreset lCandidate = pAllocations.Clone();
-            int lValue = UnitStatAllocationRules.GetValue(lCandidate, pStat) + pDelta;
-            if (lValue < 0)
-                return false;
-
-            UnitStatAllocationRules.SetValue(lCandidate, pStat, lValue);
-            return UnitStatAllocationRules.TryValidate(pUnit, lCandidate, out _, out _);
+            return pAllocations != null && _Draft != null && _Draft.CanChangeStat(pUnit, pStat, pDelta);
         }
 
         private void ChangeStat(UnitStatType pStat, int pDelta)
         {
             UnitDefinition lUnit = CurrentUnit;
-            DraftUnitBuild lBuild = EnsureDraftBuild(lUnit);
-            if (lBuild == null || !CanChangeStat(lUnit, lBuild.StatAllocations, pStat, pDelta))
+            if (_Draft == null || !_Draft.TryChangeStat(lUnit, pStat, pDelta))
                 return;
 
-            int lValue = UnitStatAllocationRules.GetValue(lBuild.StatAllocations, pStat) + pDelta;
-            UnitStatAllocationRules.SetValue(lBuild.StatAllocations, pStat, lValue);
-            MarkDraftDirty();
+            UpdateValidateButtonState();
             BindCoreValues(lUnit);
             BindStats(lUnit);
         }
@@ -462,8 +437,8 @@ namespace TacticalPort.UI
         {
             ClearChildren(_CharacterPickerRoot, _CharacterPickerItemTemplate);
 
-            List<UnitDefinition> lAvailableUnits = GetAvailableUnits();
-            for (int lIndex = 0; lIndex < lAvailableUnits.Count; lIndex++)
+            IReadOnlyList<UnitDefinition> lAvailableUnits = _Draft?.AvailableUnits;
+            for (int lIndex = 0; lAvailableUnits != null && lIndex < lAvailableUnits.Count; lIndex++)
             {
                 RectTransform lInstance = CreateItem(_CharacterPickerItemTemplate, _CharacterPickerRoot, $"Item_Character_{lIndex + 1}");
                 if (lInstance == null)
@@ -498,16 +473,10 @@ namespace TacticalPort.UI
 
         private void SelectCharacter(UnitDefinition pUnit)
         {
-            if (pUnit == null || IsUnitSelectedInAnotherSlot(pUnit))
+            if (_Draft == null || !_Draft.TrySelectUnit(_CurrentSlotIndex, pUnit))
                 return;
 
-            if (_SelectedUnits.Count == 0)
-                _SelectedUnits.Add(pUnit);
-            else
-                _SelectedUnits[_CurrentSlotIndex] = pUnit;
-
-            EnsureDraftBuild(pUnit);
-            MarkDraftDirty();
+            UpdateValidateButtonState();
             HideCharacterPicker();
             RefreshMainPanel();
         }
@@ -526,12 +495,10 @@ namespace TacticalPort.UI
             if (lPassive == null)
                 return;
 
-            DraftUnitBuild lBuild = EnsureDraftBuild(lUnit);
-            if (lBuild == null || lBuild.Passive == lPassive)
+            if (_Draft == null || !_Draft.TrySelectPassive(lUnit, lPassive))
                 return;
 
-            lBuild.Passive = lPassive;
-            MarkDraftDirty();
+            UpdateValidateButtonState();
             BindPassives(lUnit);
         }
 
@@ -608,21 +575,12 @@ namespace TacticalPort.UI
             if (lUnit == null || pSkill == null || lSlotIndex < 0 || lSlotIndex >= EquippedSkillCount || IsSkillEquippedInAnotherSlot(pSkill))
                 return;
 
-            DraftUnitBuild lBuild = EnsureDraftBuild(lUnit);
-            if (lBuild == null)
-                return;
-
-            while (lBuild.Skills.Count < EquippedSkillCount)
-                lBuild.Skills.Add(null);
-
-            if (lBuild.Skills[lSlotIndex] == pSkill)
+            if (_Draft == null || !_Draft.TrySelectSkill(lUnit, lSlotIndex, pSkill))
             {
-                HideSkillPicker();
                 return;
             }
 
-            lBuild.Skills[lSlotIndex] = pSkill;
-            MarkDraftDirty();
+            UpdateValidateButtonState();
             HideSkillPicker();
             BindSkills(lUnit);
         }
@@ -638,40 +596,7 @@ namespace TacticalPort.UI
 
         #region _____________________________| BUILD STATE
 
-        private DraftUnitBuild EnsureDraftBuild(UnitDefinition pUnit)
-        {
-            if (pUnit == null)
-                return null;
-
-            if (_DraftBuilds.TryGetValue(pUnit, out DraftUnitBuild lExisting))
-                return lExisting;
-
-            DraftUnitBuild lBuild = new DraftUnitBuild();
-            UnitBuildPreset lPersistedBuild = FindPersistedBuild(pUnit.Id);
-            lBuild.Passive = FindPassive(pUnit.Passives, lPersistedBuild?.PassiveId) ?? pUnit.DefaultPassive;
-            UnitStatAllocationPreset lPersistedStats = lPersistedBuild?.StatAllocations;
-            lBuild.StatAllocations = UnitStatAllocationRules.TryValidate(pUnit, lPersistedStats, out _, out _)
-                ? lPersistedStats?.Clone() ?? new UnitStatAllocationPreset()
-                : new UnitStatAllocationPreset();
-
-            IReadOnlyList<string> lSkillIds = lPersistedBuild?.SkillIds;
-            if (lSkillIds != null)
-            {
-                for (int lIndex = 0; lIndex < lSkillIds.Count && lBuild.Skills.Count < EquippedSkillCount; lIndex++)
-                {
-                    SkillDefinition lSkill = FindSkill(pUnit.Skills, lSkillIds[lIndex]);
-                    if (lSkill != null && !lBuild.Skills.Contains(lSkill))
-                        lBuild.Skills.Add(lSkill);
-                }
-            }
-
-            FillDefaultSkills(pUnit, lBuild.Skills);
-            while (lBuild.Skills.Count < EquippedSkillCount)
-                lBuild.Skills.Add(null);
-
-            _DraftBuilds.Add(pUnit, lBuild);
-            return lBuild;
-        }
+        private TeamPresetDraft.UnitBuild EnsureDraftBuild(UnitDefinition pUnit) => _Draft?.GetBuild(pUnit);
 
         private PassiveDefinition GetSelectedPassive(UnitDefinition pUnit)
         {
@@ -686,135 +611,41 @@ namespace TacticalPort.UI
             if (pUnit == null)
                 return new List<SkillDefinition>(EquippedSkillCount);
 
-            DraftUnitBuild lBuild = EnsureDraftBuild(pUnit);
+            TeamPresetDraft.UnitBuild lBuild = EnsureDraftBuild(pUnit);
             return lBuild != null
                 ? new List<SkillDefinition>(lBuild.Skills)
                 : new List<SkillDefinition>(EquippedSkillCount);
-        }
-
-        private static UnitBuildPreset FindPersistedBuild(string pUnitId)
-        {
-            IReadOnlyList<UnitBuildPreset> lSlots = TeamPresetState.ActivePreset?.Slots;
-            if (lSlots == null || string.IsNullOrWhiteSpace(pUnitId))
-                return null;
-
-            for (int lIndex = 0; lIndex < lSlots.Count; lIndex++)
-            {
-                UnitBuildPreset lBuild = lSlots[lIndex];
-                if (lBuild != null && string.Equals(lBuild.UnitId, pUnitId, StringComparison.Ordinal))
-                    return lBuild;
-            }
-
-            return null;
-        }
-
-        private static PassiveDefinition FindPassive(IReadOnlyList<PassiveDefinition> pPassives, string pPassiveId)
-        {
-            if (pPassives == null || string.IsNullOrWhiteSpace(pPassiveId))
-                return null;
-
-            for (int lIndex = 0; lIndex < pPassives.Count; lIndex++)
-            {
-                PassiveDefinition lPassive = pPassives[lIndex];
-                if (lPassive != null && string.Equals(lPassive.Id, pPassiveId, StringComparison.Ordinal))
-                    return lPassive;
-            }
-
-            return null;
-        }
-
-        private static SkillDefinition FindSkill(IReadOnlyList<SkillDefinition> pSkills, string pSkillId)
-        {
-            if (pSkills == null || string.IsNullOrWhiteSpace(pSkillId))
-                return null;
-
-            for (int lIndex = 0; lIndex < pSkills.Count; lIndex++)
-            {
-                SkillDefinition lSkill = pSkills[lIndex];
-                if (lSkill != null && string.Equals(lSkill.Id, pSkillId, StringComparison.Ordinal))
-                    return lSkill;
-            }
-
-            return null;
-        }
-
-        private static void FillDefaultSkills(UnitDefinition pUnit, ICollection<SkillDefinition> pTarget)
-        {
-            if (pUnit?.Skills == null || pTarget == null)
-                return;
-
-            for (int lIndex = 0; lIndex < pUnit.Skills.Count && pTarget.Count < EquippedSkillCount; lIndex++)
-            {
-                SkillDefinition lSkill = pUnit.Skills[lIndex];
-                if (lSkill != null && !pTarget.Contains(lSkill))
-                    pTarget.Add(lSkill);
-            }
-        }
-
-        private static int CountAvailableSkills(IReadOnlyList<SkillDefinition> pSkills)
-        {
-            if (pSkills == null)
-                return 0;
-
-            HashSet<SkillDefinition> lSkills = new HashSet<SkillDefinition>();
-            for (int lIndex = 0; lIndex < pSkills.Count; lIndex++)
-            {
-                if (pSkills[lIndex] != null)
-                    lSkills.Add(pSkills[lIndex]);
-            }
-
-            return lSkills.Count;
         }
 
         #endregion
 
         #region _____________________________| HELPERS
 
-        private UnitDefinition CurrentUnit =>
-            _CurrentSlotIndex >= 0 && _CurrentSlotIndex < _SelectedUnits.Count ? _SelectedUnits[_CurrentSlotIndex] : null;
+        private UnitDefinition CurrentUnit => _Draft?.GetUnit(_CurrentSlotIndex);
 
         private void ValidateChanges()
         {
-            if (!IsDraftValid())
+            string lFailure = "The team preset draft is missing.";
+            if (_Draft == null || !_Draft.Validate(out lFailure))
             {
-                Debug.LogWarning("Deckbuilding preset validation failed. The draft was not saved.", this);
+                Debug.LogWarning($"Deckbuilding preset validation failed: {lFailure}", this);
                 return;
             }
 
-            if (!_HasPendingChanges)
+            if (!_Draft.HasPendingChanges)
             {
                 HidePanel();
                 return;
             }
 
-            TeamSelectionState.SetSelectedUnits(_SelectedUnits);
-            for (int lIndex = 0; lIndex < _SelectedUnits.Count; lIndex++)
+            if (!TeamSelectionState.TryApplyDraftAndSave(_Draft, out lFailure))
             {
-                UnitDefinition lUnit = _SelectedUnits[lIndex];
-                DraftUnitBuild lBuild = EnsureDraftBuild(lUnit);
-                if (lBuild == null)
-                    continue;
-
-                if (lBuild.Passive != null)
-                    TeamPresetState.SetPassive(lUnit, lBuild.Passive);
-                TeamPresetState.SetSkills(lUnit, lBuild.Skills);
-                if (!TeamPresetState.TrySetStatAllocations(lUnit, lBuild.StatAllocations, out string lFailure))
-                {
-                    Debug.LogWarning($"Deckbuilding stat validation failed: {lFailure}", this);
-                    return;
-                }
+                Debug.LogWarning($"Deckbuilding preset persistence failed: {lFailure}", this);
+                return;
             }
 
-            TeamSelectionState.SaveSelectedUnits();
-            _HasPendingChanges = false;
             TeamSelectionChanged?.Invoke();
             HidePanel();
-        }
-
-        private void MarkDraftDirty()
-        {
-            _HasPendingChanges = true;
-            UpdateValidateButtonState();
         }
 
         private void UpdateValidateButtonState()
@@ -823,251 +654,33 @@ namespace TacticalPort.UI
                 _ValidateButton.interactable = IsDraftValid();
         }
 
-        private bool IsDraftValid()
-        {
-            if (_SelectedUnits.Count != _TeamSize)
-                return false;
-
-            HashSet<UnitDefinition> lUniqueUnits = new HashSet<UnitDefinition>();
-            for (int lIndex = 0; lIndex < _SelectedUnits.Count; lIndex++)
-            {
-                UnitDefinition lUnit = _SelectedUnits[lIndex];
-                DraftUnitBuild lBuild = EnsureDraftBuild(lUnit);
-                if (lUnit == null || !lUniqueUnits.Add(lUnit) || lBuild == null)
-                    return false;
-
-                if (lUnit.Passives != null && lUnit.Passives.Count > 0 && lBuild.Passive == null)
-                    return false;
-
-                if (!UnitStatAllocationRules.TryValidate(lUnit, lBuild.StatAllocations, out _, out _))
-                    return false;
-
-                int lRequiredSkillCount = Mathf.Min(EquippedSkillCount, CountAvailableSkills(lUnit.Skills));
-                int lEquippedSkillCount = 0;
-                HashSet<SkillDefinition> lUniqueSkills = new HashSet<SkillDefinition>();
-                for (int lSkillIndex = 0; lSkillIndex < lBuild.Skills.Count; lSkillIndex++)
-                {
-                    SkillDefinition lSkill = lBuild.Skills[lSkillIndex];
-                    if (lSkill != null && lUniqueSkills.Add(lSkill))
-                        lEquippedSkillCount++;
-                }
-
-                if (lEquippedSkillCount != lRequiredSkillCount)
-                    return false;
-            }
-
-            return true;
-        }
-
-        private bool MatchesPersistedPreset()
-        {
-            TeamPreset lPreset = TeamPresetState.ActivePreset;
-            if (lPreset?.Slots == null || lPreset.Slots.Count < _SelectedUnits.Count)
-                return false;
-
-            for (int lIndex = 0; lIndex < _SelectedUnits.Count; lIndex++)
-            {
-                UnitDefinition lUnit = _SelectedUnits[lIndex];
-                UnitBuildPreset lPersistedBuild = lPreset.Slots[lIndex];
-                DraftUnitBuild lDraftBuild = EnsureDraftBuild(lUnit);
-                if (lPersistedBuild?.UnitId != lUnit?.Id || lDraftBuild == null)
-                    return false;
-
-                string lDraftPassiveId = lDraftBuild.Passive != null ? lDraftBuild.Passive.Id : string.Empty;
-                if (!string.Equals(lPersistedBuild.PassiveId ?? string.Empty, lDraftPassiveId, StringComparison.Ordinal))
-                    return false;
-
-                List<string> lDraftSkillIds = new List<string>(EquippedSkillCount);
-                for (int lSkillIndex = 0; lSkillIndex < lDraftBuild.Skills.Count; lSkillIndex++)
-                {
-                    SkillDefinition lSkill = lDraftBuild.Skills[lSkillIndex];
-                    if (lSkill != null)
-                        lDraftSkillIds.Add(lSkill.Id);
-                }
-
-                if (!HaveSameIds(lPersistedBuild.SkillIds, lDraftSkillIds))
-                    return false;
-
-                if (!HaveSameStatAllocations(lPersistedBuild.StatAllocations, lDraftBuild.StatAllocations))
-                    return false;
-            }
-
-            return true;
-        }
-
-        private static bool HaveSameIds(IReadOnlyList<string> pLeft, IReadOnlyList<string> pRight)
-        {
-            int lLeftCount = pLeft?.Count ?? 0;
-            int lRightCount = pRight?.Count ?? 0;
-            if (lLeftCount != lRightCount)
-                return false;
-
-            for (int lIndex = 0; lIndex < lLeftCount; lIndex++)
-            {
-                if (!string.Equals(pLeft[lIndex], pRight[lIndex], StringComparison.Ordinal))
-                    return false;
-            }
-
-            return true;
-        }
-
-        private static bool HaveSameStatAllocations(
-            UnitStatAllocationPreset pLeft,
-            UnitStatAllocationPreset pRight)
-        {
-            pLeft ??= new UnitStatAllocationPreset();
-            pRight ??= new UnitStatAllocationPreset();
-            return pLeft.Health == pRight.Health
-                && pLeft.Power == pRight.Power
-                && pLeft.Movement == pRight.Movement
-                && pLeft.MeleeDamage == pRight.MeleeDamage
-                && pLeft.MeleeResistance == pRight.MeleeResistance
-                && pLeft.RangedDamage == pRight.RangedDamage
-                && pLeft.RangedResistance == pRight.RangedResistance
-                && pLeft.Initiative == pRight.Initiative;
-        }
-
-        private List<UnitDefinition> GetAvailableUnits()
-        {
-            List<UnitDefinition> lUnits = new List<UnitDefinition>(_AvailableUnits.Count);
-            for (int lIndex = 0; lIndex < _AvailableUnits.Count; lIndex++)
-            {
-                if (_AvailableUnits[lIndex] != null && !lUnits.Contains(_AvailableUnits[lIndex]))
-                    lUnits.Add(_AvailableUnits[lIndex]);
-            }
-
-            return lUnits;
-        }
-
-        private bool TryLoadCurrentSelection(IReadOnlyList<UnitDefinition> pAvailableUnits, List<UnitDefinition> pTarget)
-        {
-            if (!TeamSelectionState.HasSelection && !TeamSelectionState.LoadSavedUnitIds())
-                return false;
-
-            if (TeamSelectionState.SelectedUnits.Count > 0)
-            {
-                for (int lIndex = 0; lIndex < TeamSelectionState.SelectedUnits.Count; lIndex++)
-                {
-                    UnitDefinition lUnit = TeamSelectionState.SelectedUnits[lIndex];
-                    if (lUnit != null && ContainsUnit(pAvailableUnits, lUnit) && !pTarget.Contains(lUnit))
-                        pTarget.Add(lUnit);
-                }
-
-                return pTarget.Count > 0;
-            }
-
-            return TryResolveSelection(TeamSelectionState.SelectedUnitIds, pAvailableUnits, pTarget);
-        }
-
-        private static bool TryResolveSelection(IReadOnlyList<string> pUnitIds, IReadOnlyList<UnitDefinition> pAvailableUnits, List<UnitDefinition> pTarget)
-        {
-            if (pUnitIds == null || pAvailableUnits == null)
-                return false;
-
-            for (int lIdIndex = 0; lIdIndex < pUnitIds.Count; lIdIndex++)
-            {
-                UnitDefinition lUnit = FindAvailableUnitById(pAvailableUnits, pUnitIds[lIdIndex]);
-                if (lUnit != null && !pTarget.Contains(lUnit))
-                    pTarget.Add(lUnit);
-            }
-
-            return pTarget.Count > 0;
-        }
-
-        private static UnitDefinition FindAvailableUnitById(IReadOnlyList<UnitDefinition> pAvailableUnits, string pId)
-        {
-            if (string.IsNullOrWhiteSpace(pId) || pAvailableUnits == null)
-                return null;
-
-            for (int lIndex = 0; lIndex < pAvailableUnits.Count; lIndex++)
-            {
-                UnitDefinition lUnit = pAvailableUnits[lIndex];
-                if (lUnit != null && string.Equals(lUnit.Id, pId, StringComparison.Ordinal))
-                    return lUnit;
-            }
-
-            return null;
-        }
-
-        private static bool ContainsUnit(IReadOnlyList<UnitDefinition> pUnits, UnitDefinition pUnit)
-        {
-            if (pUnits == null || pUnit == null)
-                return false;
-
-            for (int lIndex = 0; lIndex < pUnits.Count; lIndex++)
-            {
-                if (pUnits[lIndex] == pUnit)
-                    return true;
-            }
-
-            return false;
-        }
-
-        private void FillDefaultSelection(IReadOnlyList<UnitDefinition> pAvailableUnits, List<UnitDefinition> pTarget)
-        {
-            int lCount = Mathf.Min(_TeamSize, pAvailableUnits.Count);
-            for (int lIndex = 0; lIndex < lCount; lIndex++)
-                pTarget.Add(pAvailableUnits[lIndex]);
-        }
-
-        private void FillMissingSlots(IReadOnlyList<UnitDefinition> pAvailableUnits, List<UnitDefinition> pTarget)
-        {
-            if (pAvailableUnits == null || pAvailableUnits.Count == 0 || pTarget == null)
-                return;
-
-            int lTargetCount = Mathf.Min(_TeamSize, pAvailableUnits.Count);
-            for (int lIndex = 0; pTarget.Count < lTargetCount && lIndex < pAvailableUnits.Count; lIndex++)
-            {
-                UnitDefinition lUnit = pAvailableUnits[lIndex];
-                if (lUnit != null && !pTarget.Contains(lUnit))
-                    pTarget.Add(lUnit);
-            }
-
-            if (pTarget.Count > _TeamSize)
-                pTarget.RemoveRange(_TeamSize, pTarget.Count - _TeamSize);
-        }
+        private bool IsDraftValid() => _Draft?.IsValid == true;
 
         private bool IsUnitSelectedInAnotherSlot(UnitDefinition pUnit)
         {
-            if (pUnit == null)
-                return false;
-
-            for (int lIndex = 0; lIndex < _SelectedUnits.Count; lIndex++)
-            {
-                if (lIndex != _CurrentSlotIndex && _SelectedUnits[lIndex] == pUnit)
-                    return true;
-            }
-
-            return false;
+            return _Draft?.IsUnitSelectedElsewhere(pUnit, _CurrentSlotIndex) == true;
         }
 
         private bool IsSkillEquippedAtPendingSlot(SkillDefinition pSkill)
         {
-            List<SkillDefinition> lSkills = GetEquippedSkills(CurrentUnit);
-            return pSkill != null && _PendingSkillSlotIndex >= 0 && _PendingSkillSlotIndex < lSkills.Count && lSkills[_PendingSkillSlotIndex] == pSkill;
+            IReadOnlyList<SkillDefinition> lSkills = EnsureDraftBuild(CurrentUnit)?.Skills;
+            return pSkill != null && lSkills != null && _PendingSkillSlotIndex >= 0 && _PendingSkillSlotIndex < lSkills.Count && lSkills[_PendingSkillSlotIndex] == pSkill;
         }
 
         private bool IsSkillEquippedInAnotherSlot(SkillDefinition pSkill)
         {
-            List<SkillDefinition> lSkills = GetEquippedSkills(CurrentUnit);
-            for (int lIndex = 0; lIndex < lSkills.Count; lIndex++)
-            {
-                if (lIndex != _PendingSkillSlotIndex && lSkills[lIndex] == pSkill)
-                    return true;
-            }
-
-            return false;
+            return _Draft?.IsSkillEquipped(CurrentUnit, pSkill, _PendingSkillSlotIndex) == true;
         }
 
         private static string BuildShortSkillMeta(SkillDefinition pSkill) =>
-            pSkill != null ? $"{pSkill.ActionPointCost} PA | {pSkill.RangeMin}-{pSkill.RangeMax}" : string.Empty;
+            pSkill != null ? $"Energy {pSkill.EnergyCost} | {pSkill.RangeMin}-{pSkill.RangeMax}" : string.Empty;
 
         private static string BuildFullSkillMeta(SkillDefinition pSkill)
         {
             if (pSkill == null)
                 return string.Empty;
 
-            string lMeta = $"{pSkill.ActionPointCost} PA | Range {pSkill.RangeMin}-{pSkill.RangeMax}";
+            string lMeta = $"Energy {pSkill.EnergyCost} | Range {pSkill.RangeMin}-{pSkill.RangeMax}";
             if (pSkill.RequiresLineOfSight)
                 lMeta += " | LoS";
             if (pSkill.CooldownTurns > 0)

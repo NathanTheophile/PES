@@ -87,7 +87,7 @@ GameObject:
   - component: {fileID: 466271481084620505}
   - component: {fileID: 2537105276645383927}
   m_Layer: 5
-  m_Name: Txt_UnitHP
+  m_Name: Txt_UnitHealth
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -140,7 +140,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'HP : {UnitHP}'
+  m_text: 'Health: {UnitHealth}'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -428,7 +428,7 @@ GameObject:
   - component: {fileID: 8277574593277930655}
   - component: {fileID: 799092527671228190}
   m_Layer: 5
-  m_Name: Txt_UnitAP
+  m_Name: Txt_UnitEnergy
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -481,7 +481,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'AP : {UnitAP}'
+  m_text: 'Energy: {UnitEnergy}'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -565,7 +565,7 @@ GameObject:
   - component: {fileID: 5331200859328792962}
   - component: {fileID: 3772826417899692599}
   m_Layer: 5
-  m_Name: Txt_UnitMP
+  m_Name: Txt_UnitMobility
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -618,7 +618,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'MP : {UnitMP}'
+  m_text: 'Mobility: {UnitMobility}'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -885,5 +885,5 @@ MonoBehaviour:
   _PortraitImage: {fileID: 3879400358433398683}
   _NameText: {fileID: 5268200124465524989}
   _HealthText: {fileID: 2537105276645383927}
-  _ActionPointsText: {fileID: 799092527671228190}
-  _MovementText: {fileID: 3772826417899692599}
+  _EnergyText: {fileID: 799092527671228190}
+  _MobilityText: {fileID: 3772826417899692599}

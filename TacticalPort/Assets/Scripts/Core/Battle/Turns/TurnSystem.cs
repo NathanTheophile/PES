@@ -25,16 +25,17 @@ namespace TacticalPort.Core
 
         public BattleTurnContext CurrentTurn { get; private set; }
         public int RoundIndex { get; private set; }
+        public IReadOnlyList<UnitRuntime> TurnOrder => _TurnOrder;
 
         #endregion
 
         #region _____________________________| SETUP
 
-        public void Initialize(IEnumerable<UnitRuntime> pUnits)
+        public void Initialize(IEnumerable<UnitRuntime> pUnits, Team pPerfectVelocityTieStartingTeam = Team.TeamA)
         {
             _TurnOrder.Clear();
             _LastInsertionIndexByAnchor.Clear();
-            BuildAlternatingTurnOrder(pUnits);
+            BuildAlternatingTurnOrder(pUnits, pPerfectVelocityTieStartingTeam);
 
             _CurrentIndex = -1;
             RoundIndex = 0;
@@ -139,7 +140,7 @@ namespace TacticalPort.Core
 
         #region _____________________________| HELPERS
 
-        private void BuildAlternatingTurnOrder(IEnumerable<UnitRuntime> pUnits)
+        private void BuildAlternatingTurnOrder(IEnumerable<UnitRuntime> pUnits, Team pPerfectVelocityTieStartingTeam)
         {
             if (pUnits == null)
                 return;
@@ -147,7 +148,7 @@ namespace TacticalPort.Core
             List<UnitRuntime> lTeamA = BuildTeamOrder(pUnits, Team.TeamA);
             List<UnitRuntime> lTeamB = BuildTeamOrder(pUnits, Team.TeamB);
 
-            Team lStartingTeam = ResolveStartingTeam(lTeamA, lTeamB);
+            Team lStartingTeam = ResolveStartingTeam(lTeamA, lTeamB, pPerfectVelocityTieStartingTeam);
             if (lStartingTeam == Team.TeamB)
                 AppendAlternating(lTeamB, lTeamA);
             else
@@ -156,14 +157,15 @@ namespace TacticalPort.Core
             _TurnOrder.AddRange(
                 pUnits
                     .Where(unit => unit != null && unit.IsAlive && unit.Definition.ParticipatesInTurnOrder && unit.Team == Team.Neutral)
-                    .OrderByDescending(unit => unit.Definition.Initiative)
+                    .OrderByDescending(unit => unit.Definition.Velocity)
                     .ThenBy(unit => unit.Id.Value));
         }
 
         private static List<UnitRuntime> BuildTeamOrder(IEnumerable<UnitRuntime> pUnits, Team pTeam) =>
             pUnits
                 .Where(unit => unit != null && unit.IsAlive && unit.Definition.ParticipatesInTurnOrder && unit.Team == pTeam)
-                .OrderBy(unit => unit.Id.Value)
+                .OrderBy(unit => unit.TeamSlotIndex >= 0 ? unit.TeamSlotIndex : int.MaxValue)
+                .ThenBy(unit => unit.Id.Value)
                 .ToList();
 
         private void AppendAlternating(IReadOnlyList<UnitRuntime> pFirstTeam, IReadOnlyList<UnitRuntime> pSecondTeam)
@@ -179,7 +181,10 @@ namespace TacticalPort.Core
             }
         }
 
-        private static Team ResolveStartingTeam(IReadOnlyList<UnitRuntime> pTeamA, IReadOnlyList<UnitRuntime> pTeamB)
+        private static Team ResolveStartingTeam(
+            IReadOnlyList<UnitRuntime> pTeamA,
+            IReadOnlyList<UnitRuntime> pTeamB,
+            Team pPerfectVelocityTieStartingTeam)
         {
             if (pTeamA.Count == 0)
                 return Team.TeamB;
@@ -187,16 +192,34 @@ namespace TacticalPort.Core
             if (pTeamB.Count == 0)
                 return Team.TeamA;
 
-            int lTeamAInitiative = SumInitiative(pTeamA);
-            int lTeamBInitiative = SumInitiative(pTeamB);
-            return lTeamBInitiative > lTeamAInitiative ? Team.TeamB : Team.TeamA;
+            int lTeamAVelocity = SumVelocity(pTeamA);
+            int lTeamBVelocity = SumVelocity(pTeamB);
+            if (lTeamAVelocity != lTeamBVelocity)
+                return lTeamBVelocity > lTeamAVelocity ? Team.TeamB : Team.TeamA;
+
+            List<int> lTeamAVelocities = BuildDescendingVelocities(pTeamA);
+            List<int> lTeamBVelocities = BuildDescendingVelocities(pTeamB);
+            int lComparedCount = Math.Min(lTeamAVelocities.Count, lTeamBVelocities.Count);
+            for (int lIndex = 0; lIndex < lComparedCount; lIndex++)
+            {
+                if (lTeamAVelocities[lIndex] != lTeamBVelocities[lIndex])
+                    return lTeamBVelocities[lIndex] > lTeamAVelocities[lIndex] ? Team.TeamB : Team.TeamA;
+            }
+
+            if (lTeamAVelocities.Count != lTeamBVelocities.Count)
+                return lTeamBVelocities.Count > lTeamAVelocities.Count ? Team.TeamB : Team.TeamA;
+
+            return pPerfectVelocityTieStartingTeam == Team.TeamB ? Team.TeamB : Team.TeamA;
         }
 
-        private static int SumInitiative(IReadOnlyList<UnitRuntime> pUnits)
+        private static List<int> BuildDescendingVelocities(IReadOnlyList<UnitRuntime> pUnits) =>
+            pUnits.Select(pUnit => pUnit.Definition.Velocity).OrderByDescending(pVelocity => pVelocity).ToList();
+
+        private static int SumVelocity(IReadOnlyList<UnitRuntime> pUnits)
         {
             int lTotal = 0;
             for (int lIndex = 0; lIndex < pUnits.Count; lIndex++)
-                lTotal += pUnits[lIndex].Definition.Initiative;
+                lTotal += pUnits[lIndex].Definition.Velocity;
 
             return lTotal;
         }
@@ -221,10 +244,10 @@ namespace TacticalPort.Core
             for (int lIndex = 0; lIndex < _TurnOrder.Count; lIndex++)
             {
                 UnitRuntime lExistingUnit = _TurnOrder[lIndex];
-                if (lExistingUnit.Definition.Initiative > pUnit.Definition.Initiative)
+                if (lExistingUnit.Definition.Velocity > pUnit.Definition.Velocity)
                     continue;
 
-                if (lExistingUnit.Definition.Initiative == pUnit.Definition.Initiative && lExistingUnit.Id.Value < pUnit.Id.Value)
+                if (lExistingUnit.Definition.Velocity == pUnit.Definition.Velocity && lExistingUnit.Id.Value < pUnit.Id.Value)
                     continue;
 
                 lInsertIndex = lIndex;

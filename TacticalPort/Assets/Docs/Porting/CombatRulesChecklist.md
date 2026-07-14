@@ -14,10 +14,10 @@ Checklist de portage combat. Cocher seulement quand le comportement Unity est v�
 
 ## Ressources
 
-- [ ] Chaque unité possède un budget `AP` et `MP` par tour.
+- [ ] Chaque unité possède un budget d’`Energy` et de `Mobility` par tour.
 - [ ] Fin de tour: reset du budget consommé.
-- [ ] Les skills consomment `AP` au cast.
-- [ ] Les skills peuvent rendre ou retirer `AP/MP` sur le tour courant.
+- [ ] Les compétences consomment de l’`Energy` à l’utilisation.
+- [ ] Les compétences peuvent rendre ou retirer de l’`Energy` ou de la `Mobility` sur le tour courant.
 - [ ] `usePerTurn`, `usePerTarget`, `cooldown` sont validés par le runtime, pas par l’UI seule.
 
 ## Turn Flow
@@ -25,7 +25,7 @@ Checklist de portage combat. Cocher seulement quand le comportement Unity est v�
 - [ ] Tour joueur: chaque unité jouable agit au plus une fois.
 - [ ] Tour ennemi: ordre déterministe simple.
 - [ ] Le round s’incrémente correctement selon `enemyfirst`.
-- [ ] Fin de tour d’unité possible même sans dépenser tout son `AP/MP`.
+- [ ] Fin de tour d’unité possible même sans dépenser toute son `Energy` ou sa `Mobility`.
 - [ ] La phase ennemie démarre automatiquement quand tous les alliés ont joué.
 
 ## Targeting
@@ -50,9 +50,9 @@ Checklist de portage combat. Cocher seulement quand le comportement Unity est v�
 ## Résolution
 
 - [ ] Bonus de dégâts directionnels: face `1.0`, côté `1.1`, dos `1.25`.
-- [ ] Les dégâts mettent à jour le HP restant sans race condition visuelle.
+- [ ] Les dégâts mettent à jour la `Health` restante sans race condition visuelle.
 - [ ] Le soin ne dépasse pas la vie max.
-- [ ] `nonLethal` laisse la cible à `1 HP`.
+- [ ] `nonLethal` laisse la cible à `1 Health`.
 - [ ] Le push avance case par case jusqu’au blocage.
 - [ ] Les collisions de push infligent les dégâts attendus.
 - [ ] Les summons occupent correctement une case.

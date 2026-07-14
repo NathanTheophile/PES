@@ -209,6 +209,24 @@ namespace TacticalPort.State
             FillDefaultSkillIds(lBuild, pUnit);
         }
 
+        public static bool TryApplyDraft(TeamPresetDraft pDraft, out string pFailure)
+        {
+            if (pDraft == null)
+            {
+                pFailure = "The team preset draft is missing.";
+                return false;
+            }
+
+            if (!pDraft.Validate(out pFailure))
+                return false;
+
+            TeamPreset lPreset = GetOrCreateActivePreset();
+            lPreset.Slots = pDraft.CreateBuildPresets();
+            EnsureSlotCount(lPreset);
+            pFailure = string.Empty;
+            return true;
+        }
+
         public static bool TrySetStatAllocations(
             UnitDefinition pUnit,
             UnitStatAllocationPreset pAllocations,

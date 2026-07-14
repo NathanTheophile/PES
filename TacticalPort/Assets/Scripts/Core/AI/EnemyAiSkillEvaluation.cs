@@ -69,7 +69,7 @@ namespace TacticalPort.Core
             if (pRule == null || pRule.MaxCasterHealthPercent <= 0)
                 return true;
 
-            int lCasterHealthPercent = pActor.CurrentHealth * 100 / pActor.Definition.MaxHealth;
+            int lCasterHealthPercent = pActor.CurrentHealth * 100 / pActor.CurrentMaxHealth;
             return lCasterHealthPercent <= pRule.MaxCasterHealthPercent;
         }
 

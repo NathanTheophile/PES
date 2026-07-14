@@ -196,7 +196,7 @@ namespace TacticalPort.Core
 
             if (pSkill.PrimaryEffectType == SkillPrimaryEffectType.Heal && lIsAlly)
                 pImpact.EffectiveHealTotal += Math.Min(
-                    Math.Max(0, pUnit.Definition.MaxHealth - pUnit.CurrentHealth),
+                    Math.Max(0, pUnit.CurrentMaxHealth - pUnit.CurrentHealth),
                     pSkill.Power);
         }
 

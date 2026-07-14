@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 6645221063830586795}
   - component: {fileID: 6467701542950381814}
   m_Layer: 5
-  m_Name: UI_HUD_HBox_Spells
+  m_Name: UI_HUD_HBox_Skills
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

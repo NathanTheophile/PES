@@ -16,6 +16,7 @@ namespace TacticalPort.Data
 
         public UnitDefinition Unit;
         public SerializableGridCoord StartCoordinate = new SerializableGridCoord(0, 0);
+        public int TeamSlotIndex = -1;
 
         #endregion
 
@@ -24,7 +25,8 @@ namespace TacticalPort.Data
         public UnitSpawnDefinition Clone(UnitDefinition pUnitOverride = null) => new UnitSpawnDefinition
         {
             Unit = pUnitOverride != null ? pUnitOverride : Unit,
-            StartCoordinate = new SerializableGridCoord(StartCoordinate.X, StartCoordinate.Y)
+            StartCoordinate = new SerializableGridCoord(StartCoordinate.X, StartCoordinate.Y),
+            TeamSlotIndex = TeamSlotIndex
         };
 
         #endregion

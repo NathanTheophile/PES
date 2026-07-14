@@ -14,30 +14,30 @@ namespace TacticalPort.State
         private static readonly UnitStatType[] AllocatedStats =
         {
             UnitStatType.Health,
-            UnitStatType.ActionPoints,
-            UnitStatType.Movement,
+            UnitStatType.Energy,
+            UnitStatType.Mobility,
             UnitStatType.MeleeDamage,
             UnitStatType.RangedDamage,
-            UnitStatType.Initiative,
+            UnitStatType.Velocity,
             UnitStatType.MeleeResistance,
             UnitStatType.RangedResistance
         };
 
         public const int HealthCost = 1;
-        public const int ActionPointCost = 25;
-        public const int MovementCost = 20;
+        public const int EnergyCost = 25;
+        public const int MobilityCost = 20;
         public const int DamageCost = 5;
         public const int ResistanceCost = 5;
-        public const int InitiativeCost = 1;
+        public const int VelocityCost = 1;
 
         public static int GetCostPerPoint(UnitStatType pStat) => pStat switch
         {
             UnitStatType.Health => HealthCost,
-            UnitStatType.ActionPoints => ActionPointCost,
-            UnitStatType.Movement => MovementCost,
+            UnitStatType.Energy => EnergyCost,
+            UnitStatType.Mobility => MobilityCost,
             UnitStatType.MeleeDamage or UnitStatType.RangedDamage => DamageCost,
             UnitStatType.MeleeResistance or UnitStatType.RangedResistance => ResistanceCost,
-            UnitStatType.Initiative => InitiativeCost,
+            UnitStatType.Velocity => VelocityCost,
             _ => 0
         };
 
@@ -49,11 +49,11 @@ namespace TacticalPort.State
             return pStat switch
             {
                 UnitStatType.Health => pAllocations.Health,
-                UnitStatType.ActionPoints => pAllocations.Power,
-                UnitStatType.Movement => pAllocations.Movement,
+                UnitStatType.Energy => pAllocations.Energy,
+                UnitStatType.Mobility => pAllocations.Mobility,
                 UnitStatType.MeleeDamage => pAllocations.MeleeDamage,
                 UnitStatType.RangedDamage => pAllocations.RangedDamage,
-                UnitStatType.Initiative => pAllocations.Initiative,
+                UnitStatType.Velocity => pAllocations.Velocity,
                 UnitStatType.MeleeResistance => pAllocations.MeleeResistance,
                 UnitStatType.RangedResistance => pAllocations.RangedResistance,
                 _ => 0
@@ -68,11 +68,11 @@ namespace TacticalPort.State
             switch (pStat)
             {
                 case UnitStatType.Health: pAllocations.Health = pValue; break;
-                case UnitStatType.ActionPoints: pAllocations.Power = pValue; break;
-                case UnitStatType.Movement: pAllocations.Movement = pValue; break;
+                case UnitStatType.Energy: pAllocations.Energy = pValue; break;
+                case UnitStatType.Mobility: pAllocations.Mobility = pValue; break;
                 case UnitStatType.MeleeDamage: pAllocations.MeleeDamage = pValue; break;
                 case UnitStatType.RangedDamage: pAllocations.RangedDamage = pValue; break;
-                case UnitStatType.Initiative: pAllocations.Initiative = pValue; break;
+                case UnitStatType.Velocity: pAllocations.Velocity = pValue; break;
                 case UnitStatType.MeleeResistance: pAllocations.MeleeResistance = pValue; break;
                 case UnitStatType.RangedResistance: pAllocations.RangedResistance = pValue; break;
             }
@@ -136,13 +136,13 @@ namespace TacticalPort.State
 
             return new UnitStatModifiers(
                 pAllocations?.Health ?? 0,
-                pAllocations?.Power ?? 0,
-                pAllocations?.Movement ?? 0,
+                pAllocations?.Energy ?? 0,
+                pAllocations?.Mobility ?? 0,
                 pAllocations?.MeleeDamage ?? 0,
                 pAllocations?.MeleeResistance ?? 0,
                 pAllocations?.RangedDamage ?? 0,
                 pAllocations?.RangedResistance ?? 0,
-                pAllocations?.Initiative ?? 0);
+                pAllocations?.Velocity ?? 0);
         }
 
         public static int GetEffectiveValue(
@@ -156,11 +156,11 @@ namespace TacticalPort.State
             int lBaseValue = pStat switch
             {
                 UnitStatType.Health => pUnit.MaxHealth,
-                UnitStatType.ActionPoints => pUnit.ActionPointsPerTurn,
-                UnitStatType.Movement => pUnit.MoveRange,
+                UnitStatType.Energy => pUnit.EnergyPerTurn,
+                UnitStatType.Mobility => pUnit.MobilityPerTurn,
                 UnitStatType.MeleeDamage => pUnit.MeleeDamagePercent,
                 UnitStatType.RangedDamage => pUnit.RangedDamagePercent,
-                UnitStatType.Initiative => pUnit.Initiative,
+                UnitStatType.Velocity => pUnit.Velocity,
                 UnitStatType.MeleeResistance => pUnit.MeleeResistancePercent,
                 UnitStatType.RangedResistance => pUnit.RangedResistancePercent,
                 _ => 0

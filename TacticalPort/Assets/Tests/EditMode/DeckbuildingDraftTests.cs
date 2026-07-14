@@ -101,14 +101,14 @@ namespace TacticalPort.State.Tests
                 SetControllerField(lController, "_TeamSize", 1);
                 lController.ShowForTeamSlot(0);
 
-                InvokeController(lController, "ChangeStat", UnitStatType.ActionPoints, 1);
+                InvokeController(lController, "ChangeStat", UnitStatType.Energy, 1);
 
-                Assert.That(TeamPresetState.ResolveStatAllocations(lUnit).Power, Is.Zero);
+                Assert.That(TeamPresetState.ResolveStatAllocations(lUnit).Energy, Is.Zero);
                 Assert.That(_Repository.SavedSnapshots, Is.Empty);
 
                 InvokeController(lController, "ValidateChanges");
 
-                Assert.That(TeamPresetState.ResolveStatAllocations(lUnit).Power, Is.EqualTo(1));
+                Assert.That(TeamPresetState.ResolveStatAllocations(lUnit).Energy, Is.EqualTo(1));
                 Assert.That(_Repository.SavedSnapshots, Has.Count.EqualTo(1));
             }
             finally
@@ -141,5 +141,117 @@ namespace TacticalPort.State.Tests
                 return Task.CompletedTask;
             }
         }
+    }
+
+    public sealed class TeamPresetDraftModelTests
+    {
+        private readonly List<Object> _Assets = new List<Object>();
+
+        [TearDown]
+        public void TearDown()
+        {
+            for (int lIndex = _Assets.Count - 1; lIndex >= 0; lIndex--)
+                Object.DestroyImmediate(_Assets[lIndex]);
+            _Assets.Clear();
+        }
+
+        [Test]
+        public void SelectionRejectsAUnitAlreadyUsedByAnotherSlot()
+        {
+            UnitDefinition lUnitA = CreateUnit("unit-a");
+            UnitDefinition lUnitB = CreateUnit("unit-b");
+            TeamPresetDraft lDraft = CreateDraft(2, new[] { lUnitA, lUnitB });
+
+            Assert.That(lDraft.TrySelectUnit(0, lUnitB), Is.False);
+            Assert.That(lDraft.SelectedUnits, Is.EqualTo(new[] { lUnitA, lUnitB }));
+            Assert.That(lDraft.IsValid, Is.True);
+        }
+
+        [Test]
+        public void PassiveAndSkillSelectionsEnforceTheUnitPoolAndUniqueSkills()
+        {
+            PassiveDefinition lPassiveA = CreateAsset<PassiveDefinition>("passive-a");
+            PassiveDefinition lPassiveB = CreateAsset<PassiveDefinition>("passive-b");
+            List<SkillDefinition> lSkills = new List<SkillDefinition>();
+            for (int lIndex = 0; lIndex < TeamPreset.EquippedSkillCount + 1; lIndex++)
+                lSkills.Add(CreateAsset<SkillDefinition>($"skill-{lIndex}"));
+            UnitDefinition lUnit = CreateUnit("unit-a", lSkills, new[] { lPassiveA, lPassiveB }, lPassiveA);
+            TeamPresetDraft lDraft = CreateDraft(1, new[] { lUnit });
+
+            Assert.That(lDraft.TrySelectPassive(lUnit, lPassiveB), Is.True);
+            Assert.That(lDraft.TrySelectSkill(lUnit, 0, lSkills[6]), Is.True);
+            Assert.That(lDraft.TrySelectSkill(lUnit, 1, lSkills[6]), Is.False);
+            Assert.That(lDraft.GetBuild(lUnit).Passive, Is.SameAs(lPassiveB));
+            Assert.That(lDraft.GetBuild(lUnit).Skills[0], Is.SameAs(lSkills[6]));
+            Assert.That(lDraft.IsValid, Is.True);
+        }
+
+        [Test]
+        public void StatChangesRespectBudgetAndRemainInsideTheDraft()
+        {
+            UnitDefinition lUnit = CreateUnit("unit-a", pStatBudget: UnitStatAllocationRules.EnergyCost);
+            TeamPresetDraft lDraft = CreateDraft(1, new[] { lUnit });
+
+            Assert.That(lDraft.TryChangeStat(lUnit, UnitStatType.Energy, 1), Is.True);
+            Assert.That(lDraft.TryChangeStat(lUnit, UnitStatType.Energy, 1), Is.False);
+            Assert.That(lDraft.GetBuild(lUnit).StatAllocations.Energy, Is.EqualTo(1));
+            Assert.That(lDraft.IsValid, Is.True);
+        }
+
+        [Test]
+        public void PersistedPresetComparisonIncludesOrderBuildAndStats()
+        {
+            UnitDefinition lUnitA = CreateUnit("unit-a", pStatBudget: UnitStatAllocationRules.EnergyCost);
+            UnitDefinition lUnitB = CreateUnit("unit-b");
+            TeamPresetDraft lInitial = CreateDraft(2, new[] { lUnitA, lUnitB });
+            TeamPreset lPersisted = new TeamPreset { Slots = lInitial.CreateBuildPresets() };
+            TeamPresetDraft lLoaded = CreateDraft(2, new[] { lUnitA, lUnitB }, lPersisted);
+
+            Assert.That(lLoaded.MatchesPersistedPreset(), Is.True);
+            Assert.That(lLoaded.HasPendingChanges, Is.False);
+
+            Assert.That(lLoaded.TryChangeStat(lUnitA, UnitStatType.Energy, 1), Is.True);
+            Assert.That(lLoaded.MatchesPersistedPreset(), Is.False);
+            Assert.That(lLoaded.HasPendingChanges, Is.True);
+        }
+
+        [Test]
+        public void DraftIsInvalidWhenTheAvailableRosterCannotFillEverySlot()
+        {
+            UnitDefinition lUnit = CreateUnit("unit-a");
+            TeamPresetDraft lDraft = CreateDraft(2, new[] { lUnit });
+
+            Assert.That(lDraft.Validate(out string lFailure), Is.False);
+            Assert.That(lFailure, Does.Contain("exactly 2 units"));
+        }
+
+        private TeamPresetDraft CreateDraft(int pTeamSize, IReadOnlyList<UnitDefinition> pUnits, TeamPreset pPersisted = null) =>
+            new TeamPresetDraft(pTeamSize, pUnits, pUnits, null, pPersisted);
+
+        private UnitDefinition CreateUnit(
+            string pName,
+            IReadOnlyList<SkillDefinition> pSkills = null,
+            IReadOnlyList<PassiveDefinition> pPassives = null,
+            PassiveDefinition pDefaultPassive = null,
+            int pStatBudget = 0)
+        {
+            UnitDefinition lUnit = CreateAsset<UnitDefinition>(pName);
+            SetUnitField(lUnit, "_Skills", pSkills != null ? new List<SkillDefinition>(pSkills) : new List<SkillDefinition>());
+            SetUnitField(lUnit, "_Passives", pPassives != null ? new List<PassiveDefinition>(pPassives) : new List<PassiveDefinition>());
+            SetUnitField(lUnit, "_DefaultPassive", pDefaultPassive);
+            SetUnitField(lUnit, "_StatPointBudget", pStatBudget);
+            return lUnit;
+        }
+
+        private T CreateAsset<T>(string pName) where T : ScriptableObject
+        {
+            T lAsset = ScriptableObject.CreateInstance<T>();
+            lAsset.name = pName;
+            _Assets.Add(lAsset);
+            return lAsset;
+        }
+
+        private static void SetUnitField<T>(UnitDefinition pUnit, string pName, T pValue) =>
+            typeof(UnitDefinition).GetField(pName, BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(pUnit, pValue);
     }
 }

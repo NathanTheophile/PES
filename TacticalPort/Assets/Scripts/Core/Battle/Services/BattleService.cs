@@ -49,6 +49,7 @@ namespace TacticalPort.Core
         public UnitRuntime ActiveUnit => TryResolveActiveUnit(out UnitRuntime lUnit) ? lUnit : null;
         public bool HasActiveTurn => CurrentTurn != null && ActiveUnit != null;
         public IReadOnlyCollection<UnitRuntime> Units => _UnitsById.Values;
+        public IReadOnlyList<UnitRuntime> TurnOrder => _TurnSystem.TurnOrder;
         public event Action<BattleTurnContext> TurnStarted;
         public event Action<UnitId> TurnEnded;
         public event Action<BattleActionResult> SkillUsed;
@@ -59,7 +60,7 @@ namespace TacticalPort.Core
 
         #region _____________________________| SETUP
 
-        public void Initialize(BattleScenarioDefinition pScenario)
+        public void Initialize(BattleScenarioDefinition pScenario, Team pPerfectVelocityTieStartingTeam = Team.TeamA)
         {
             if (pScenario == null)
                 throw new ArgumentNullException(nameof(pScenario));
@@ -85,7 +86,7 @@ namespace TacticalPort.Core
             }
 
             BattleServiceMaintenance.RefreshAllPhaseStates(_UnitsById.Values);
-            _TurnSystem.Initialize(_UnitsById.Values);
+            _TurnSystem.Initialize(_UnitsById.Values, pPerfectVelocityTieStartingTeam);
             Phase = BattlePhase.Setup;
             Outcome = BattleOutcome.None;
         }
@@ -149,7 +150,7 @@ namespace TacticalPort.Core
             if (!_UnitsById.TryGetValue(pUnitId, out UnitRuntime lUnit) || !lUnit.IsAlive)
                 return Array.Empty<GridCoord>();
 
-            return _PathService.GetReachableCells(lUnit.Position, lUnit.RemainingMovement, pUnitId);
+            return _PathService.GetReachableCells(lUnit.Position, lUnit.RemainingMobility, pUnitId);
         }
 
         public BattleActionResult ValidateSkill(UnitId pUnitId, SkillId pSkillId, SkillTarget pTarget)
@@ -163,14 +164,14 @@ namespace TacticalPort.Core
             if (!CanControlCurrentUnit(pUnitId, BattleActionType.Move, out UnitRuntime lUnit, out BattleActionResult lError))
                 return lError;
 
-            PathResult lPath = _PathService.FindPath(lUnit.Position, pDestination, lUnit.RemainingMovement, pUnitId);
+            PathResult lPath = _PathService.FindPath(lUnit.Position, pDestination, lUnit.RemainingMobility, pUnitId);
             if (!lPath.IsSuccess)
                 return BattleActionResult.Failed(BattleActionType.Move, lPath.FailureReason);
 
             if (!_UnitPlacementService.TryRelocateUnit(lUnit, pDestination))
                 return BattleActionResult.Failed(BattleActionType.Move, "Grid rejected the movement.");
 
-            if (!lUnit.TrySpendMovement(lPath.TotalCost))
+            if (!lUnit.TrySpendMobility(lPath.TotalCost))
                 return BattleActionResult.Failed(BattleActionType.Move, "Unit does not have enough movement.");
 
             string lMessage = "Movement applied.";
@@ -194,7 +195,7 @@ namespace TacticalPort.Core
 
             if (lResult.IsSuccess)
             {
-                lUnit.TrySpendActionPoints(lSkill.ActionPointCost);
+                lUnit.TrySpendEnergy(lSkill.EnergyCost);
                 ResolveTreasureAfterSkill(lUnit, lBaseSkill, lSkill, lResult, lHealthBefore);
                 BattleServiceMaintenance.RefreshPhaseStates(_UnitsById, lResult.AffectedUnitIds);
                 BattleServiceMaintenance.CleanupDefeatedUnits(_UnitsById.Values, _GridService, _TurnSystem);
@@ -349,9 +350,9 @@ namespace TacticalPort.Core
             }
 
             pSkill = pUnit.ResolveSkillForExecution(pBaseSkill);
-            if (!pUnit.CanSpendActionPoints(pSkill.ActionPointCost))
+            if (!pUnit.CanSpendEnergy(pSkill.EnergyCost))
             {
-                pError = BattleActionResult.Failed(BattleActionType.Skill, "Unit does not have enough action points.");
+                pError = BattleActionResult.Failed(BattleActionType.Skill, "Unit does not have enough Energy.");
                 return false;
             }
 

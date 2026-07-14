@@ -8,6 +8,7 @@
 using System.Threading;
 using TacticalPort.Matchmaking;
 using TacticalPort.State;
+using TacticalPort.UI;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -68,6 +69,7 @@ namespace TacticalPort.Bootstrap
             _Instance = this;
             PreserveAuthenticationSession();
             ConfigureQuickMatchFlow();
+            SceneManager.sceneLoaded += HandleSceneLoaded;
 
             if (_KeepAliveAcrossScenes)
                 DontDestroyOnLoad(gameObject);
@@ -99,6 +101,15 @@ namespace TacticalPort.Bootstrap
 
         private void OnValidate() => CacheMissingReferences();
 
+        private void OnDestroy()
+        {
+            if (_Instance != this)
+                return;
+
+            SceneManager.sceneLoaded -= HandleSceneLoaded;
+            _Instance = null;
+        }
+
         #endregion
 
         #region _____________________________| HELPERS
@@ -113,6 +124,44 @@ namespace TacticalPort.Bootstrap
                 _MatchRuntimeSessionLifecycle?.ConfigureGameServerAllocator(_GameServerAllocatorSource);
 
             _MatchRuntimeSessionLifecycle?.ConfigurePartyLobbyService(_PartyLobbyServiceSource);
+        }
+
+        private void HandleSceneLoaded(Scene pScene, LoadSceneMode pLoadMode) => ConfigureSceneDependencies(pScene);
+
+        private void ConfigureSceneDependencies(Scene pScene)
+        {
+            GameObject[] lRoots = pScene.GetRootGameObjects();
+            for (int lRootIndex = 0; lRootIndex < lRoots.Length; lRootIndex++)
+            {
+                GameObject lRoot = lRoots[lRootIndex];
+
+                QuickMatchPanelView[] lQuickMatchViews = lRoot.GetComponentsInChildren<QuickMatchPanelView>(true);
+                for (int lIndex = 0; lIndex < lQuickMatchViews.Length; lIndex++)
+                    lQuickMatchViews[lIndex].ConfigureFlowController(_QuickMatchFlowController);
+
+                CustomMatchPopupView[] lCustomMatchViews = lRoot.GetComponentsInChildren<CustomMatchPopupView>(true);
+                for (int lIndex = 0; lIndex < lCustomMatchViews.Length; lIndex++)
+                    lCustomMatchViews[lIndex].ConfigureServices(
+                        _PlayerIdentityService,
+                        _PartyLobbyServiceSource,
+                        _MatchRuntimeContext);
+
+                MainMenuScreenController[] lMainMenuControllers = lRoot.GetComponentsInChildren<MainMenuScreenController>(true);
+                for (int lIndex = 0; lIndex < lMainMenuControllers.Length; lIndex++)
+                    lMainMenuControllers[lIndex].ConfigureSceneTransitionService(_SceneTransitionController);
+
+                TeamSelectionController[] lTeamSelectionControllers = lRoot.GetComponentsInChildren<TeamSelectionController>(true);
+                for (int lIndex = 0; lIndex < lTeamSelectionControllers.Length; lIndex++)
+                    lTeamSelectionControllers[lIndex].ConfigureSceneTransitionService(_SceneTransitionController);
+
+                EndCombatView[] lEndCombatViews = lRoot.GetComponentsInChildren<EndCombatView>(true);
+                for (int lIndex = 0; lIndex < lEndCombatViews.Length; lIndex++)
+                    lEndCombatViews[lIndex].ConfigureSceneTransitionService(_SceneTransitionController);
+
+                MatchRuntimeCombatBinder[] lCombatBinders = lRoot.GetComponentsInChildren<MatchRuntimeCombatBinder>(true);
+                for (int lIndex = 0; lIndex < lCombatBinders.Length; lIndex++)
+                    lCombatBinders[lIndex].ConfigureMatchContext(_MatchRuntimeContext);
+            }
         }
 
         private void PreserveAuthenticationSession()

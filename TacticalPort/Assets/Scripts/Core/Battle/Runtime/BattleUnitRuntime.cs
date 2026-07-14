@@ -14,12 +14,14 @@ namespace TacticalPort.Core
     public sealed class UnitRuntime
     {
         private const int MaxTreasureGainPerTurn = 2;
+        public const int BaseWearPercent = 5;
+        public const int MaxWearPercent = 50;
         private const string TreasureStackStateKey = "resource::treasure";
         private const string FullTreasureStateKey = "resource::treasure_full";
 
         #region _____________________________| INIT
 
-        public UnitRuntime(UnitId pId, UnitDefinition pDefinition, GridCoord pPosition, Team? pTeamOverride = null)
+        public UnitRuntime(UnitId pId, UnitDefinition pDefinition, GridCoord pPosition, Team? pTeamOverride = null, int pTeamSlotIndex = -1)
         {
             if (pDefinition == null)
                 throw new ArgumentNullException(nameof(pDefinition));
@@ -27,12 +29,14 @@ namespace TacticalPort.Core
             Id = pId;
             Definition = pDefinition;
             _TeamOverride = pTeamOverride;
+            TeamSlotIndex = pTeamSlotIndex;
             Position = pPosition;
             _Skills = BuildRuntimeSkills(pDefinition);
             _OccupiedCellOffsets = BuildOccupiedCellOffsets(pDefinition);
             CurrentHealth = Math.Max(1, pDefinition.MaxHealth);
-            RemainingMovement = 0;
-            RemainingActionPoints = 0;
+            CurrentMaxHealth = CurrentHealth;
+            RemainingMobility = 0;
+            RemainingEnergy = 0;
             _ActivePassive = ResolveInitialPassive(pDefinition);
             InitializePersistentStates();
             SyncTreasureStates();
@@ -50,6 +54,7 @@ namespace TacticalPort.Core
         private PassiveDefinition _ActivePassive;
         private int _TreasureCount;
         private int _TreasureGainedThisTurn;
+        private int _WearRemainder;
 
         #endregion
 
@@ -58,10 +63,14 @@ namespace TacticalPort.Core
         public UnitId Id { get; }
         public UnitDefinition Definition { get; }
         public Team Team => _TeamOverride ?? Definition.Team;
+        public int TeamSlotIndex { get; }
         public GridCoord Position { get; private set; }
         public int CurrentHealth { get; private set; }
-        public int RemainingMovement { get; private set; }
-        public int RemainingActionPoints { get; private set; }
+        public int CurrentMaxHealth { get; private set; }
+        public int EffectiveWearPercent => Math.Min(MaxWearPercent, Math.Max(BaseWearPercent, BaseWearPercent + _States.GetWearPercent()));
+        internal int WearRemainder => _WearRemainder;
+        public int RemainingMobility { get; private set; }
+        public int RemainingEnergy { get; private set; }
         public bool IsAlive => CurrentHealth > 0;
         public IReadOnlyList<SkillDefinition> Skills => _Skills;
         public IReadOnlyList<GridCoord> OccupiedCellOffsets => _OccupiedCellOffsets;
@@ -88,13 +97,13 @@ namespace TacticalPort.Core
 
             if (!IsAlive)
             {
-                RemainingMovement = 0;
-                RemainingActionPoints = 0;
+                RemainingMobility = 0;
+                RemainingEnergy = 0;
                 return;
             }
 
-            RemainingMovement = Math.Max(0, Definition.MoveRange + GetMovementModifier());
-            RemainingActionPoints = Math.Max(0, Definition.ActionPointsPerTurn + GetActionPointModifier());
+            RemainingMobility = Math.Max(0, Definition.MobilityPerTurn + GetMobilityModifier());
+            RemainingEnergy = Math.Max(0, Definition.EnergyPerTurn + GetEnergyModifier());
         }
 
         public void EndTurn()
@@ -107,31 +116,31 @@ namespace TacticalPort.Core
 
         #region _____________________________| RESOURCES
 
-        public bool CanSpendMovement(int pAmount) => pAmount >= 0 && RemainingMovement >= pAmount;
-        public bool CanSpendActionPoints(int pAmount) => pAmount >= 0 && RemainingActionPoints >= pAmount;
+        public bool CanSpendMobility(int pAmount) => pAmount >= 0 && RemainingMobility >= pAmount;
+        public bool CanSpendEnergy(int pAmount) => pAmount >= 0 && RemainingEnergy >= pAmount;
 
-        public bool TrySpendMovement(int pAmount)
+        public bool TrySpendMobility(int pAmount)
         {
-            if (!CanSpendMovement(pAmount))
+            if (!CanSpendMobility(pAmount))
                 return false;
 
-            RemainingMovement -= pAmount;
+            RemainingMobility -= pAmount;
             return true;
         }
 
-        public bool TrySpendActionPoints(int pAmount)
+        public bool TrySpendEnergy(int pAmount)
         {
-            if (!CanSpendActionPoints(pAmount))
+            if (!CanSpendEnergy(pAmount))
                 return false;
 
-            RemainingActionPoints -= pAmount;
+            RemainingEnergy -= pAmount;
             return true;
         }
 
         private void ClearTurnResources()
         {
-            RemainingMovement = 0;
-            RemainingActionPoints = 0;
+            RemainingMobility = 0;
+            RemainingEnergy = 0;
         }
 
         #endregion
@@ -157,19 +166,29 @@ namespace TacticalPort.Core
 
         public int GetDamageModifier() => _States.GetDamageModifier();
 
+        public int GetGeneralDamagePercent() => Definition.GeneralDamagePercent + GetDamageModifier();
+
         public int GetMeleeDamageModifier() => _States.GetMeleeDamageModifier();
 
         public int GetRangedDamageModifier() => _States.GetRangedDamageModifier();
 
-        public int GetMeleeResistancePercent() => ClampResistancePercent(Definition.MeleeResistancePercent + _States.GetMeleeResistancePercent());
+        public int GetMeleeResistancePercent() => ClampResistancePercent(
+            Definition.MeleeResistancePercent
+            + _States.GetMeleeResistancePercent()
+            + Definition.GeneralResistancePercent
+            + _States.GetGeneralResistancePercent());
 
-        public int GetRangedResistancePercent() => ClampResistancePercent(Definition.RangedResistancePercent + _States.GetRangedResistancePercent());
+        public int GetRangedResistancePercent() => ClampResistancePercent(
+            Definition.RangedResistancePercent
+            + _States.GetRangedResistancePercent()
+            + Definition.GeneralResistancePercent
+            + _States.GetGeneralResistancePercent());
 
         public int GetRangeModifier() => _States.GetRangeModifier();
 
-        public int GetActionPointModifier() => _States.GetActionPointModifier();
+        public int GetEnergyModifier() => _States.GetEnergyModifier();
 
-        public int GetMovementModifier() => _States.GetMovementModifier();
+        public int GetMobilityModifier() => _States.GetMobilityModifier();
 
         public int GetSkillRangeMax(SkillDefinition pSkill) => pSkill != null ? Math.Max(0, pSkill.RangeMax + GetRangeModifier()) : 0;
 
@@ -219,6 +238,12 @@ namespace TacticalPort.Core
         }
 
         public int ApplyDamage(int pAmount, DamageRangeType pDamageRange = DamageRangeType.None)
+            => ApplyDamageInternal(pAmount, pDamageRange, false);
+
+        public int ApplySkillDamage(int pAmount, DamageRangeType pDamageRange = DamageRangeType.None)
+            => ApplyDamageInternal(pAmount, pDamageRange, true);
+
+        private int ApplyDamageInternal(int pAmount, DamageRangeType pDamageRange, bool pApplyWear)
         {
             if (pAmount <= 0 || !IsAlive)
                 return 0;
@@ -229,6 +254,9 @@ namespace TacticalPort.Core
 
             int lApplied = Math.Min(CurrentHealth, lResolvedAmount);
             CurrentHealth -= lApplied;
+            if (pApplyWear)
+                ApplyWear(lApplied);
+
             if (lApplied > 0)
                 ValueChanged?.Invoke(lApplied, false);
             return lApplied;
@@ -239,7 +267,7 @@ namespace TacticalPort.Core
             if (pAmount <= 0 || !IsAlive)
                 return 0;
 
-            int lMissingHealth = Math.Max(0, Definition.MaxHealth - CurrentHealth);
+            int lMissingHealth = Math.Max(0, CurrentMaxHealth - CurrentHealth);
             int lRestored = Math.Min(lMissingHealth, pAmount);
             CurrentHealth += lRestored;
             if (lRestored > 0)
@@ -376,13 +404,13 @@ namespace TacticalPort.Core
         {
             if (!IsAlive)
             {
-                RemainingMovement = 0;
-                RemainingActionPoints = 0;
+                RemainingMobility = 0;
+                RemainingEnergy = 0;
                 return;
             }
 
-            RemainingMovement = Math.Max(0, Math.Min(RemainingMovement, Definition.MoveRange + GetMovementModifier()));
-            RemainingActionPoints = Math.Max(0, Math.Min(RemainingActionPoints, Definition.ActionPointsPerTurn + GetActionPointModifier()));
+            RemainingMobility = Math.Max(0, Math.Min(RemainingMobility, Definition.MobilityPerTurn + GetMobilityModifier()));
+            RemainingEnergy = Math.Max(0, Math.Min(RemainingEnergy, Definition.EnergyPerTurn + GetEnergyModifier()));
         }
 
         private static List<SkillDefinition> BuildRuntimeSkills(UnitDefinition pDefinition)
@@ -479,7 +507,7 @@ namespace TacticalPort.Core
             bool lIsMelee = pDamageRange == DamageRangeType.Melee;
             int lBasePercent = lIsMelee ? Definition.MeleeDamagePercent : Definition.RangedDamagePercent;
             int lTypedModifier = lIsMelee ? GetMeleeDamageModifier() : GetRangedDamageModifier();
-            return lBasePercent + lTypedModifier + GetDamageModifier();
+            return lBasePercent + lTypedModifier + GetGeneralDamagePercent();
         }
 
         private int ResolveResistancePercent(DamageRangeType pDamageRange)
@@ -498,6 +526,22 @@ namespace TacticalPort.Core
         }
 
         private static int ClampResistancePercent(int pValue) => Math.Min(100, pValue);
+
+        private void ApplyWear(int pAppliedDamage)
+        {
+            if (pAppliedDamage <= 0 || CurrentMaxHealth <= 1)
+                return;
+
+            long lWearNumerator = (long)pAppliedDamage * EffectiveWearPercent + _WearRemainder;
+            int lMaxHealthLoss = (int)Math.Min(int.MaxValue, lWearNumerator / 100);
+            _WearRemainder = (int)(lWearNumerator % 100);
+            if (lMaxHealthLoss <= 0)
+                return;
+
+            CurrentMaxHealth = Math.Max(1, CurrentMaxHealth - lMaxHealthLoss);
+            if (CurrentMaxHealth == 1)
+                _WearRemainder = 0;
+        }
 
         private int ResolveDistanceToUnit(UnitRuntime pTarget)
         {

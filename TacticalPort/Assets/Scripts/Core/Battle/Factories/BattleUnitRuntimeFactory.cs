@@ -20,7 +20,7 @@ namespace TacticalPort.Core
             if (pSpawn.Unit == null)
                 throw new InvalidOperationException("Spawn definition requires a unit definition.");
 
-            return new UnitRuntime(pId, pSpawn.Unit, pSpawn.StartCoordinate.ToRuntime());
+            return new UnitRuntime(pId, pSpawn.Unit, pSpawn.StartCoordinate.ToRuntime(), pTeamSlotIndex: pSpawn.TeamSlotIndex);
         }
     }
 }

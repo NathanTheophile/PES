@@ -18,6 +18,7 @@ namespace TacticalPort.Bootstrap
     {
         #region _____________________________/ VALUES
 
+        [Tooltip("Injected by RuntimeServicesBootstrap when an online combat scene loads. May be assigned directly for isolated scene tests.")]
         [SerializeField] private MatchRuntimeContext _MatchContext;
         [SerializeField] private CombatBootstrap _CombatBootstrap;
         [FormerlySerializedAs("_PurrNetCombatBridge")]
@@ -33,6 +34,12 @@ namespace TacticalPort.Bootstrap
 
         #region _____________________________| UNITY
 
+        private void Awake()
+        {
+            CacheMissingReferences();
+            ConfigureVelocityTieBreaker();
+        }
+
         private IEnumerator Start()
         {
             CacheMissingReferences();
@@ -46,8 +53,17 @@ namespace TacticalPort.Bootstrap
 
         #region _____________________________| BIND
 
+        public void ConfigureMatchContext(MatchRuntimeContext pMatchContext)
+        {
+            _MatchContext = pMatchContext;
+            CacheMissingReferences();
+            ConfigureVelocityTieBreaker();
+        }
+
         private void ApplyMatchContext()
         {
+            ConfigureVelocityTieBreaker();
+
             if (_MatchContext == null || !_MatchContext.HasMatch)
             {
                 _CombatBootstrap?.HudManager?.SetStatus("Local combat: no online match context.");
@@ -80,10 +96,14 @@ namespace TacticalPort.Bootstrap
             if (_MatchCombatNetworkBridgeSource == null)
                 _MatchCombatNetworkBridgeSource = FindMatchCombatNetworkBridgeSource();
 
-            if (_MatchContext == null)
-                _MatchContext = FindAnyObjectByType<MatchRuntimeContext>();
-
             _MatchCombatNetworkBridge = _MatchCombatNetworkBridgeSource as IMatchCombatNetworkBridge;
+        }
+
+        private void ConfigureVelocityTieBreaker()
+        {
+            MatchPlayerSlot lStartingSlot = _MatchContext?.Manifest?.ResolvePerfectVelocityTieStartingSlot() ?? MatchPlayerSlot.TeamA;
+            _CombatBootstrap?.ConfigurePerfectVelocityTieStartingTeam(
+                lStartingSlot == MatchPlayerSlot.TeamB ? Team.TeamB : Team.TeamA);
         }
 
         private IMatchCombatNetworkBridge ResolveMatchCombatNetworkBridge()

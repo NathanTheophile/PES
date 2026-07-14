@@ -7,9 +7,7 @@
 
 using System;
 using System.Collections.Generic;
-using TacticalPort.Data;
 using TacticalPort.Shared;
-using Unity.Services.Relay.Models;
 
 namespace TacticalPort.Matchmaking
 {
@@ -32,13 +30,13 @@ namespace TacticalPort.Matchmaking
     public sealed class MatchUnitStatAllocations
     {
         public int Health;
-        public int Power;
-        public int Movement;
+        public int Energy;
+        public int Mobility;
         public int MeleeDamage;
         public int MeleeResistance;
         public int RangedDamage;
         public int RangedResistance;
-        public int Initiative;
+        public int Velocity;
     }
 
     [Serializable]
@@ -65,9 +63,26 @@ namespace TacticalPort.Matchmaking
     {
         public string MatchId = string.Empty;
         public string MapId = string.Empty;
+        public MatchPlayerSlot PerfectVelocityTieStartingSlot = MatchPlayerSlot.None;
         public List<MatchPlayerAssignment> Players = new List<MatchPlayerAssignment>();
 
         public bool HasPlayerAssignments => Players != null && Players.Count > 0;
+
+        public MatchPlayerSlot ResolvePerfectVelocityTieStartingSlot()
+        {
+            if (PerfectVelocityTieStartingSlot is MatchPlayerSlot.TeamA or MatchPlayerSlot.TeamB)
+                return PerfectVelocityTieStartingSlot;
+
+            uint lHash = 2166136261;
+            string lMatchId = MatchId ?? string.Empty;
+            for (int lIndex = 0; lIndex < lMatchId.Length; lIndex++)
+                lHash = (lHash ^ lMatchId[lIndex]) * 16777619;
+
+            return (lHash & 1) == 0 ? MatchPlayerSlot.TeamA : MatchPlayerSlot.TeamB;
+        }
+
+        public void EnsurePerfectVelocityTieStartingSlot() =>
+            PerfectVelocityTieStartingSlot = ResolvePerfectVelocityTieStartingSlot();
 
         public bool HasAllPlayerCompositions
         {
@@ -169,26 +184,6 @@ namespace TacticalPort.Matchmaking
             return false;
         }
 
-        public void SetUnitIds(string pPlayerId, IReadOnlyList<UnitDefinition> pUnits)
-        {
-            MatchPlayerAssignment lAssignment = FindAssignment(pPlayerId);
-            if (lAssignment == null)
-                return;
-
-            lAssignment.UnitIds ??= new List<string>();
-            lAssignment.UnitIds.Clear();
-
-            if (pUnits == null)
-                return;
-
-            for (int lIndex = 0; lIndex < pUnits.Count; lIndex++)
-            {
-                UnitDefinition lUnit = pUnits[lIndex];
-                if (lUnit != null && !string.IsNullOrWhiteSpace(lUnit.Id))
-                    lAssignment.UnitIds.Add(lUnit.Id);
-            }
-        }
-
         public void SetUnitIds(string pPlayerId, IReadOnlyList<string> pUnitIds)
         {
             MatchPlayerAssignment lAssignment = FindAssignment(pPlayerId);
@@ -253,6 +248,12 @@ namespace TacticalPort.Matchmaking
         public bool TryValidatePlayerAssignments(out string pFailure)
         {
             pFailure = string.Empty;
+
+            if (PerfectVelocityTieStartingSlot is not (MatchPlayerSlot.None or MatchPlayerSlot.TeamA or MatchPlayerSlot.TeamB))
+            {
+                pFailure = "Match manifest contains an invalid perfect Velocity tie starting slot.";
+                return false;
+            }
 
             if (Players == null || Players.Count == 0)
             {
@@ -383,13 +384,13 @@ namespace TacticalPort.Matchmaking
         private static MatchUnitStatAllocations CopyStatAllocations(MatchUnitStatAllocations pSource) => new MatchUnitStatAllocations
         {
             Health = pSource?.Health ?? 0,
-            Power = pSource?.Power ?? 0,
-            Movement = pSource?.Movement ?? 0,
+            Energy = pSource?.Energy ?? 0,
+            Mobility = pSource?.Mobility ?? 0,
             MeleeDamage = pSource?.MeleeDamage ?? 0,
             MeleeResistance = pSource?.MeleeResistance ?? 0,
             RangedDamage = pSource?.RangedDamage ?? 0,
             RangedResistance = pSource?.RangedResistance ?? 0,
-            Initiative = pSource?.Initiative ?? 0
+            Velocity = pSource?.Velocity ?? 0
         };
 
         private static bool TryValidateUnitBuilds(MatchPlayerAssignment pPlayer, out string pFailure)
@@ -443,13 +444,13 @@ namespace TacticalPort.Matchmaking
         private static bool HasNonNegativeStatAllocations(MatchUnitStatAllocations pStats) =>
             pStats == null
             || (pStats.Health >= 0
-                && pStats.Power >= 0
-                && pStats.Movement >= 0
+                && pStats.Energy >= 0
+                && pStats.Mobility >= 0
                 && pStats.MeleeDamage >= 0
                 && pStats.MeleeResistance >= 0
                 && pStats.RangedDamage >= 0
                 && pStats.RangedResistance >= 0
-                && pStats.Initiative >= 0);
+                && pStats.Velocity >= 0);
     }
 
     [Serializable]
@@ -460,44 +461,6 @@ namespace TacticalPort.Matchmaking
         public string AllocationId = string.Empty;
 
         public bool IsValid => !string.IsNullOrWhiteSpace(IpAddress) && Port > 0;
-    }
-
-    [Serializable]
-    public sealed class PartyLobbyRequest
-    {
-        public string LobbyName = "Private Match";
-        public string TeamPresetId = string.Empty;
-        public int MaxPlayers = 2;
-    }
-
-    [Serializable]
-    public sealed class PartyLobbySnapshot
-    {
-        public string LobbyId = string.Empty;
-        public string JoinCode = string.Empty;
-        public string RelayJoinCode = string.Empty;
-        public List<MatchPlayerAssignment> Players = new List<MatchPlayerAssignment>();
-        public MatchManifest Manifest;
-        public MatchServerEndpoint ServerEndpoint;
-        [NonSerialized] public Allocation RelayAllocation;
-    }
-
-    [Serializable]
-    public sealed class QuickMatchRequest
-    {
-        public string QueueName = "quickmatch1v1unranked";
-        public string TeamPresetId = string.Empty;
-        public string Region = string.Empty;
-        public PlayerIdentity Player;
-    }
-
-    public enum MatchTicketStatus
-    {
-        None = 0,
-        Searching = 1,
-        Found = 2,
-        Failed = 3,
-        Cancelled = 4
     }
 
     public enum MatchConnectionMode
@@ -540,138 +503,4 @@ namespace TacticalPort.Matchmaking
         }
     }
 
-    [Serializable]
-    public sealed class MatchSessionPlayer
-    {
-        public string PlayerId = string.Empty;
-        public MatchPlayerSlot Slot = MatchPlayerSlot.None;
-        public bool IsLocalPlayer;
-        public string TeamPresetId = string.Empty;
-        public List<string> UnitIds = new List<string>();
-    }
-
-    [Serializable]
-    public sealed class MatchSessionDescriptor
-    {
-        public string MatchId = string.Empty;
-        public string LocalPlayerId = string.Empty;
-        public MatchPlayerSlot LocalPlayerSlot = MatchPlayerSlot.None;
-        public string LobbyId = string.Empty;
-        public string LobbyJoinCode = string.Empty;
-        public string RelayJoinCode = string.Empty;
-        public List<MatchSessionPlayer> Players = new List<MatchSessionPlayer>();
-        public MatchConnectionMode ConnectionMode = MatchConnectionMode.Offline;
-        public MatchServerEndpoint Endpoint;
-        [NonSerialized] public Allocation RelayAllocation;
-        public bool IsTrusted;
-        public bool ReportsRankedResults;
-
-        public bool HasEndpoint => Endpoint != null && Endpoint.IsValid;
-        public bool HasRelay => RelayAllocation != null || !string.IsNullOrWhiteSpace(RelayJoinCode);
-        public bool IsNetworked => ConnectionMode != MatchConnectionMode.Offline;
-        public bool IsCustomMatch => MatchTrustPolicy.IsCustom(ConnectionMode);
-        public bool UsesDedicatedAuthority => MatchTrustPolicy.UsesDedicatedAuthority(ConnectionMode);
-        public bool CanReportRankedResults => MatchTrustPolicy.CanReportRankedResults(ConnectionMode, IsTrusted, ReportsRankedResults);
-        public string TrustLabel => MatchTrustPolicy.BuildTrustLabel(ConnectionMode, IsTrusted, ReportsRankedResults);
-
-        public static bool TryCreate(PlayerIdentity pLocalPlayer, MatchTicketSnapshot pTicket, out MatchSessionDescriptor pDescriptor)
-        {
-            pDescriptor = null;
-            MatchManifest lManifest = pTicket?.Manifest;
-            if (!pLocalPlayer.IsValid || pTicket?.Status != MatchTicketStatus.Found || lManifest == null || !lManifest.TryValidatePlayerAssignments(out _))
-                return false;
-
-            pDescriptor = new MatchSessionDescriptor
-            {
-                MatchId = lManifest.MatchId,
-                LocalPlayerId = pLocalPlayer.PlayerId,
-                LobbyId = pTicket.LobbyId,
-                LobbyJoinCode = pTicket.LobbyJoinCode,
-                RelayJoinCode = pTicket.RelayJoinCode,
-                ConnectionMode = pTicket.ConnectionMode,
-                Endpoint = CopyEndpoint(pTicket.ServerEndpoint),
-                RelayAllocation = pTicket.RelayAllocation,
-                IsTrusted = pTicket.IsTrusted,
-                ReportsRankedResults = pTicket.ReportsRankedResults
-            };
-
-            if (lManifest.TryGetSlot(pLocalPlayer.PlayerId, out MatchPlayerSlot lLocalSlot))
-                pDescriptor.LocalPlayerSlot = lLocalSlot;
-
-            if (lManifest.Players != null)
-            {
-                for (int lIndex = 0; lIndex < lManifest.Players.Count; lIndex++)
-                    pDescriptor.Players.Add(CopyPlayer(lManifest.Players[lIndex], pLocalPlayer.PlayerId));
-            }
-
-            return true;
-        }
-
-        private static MatchSessionPlayer CopyPlayer(MatchPlayerAssignment pAssignment, string pLocalPlayerId)
-        {
-            MatchSessionPlayer lPlayer = new MatchSessionPlayer();
-            if (pAssignment == null)
-                return lPlayer;
-
-            lPlayer.PlayerId = pAssignment.PlayerId;
-            lPlayer.Slot = pAssignment.Slot;
-            lPlayer.IsLocalPlayer = pAssignment.PlayerId == pLocalPlayerId;
-            lPlayer.TeamPresetId = pAssignment.TeamPresetId;
-
-            if (pAssignment.UnitIds != null)
-            {
-                for (int lIndex = 0; lIndex < pAssignment.UnitIds.Count; lIndex++)
-                {
-                    string lUnitId = pAssignment.UnitIds[lIndex];
-                    if (!string.IsNullOrWhiteSpace(lUnitId))
-                        lPlayer.UnitIds.Add(lUnitId);
-                }
-            }
-
-            return lPlayer;
-        }
-
-        private static MatchServerEndpoint CopyEndpoint(MatchServerEndpoint pEndpoint) =>
-            pEndpoint == null
-                ? null
-                : new MatchServerEndpoint
-                {
-                    IpAddress = pEndpoint.IpAddress,
-                    Port = pEndpoint.Port,
-                    AllocationId = pEndpoint.AllocationId
-                };
-    }
-
-    [Serializable]
-    public sealed class MatchTicketSnapshot
-    {
-        public string TicketId = string.Empty;
-        public string LobbyId = string.Empty;
-        public string LobbyJoinCode = string.Empty;
-        public string RelayJoinCode = string.Empty;
-        public MatchTicketStatus Status = MatchTicketStatus.None;
-        public MatchManifest Manifest;
-        public MatchServerEndpoint ServerEndpoint;
-        [NonSerialized] public Allocation RelayAllocation;
-        public string FailureReason = string.Empty;
-        public MatchConnectionMode ConnectionMode = MatchConnectionMode.QuickMatchLocalServer;
-        public bool IsTrusted = true;
-        public bool ReportsRankedResults;
-
-        public bool IsCustomMatch => MatchTrustPolicy.IsCustom(ConnectionMode);
-        public bool UsesDedicatedAuthority => MatchTrustPolicy.UsesDedicatedAuthority(ConnectionMode);
-        public bool CanReportRankedResults => MatchTrustPolicy.CanReportRankedResults(ConnectionMode, IsTrusted, ReportsRankedResults);
-        public string TrustLabel => MatchTrustPolicy.BuildTrustLabel(ConnectionMode, IsTrusted, ReportsRankedResults);
-    }
-
-    [Serializable]
-    public sealed class MatchAllocationRequest
-    {
-        public string TicketId = string.Empty;
-        public string MatchId = string.Empty;
-        public string MapId = string.Empty;
-        public string QueueName = string.Empty;
-        public string LocalPlayerId = string.Empty;
-        public MatchManifest Manifest;
-    }
 }

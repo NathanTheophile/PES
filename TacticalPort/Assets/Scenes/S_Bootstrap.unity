@@ -665,7 +665,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TacticalPort.Matchmaking.QuickMatchSceneHandoff
   _MatchContext: {fileID: 1665935555}
   _SceneTransitionController: {fileID: 1917474926}
-  _CombatSceneName: S_Poutch
   _LoadingMessage: Loading combat...
   _LoadOnMatchFound: 1
   _LoadDelaySeconds: 1

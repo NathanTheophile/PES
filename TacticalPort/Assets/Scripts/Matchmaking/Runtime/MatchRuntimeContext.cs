@@ -14,6 +14,8 @@ namespace TacticalPort.Matchmaking
 {
     public sealed class MatchRuntimeContext : MonoBehaviour
     {
+        private const string DefaultMapId = "alpha-1";
+
         #region _____________________________/ VALUES
 
         [SerializeField] private bool _LogChanges;
@@ -87,6 +89,7 @@ namespace TacticalPort.Matchmaking
 
         private void SetMatchSession(PlayerIdentity pLocalPlayer, MatchTicketSnapshot pTicket)
         {
+            pTicket?.Manifest?.EnsurePerfectVelocityTieStartingSlot();
             _LocalPlayer = pLocalPlayer;
             _QuickMatchTicket = pTicket;
             RefreshCompositionsFromManifest();
@@ -102,6 +105,7 @@ namespace TacticalPort.Matchmaking
             if (_QuickMatchTicket == null || pManifest == null)
                 return;
 
+            pManifest.EnsurePerfectVelocityTieStartingSlot();
             _QuickMatchTicket.Manifest = pManifest;
             RefreshCompositionsFromManifest();
 
@@ -138,7 +142,7 @@ namespace TacticalPort.Matchmaking
             MatchManifest lManifest = new MatchManifest
             {
                 MatchId = BuildCustomMatchId(lEndpoint),
-                MapId = "custom-direct"
+                MapId = DefaultMapId
             };
 
             if (pMode == MatchConnectionMode.CustomHost)
@@ -188,7 +192,7 @@ namespace TacticalPort.Matchmaking
             MatchManifest lManifest = new MatchManifest
             {
                 MatchId = BuildDedicatedServerTestMatchId(lEndpoint),
-                MapId = "poutch"
+                MapId = DefaultMapId
             };
 
             lManifest.Players.Add(new MatchPlayerAssignment { PlayerId = pLocalPlayer.PlayerId, Slot = lLocalSlot });
@@ -216,7 +220,7 @@ namespace TacticalPort.Matchmaking
                 lManifest.MatchId = BuildCustomRelayMatchId(pLobby?.LobbyId);
 
             if (string.IsNullOrWhiteSpace(lManifest.MapId))
-                lManifest.MapId = "custom-relay";
+                lManifest.MapId = DefaultMapId;
 
             return new MatchTicketSnapshot
             {
@@ -239,7 +243,7 @@ namespace TacticalPort.Matchmaking
             MatchManifest lManifest = new MatchManifest
             {
                 MatchId = BuildCustomRelayMatchId(pLobby?.LobbyId),
-                MapId = "custom-relay"
+                MapId = DefaultMapId
             };
 
             if (pMode == MatchConnectionMode.CustomRelayHost)

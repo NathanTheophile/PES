@@ -42,7 +42,7 @@ namespace TacticalPort.Core
         {
             UnitRuntime lActor = pContext.Actor;
             if (pSkill == null
-                || lActor.RemainingActionPoints < pSkill.ActionPointCost
+                || lActor.RemainingEnergy < pSkill.EnergyCost
                 || !EnemyAiSkillRuleUtility.CanUseRule(lActor, pRule))
             {
                 return;

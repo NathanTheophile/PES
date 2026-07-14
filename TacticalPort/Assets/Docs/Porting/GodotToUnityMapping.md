@@ -33,15 +33,15 @@ Sources lues en priorité:
 - `big = true` existe: footprint `3x3`, déplacement seulement si les `9` cases sont libres.
 - Le push ne gère pas les grosses unités dans le code lu.
 
-### AP / MP
+### Energy / Mobility
 - Le runtime stocke `ap_used` et `mp_used`, pas des ressources “courantes”.
 - Fin de tour perso ou ennemi: `ap_used` et `mp_used` reviennent à `0`.
 - Certaines compétences modifient le “restant” via `removal("ap"/"mp", amount)`.
-- `Run Away!` donne `+5 MP` en faisant `mp_used -= 5`.
+- `Run Away!` donne `+5 Mobility` via l’ancienne variable source `mp_used -= 5`.
 
 ### Ordre des tours
 - Phase joueur: chaque unité jouable agit une fois.
-- Phase ennemi: ordre séquentiel de `enemyOrder`, sans initiative fine.
+- Phase ennemi: ordre séquentiel de `enemyOrder`, sans classement individuel de `Velocity`.
 - `enemyfirst = true` existe au moins sur `Area5`.
 - Le round augmente au passage joueur->ennemis ou ennemis->joueur selon `enemyfirst`.
 
@@ -66,7 +66,7 @@ Sources lues en priorité:
   - multiplicateur cible `dmgReceiveMltGeneral`
   - bonus directionnel: dos `1.25`, côté `1.1`, face `1.0`
 - Soin: retire de `hp_loss`, sans dépasser la vie max.
-- `nonLethal` laisse la cible à `1 HP`.
+- `nonLethal` laisse la cible à `1 Health`.
 - Push:
   - avance case par case jusqu’au blocage
   - si collision et valeur `dmg` fournie, dégâts de collision = `base * cases manquantes`
@@ -80,7 +80,7 @@ Sources lues en priorité:
 - Conclusion: côté Unity, la victoire doit être une couche “scenario rules”, pas une règle codée en dur dans le moteur.
 
 ### IA minimale à porter d’abord
-- Mêlée simple (`Sword Pirate`): tente son skill principal, puis dépense le MP restant pour s’approcher.
+- Mêlée simple (`Sword Pirate`): tente sa compétence principale, puis dépense la `Mobility` restante pour s’approcher.
 - Distance simple (`Musket Marine`): tente son skill principal, recule si un joueur est à moins de `8` cases, sinon avance.
 - Boss scriptés (`Mihawk`, `Buggy`) doivent venir après le socle.
 
@@ -89,7 +89,7 @@ Sources lues en priorité:
 - Le god object `Battle Mechanics.gd`.
 - Les ids magiques du `TileMap` pour occupation/obstacle.
 - Les scripts inline dans les `.tscn` pour l’IA ou les skills.
-- Le modèle `ap_used/mp_used` si on peut exposer directement `CurrentAP/CurrentMP`.
+- Le modèle historique `ap_used/mp_used` si on peut exposer directement `RemainingEnergy` et `RemainingMobility`.
 - Le tick de cooldown actuel: logique répartie entre `turnEnd` et `endPlayersTurn`, fragile et potentiellement incohérente.
 - Le couplage direct gameplay <-> UI (`SkillButton`, `Area`, `BattleMechanics`).
 - Les noms d’AoE `VLine/HLine`, qui ne décrivent pas proprement le comportement réel.

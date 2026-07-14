@@ -22,6 +22,7 @@ namespace TacticalPort.UI
         [SerializeField] private Button _TeamButton;
         [SerializeField] private Button _CustomMatchButton;
         [FormerlySerializedAs("_ScreenRouter")]
+        [Tooltip("Menu router on this object or a parent. Assign explicitly if the router lives elsewhere in the prefab hierarchy.")]
         [SerializeField] private MenuScreenRouter _MenuRouter;
         [Tooltip("Optional persistent transition service used only when falling back to standalone scene navigation.")]
         [FormerlySerializedAs("_SceneTransitionController")]
@@ -37,6 +38,7 @@ namespace TacticalPort.UI
 
         private void Awake()
         {
+            CacheLocalReferences();
             Button lTeamButton = _TeamButton != null ? _TeamButton : _PlayTestButton;
 
             if (lTeamButton == null)
@@ -53,6 +55,8 @@ namespace TacticalPort.UI
                 _CustomMatchButton.onClick.AddListener(OpenCustomMatchPopup);
             }
         }
+
+        private void OnValidate() => CacheLocalReferences();
 
         #endregion
 
@@ -86,35 +90,30 @@ namespace TacticalPort.UI
 
         public void OpenCustomMatchPanel() => OpenCustomMatchPopup();
 
+        public void ConfigureSceneTransitionService(MonoBehaviour pServiceSource)
+        {
+            _SceneTransitionServiceSource = pServiceSource;
+            _SceneTransitionService = pServiceSource as ISceneTransitionService;
+        }
+
         private bool ResolveMenuRouter()
         {
+            CacheLocalReferences();
             if (_MenuRouter == null)
-                _MenuRouter = GetComponentInParent<MenuScreenRouter>();
-
-            if (_MenuRouter == null)
-                _MenuRouter = FindAnyObjectByType<MenuScreenRouter>();
-
+                Debug.LogWarning($"{nameof(MainMenuScreenController)} requires a {nameof(MenuScreenRouter)} on its parent hierarchy or in the serialized field.", this);
             return _MenuRouter != null;
+        }
+
+        private void CacheLocalReferences()
+        {
+            if (_MenuRouter == null)
+                _MenuRouter = GetComponentInParent<MenuScreenRouter>(true);
         }
 
         private bool ResolveSceneTransitionService()
         {
             _SceneTransitionService ??= _SceneTransitionServiceSource as ISceneTransitionService;
-            if (_SceneTransitionService != null)
-                return true;
-
-            MonoBehaviour[] lBehaviours = FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include);
-            for (int lIndex = 0; lIndex < lBehaviours.Length; lIndex++)
-            {
-                if (lBehaviours[lIndex] is ISceneTransitionService lService)
-                {
-                    _SceneTransitionServiceSource = lBehaviours[lIndex];
-                    _SceneTransitionService = lService;
-                    return true;
-                }
-            }
-
-            return false;
+            return _SceneTransitionService != null;
         }
 
         #endregion

@@ -7,13 +7,13 @@
 using PurrNet;
 using PurrNet.Modules;
 using TacticalPort.App;
-using TacticalPort.Bootstrap;
 using TacticalPort.Combat;
 using TacticalPort.Core;
 using TacticalPort.Matchmaking;
 using TacticalPort.Shared;
 using TacticalPort.State;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace TacticalPort.Networking
 {
@@ -23,7 +23,9 @@ namespace TacticalPort.Networking
 
         private const float NETWORK_MAINTENANCE_INTERVAL_SECONDS = 0.1f;
 
-        [SerializeField] private CombatBootstrap _Bootstrap;
+        [FormerlySerializedAs("_Bootstrap")]
+        [Tooltip("MonoBehaviour implementing ICombatNetworkRuntime. Assign the scene CombatBootstrap.")]
+        [SerializeField] private MonoBehaviour _CombatRuntimeSource;
         [SerializeField] private bool _AllowOfflineFallback = true;
         [SerializeField] private bool _RequireRemoteReady = true;
         [Tooltip("Development fallback until the dedicated server receives an authoritative allocation manifest.")]
@@ -48,6 +50,7 @@ namespace TacticalPort.Networking
         private float _NextHandshakeTime;
         private float _NextNetworkMaintenanceTime;
         private NetworkManager _ResolvedNetworkManager;
+        private ICombatNetworkRuntime _CombatRuntime;
 
         #endregion
 
@@ -169,8 +172,8 @@ namespace TacticalPort.Networking
 
         public BattleActionResult Submit(BattleCommand pCommand)
         {
-            if (_Bootstrap == null)
-                return BattleActionResult.Failed(pCommand.ActionType, "PurrNet combat bridge is missing its CombatBootstrap reference.");
+            if (_CombatRuntime == null)
+                return BattleActionResult.Failed(pCommand.ActionType, "PurrNet combat bridge is missing its combat runtime reference.");
 
             if (TrySubmitWithPurrNetBroadcast(pCommand, out BattleActionResult lBroadcastResult))
                 return lBroadcastResult;
@@ -182,7 +185,7 @@ namespace TacticalPort.Networking
                 return BattleActionResult.Failed(pCommand.ActionType, "PurrNet combat bridge has no online match context.");
 
             return _AllowOfflineFallback
-                ? _Bootstrap.ExecuteLocalCommand(pCommand)
+                ? _CombatRuntime.ExecuteLocalCommand(pCommand)
                 : BattleActionResult.Failed(pCommand.ActionType, "Offline combat fallback is disabled.");
         }
 
@@ -203,7 +206,7 @@ namespace TacticalPort.Networking
                 if (ShouldBroadcastAcceptedCommand(pCommand, pResult))
                     SendAcceptedCommandToAll(lServerPacket);
                 else if (pCommand.Type == BattleCommandType.ReadyPlacement)
-                    _Bootstrap.ApplyRemoteCommandResult(pResult);
+                    _CombatRuntime.ApplyRemoteCommandResult(pResult);
 
                 return true;
             }
@@ -384,7 +387,7 @@ namespace TacticalPort.Networking
             {
                 _HasServerSlotConfirmation = false;
                 Debug.LogWarning($"[PurrNet Combat Bridge] {pMessage.FailureReason}", this);
-                _Bootstrap?.ApplyRemoteCommandResult(BattleActionResult.Failed(BattleActionType.Placement, pMessage.FailureReason));
+                _CombatRuntime?.ApplyRemoteCommandResult(BattleActionResult.Failed(BattleActionType.Placement, pMessage.FailureReason));
                 return;
             }
 
@@ -394,7 +397,7 @@ namespace TacticalPort.Networking
             if (_LogSlotAssignments)
                 Debug.Log($"[PurrNet Combat Bridge] Local slot confirmed by server: {_PlayerSlots.LocalPlayerSlot}.", this);
 
-            _Bootstrap?.ApplyRemoteCommandResult(BattleActionResult.Succeeded(BattleActionType.Placement, $"Online slot confirmed: {_PlayerSlots.LocalPlayerSlot}."));
+            _CombatRuntime?.ApplyRemoteCommandResult(BattleActionResult.Succeeded(BattleActionType.Placement, $"Online slot confirmed: {_PlayerSlots.LocalPlayerSlot}."));
         }
 
         private void HandleCommandResultMessage(PlayerID pPlayer, PurrNetCombatCommandResultMessage pMessage, bool pAsServer)
@@ -402,7 +405,7 @@ namespace TacticalPort.Networking
             if (pAsServer || !IsLocalPlayerMessage(pMessage.PlayerId, pMessage.MatchId))
                 return;
 
-            _Bootstrap?.ApplyRemoteCommandResult(pMessage.Result.ToResult());
+            _CombatRuntime?.ApplyRemoteCommandResult(pMessage.Result.ToResult());
         }
 
         private void HandleAcceptedCommandMessage(PlayerID pPlayer, PurrNetCombatAcceptedCommandMessage pMessage, bool pAsServer)
@@ -412,7 +415,7 @@ namespace TacticalPort.Networking
 
             if (pMessage.Command.TryToCommand(out BattleCommand lCommand))
             {
-                _Bootstrap?.ExecuteLocalCommand(lCommand);
+                _CombatRuntime?.ExecuteLocalCommand(lCommand);
                 HandleServerChecksumValidation(pMessage.ServerChecksum);
             }
         }
@@ -461,14 +464,14 @@ namespace TacticalPort.Networking
 
         private void SendAcceptedCommandToAll(CombatCommandPacket pPacket)
         {
-            if (_ServerPlayers == null || _Bootstrap?.BattleService == null)
+            if (_ServerPlayers == null || _CombatRuntime == null)
                 return;
 
             _ServerPlayers.SendToAll(new PurrNetCombatAcceptedCommandMessage
             {
                 MatchId = _MatchManifest != null ? _MatchManifest.MatchId : string.Empty,
                 Command = pPacket,
-                ServerChecksum = CombatStateChecksum.Compute(_Bootstrap.BattleService)
+                ServerChecksum = _CombatRuntime.ComputeStateChecksum()
             });
         }
 
@@ -478,8 +481,8 @@ namespace TacticalPort.Networking
 
         private BattleActionResult ExecuteAuthoritativeCommand(CombatCommandPacket pPacket, PlayerID pSender)
         {
-            if (_Bootstrap == null)
-                return BattleActionResult.Failed(BattleActionType.Move, $"Command from {pSender} failed: missing combat bootstrap.");
+            if (_CombatRuntime == null)
+                return BattleActionResult.Failed(BattleActionType.Move, $"Command from {pSender} failed: missing combat runtime.");
 
             if (!pPacket.TryToCommand(out BattleCommand lCommand))
                 return BattleActionResult.Failed(BattleActionType.Move, $"Command from {pSender} failed: unsupported battle command.");
@@ -491,13 +494,29 @@ namespace TacticalPort.Networking
                 return lFailure;
 
             ResetReadyIfPlacementChanged(pSender, lCommand);
-            return _Bootstrap.ExecuteLocalCommand(lCommand);
+            return _CombatRuntime.ExecuteLocalCommand(lCommand);
         }
 
         private void CacheMissingReferences()
         {
-            if (_Bootstrap == null)
-                _Bootstrap = GetComponent<CombatBootstrap>() ?? GetComponentInParent<CombatBootstrap>();
+            _CombatRuntime = _CombatRuntimeSource as ICombatNetworkRuntime;
+            if (_CombatRuntimeSource != null)
+            {
+                if (_CombatRuntime == null)
+                    Debug.LogWarning($"Assigned combat runtime '{_CombatRuntimeSource.name}' does not implement {nameof(ICombatNetworkRuntime)}.", this);
+                return;
+            }
+
+            MonoBehaviour[] lCandidates = GetComponentsInParent<MonoBehaviour>(true);
+            for (int lIndex = 0; lIndex < lCandidates.Length; lIndex++)
+            {
+                if (lCandidates[lIndex] is not ICombatNetworkRuntime lRuntime)
+                    continue;
+
+                _CombatRuntimeSource = lCandidates[lIndex];
+                _CombatRuntime = lRuntime;
+                return;
+            }
         }
 
         private BattleActionResult ExecuteReadyCommand(PlayerID pSender)
@@ -509,7 +528,7 @@ namespace TacticalPort.Networking
             if (!_ReadyState.AreRequiredPlayersReady(_RequireRemoteReady, ResolveReadyFallbackSlot(pSender)))
                 return BattleActionResult.Succeeded(BattleActionType.Placement, _ReadyState.ResolveStatus(_RequireRemoteReady));
 
-            return _Bootstrap.ExecuteLocalCommand(BattleCommand.ReadyPlacement());
+            return _CombatRuntime.ExecuteLocalCommand(BattleCommand.ReadyPlacement());
         }
 
         private bool TryValidateSenderCommand(PlayerID pSender, BattleCommand pCommand, out BattleActionResult pFailure)
@@ -519,13 +538,13 @@ namespace TacticalPort.Networking
             if (pCommand.Type == BattleCommandType.ReadyPlacement)
                 return ValidateReadyCommand(pSender, out pFailure);
 
-            if (_Bootstrap.BattleService == null || !_Bootstrap.BattleService.TryGetUnit(pCommand.UnitId, out UnitRuntime lUnit) || lUnit == null)
+            if (!_CombatRuntime.TryGetUnitTeam(pCommand.UnitId, out Team lUnitTeam))
             {
                 pFailure = BattleActionResult.Failed(pCommand.ActionType, $"Command from {pSender} failed: unknown unit.");
                 return false;
             }
 
-            if (!TryResolveControlledTeam(pSender, out Team lControlledTeam) || lUnit.Team != lControlledTeam)
+            if (!TryResolveControlledTeam(pSender, out Team lControlledTeam) || lUnitTeam != lControlledTeam)
             {
                 pFailure = BattleActionResult.Failed(pCommand.ActionType, $"Command from {pSender} failed: unit is not controlled by this player.");
                 return false;
@@ -543,13 +562,13 @@ namespace TacticalPort.Networking
                 return false;
             }
 
-            if (_Bootstrap == null)
+            if (_CombatRuntime == null)
             {
-                pFailure = BattleActionResult.Failed(BattleActionType.Placement, "Ready failed: combat bootstrap is missing.");
+                pFailure = BattleActionResult.Failed(BattleActionType.Placement, "Ready failed: combat runtime is missing.");
                 return false;
             }
 
-            return _Bootstrap.TryValidatePlacementReadyForSlot(lSlot, out pFailure);
+            return _CombatRuntime.TryValidatePlacementReadyForSlot(lSlot, out pFailure);
         }
 
         private bool ShouldBroadcastAcceptedCommand(BattleCommand pCommand, BattleActionResult pResult)
@@ -561,7 +580,7 @@ namespace TacticalPort.Networking
         }
 
         private bool IsPlacementActive() =>
-            _Bootstrap != null && _Bootstrap.IsPlacementPhaseActive;
+            _CombatRuntime != null && _CombatRuntime.IsPlacementPhaseActive;
 
         private void ResetReadyIfPlacementChanged(PlayerID pSender, BattleCommand pCommand)
         {
@@ -577,15 +596,15 @@ namespace TacticalPort.Networking
 
         private void HandleServerChecksumValidation(int pServerChecksum)
         {
-            if (_Bootstrap?.BattleService == null)
+            if (_CombatRuntime == null)
                 return;
 
-            int lLocalChecksum = CombatStateChecksum.Compute(_Bootstrap.BattleService);
+            int lLocalChecksum = _CombatRuntime != null ? _CombatRuntime.ComputeStateChecksum() : 0;
             if (lLocalChecksum == pServerChecksum)
                 return;
 
             Debug.LogWarning($"Combat state checksum mismatch. Local: {lLocalChecksum}. Server: {pServerChecksum}.", this);
-            _Bootstrap.ApplyRemoteCommandResult(BattleActionResult.Failed(BattleActionType.Move, "Network state mismatch detected."));
+            _CombatRuntime.ApplyRemoteCommandResult(BattleActionResult.Failed(BattleActionType.Move, "Network state mismatch detected."));
         }
 
         private bool TryResolveLocalControlledSlot(out MatchPlayerSlot pSlot)

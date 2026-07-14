@@ -175,9 +175,9 @@ namespace TacticalPort.EditorTools
         {
             Transform lBuildRoot = CreateEmpty("Grid_Build", pParent, new Vector2(650f, 330f), new Vector2(0f, 125f)).transform;
 
-            DeckbuildingPanelController.CoreValueView lActionPoints = CreateCoreValueBadge("Badge_PA", lBuildRoot, new Vector2(-70f, 135f));
-            DeckbuildingPanelController.CoreValueView lHealth = CreateCoreValueBadge("Badge_PV", lBuildRoot, new Vector2(95f, 135f));
-            DeckbuildingPanelController.CoreValueView lMoveRange = CreateCoreValueBadge("Badge_PM", lBuildRoot, new Vector2(260f, 135f));
+            DeckbuildingPanelController.CoreValueView lEnergy = CreateCoreValueBadge("Badge_Energy", lBuildRoot, new Vector2(-70f, 135f));
+            DeckbuildingPanelController.CoreValueView lHealth = CreateCoreValueBadge("Badge_Health", lBuildRoot, new Vector2(95f, 135f));
+            DeckbuildingPanelController.CoreValueView lMobilityPerTurn = CreateCoreValueBadge("Badge_Mobility", lBuildRoot, new Vector2(260f, 135f));
 
             DeckbuildingPanelController.PassiveSlotView[] lPassiveSlots =
             {
@@ -204,16 +204,16 @@ namespace TacticalPort.EditorTools
                 CreateStatCell("Stat_ResMelee", lStatsRoot, "Res Melee", new Vector2(100f, 38f)),
                 CreateStatCell("Stat_DmgDistance", lStatsRoot, "Dmg Distance", new Vector2(-130f, -2f)),
                 CreateStatCell("Stat_ResDistance", lStatsRoot, "Res Distance", new Vector2(100f, -2f)),
-                CreateStatCell("Stat_Initiative", lStatsRoot, "Initiative", new Vector2(-130f, -42f))
+                CreateStatCell("Stat_Velocity", lStatsRoot, "Velocity", new Vector2(-130f, -42f))
             };
 
             Button lEditButton = CreateButton("Btn_EditStats", pParent, "EDIT", new Vector2(64f, 56f), new Vector2(270f, -185f), ButtonDarkColor, Color.white);
 
             return new BuildRefs
             {
-                ActionPoints = lActionPoints,
+                Energy = lEnergy,
                 Health = lHealth,
-                MoveRange = lMoveRange,
+                MobilityPerTurn = lMobilityPerTurn,
                 PassiveSlots = lPassiveSlots,
                 SkillSlots = lSkillSlots,
                 Stats = lStats,
@@ -318,9 +318,9 @@ namespace TacticalPort.EditorTools
             lCharacter.FindPropertyRelative("Description").objectReferenceValue = pCharacter.Description;
             lCharacter.FindPropertyRelative("Preview").objectReferenceValue = pCharacter.Preview;
 
-            lObject.FindProperty("_ActionPointsValue").FindPropertyRelative("Value").objectReferenceValue = pBuild.ActionPoints.Value;
+            lObject.FindProperty("_EnergyValue").FindPropertyRelative("Value").objectReferenceValue = pBuild.Energy.Value;
             lObject.FindProperty("_HealthValue").FindPropertyRelative("Value").objectReferenceValue = pBuild.Health.Value;
-            lObject.FindProperty("_MoveRangeValue").FindPropertyRelative("Value").objectReferenceValue = pBuild.MoveRange.Value;
+            lObject.FindProperty("_MobilityPerTurnValue").FindPropertyRelative("Value").objectReferenceValue = pBuild.MobilityPerTurn.Value;
 
             AssignPassiveSlots(lObject.FindProperty("_PassiveSlots"), pBuild.PassiveSlots);
             AssignSkillSlots(lObject.FindProperty("_SkillSlots"), pBuild.SkillSlots);
@@ -464,7 +464,7 @@ namespace TacticalPort.EditorTools
         private static DeckbuildingPanelController.SkillSlotView CreateSkillSlot(string pName, Transform pParent, Vector2 pPosition)
         {
             GameObject lRoot = CreateDeckSkillButton(pName, pParent, pPosition);
-            ConfigureDeckSkillButtonTexts(lRoot, "Skill", "0 PA | 0-0");
+            ConfigureDeckSkillButtonTexts(lRoot, "Skill", "Energy 0 | 0-0");
 
             return new DeckbuildingPanelController.SkillSlotView
             {
@@ -472,7 +472,7 @@ namespace TacticalPort.EditorTools
                 Background = FindChildImage(lRoot, "Btn_Skill_Background"),
                 Icon = FindChildImage(lRoot, "Btn_Skill_Icon"),
                 Name = FindChildText(lRoot, "Txt_SkillName"),
-                Meta = FindChildText(lRoot, "Txt_ActionPointCostAndRange"),
+                Meta = FindChildText(lRoot, "Txt_EnergyCostAndRange"),
                 Tooltip = EnsureSkillTooltip(lRoot, new Vector2(380f, 260f), new Vector2(175f, 140f))
             };
         }
@@ -529,7 +529,7 @@ namespace TacticalPort.EditorTools
                 SetChildRect(lName.rectTransform, new Vector2(84f, 24f), new Vector2(0f, 14f));
             }
 
-            TMP_Text lMeta = FindChildText(pRoot, "Txt_ActionPointCostAndRange");
+            TMP_Text lMeta = FindChildText(pRoot, "Txt_EnergyCostAndRange");
             if (lMeta != null)
             {
                 lMeta.text = pMetaText;
@@ -586,7 +586,7 @@ namespace TacticalPort.EditorTools
             lButton.targetGraphic = lRoot.GetComponent<Image>();
             CreateImage("Img_Icon", lRoot.transform, new Vector2(38f, 38f), new Vector2(-58f, 28f), Color.white);
             CreateText("Txt_Name", lRoot.transform, "Skill", 13f, FontStyles.Bold, TextColor, new Vector2(105f, 26f), new Vector2(28f, 31f));
-            CreateText("Txt_Meta", lRoot.transform, "0 PA | Range 0-0", 11f, FontStyles.Normal, MutedTextColor, new Vector2(160f, 36f), new Vector2(0f, -15f));
+            CreateText("Txt_Meta", lRoot.transform, "Energy 0 | Range 0-0", 11f, FontStyles.Normal, MutedTextColor, new Vector2(160f, 36f), new Vector2(0f, -15f));
             CreateText("Txt_State", lRoot.transform, string.Empty, 11f, FontStyles.Normal, MutedTextColor, new Vector2(160f, 20f), new Vector2(0f, -47f)).alignment = TextAlignmentOptions.Center;
             EnsureSkillTooltip(lRoot, new Vector2(380f, 260f), new Vector2(210f, 110f));
             return lRoot.GetComponent<RectTransform>();
@@ -617,7 +617,7 @@ namespace TacticalPort.EditorTools
             Panel = pTooltip.gameObject,
             LayoutRoot = FindChildTransform(pTooltip, "VBox_Content") as RectTransform,
             NameText = FindChildText(pTooltip.gameObject, "Txt_SkillName"),
-            MetaText = FindChildText(pTooltip.gameObject, "Txt_ActionPointCostAndRange"),
+            MetaText = FindChildText(pTooltip.gameObject, "Txt_EnergyCostAndRange"),
             PowerText = FindChildText(pTooltip.gameObject, "Txt_Power"),
             AdditionalEffectText = FindChildText(pTooltip.gameObject, "Txt_AdditionalEffect"),
             DescriptionText = FindChildText(pTooltip.gameObject, "Txt_Description")
@@ -876,9 +876,9 @@ namespace TacticalPort.EditorTools
 
         private sealed class BuildRefs
         {
-            public DeckbuildingPanelController.CoreValueView ActionPoints;
+            public DeckbuildingPanelController.CoreValueView Energy;
             public DeckbuildingPanelController.CoreValueView Health;
-            public DeckbuildingPanelController.CoreValueView MoveRange;
+            public DeckbuildingPanelController.CoreValueView MobilityPerTurn;
             public DeckbuildingPanelController.PassiveSlotView[] PassiveSlots;
             public DeckbuildingPanelController.SkillSlotView[] SkillSlots;
             public DeckbuildingPanelController.StatCellView[] Stats;

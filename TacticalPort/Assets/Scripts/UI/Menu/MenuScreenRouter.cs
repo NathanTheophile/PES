@@ -152,9 +152,11 @@ namespace TacticalPort.UI
             return null;
         }
 
-        private static GameObject FindGameObjectByName(params string[] pNames)
+        private GameObject FindGameObjectByName(params string[] pNames)
         {
-            Transform[] lTransforms = FindObjectsByType<Transform>(FindObjectsInactive.Include);
+            Transform[] lTransforms = transform.root != null
+                ? transform.root.GetComponentsInChildren<Transform>(true)
+                : GetComponentsInChildren<Transform>(true);
             for (int lNameIndex = 0; lNameIndex < pNames.Length; lNameIndex++)
             {
                 for (int lIndex = 0; lIndex < lTransforms.Length; lIndex++)

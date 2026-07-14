@@ -24,6 +24,8 @@ MonoBehaviour:
   _RangedDamageModifierPerStack: 0
   _MeleeResistancePercentPerStack: 15
   _RangedResistancePercentPerStack: 15
+  _GeneralResistancePercentPerStack: 0
+  _WearPercentPerStack: 0
   _RangeModifierPerStack: 0
-  _ActionPointModifierPerStack: 0
-  _MovementModifierPerStack: 0
+  _EnergyModifierPerStack: 0
+  _MobilityModifierPerStack: 0

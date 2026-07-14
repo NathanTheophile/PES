@@ -3,11 +3,12 @@
     "rootNamespace": "TacticalPort.Networking",
     "references": [
         "TacticalPort.App.Contracts",
+        "TacticalPort.Matchmaking.Contracts",
         "TacticalPort.Shared",
         "TacticalPort.Data",
         "TacticalPort.State",
         "TacticalPort.Core",
-        "TacticalPort.CombatRuntime",
+        "TacticalPort.Combat.Contracts",
         "TacticalPort.Matchmaking",
         "Unity.Services.Multiplayer",
         "PurrNet.Runtime",

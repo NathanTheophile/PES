@@ -27,13 +27,14 @@ MonoBehaviour:
   _AoeShape: 0
   _AoeSize: 0
   _AoeDamageFalloffPercentPerCell: 0
-  _ActionPointCost: 3
+  _EnergyCost: 3
   _UsePerTurn: 1
   _UsePerTarget: 1
   _CooldownTurns: 0
   _IsPactoleVariant: 1
   _PactoleVariant: {fileID: 0}
   _Power: 42
+  _HasLifeSteal: 0
   _PushDistance: 0
   _SummonUnit: {fileID: 0}
   _SummonTeamRule: 0

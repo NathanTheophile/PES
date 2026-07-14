@@ -51,6 +51,12 @@ namespace TacticalPort.UI
 
         #region _____________________________| DISPLAY
 
+        public void ConfigureSceneTransitionService(MonoBehaviour pServiceSource)
+        {
+            _SceneTransitionServiceSource = pServiceSource;
+            _SceneTransitionService = pServiceSource as ISceneTransitionService;
+        }
+
         public void Show(BattleOutcome pOutcome)
         {
             Configure();
@@ -156,21 +162,7 @@ namespace TacticalPort.UI
         private bool ResolveSceneTransitionService()
         {
             _SceneTransitionService ??= _SceneTransitionServiceSource as ISceneTransitionService;
-            if (_SceneTransitionService != null)
-                return true;
-
-            MonoBehaviour[] lBehaviours = FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include);
-            for (int lIndex = 0; lIndex < lBehaviours.Length; lIndex++)
-            {
-                if (lBehaviours[lIndex] is ISceneTransitionService lService)
-                {
-                    _SceneTransitionServiceSource = lBehaviours[lIndex];
-                    _SceneTransitionService = lService;
-                    return true;
-                }
-            }
-
-            return false;
+            return _SceneTransitionService != null;
         }
 
         private void LogMissingReference(Object pReference, string pFieldName)

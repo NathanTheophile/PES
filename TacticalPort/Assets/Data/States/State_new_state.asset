@@ -15,6 +15,7 @@ MonoBehaviour:
   _Id: new_state
   _DisplayName: New State
   _Description: 
+  _Icon: {fileID: 0}
   _DurationTurns: 5
   _MaxStacks: 1
   _IsPassiveMarker: 0
@@ -23,4 +24,8 @@ MonoBehaviour:
   _RangedDamageModifierPerStack: 0
   _MeleeResistancePercentPerStack: 10
   _RangedResistancePercentPerStack: 10
+  _GeneralResistancePercentPerStack: 0
+  _WearPercentPerStack: 0
   _RangeModifierPerStack: 0
+  _EnergyModifierPerStack: 0
+  _MobilityModifierPerStack: 0

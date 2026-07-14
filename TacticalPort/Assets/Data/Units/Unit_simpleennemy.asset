@@ -17,13 +17,15 @@ MonoBehaviour:
   _Description: 
   _Team: 2
   _MaxHealth: 100
-  _MoveRange: 4
-  _ActionPointsPerTurn: 6
-  _Initiative: 10
+  _MobilityPerTurn: 4
+  _EnergyPerTurn: 6
+  _Velocity: 10
   _MeleeDamagePercent: 100
   _RangedDamagePercent: 100
+  _GeneralDamagePercent: 0
   _MeleeResistancePercent: 0
   _RangedResistancePercent: 0
+  _GeneralResistancePercent: 0
   _StatPointBudget: 120
   _PushDamageBonus: 0
   _FootprintWidth: 1

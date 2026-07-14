@@ -28,7 +28,7 @@ namespace TacticalPort.Core
             lScore += EnemyAiEffectScorer.ScoreBoardEffect(pContext, pSkill, pTarget, lImpact);
             lScore += ScoreTargetingIntent(pContext, pSkill, pTarget, lImpact);
             lScore += ScoreRuleIntent(pContext, pSkill, pTarget, pValidation, pRule);
-            lScore -= pSkill.ActionPointCost * 3;
+            lScore -= pSkill.EnergyCost * 3;
 
             return new EnemyAiSkillEvaluation(
                 pSkill,
@@ -100,7 +100,7 @@ namespace TacticalPort.Core
                 if (!pContext.BattleService.TryGetUnit(pValidation.AffectedUnitIds[lIndex], out UnitRuntime lUnit) || lUnit == null)
                     continue;
 
-                if (Math.Max(0, lUnit.Definition.MaxHealth - lUnit.CurrentHealth) >= pMinimumMissingHealth)
+                if (Math.Max(0, lUnit.CurrentMaxHealth - lUnit.CurrentHealth) >= pMinimumMissingHealth)
                     return true;
             }
 

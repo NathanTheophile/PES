@@ -1832,7 +1832,6 @@ MonoBehaviour:
   _AvailableUnits:
   - {fileID: 11400000, guid: 89c692a66eeca3846ac801148c852c1e, type: 2}
   - {fileID: 11400000, guid: 9a0d9fdd0edf39c42a4a7377691a49fd, type: 2}
-  _CombatSceneName: S_Poutch
   _Slots:
   - Root: {fileID: 7250831241116129753}
     Visual: {fileID: 8126815593216200150}

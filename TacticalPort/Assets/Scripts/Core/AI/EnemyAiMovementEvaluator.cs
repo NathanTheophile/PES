@@ -83,7 +83,7 @@ namespace TacticalPort.Core
             int lSkillScore = pSkillEvaluation.IsValid ? pSkillEvaluation.Score : 0;
             int lActionSetupScore = pSkillEvaluation.IsValid ? 80 : 0;
 
-            if (!pSkillEvaluation.IsValid && lActor.RemainingActionPoints > 0)
+            if (!pSkillEvaluation.IsValid && lActor.RemainingEnergy > 0)
                 lPressureScore /= 3;
 
             return pProfile.MovementMode == EnemyAiMovementMode.Kite
@@ -122,7 +122,7 @@ namespace TacticalPort.Core
             for (int lSkillIndex = 0; lSkillIndex < lSkills.Count; lSkillIndex++)
             {
                 SkillDefinition lSkill = lSkills[lSkillIndex];
-                if (!EnemyAiSkillScorer.IsOffensiveSkill(lSkill) || pActor.RemainingActionPoints < lSkill.ActionPointCost)
+                if (!EnemyAiSkillScorer.IsOffensiveSkill(lSkill) || pActor.RemainingEnergy < lSkill.EnergyCost)
                     continue;
 
                 int lRangeMin = pActor.GetSkillRangeMin(lSkill);
@@ -167,7 +167,7 @@ namespace TacticalPort.Core
                     if (lAlly == null)
                         continue;
 
-                    int lMissingHealth = Math.Max(0, lAlly.Definition.MaxHealth - lAlly.CurrentHealth);
+                    int lMissingHealth = Math.Max(0, lAlly.CurrentMaxHealth - lAlly.CurrentHealth);
                     if (lMissingHealth <= 0)
                         continue;
 

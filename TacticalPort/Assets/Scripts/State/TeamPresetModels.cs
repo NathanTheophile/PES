@@ -43,7 +43,7 @@ namespace TacticalPort.State
     [Serializable]
     public sealed class TeamPreset
     {
-        public const int CurrentSchemaVersion = 1;
+        public const int CurrentSchemaVersion = 2;
         public const int TeamSize = 3;
         public const int EquippedSkillCount = 6;
 
@@ -92,13 +92,13 @@ namespace TacticalPort.State
     public sealed class UnitStatAllocationPreset
     {
         public int Health;
-        public int Power;
-        public int Movement;
+        public int Energy;
+        public int Mobility;
         public int MeleeDamage;
         public int MeleeResistance;
         public int RangedDamage;
         public int RangedResistance;
-        public int Initiative;
+        public int Velocity;
 
         public UnitStatAllocationPreset Clone() => (UnitStatAllocationPreset)MemberwiseClone();
     }

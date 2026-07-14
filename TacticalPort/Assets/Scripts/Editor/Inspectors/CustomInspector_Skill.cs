@@ -72,7 +72,7 @@ namespace TacticalPort.EditorTools
 
         private void DrawUsageTab()
         {
-            DrawSection("Rules", "_ActionPointCost", "_UsePerTurn");
+            DrawSection("Rules", "_EnergyCost", "_UsePerTurn");
             DrawProperty("_UsePerTarget", "Use Per Target Per Turn");
             DrawProperty("_CooldownTurns");
         }

@@ -15,7 +15,9 @@
   <Project Path="TacticalPort.Menu.csproj" />
   <Project Path="Assembly-CSharp-Editor.csproj" />
   <Project Path="TacticalPort.State.Tests.csproj" />
+  <Project Path="TacticalPort.Matchmaking.Contracts.csproj" />
   <Project Path="Sirenix.OdinInspector.Modules.UnityMathematics.csproj" />
   <Project Path="TacticalPort.App.csproj" />
+  <Project Path="TacticalPort.Combat.Contracts.csproj" />
   <Project Path="Assembly-CSharp.csproj" />
 </Solution>

@@ -39,6 +39,17 @@ namespace TacticalPort.State
             TeamPresetState.SaveWithoutBlocking();
         }
 
+        public static bool TryApplyDraftAndSave(TeamPresetDraft pDraft, out string pFailure)
+        {
+            if (!TeamPresetState.TryApplyDraft(pDraft, out pFailure))
+                return false;
+
+            CombatTeamCompositionState.SetLocalSelectedUnits(pDraft.SelectedUnits);
+            RefreshSelectedUnitLoadouts();
+            TeamPresetState.SaveWithoutBlocking();
+            return true;
+        }
+
         public static void RefreshSelectedUnitLoadouts()
         {
             System.Collections.Generic.IReadOnlyList<UnitDefinition> lUnits = CombatTeamCompositionState.LocalSelectedUnits;

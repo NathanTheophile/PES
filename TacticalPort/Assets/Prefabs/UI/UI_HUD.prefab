@@ -1194,16 +1194,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e39267728cdc75645be26968cfa2683e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _HBoxSpells: {fileID: 2826709244865733664}
+  _HBoxSkills: {fileID: 2826709244865733664}
   _TxtCurrentPhase: {fileID: 5629703432547897254}
   _TxtOutcome: {fileID: 8040066514735997954}
   _TxtActiveUnit: {fileID: 4546719404007673632}
   _TxtCurrentTurn: {fileID: 3746830010801731776}
   _TxtStatus: {fileID: 4911602284314908719}
   _TxtMode: {fileID: 6625777449933400060}
-  _TxtHP: {fileID: 7803504387122623726}
-  _TxtMP: {fileID: 8657393408245265671}
-  _TxtAP: {fileID: 7727162933129199656}
+  _HealthText: {fileID: 7803504387122623726}
+  _MobilityText: {fileID: 8657393408245265671}
+  _EnergyText: {fileID: 7727162933129199656}
   _BtnCancelSkill: {fileID: 4611502058854280874}
   _BtnEndTurn: {fileID: 3948282031530044599}
   _TxtEndTurnButton: {fileID: 555041766142396798}
@@ -1213,6 +1213,7 @@ MonoBehaviour:
   _ActiveUnitInfobox: {fileID: 2981143309211102316}
   _HoverUnitInfobox: {fileID: 374404656687792033}
   _EndCombatView: {fileID: 4770023015918467487}
+  _TreasureResourceView: {fileID: 0}
 --- !u!1 &8596076129974403446
 GameObject:
   m_ObjectHideFlags: 0
@@ -1472,7 +1473,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7178595894716426511, guid: a004c80ffb78c8842a612f4e62f27fe9, type: 3}
       propertyPath: m_text
-      value: 'AP : {UnitAP}'
+      value: 'Energy: {UnitEnergy}'
       objectReference: {fileID: 0}
     - target: {fileID: 7178595894716426511, guid: a004c80ffb78c8842a612f4e62f27fe9, type: 3}
       propertyPath: m_fontSize
@@ -1504,7 +1505,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7271209709560421833, guid: a004c80ffb78c8842a612f4e62f27fe9, type: 3}
       propertyPath: m_text
-      value: HP {UnitHP}
+      value: Health {UnitHealth}
       objectReference: {fileID: 0}
     - target: {fileID: 7271209709560421833, guid: a004c80ffb78c8842a612f4e62f27fe9, type: 3}
       propertyPath: m_fontStyle
@@ -1544,7 +1545,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8108210228993547296, guid: a004c80ffb78c8842a612f4e62f27fe9, type: 3}
       propertyPath: m_text
-      value: 'MP : {UnitMP}'
+      value: 'Mobility: {UnitMobility}'
       objectReference: {fileID: 0}
     - target: {fileID: 8108210228993547296, guid: a004c80ffb78c8842a612f4e62f27fe9, type: 3}
       propertyPath: m_fontSize
@@ -2781,7 +2782,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7474228146887376971, guid: aa9f89c66b25bc446a40edda147a0e6f, type: 3}
       propertyPath: m_Name
-      value: UI_HUD_HBox_Spells
+      value: UI_HUD_HBox_Skills
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

@@ -3,7 +3,7 @@
     "rootNamespace": "TacticalPort.App",
     "references": [
         "TacticalPort.Shared",
-        "TacticalPort.Matchmaking"
+        "TacticalPort.Matchmaking.Contracts"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

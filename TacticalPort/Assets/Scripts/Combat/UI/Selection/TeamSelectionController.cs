@@ -86,6 +86,12 @@ namespace TacticalPort.UI
 
         #region _____________________________| SETUP
 
+        public void ConfigureSceneTransitionService(MonoBehaviour pServiceSource)
+        {
+            _SceneTransitionServiceSource = pServiceSource;
+            _SceneTransitionService = pServiceSource as ISceneTransitionService;
+        }
+
         private void InitializeSelection()
         {
             _SelectedUnits.Clear();
@@ -406,7 +412,7 @@ namespace TacticalPort.UI
             if (_EmbeddedMenuRouter != null)
                 return true;
 
-            MonoBehaviour[] lBehaviours = FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include);
+            MonoBehaviour[] lBehaviours = GetComponentsInParent<MonoBehaviour>(true);
             for (int lIndex = 0; lIndex < lBehaviours.Length; lIndex++)
             {
                 if (lBehaviours[lIndex] is IMenuPopupRouter lRouter)
@@ -424,21 +430,7 @@ namespace TacticalPort.UI
         private bool ResolveSceneTransitionService()
         {
             _SceneTransitionService ??= _SceneTransitionServiceSource as ISceneTransitionService;
-            if (_SceneTransitionService != null)
-                return true;
-
-            MonoBehaviour[] lBehaviours = FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include);
-            for (int lIndex = 0; lIndex < lBehaviours.Length; lIndex++)
-            {
-                if (lBehaviours[lIndex] is ISceneTransitionService lService)
-                {
-                    _SceneTransitionServiceSource = lBehaviours[lIndex];
-                    _SceneTransitionService = lService;
-                    return true;
-                }
-            }
-
-            return false;
+            return _SceneTransitionService != null;
         }
 
         private static UnitDefinition PopRandomUnit(List<UnitDefinition> pPool)

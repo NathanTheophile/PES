@@ -211,7 +211,7 @@ namespace TacticalPort.UI
             if (_Skill != null)
             {
                 SetLine(_NameText, _Skill.DisplayName);
-                SetLine(_MetaText, $"AP {_Skill.ActionPointCost} - Range {_Skill.Range}");
+                SetLine(_MetaText, $"Energy {_Skill.EnergyCost} - Range {_Skill.Range}");
                 SetLine(_PowerText, ResolvePowerText(_Skill));
                 SetLine(_AdditionalEffectText, ResolveAdditionalEffectText(_Skill));
                 SetLine(_DescriptionText, BuildSkillDetails(_Skill), false);
@@ -227,12 +227,18 @@ namespace TacticalPort.UI
 
         private static string ResolvePowerText(SkillDefinition pSkill) => pSkill.PrimaryEffectType switch
         {
-            SkillPrimaryEffectType.Damage => pSkill.UseAoeDamageFalloff
-                ? $"Deals {pSkill.Power} (-{pSkill.AoeDamageFalloffPercentPerCell}%/cell)"
-                : $"Deals {pSkill.Power}",
+            SkillPrimaryEffectType.Damage => BuildDamagePowerText(pSkill),
             SkillPrimaryEffectType.Heal => $"Heals {pSkill.Power}",
             _ => string.Empty
         };
+
+        private static string BuildDamagePowerText(SkillDefinition pSkill)
+        {
+            string lDamage = pSkill.UseAoeDamageFalloff
+                ? $"Deals {pSkill.Power} (-{pSkill.AoeDamageFalloffPercentPerCell}%/cell)"
+                : $"Deals {pSkill.Power}";
+            return pSkill.HasLifeSteal ? $"{lDamage} | Life Steal 50%" : lDamage;
+        }
 
         private static string ResolveAdditionalEffectText(SkillDefinition pSkill) => pSkill.AdditionalEffectType switch
         {
@@ -251,6 +257,8 @@ namespace TacticalPort.UI
                 AppendLine(lBuilder, pSkill.Description);
             if (pSkill.RequiresLineOfSight)
                 AppendLine(lBuilder, "Ligne de vue requise");
+            if (pSkill.HasLifeSteal)
+                AppendLine(lBuilder, "Life Steal: 50% of enemy Health removed");
             AppendAreaOfEffect(lBuilder, pSkill);
             AppendUsageLimits(lBuilder, pSkill);
             return lBuilder.ToString().TrimEnd();
@@ -271,7 +279,7 @@ namespace TacticalPort.UI
             StringBuilder lBuilder = new StringBuilder(256);
 
             AppendLine(lBuilder, pSkill.DisplayName);
-            AppendLine(lBuilder, $"{pSkill.ActionPointCost} PA | Range {pSkill.RangeMin}-{pSkill.RangeMax}");
+            AppendLine(lBuilder, $"Energy {pSkill.EnergyCost} | Range {pSkill.RangeMin}-{pSkill.RangeMax}");
 
             if (pSkill.RequiresLineOfSight)
                 AppendLine(lBuilder, "Ligne de vue requise");
@@ -305,11 +313,13 @@ namespace TacticalPort.UI
             switch (pSkill.PrimaryEffectType)
             {
                 case SkillPrimaryEffectType.Damage:
-                    AppendLine(pBuilder, $"Degats : {pSkill.Power}");
+                    AppendLine(pBuilder, $"Damage: {pSkill.Power}");
+                    if (pSkill.HasLifeSteal)
+                        AppendLine(pBuilder, "Life Steal: 50% of enemy Health removed");
                     break;
 
                 case SkillPrimaryEffectType.Heal:
-                    AppendLine(pBuilder, $"Soin : {pSkill.Power}");
+                    AppendLine(pBuilder, $"Healing: {pSkill.Power}");
                     break;
             }
         }
@@ -319,23 +329,23 @@ namespace TacticalPort.UI
             switch (pSkill.AdditionalEffectType)
             {
                 case SkillAdditionalEffectType.Push:
-                    AppendLine(pBuilder, $"Push : {pSkill.PushDistance}");
+                    AppendLine(pBuilder, $"Push: {pSkill.PushDistance}");
                     break;
 
                 case SkillAdditionalEffectType.Teleport:
-                    AppendLine(pBuilder, "Effet : Teleportation");
+                    AppendLine(pBuilder, "Effect: Teleportation");
                     break;
 
                 case SkillAdditionalEffectType.SwitchPositions:
-                    AppendLine(pBuilder, "Effet : Echange de position");
+                    AppendLine(pBuilder, "Effect: Position swap");
                     break;
 
                 case SkillAdditionalEffectType.Summon:
-                    AppendLine(pBuilder, pSkill.SummonUnit != null ? $"Invocation : {pSkill.SummonUnit.DisplayName}" : "Effet : Invocation");
+                    AppendLine(pBuilder, pSkill.SummonUnit != null ? $"Summon: {pSkill.SummonUnit.DisplayName}" : "Effect: Summon");
                     break;
 
                 case SkillAdditionalEffectType.CreateGlyph:
-                    AppendLine(pBuilder, $"Glyphe : {pSkill.GlyphDurationTurns} tour(s)");
+                    AppendLine(pBuilder, $"Glyph: {pSkill.GlyphDurationTurns} turn(s)");
                     break;
             }
         }
@@ -347,17 +357,17 @@ namespace TacticalPort.UI
 
             AppendLine(pBuilder, $"AoE : {pSkill.AoeShape} {pSkill.AoeSize}");
             if (pSkill.UseAoeDamageFalloff)
-                AppendLine(pBuilder, $"Falloff AoE : -{pSkill.AoeDamageFalloffPercentPerCell}% / case");
+                AppendLine(pBuilder, $"AoE falloff: -{pSkill.AoeDamageFalloffPercentPerCell}% / cell");
         }
 
         private static void AppendUsageLimits(StringBuilder pBuilder, SkillDefinition pSkill)
         {
             if (pSkill.CooldownTurns > 0)
-                AppendLine(pBuilder, $"Cooldown : {pSkill.CooldownTurns} tour(s)");
+                AppendLine(pBuilder, $"Cooldown: {pSkill.CooldownTurns} turn(s)");
             if (pSkill.UsePerTurn > 0)
-                AppendLine(pBuilder, $"Limite : {pSkill.UsePerTurn} / tour");
+                AppendLine(pBuilder, $"Limit: {pSkill.UsePerTurn} / turn");
             if (pSkill.UsePerTarget > 0)
-                AppendLine(pBuilder, $"Limite cible : {pSkill.UsePerTarget} / cible");
+                AppendLine(pBuilder, $"Target limit: {pSkill.UsePerTarget} / target");
         }
 
         private static void AppendLine(StringBuilder pBuilder, string pText) => pBuilder.AppendLine(pText ?? string.Empty);

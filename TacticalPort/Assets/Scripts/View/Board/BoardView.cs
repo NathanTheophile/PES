@@ -42,7 +42,7 @@ namespace TacticalPort.View
         [SerializeField] private GameObject _EnemyOccupiedPreviewPrefab;
         [SerializeField] private GameObject _ActiveOccupiedPreviewPrefab;
         [SerializeField] private GameObject _HoverPreviewPrefab;
-        [SerializeField] private GameObject _MoveRangePreviewPrefab;
+        [SerializeField] private GameObject _MobilityPerTurnPreviewPrefab;
         [SerializeField] private GameObject _AreaPreviewPrefab;
         [SerializeField] private GameObject _GlyphPreviewPrefab;
         [SerializeField] private GameObject _TelegraphPreviewPrefab;
@@ -412,7 +412,7 @@ namespace TacticalPort.View
                 _HoveredCells.Add(_HoveredCell);
 
             _MarkerLayers.SyncHover(_HoveredCells, _HoverPreviewPrefab);
-            _MarkerLayers.SyncMovement(_ReachableCells, _MoveRangePreviewPrefab);
+            _MarkerLayers.SyncMovement(_ReachableCells, _MobilityPerTurnPreviewPrefab);
             _MarkerLayers.SyncAreaPreview(_PreviewCells, _AreaPreviewPrefab);
             _MarkerLayers.SyncGlyphs(_GlyphCells, _GlyphPreviewPrefab);
             _MarkerLayers.SyncTelegraphs(_TelegraphCells, _TelegraphPreviewPrefab);

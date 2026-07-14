@@ -39,16 +39,16 @@ namespace TacticalPort.Data
         [SerializeField, Min(1)] private int _MaxHealth = 10;
 
         [TabGroup("Stats")]
-        [LabelText("Move Range")]
-        [SerializeField, Min(0)] private int _MoveRange = 4;
+        [LabelText("Mobility / Turn")]
+        [SerializeField, Min(0)] private int _MobilityPerTurn = 4;
 
         [TabGroup("Stats")]
-        [LabelText("AP/Turn")]
-        [SerializeField, Min(0)] private int _ActionPointsPerTurn = 1;
+        [LabelText("Energy / Turn")]
+        [SerializeField, Min(0)] private int _EnergyPerTurn = 1;
 
         [TabGroup("Stats")]
-        [LabelText("Initiative")]
-        [SerializeField, Min(0)] private int _Initiative = 10;
+        [LabelText("Velocity")]
+        [SerializeField, Min(0)] private int _Velocity = 10;
 
         [TabGroup("Stats")]
         [LabelText("Melee Damage %")]
@@ -59,12 +59,22 @@ namespace TacticalPort.Data
         [SerializeField, Min(0)] private int _RangedDamagePercent = 100;
 
         [TabGroup("Stats")]
+        [LabelText("General Damage %")]
+        [Tooltip("Added to the melee or ranged damage percentage. Zero is neutral.")]
+        [SerializeField, Min(0)] private int _GeneralDamagePercent = 0;
+
+        [TabGroup("Stats")]
         [LabelText("Melee Resistance %")]
         [SerializeField, Range(0, 100)] private int _MeleeResistancePercent = 0;
 
         [TabGroup("Stats")]
         [LabelText("Ranged Resistance %")]
         [SerializeField, Range(0, 100)] private int _RangedResistancePercent = 0;
+
+        [TabGroup("Stats")]
+        [LabelText("General Resistance %")]
+        [Tooltip("Added to the matching melee or ranged resistance percentage. Zero is neutral.")]
+        [SerializeField, Range(0, 100)] private int _GeneralResistancePercent = 0;
 
         [TabGroup("Stats")]
         [LabelText("Stat Point Budget")]
@@ -179,13 +189,15 @@ namespace TacticalPort.Data
         public string Description => _Description;
         public Team Team => _Team;
         public int MaxHealth => Mathf.Max(1, _MaxHealth);
-        public int MoveRange => Mathf.Max(0, _MoveRange);
-        public int ActionPointsPerTurn => Mathf.Max(0, _ActionPointsPerTurn);
-        public int Initiative => Mathf.Max(0, _Initiative);
+        public int MobilityPerTurn => Mathf.Max(0, _MobilityPerTurn);
+        public int EnergyPerTurn => Mathf.Max(0, _EnergyPerTurn);
+        public int Velocity => Mathf.Max(0, _Velocity);
         public int MeleeDamagePercent => Mathf.Max(0, _MeleeDamagePercent);
         public int RangedDamagePercent => Mathf.Max(0, _RangedDamagePercent);
+        public int GeneralDamagePercent => Mathf.Max(0, _GeneralDamagePercent);
         public int MeleeResistancePercent => Mathf.Clamp(_MeleeResistancePercent, 0, 100);
         public int RangedResistancePercent => Mathf.Clamp(_RangedResistancePercent, 0, 100);
+        public int GeneralResistancePercent => Mathf.Clamp(_GeneralResistancePercent, 0, 100);
         public int StatPointBudget => Mathf.Max(0, _StatPointBudget);
         public int PushDamageBonus => Mathf.Max(0, _PushDamageBonus);
         public int FootprintWidth => Mathf.Max(1, _FootprintWidth);
@@ -361,13 +373,15 @@ namespace TacticalPort.Data
             lDefinition._Team = pTeamOverride ?? pSource.Team;
             UnitStatModifiers lStats = pLoadout?.StatModifiers ?? UnitStatModifiers.None;
             lDefinition._MaxHealth = pSource.MaxHealth + lStats.Health;
-            lDefinition._MoveRange = pSource.MoveRange + lStats.Movement;
-            lDefinition._ActionPointsPerTurn = pSource.ActionPointsPerTurn + lStats.ActionPoints;
-            lDefinition._Initiative = pSource.Initiative + lStats.Initiative;
+            lDefinition._MobilityPerTurn = pSource.MobilityPerTurn + lStats.Mobility;
+            lDefinition._EnergyPerTurn = pSource.EnergyPerTurn + lStats.Energy;
+            lDefinition._Velocity = pSource.Velocity + lStats.Velocity;
             lDefinition._MeleeDamagePercent = pSource.MeleeDamagePercent + lStats.MeleeDamage;
             lDefinition._RangedDamagePercent = pSource.RangedDamagePercent + lStats.RangedDamage;
+            lDefinition._GeneralDamagePercent = pSource.GeneralDamagePercent;
             lDefinition._MeleeResistancePercent = pSource.MeleeResistancePercent + lStats.MeleeResistance;
             lDefinition._RangedResistancePercent = pSource.RangedResistancePercent + lStats.RangedResistance;
+            lDefinition._GeneralResistancePercent = pSource.GeneralResistancePercent;
             lDefinition._StatPointBudget = pSource.StatPointBudget;
             lDefinition._PushDamageBonus = pSource.PushDamageBonus;
             lDefinition._FootprintWidth = pSource.FootprintWidth;

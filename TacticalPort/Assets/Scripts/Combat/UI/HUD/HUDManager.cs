@@ -17,16 +17,16 @@ namespace TacticalPort.UI
     {
         #region _____________________________/ VALUES
 
-        [SerializeField] private RectTransform _HBoxSpells;
+        [SerializeField] private RectTransform _HBoxSkills;
         [SerializeField] private TMP_Text _TxtCurrentPhase;
         [SerializeField] private TMP_Text _TxtOutcome;
         [SerializeField] private TMP_Text _TxtActiveUnit;
         [SerializeField] private TMP_Text _TxtCurrentTurn;
         [SerializeField] private TMP_Text _TxtStatus;
         [SerializeField] private TMP_Text _TxtMode;
-        [SerializeField] private TMP_Text _TxtHP;
-        [SerializeField] private TMP_Text _TxtMP;
-        [SerializeField] private TMP_Text _TxtAP;
+        [SerializeField] private TMP_Text _HealthText;
+        [SerializeField] private TMP_Text _MobilityText;
+        [SerializeField] private TMP_Text _EnergyText;
         [SerializeField] private Button _BtnCancelSkill;
         [SerializeField] private Button _BtnEndTurn;
         [SerializeField] private TMP_Text _TxtEndTurnButton;
@@ -200,15 +200,15 @@ namespace TacticalPort.UI
         {
             if (pUnit == null)
             {
-                SetText(_TxtHP, "HP: -");
-                SetText(_TxtMP, "MP: -");
-                SetText(_TxtAP, "AP: -");
+                SetText(_HealthText, "Health: -");
+                SetText(_MobilityText, "Mobility: -");
+                SetText(_EnergyText, "Energy: -");
                 return;
             }
 
-            SetText(_TxtHP, $"HP: {pUnit.CurrentHealth}/{pUnit.Definition.MaxHealth}");
-            SetText(_TxtMP, $"MP: {pUnit.RemainingMovement}/{pUnit.Definition.MoveRange}");
-            SetText(_TxtAP, $"AP: {pUnit.RemainingActionPoints}/{pUnit.Definition.ActionPointsPerTurn}");
+            SetText(_HealthText, $"Health: {pUnit.CurrentHealth}/{pUnit.CurrentMaxHealth} | Wear: {pUnit.EffectiveWearPercent}%");
+            SetText(_MobilityText, $"Mobility: {pUnit.RemainingMobility}/{pUnit.Definition.MobilityPerTurn}");
+            SetText(_EnergyText, $"Energy: {pUnit.RemainingEnergy}/{pUnit.Definition.EnergyPerTurn}");
         }
 
         #endregion
@@ -217,7 +217,7 @@ namespace TacticalPort.UI
 
         private void CreateControllers()
         {
-            _SkillBar ??= new HudSkillBarController(_HBoxSpells, _SkillButtonPrefab);
+            _SkillBar ??= new HudSkillBarController(_HBoxSkills, _SkillButtonPrefab);
             _UnitFeedback ??= new HudUnitFeedbackController(
                 _TimelineView,
                 _TimelineElementPrefab,
@@ -279,16 +279,16 @@ namespace TacticalPort.UI
 
         private void LogMissingReferences()
         {
-            LogMissingReference(_HBoxSpells, nameof(_HBoxSpells));
+            LogMissingReference(_HBoxSkills, nameof(_HBoxSkills));
             LogMissingReference(_TxtCurrentPhase, nameof(_TxtCurrentPhase));
             LogMissingReference(_TxtOutcome, nameof(_TxtOutcome));
             LogMissingReference(_TxtActiveUnit, nameof(_TxtActiveUnit));
             LogMissingReference(_TxtCurrentTurn, nameof(_TxtCurrentTurn));
             LogMissingReference(_TxtStatus, nameof(_TxtStatus));
             LogMissingReference(_TxtMode, nameof(_TxtMode));
-            LogMissingReference(_TxtHP, nameof(_TxtHP));
-            LogMissingReference(_TxtMP, nameof(_TxtMP));
-            LogMissingReference(_TxtAP, nameof(_TxtAP));
+            LogMissingReference(_HealthText, nameof(_HealthText));
+            LogMissingReference(_MobilityText, nameof(_MobilityText));
+            LogMissingReference(_EnergyText, nameof(_EnergyText));
             LogMissingReference(_BtnCancelSkill, nameof(_BtnCancelSkill));
             LogMissingReference(_BtnEndTurn, nameof(_BtnEndTurn));
             LogMissingReference(_TxtEndTurnButton, nameof(_TxtEndTurnButton));
