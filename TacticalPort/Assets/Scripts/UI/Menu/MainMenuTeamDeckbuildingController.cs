@@ -38,7 +38,8 @@ namespace TacticalPort.UI
         private const int TeamSize = 3;
 
         [Header("Data")]
-        [SerializeField] private List<UnitDefinition> _AvailableUnits = new List<UnitDefinition>();
+        [SerializeField] private PlayableRosterDefinition _PlayableRoster;
+        [SerializeField, HideInInspector] private List<UnitDefinition> _AvailableUnits = new List<UnitDefinition>();
 
         [Header("Team Slots")]
         [SerializeField] private List<MainMenuTeamSlotView> _TeamSlots = new List<MainMenuTeamSlotView>(TeamSize);
@@ -98,7 +99,9 @@ namespace TacticalPort.UI
                     : null;
 
             if (lNameLabel != null)
-                lNameLabel.text = pUnit != null ? pUnit.DisplayName : $"Character {pSlotIndex + 1}";
+                lNameLabel.text = pUnit != null
+                    ? pUnit.DisplayName
+                    : GameLocalization.Get(GameLocalization.UiTable, "character.fallback", "Character {0}", pSlotIndex + 1);
 
             if (pSlot.FallbackPortrait != null)
             {
@@ -246,7 +249,7 @@ namespace TacticalPort.UI
             for (int lIndex = 0; lIndex < pAvailableUnits.Count; lIndex++)
             {
                 UnitDefinition lUnit = pAvailableUnits[lIndex];
-                if (lUnit != null && string.Equals(lUnit.Id, pId, StringComparison.Ordinal))
+                if (lUnit != null && ContentIdAliases.Matches(lUnit.Id, pId))
                     return lUnit;
             }
 
@@ -279,10 +282,11 @@ namespace TacticalPort.UI
 
         private List<UnitDefinition> GetAvailableUnits()
         {
-            List<UnitDefinition> lUnits = new List<UnitDefinition>(_AvailableUnits.Count);
-            for (int lIndex = 0; lIndex < _AvailableUnits.Count; lIndex++)
+            IReadOnlyList<UnitDefinition> lSource = _PlayableRoster != null ? _PlayableRoster.Units : _AvailableUnits;
+            List<UnitDefinition> lUnits = new List<UnitDefinition>(lSource.Count);
+            for (int lIndex = 0; lIndex < lSource.Count; lIndex++)
             {
-                UnitDefinition lUnit = _AvailableUnits[lIndex];
+                UnitDefinition lUnit = lSource[lIndex];
                 if (lUnit != null && !lUnits.Contains(lUnit))
                     lUnits.Add(lUnit);
             }
@@ -322,7 +326,7 @@ namespace TacticalPort.UI
                 return;
 
             pSlot.RuntimeModel = Instantiate(pUnit.ModelPrefab, pSlot.ModelAnchor);
-            pSlot.RuntimeModel.name = $"Model_{pUnit.DisplayName}";
+            pSlot.RuntimeModel.name = $"Model_{pUnit.Id}";
             Transform lModelTransform = pSlot.RuntimeModel.transform;
             lModelTransform.localPosition = Vector3.zero;
             lModelTransform.localRotation = Quaternion.identity;

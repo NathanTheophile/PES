@@ -1,0 +1,1001 @@
+fileFormatVersion: 2
+guid: c04c43bb582e5a0489bd586b3de4dce6
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 6084494157321089738
+    second: fish-scales-svgrepo-com_0
+  - first:
+      213: 8798690547569775795
+    second: fish-scales-svgrepo-com_1
+  - first:
+      213: 2160318637241855501
+    second: fish-scales-svgrepo-com_2
+  - first:
+      213: 2632761304372214349
+    second: fish-scales-svgrepo-com_3
+  - first:
+      213: 7710995018018972094
+    second: fish-scales-svgrepo-com_4
+  - first:
+      213: 7844186941782257657
+    second: fish-scales-svgrepo-com_5
+  - first:
+      213: -2309267466582983987
+    second: fish-scales-svgrepo-com_6
+  - first:
+      213: 6956228918976658787
+    second: fish-scales-svgrepo-com_7
+  - first:
+      213: -575273618543594761
+    second: fish-scales-svgrepo-com_8
+  - first:
+      213: 2567148363214222619
+    second: fish-scales-svgrepo-com_9
+  - first:
+      213: -4724062286748782298
+    second: fish-scales-svgrepo-com_10
+  - first:
+      213: -6099710459848831168
+    second: fish-scales-svgrepo-com_11
+  - first:
+      213: -224648339339517461
+    second: fish-scales-svgrepo-com_12
+  - first:
+      213: 775352075590816742
+    second: fish-scales-svgrepo-com_13
+  - first:
+      213: -6716456116895319611
+    second: fish-scales-svgrepo-com_14
+  - first:
+      213: 4756211711584958022
+    second: fish-scales-svgrepo-com_15
+  - first:
+      213: -3153849926844849775
+    second: fish-scales-svgrepo-com_16
+  - first:
+      213: -4010679146166305795
+    second: fish-scales-svgrepo-com_17
+  - first:
+      213: -1655688323861597021
+    second: fish-scales-svgrepo-com_18
+  - first:
+      213: 3094538094576530962
+    second: fish-scales-svgrepo-com_19
+  - first:
+      213: 4500260180060331652
+    second: fish-scales-svgrepo-com_20
+  - first:
+      213: 8211378174295224558
+    second: fish-scales-svgrepo-com_21
+  - first:
+      213: -1727200212155614283
+    second: fish-scales-svgrepo-com_22
+  - first:
+      213: -2342626657667505761
+    second: fish-scales-svgrepo-com_23
+  - first:
+      213: 7794759251232228630
+    second: fish-scales-svgrepo-com_24
+  - first:
+      213: 6978583799990968235
+    second: fish-scales-svgrepo-com_25
+  - first:
+      213: 2241912391595112984
+    second: fish-scales-svgrepo-com_26
+  - first:
+      213: 3512120891996742862
+    second: fish-scales-svgrepo-com_27
+  - first:
+      213: -1317078881861434748
+    second: fish-scales-svgrepo-com_28
+  - first:
+      213: 2023760163819466626
+    second: fish-scales-svgrepo-com_29
+  - first:
+      213: -3618577684621072836
+    second: fish-scales-svgrepo-com_30
+  - first:
+      213: 3875997090659069862
+    second: fish-scales-svgrepo-com_31
+  - first:
+      213: -2596806254802601772
+    second: fish-scales-svgrepo-com_32
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 1
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WindowsStoreApps
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: fish-scales-svgrepo-com_0
+      rect:
+        serializedVersion: 2
+        x: 55
+        y: 1305
+        width: 117
+        height: 237
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ac23015f237707450800000000000000
+      internalID: 6084494157321089738
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fish-scales-svgrepo-com_1
+      rect:
+        serializedVersion: 2
+        x: 78
+        y: 1055
+        width: 244
+        height: 323
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3b4db708f6a3b1a70800000000000000
+      internalID: 8798690547569775795
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fish-scales-svgrepo-com_2
+      rect:
+        serializedVersion: 2
+        x: 228
+        y: 1305
+        width: 244
+        height: 237
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d0ee47eca5efafd10800000000000000
+      internalID: 2160318637241855501
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fish-scales-svgrepo-com_3
+      rect:
+        serializedVersion: 2
+        x: 378
+        y: 1055
+        width: 244
+        height: 322
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d4aff751572798420800000000000000
+      internalID: 2632761304372214349
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fish-scales-svgrepo-com_4
+      rect:
+        serializedVersion: 2
+        x: 528
+        y: 1305
+        width: 244
+        height: 237
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eb1e3d14d15f20b60800000000000000
+      internalID: 7710995018018972094
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fish-scales-svgrepo-com_5
+      rect:
+        serializedVersion: 2
+        x: 678
+        y: 1055
+        width: 244
+        height: 322
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9ff60b896762cdc60800000000000000
+      internalID: 7844186941782257657
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fish-scales-svgrepo-com_6
+      rect:
+        serializedVersion: 2
+        x: 828
+        y: 1305
+        width: 244
+        height: 237
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dca74f26975d3ffd0800000000000000
+      internalID: -2309267466582983987
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fish-scales-svgrepo-com_7
+      rect:
+        serializedVersion: 2
+        x: 978
+        y: 1055
+        width: 244
+        height: 322
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 36d37eb985d798060800000000000000
+      internalID: 6956228918976658787
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fish-scales-svgrepo-com_8
+      rect:
+        serializedVersion: 2
+        x: 1128
+        y: 1305
+        width: 244
+        height: 237
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7f23e0e11b73408f0800000000000000
+      internalID: -575273618543594761
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fish-scales-svgrepo-com_9
+      rect:
+        serializedVersion: 2
+        x: 1278
+        y: 1055
+        width: 244
+        height: 322
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b15fb13c5d750a320800000000000000
+      internalID: 2567148363214222619
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fish-scales-svgrepo-com_10
+      rect:
+        serializedVersion: 2
+        x: 1428
+        y: 1305
+        width: 117
+        height: 237
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 621f48d1162c07eb0800000000000000
+      internalID: -4724062286748782298
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fish-scales-svgrepo-com_11
+      rect:
+        serializedVersion: 2
+        x: 55
+        y: 805
+        width: 117
+        height: 309
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 04fc9f787a9795ba0800000000000000
+      internalID: -6099710459848831168
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fish-scales-svgrepo-com_12
+      rect:
+        serializedVersion: 2
+        x: 78
+        y: 555
+        width: 244
+        height: 323
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: be1694e8683e1ecf0800000000000000
+      internalID: -224648339339517461
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fish-scales-svgrepo-com_13
+      rect:
+        serializedVersion: 2
+        x: 228
+        y: 805
+        width: 244
+        height: 323
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6e3d371da9a92ca00800000000000000
+      internalID: 775352075590816742
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fish-scales-svgrepo-com_14
+      rect:
+        serializedVersion: 2
+        x: 378
+        y: 555
+        width: 244
+        height: 322
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5c974fa3fba5ac2a0800000000000000
+      internalID: -6716456116895319611
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fish-scales-svgrepo-com_15
+      rect:
+        serializedVersion: 2
+        x: 528
+        y: 805
+        width: 244
+        height: 322
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 646f2992a55710240800000000000000
+      internalID: 4756211711584958022
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fish-scales-svgrepo-com_16
+      rect:
+        serializedVersion: 2
+        x: 678
+        y: 555
+        width: 244
+        height: 322
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 191658b83364b34d0800000000000000
+      internalID: -3153849926844849775
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fish-scales-svgrepo-com_17
+      rect:
+        serializedVersion: 2
+        x: 828
+        y: 805
+        width: 244
+        height: 323
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dfbb0b8e0943758c0800000000000000
+      internalID: -4010679146166305795
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fish-scales-svgrepo-com_18
+      rect:
+        serializedVersion: 2
+        x: 978
+        y: 555
+        width: 244
+        height: 322
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3a4b77ddd30d509e0800000000000000
+      internalID: -1655688323861597021
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fish-scales-svgrepo-com_19
+      rect:
+        serializedVersion: 2
+        x: 1128
+        y: 805
+        width: 244
+        height: 323
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 216f52f500202fa20800000000000000
+      internalID: 3094538094576530962
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fish-scales-svgrepo-com_20
+      rect:
+        serializedVersion: 2
+        x: 1278
+        y: 555
+        width: 244
+        height: 322
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 48ed4555ac2247e30800000000000000
+      internalID: 4500260180060331652
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fish-scales-svgrepo-com_21
+      rect:
+        serializedVersion: 2
+        x: 1428
+        y: 805
+        width: 117
+        height: 308
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ee0334b91fca4f170800000000000000
+      internalID: 8211378174295224558
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fish-scales-svgrepo-com_22
+      rect:
+        serializedVersion: 2
+        x: 55
+        y: 305
+        width: 117
+        height: 309
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5bb3c72ee80c708e0800000000000000
+      internalID: -1727200212155614283
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fish-scales-svgrepo-com_23
+      rect:
+        serializedVersion: 2
+        x: 78
+        y: 55
+        width: 244
+        height: 323
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f912e5477715d7fd0800000000000000
+      internalID: -2342626657667505761
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fish-scales-svgrepo-com_24
+      rect:
+        serializedVersion: 2
+        x: 228
+        y: 305
+        width: 244
+        height: 323
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 61503679d3c8c2c60800000000000000
+      internalID: 7794759251232228630
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fish-scales-svgrepo-com_25
+      rect:
+        serializedVersion: 2
+        x: 378
+        y: 55
+        width: 244
+        height: 322
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bafd1c1fdf8e8d060800000000000000
+      internalID: 6978583799990968235
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fish-scales-svgrepo-com_26
+      rect:
+        serializedVersion: 2
+        x: 528
+        y: 305
+        width: 244
+        height: 322
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 81ab296217fdc1f10800000000000000
+      internalID: 2241912391595112984
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fish-scales-svgrepo-com_27
+      rect:
+        serializedVersion: 2
+        x: 678
+        y: 55
+        width: 244
+        height: 322
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ec4a1bfd75f8db030800000000000000
+      internalID: 3512120891996742862
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fish-scales-svgrepo-com_28
+      rect:
+        serializedVersion: 2
+        x: 828
+        y: 305
+        width: 244
+        height: 322
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4820b713cbbc8bde0800000000000000
+      internalID: -1317078881861434748
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fish-scales-svgrepo-com_29
+      rect:
+        serializedVersion: 2
+        x: 978
+        y: 55
+        width: 244
+        height: 322
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 28fab0b8527d51c10800000000000000
+      internalID: 2023760163819466626
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fish-scales-svgrepo-com_30
+      rect:
+        serializedVersion: 2
+        x: 1128
+        y: 305
+        width: 244
+        height: 322
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c36610494ca38cdc0800000000000000
+      internalID: -3618577684621072836
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fish-scales-svgrepo-com_31
+      rect:
+        serializedVersion: 2
+        x: 1278
+        y: 55
+        width: 244
+        height: 322
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6af6e2b61de4ac530800000000000000
+      internalID: 3875997090659069862
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fish-scales-svgrepo-com_32
+      rect:
+        serializedVersion: 2
+        x: 1428
+        y: 305
+        width: 117
+        height: 308
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4d87aff387a46fbd0800000000000000
+      internalID: -2596806254802601772
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      fish-scales-svgrepo-com_0: 6084494157321089738
+      fish-scales-svgrepo-com_1: 8798690547569775795
+      fish-scales-svgrepo-com_10: -4724062286748782298
+      fish-scales-svgrepo-com_11: -6099710459848831168
+      fish-scales-svgrepo-com_12: -224648339339517461
+      fish-scales-svgrepo-com_13: 775352075590816742
+      fish-scales-svgrepo-com_14: -6716456116895319611
+      fish-scales-svgrepo-com_15: 4756211711584958022
+      fish-scales-svgrepo-com_16: -3153849926844849775
+      fish-scales-svgrepo-com_17: -4010679146166305795
+      fish-scales-svgrepo-com_18: -1655688323861597021
+      fish-scales-svgrepo-com_19: 3094538094576530962
+      fish-scales-svgrepo-com_2: 2160318637241855501
+      fish-scales-svgrepo-com_20: 4500260180060331652
+      fish-scales-svgrepo-com_21: 8211378174295224558
+      fish-scales-svgrepo-com_22: -1727200212155614283
+      fish-scales-svgrepo-com_23: -2342626657667505761
+      fish-scales-svgrepo-com_24: 7794759251232228630
+      fish-scales-svgrepo-com_25: 6978583799990968235
+      fish-scales-svgrepo-com_26: 2241912391595112984
+      fish-scales-svgrepo-com_27: 3512120891996742862
+      fish-scales-svgrepo-com_28: -1317078881861434748
+      fish-scales-svgrepo-com_29: 2023760163819466626
+      fish-scales-svgrepo-com_3: 2632761304372214349
+      fish-scales-svgrepo-com_30: -3618577684621072836
+      fish-scales-svgrepo-com_31: 3875997090659069862
+      fish-scales-svgrepo-com_32: -2596806254802601772
+      fish-scales-svgrepo-com_4: 7710995018018972094
+      fish-scales-svgrepo-com_5: 7844186941782257657
+      fish-scales-svgrepo-com_6: -2309267466582983987
+      fish-scales-svgrepo-com_7: 6956228918976658787
+      fish-scales-svgrepo-com_8: -575273618543594761
+      fish-scales-svgrepo-com_9: 2567148363214222619
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

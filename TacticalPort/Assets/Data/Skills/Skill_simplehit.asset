@@ -23,7 +23,7 @@ MonoBehaviour:
   _RangeMin: 1
   _RangeMax: 6
   _TargetAlignment: 0
-  _RequiresLineOfSight: 0
+  _RequiresVisibility: 0
   _AoeShape: 3
   _AoeSize: 0
   _AoeDamageFalloffPercentPerCell: 20

@@ -1,0 +1,559 @@
+fileFormatVersion: 2
+guid: 74e97adbda11fbf44b6044510f8a9847
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 8451609534036100905
+    second: lever-svgrepo-com_0
+  - first:
+      213: -2847222674146839223
+    second: lever-svgrepo-com_1
+  - first:
+      213: 8436885012819800900
+    second: lever-svgrepo-com_2
+  - first:
+      213: 7291997229173612417
+    second: lever-svgrepo-com_3
+  - first:
+      213: 3113704795347009797
+    second: lever-svgrepo-com_4
+  - first:
+      213: 2996078341139105301
+    second: lever-svgrepo-com_5
+  - first:
+      213: 5612116420845782618
+    second: lever-svgrepo-com_6
+  - first:
+      213: -7947665187530923476
+    second: lever-svgrepo-com_7
+  - first:
+      213: 7298274375975387410
+    second: lever-svgrepo-com_8
+  - first:
+      213: 6951892339397887707
+    second: lever-svgrepo-com_9
+  - first:
+      213: 6713162519718606215
+    second: lever-svgrepo-com_10
+  - first:
+      213: -6232296363246444928
+    second: lever-svgrepo-com_11
+  - first:
+      213: 7178879118855886782
+    second: lever-svgrepo-com_12
+  - first:
+      213: 2513614574846396233
+    second: lever-svgrepo-com_13
+  - first:
+      213: 3794347354143434917
+    second: lever-svgrepo-com_14
+  - first:
+      213: 5917871079380177857
+    second: lever-svgrepo-com_15
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 1
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WindowsStoreApps
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: lever-svgrepo-com_0
+      rect:
+        serializedVersion: 2
+        x: 178
+        y: 1274
+        width: 200
+        height: 153
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 927c688b7162a4570800000000000000
+      internalID: 8451609534036100905
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lever-svgrepo-com_1
+      rect:
+        serializedVersion: 2
+        x: 412
+        y: 1390
+        width: 325
+        height: 114
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9453a072012ac78d0800000000000000
+      internalID: -2847222674146839223
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lever-svgrepo-com_2
+      rect:
+        serializedVersion: 2
+        x: 792
+        y: 1329
+        width: 490
+        height: 174
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 443f0f7f736d51570800000000000000
+      internalID: 8436885012819800900
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lever-svgrepo-com_3
+      rect:
+        serializedVersion: 2
+        x: 56
+        y: 1176
+        width: 105
+        height: 117
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 18f960468d0623560800000000000000
+      internalID: 7291997229173612417
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lever-svgrepo-com_4
+      rect:
+        serializedVersion: 2
+        x: 251
+        y: 1137
+        width: 178
+        height: 135
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 501c616a30a163b20800000000000000
+      internalID: 3113704795347009797
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lever-svgrepo-com_5
+      rect:
+        serializedVersion: 2
+        x: 463
+        y: 1236
+        width: 273
+        height: 108
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 51686da9065349920800000000000000
+      internalID: 2996078341139105301
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lever-svgrepo-com_6
+      rect:
+        serializedVersion: 2
+        x: 792
+        y: 1186
+        width: 408
+        height: 158
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a5646a6862e32ed40800000000000000
+      internalID: 5612116420845782618
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lever-svgrepo-com_7
+      rect:
+        serializedVersion: 2
+        x: 1144
+        y: 929
+        width: 367
+        height: 434
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c222b77de9834b190800000000000000
+      internalID: -7947665187530923476
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lever-svgrepo-com_8
+      rect:
+        serializedVersion: 2
+        x: 133
+        y: 1050
+        width: 100
+        height: 108
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 211495580eda84560800000000000000
+      internalID: 7298274375975387410
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lever-svgrepo-com_9
+      rect:
+        serializedVersion: 2
+        x: 331
+        y: 988
+        width: 152
+        height: 119
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bd6029eff351a7060800000000000000
+      internalID: 6951892339397887707
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lever-svgrepo-com_10
+      rect:
+        serializedVersion: 2
+        x: 517
+        y: 1069
+        width: 219
+        height: 93
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7853b4b6eb1f92d50800000000000000
+      internalID: 6713162519718606215
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lever-svgrepo-com_11
+      rect:
+        serializedVersion: 2
+        x: 791
+        y: 1038
+        width: 323
+        height: 124
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 08e9cbd4a7f6289a0800000000000000
+      internalID: -6232296363246444928
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lever-svgrepo-com_12
+      rect:
+        serializedVersion: 2
+        x: 219
+        y: 910
+        width: 93
+        height: 101
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eb7dfd4f58080a360800000000000000
+      internalID: 7178879118855886782
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lever-svgrepo-com_13
+      rect:
+        serializedVersion: 2
+        x: 912
+        y: 493
+        width: 338
+        height: 464
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 947c6fb532722e220800000000000000
+      internalID: 2513614574846396233
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lever-svgrepo-com_14
+      rect:
+        serializedVersion: 2
+        x: 434
+        y: 165
+        width: 730
+        height: 330
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5a8a926b0da38a430800000000000000
+      internalID: 3794347354143434917
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lever-svgrepo-com_15
+      rect:
+        serializedVersion: 2
+        x: 313
+        y: 58
+        width: 951
+        height: 52
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1c353097460802250800000000000000
+      internalID: 5917871079380177857
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      lever-svgrepo-com_0: 8451609534036100905
+      lever-svgrepo-com_1: -2847222674146839223
+      lever-svgrepo-com_10: 6713162519718606215
+      lever-svgrepo-com_11: -6232296363246444928
+      lever-svgrepo-com_12: 7178879118855886782
+      lever-svgrepo-com_13: 2513614574846396233
+      lever-svgrepo-com_14: 3794347354143434917
+      lever-svgrepo-com_15: 5917871079380177857
+      lever-svgrepo-com_2: 8436885012819800900
+      lever-svgrepo-com_3: 7291997229173612417
+      lever-svgrepo-com_4: 3113704795347009797
+      lever-svgrepo-com_5: 2996078341139105301
+      lever-svgrepo-com_6: 5612116420845782618
+      lever-svgrepo-com_7: -7947665187530923476
+      lever-svgrepo-com_8: 7298274375975387410
+      lever-svgrepo-com_9: 6951892339397887707
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -24,5 +24,7 @@ EditorBuildSettings:
     path: Assets/Scenes/Maps/S_Map_Alpha_1.unity
     guid: da35aca87f7f03f4fb48603fbe79ab7b
   m_configObjects:
+    com.unity.addressableassets: {fileID: 11400000, guid: 6517e9493487c234a8be3e85b34c947a, type: 2}
     com.unity.dt.app-ui: {fileID: 11400000, guid: 1b1c20d82303e4b5781c3ef50ac1449f, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
+    com.unity.localization.settings: {fileID: 11400000, guid: e455d29e9521c0b4f8fdd681a51fac98, type: 2}

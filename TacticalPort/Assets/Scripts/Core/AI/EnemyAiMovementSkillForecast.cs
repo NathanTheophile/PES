@@ -142,10 +142,10 @@ namespace TacticalPort.Core
             if (lDistance < lRangeMin || lDistance > lRangeMax)
                 return false;
 
-            if (!GridLineOfSightUtility.MatchesAlignment(pSourceCell, pTarget.Cell, pSkill.TargetAlignment))
+            if (!GridVisibilityUtility.MatchesAlignment(pSourceCell, pTarget.Cell, pSkill.TargetAlignment))
                 return false;
 
-            if (pSkill.RequiresLineOfSight && pSourceCell != pTarget.Cell && !HasApproximateLineOfSight(pContext, pSourceCell, pTarget.Cell, lPrimaryTarget))
+            if (pSkill.RequiresVisibility && pSourceCell != pTarget.Cell && !HasApproximateVisibility(pContext, pSourceCell, pTarget.Cell, lPrimaryTarget))
                 return false;
 
             List<UnitId> lAffectedUnitIds = ResolveAffectedUnitIds(pContext, pSourceCell, pSkill, pTarget.Cell);
@@ -194,7 +194,7 @@ namespace TacticalPort.Core
                 return lAffectedUnitIds;
             }
 
-            GridCoord lDirection = GridLineOfSightUtility.ResolveAreaDirection(pSourceCell, pTargetCell);
+            GridCoord lDirection = GridVisibilityUtility.ResolveAreaDirection(pSourceCell, pTargetCell);
             int lAoeSize = pSkill.AoeShape == SkillAoeShape.Single ? 0 : System.Math.Max(0, pSkill.AoeSize);
             foreach (UnitRuntime lUnit in pContext.BattleService.Units)
             {
@@ -206,7 +206,7 @@ namespace TacticalPort.Core
                 {
                     int lOffsetX = lOccupiedCell.X - pTargetCell.X;
                     int lOffsetY = lOccupiedCell.Y - pTargetCell.Y;
-                    if (!GridLineOfSightUtility.IsInsideAreaShape(pSkill.AoeShape, lOffsetX, lOffsetY, lAoeSize, lDirection))
+                    if (!GridVisibilityUtility.IsInsideAreaShape(pSkill.AoeShape, lOffsetX, lOffsetY, lAoeSize, lDirection))
                         continue;
 
                     lIsAffected = true;
@@ -235,18 +235,18 @@ namespace TacticalPort.Core
                 yield return lCell;
         }
 
-        private static bool HasApproximateLineOfSight(
+        private static bool HasApproximateVisibility(
             EnemyAiContext pContext,
             GridCoord pSourceCell,
             GridCoord pTargetCell,
             UnitRuntime pTargetUnit)
         {
-            return GridLineOfSightUtility.HasLineOfSight(
+            return GridVisibilityUtility.HasVisibility(
                 pSourceCell,
                 pTargetCell,
                 pCell =>
                 {
-                    if (!pContext.BattleService.IsInside(pCell) || pContext.BattleService.BlocksLineOfSight(pCell))
+                    if (!pContext.BattleService.IsInside(pCell) || pContext.BattleService.BlocksVisibility(pCell))
                         return true;
 
                     UnitRuntime lOccupant = TryResolveOccupant(pContext, pCell);
@@ -256,7 +256,7 @@ namespace TacticalPort.Core
                     if (pTargetUnit != null && lOccupant.Id == pTargetUnit.Id)
                         return pCell != pTargetCell;
 
-                    return true;
+                    return lOccupant.BlocksVisibility;
                 });
         }
 
@@ -269,13 +269,13 @@ namespace TacticalPort.Core
             foreach (GridCoord lOccupiedCell in pUnit.EnumerateOccupiedCells())
             {
                 pCells.Add(lOccupiedCell);
-                GridCoord lDirection = GridLineOfSightUtility.ResolveAreaDirection(pSourceCell, lOccupiedCell);
+                GridCoord lDirection = GridVisibilityUtility.ResolveAreaDirection(pSourceCell, lOccupiedCell);
 
                 for (int lOffsetY = -lAoeSize; lOffsetY <= lAoeSize; lOffsetY++)
                 {
                     for (int lOffsetX = -lAoeSize; lOffsetX <= lAoeSize; lOffsetX++)
                     {
-                        if (GridLineOfSightUtility.IsInsideAreaShape(pSkill.AoeShape, lOffsetX, lOffsetY, lAoeSize, lDirection))
+                        if (GridVisibilityUtility.IsInsideAreaShape(pSkill.AoeShape, lOffsetX, lOffsetY, lAoeSize, lDirection))
                             pCells.Add(new GridCoord(lOccupiedCell.X - lOffsetX, lOccupiedCell.Y - lOffsetY));
                     }
                 }
@@ -295,7 +295,7 @@ namespace TacticalPort.Core
                     if (lDistance < lRangeMin || lDistance > lRangeMax)
                         continue;
 
-                    if (GridLineOfSightUtility.MatchesAlignment(pSourceCell, lCell, pSkill.TargetAlignment))
+                    if (GridVisibilityUtility.MatchesAlignment(pSourceCell, lCell, pSkill.TargetAlignment))
                         pCells.Add(lCell);
                 }
             }

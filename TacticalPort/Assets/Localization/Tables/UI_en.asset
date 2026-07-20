@@ -1,0 +1,99 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9620f8c34305754d8cc9a7e49e852d9, type: 3}
+  m_Name: UI_en
+  m_EditorClassIdentifier: Unity.Localization::UnityEngine.Localization.Tables.StringTable
+  m_LocaleId:
+    m_Code: en
+  m_SharedData: {fileID: 11400000, guid: 2f32f5367a76e724293a4a9e4b385a26, type: 2}
+  m_Metadata:
+    m_Items: []
+  m_TableData:
+  - m_Id: 66742611968
+    m_Localized: Empty
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66771972096
+    m_Localized: Selected
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66771972097
+    m_Localized: Already used
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66771972098
+    m_Localized: Equipped
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66771972099
+    m_Localized: Already equipped
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66771972100
+    m_Localized: SAVE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66771972101
+    m_Localized: Loading...
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66771972102
+    m_Localized: Character {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66771972103
+    m_Localized: 'Health: {0}/{1}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66771972104
+    m_Localized: 'Health: {0}/{1} | Wear: {2}%'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66771972105
+    m_Localized: 'Energy: {0}/{1}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66771972106
+    m_Localized: 'Mobility: {0}/{1}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66771972107
+    m_Localized: 'Health: -'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66771972108
+    m_Localized: 'Energy: -'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66771972109
+    m_Localized: 'Mobility: -'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66771972110
+    m_Localized: 'Phase: {0}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66771972111
+    m_Localized: 'Outcome: {0}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66771972112
+    m_Localized: 'Active Unit: {0}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66771972113
+    m_Localized: 'Turn: {0}'
+    m_Metadata:
+      m_Items: []
+  references:
+    version: 2
+    RefIds: []

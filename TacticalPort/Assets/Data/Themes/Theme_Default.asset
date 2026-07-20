@@ -15,6 +15,10 @@ MonoBehaviour:
   _MainColor: {r: 0.95, g: 0.95, b: 0.95, a: 1}
   _SecondColor: {r: 0.16, g: 0.18, b: 0.22, a: 1}
   _AccentColor: {r: 0.35, g: 0.55, b: 1, a: 1}
+  _GoldColor: {r: 1, g: 0.7888177, b: 0.4245282, a: 1}
+  _BlackColor: {r: 0.035, g: 0.035, b: 0.04, a: 1}
+  _SilverColor: {r: 0.72, g: 0.75, b: 0.8, a: 1}
   _DamageColor: {r: 0.75, g: 0.3132353, b: 0.2911765, a: 1}
   _UtilityColor: {r: 0.74213827, g: 0.72671854, b: 0.6417862, a: 1}
+  _SummonColor: {r: 0.58, g: 0.34, b: 0.82, a: 1}
   _HealColor: {r: 0.686416, g: 0.8113208, b: 0.32401797, a: 1}

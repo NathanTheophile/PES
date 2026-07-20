@@ -235,7 +235,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 102214911564907355, guid: 27f4f811c085c4b4bb4a8189c2f1afdb, type: 3}
-      propertyPath: _BlocksLineOfSight
+      propertyPath: _BlocksVisibility
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 432188578469270474, guid: 27f4f811c085c4b4bb4a8189c2f1afdb, type: 3}

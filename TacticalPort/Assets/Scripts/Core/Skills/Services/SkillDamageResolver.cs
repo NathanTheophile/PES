@@ -25,6 +25,9 @@ namespace TacticalPort.Core
                 if (lTarget == null || !lTarget.IsAlive)
                     continue;
 
+                if (lTarget.Definition.DirectSkillDamage > 0)
+                    continue;
+
                 int lBaseDamage = Math.Max(0, pSkill.Power);
                 int lFalloffDamage = ResolveAoeFalloffDamage(lBaseDamage, pSkill, lTarget, pResolvedTarget.TargetCell);
                 DamageRangeType lDamageRange = pSkill.CategoryDamageRange != DamageRangeType.None
@@ -93,7 +96,13 @@ namespace TacticalPort.Core
                 if (lTarget == null || !lTarget.IsAlive)
                     continue;
 
-                if (!lTarget.TryApplyState(pSkill.AppliedState, pSkill.AppliedStateStacks, pSkill.AppliedStateDurationTurns))
+                if (!lTarget.TryApplyState(
+                        pSkill.AppliedState,
+                        pSkill.AppliedStateStacks,
+                        pSkill.AppliedStateDurationTurns,
+                        pActor.Id,
+                        pActor.Team,
+                        pSkill.Id))
                     continue;
 
                 lAffectedCount++;
@@ -112,14 +121,18 @@ namespace TacticalPort.Core
                 lAffectedCount > 0 ? BattleActionOutcomeFlags.StateApplied : BattleActionOutcomeFlags.None);
         }
 
-        public static BattleActionResult ApplyStateToCaster(UnitRuntime pActor, SkillDefinition pSkill)
+        public static BattleActionResult ApplyStateToCaster(UnitRuntime pActor, SkillDefinition pSkill, int pStacksOverride = -1)
         {
+            int lStacks = pStacksOverride >= 0 ? pStacksOverride : pSkill?.CasterAppliedStateStacks ?? 0;
             bool lApplied = pActor != null
                 && pSkill?.CasterAppliedState != null
                 && pActor.TryApplyState(
                     pSkill.CasterAppliedState,
-                    pSkill.CasterAppliedStateStacks,
-                    pSkill.CasterAppliedStateDurationTurns);
+                    lStacks,
+                    pSkill.CasterAppliedStateDurationTurns,
+                    pActor.Id,
+                    pActor.Team,
+                    pSkill.Id);
 
             string lMessage = lApplied
                 ? $"{pActor.Definition.DisplayName} gained {pSkill.CasterAppliedState.DisplayName}."

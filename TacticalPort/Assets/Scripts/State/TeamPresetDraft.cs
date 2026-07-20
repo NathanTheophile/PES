@@ -330,7 +330,7 @@ namespace TacticalPort.State
             for (int lIndex = 0; lIndex < _AvailableUnits.Count; lIndex++)
             {
                 UnitDefinition lUnit = _AvailableUnits[lIndex];
-                if (string.Equals(lUnit.Id, pUnitId, StringComparison.Ordinal))
+                if (ContentIdAliases.Matches(lUnit.Id, pUnitId))
                     return lUnit;
             }
 
@@ -381,7 +381,7 @@ namespace TacticalPort.State
             for (int lIndex = 0; lIndex < lSlots.Count; lIndex++)
             {
                 UnitBuildPreset lBuild = lSlots[lIndex];
-                if (lBuild != null && string.Equals(lBuild.UnitId, pUnitId, StringComparison.Ordinal))
+                if (lBuild != null && ContentIdAliases.Matches(lBuild.UnitId, pUnitId))
                     return lBuild;
             }
 
@@ -396,7 +396,7 @@ namespace TacticalPort.State
             for (int lIndex = 0; lIndex < pPassives.Count; lIndex++)
             {
                 PassiveDefinition lPassive = pPassives[lIndex];
-                if (lPassive != null && string.Equals(lPassive.Id, pPassiveId, StringComparison.Ordinal))
+                if (lPassive != null && ContentIdAliases.Matches(lPassive.Id, pPassiveId))
                     return lPassive;
             }
 
@@ -411,7 +411,7 @@ namespace TacticalPort.State
             for (int lIndex = 0; lIndex < pSkills.Count; lIndex++)
             {
                 SkillDefinition lSkill = pSkills[lIndex];
-                if (lSkill != null && string.Equals(lSkill.Id, pSkillId, StringComparison.Ordinal))
+                if (lSkill != null && ContentIdAliases.Matches(lSkill.Id, pSkillId))
                     return lSkill;
             }
 
@@ -483,7 +483,7 @@ namespace TacticalPort.State
                 if (lSkill == null)
                     continue;
 
-                if (!string.Equals(pPersistedIds[lPersistedIndex], lSkill.Id, StringComparison.Ordinal))
+                if (!ContentIdAliases.Matches(lSkill.Id, pPersistedIds[lPersistedIndex]))
                     return false;
                 lPersistedIndex++;
             }

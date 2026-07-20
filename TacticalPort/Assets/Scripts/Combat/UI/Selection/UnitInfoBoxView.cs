@@ -5,6 +5,7 @@
 #endregion
 
 using TacticalPort.Core;
+using TacticalPort.Data;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -62,18 +63,21 @@ namespace TacticalPort.UI
             if (_DisplayedUnit == null)
             {
                 SetText(_NameText, "-");
-                SetText(_HealthText, "Health: -");
-                SetText(_EnergyText, "Energy: -");
-                SetText(_MobilityText, "Mobility: -");
+                SetText(_HealthText, GameLocalization.Get(GameLocalization.UiTable, "stats.health_empty", "Health: -"));
+                SetText(_EnergyText, GameLocalization.Get(GameLocalization.UiTable, "stats.energy_empty", "Energy: -"));
+                SetText(_MobilityText, GameLocalization.Get(GameLocalization.UiTable, "stats.mobility_empty", "Mobility: -"));
                 SetPortrait(null);
                 return;
             }
 
             SetPortrait(_DisplayedUnit.Definition.DisplaySprite);
             SetText(_NameText, _DisplayedUnit.Definition.DisplayName);
-            SetText(_HealthText, $"Health: {_DisplayedUnit.CurrentHealth}/{_DisplayedUnit.CurrentMaxHealth} | Wear: {_DisplayedUnit.EffectiveWearPercent}%");
-            SetText(_EnergyText, $"Energy: {_DisplayedUnit.RemainingEnergy}/{_DisplayedUnit.Definition.EnergyPerTurn}");
-            SetText(_MobilityText, $"Mobility: {_DisplayedUnit.RemainingMobility}/{_DisplayedUnit.Definition.MobilityPerTurn}");
+            SetText(_HealthText, GameLocalization.Get(GameLocalization.UiTable, "stats.health_wear", "Health: {0}/{1} | Wear: {2}%",
+                _DisplayedUnit.CurrentHealth, _DisplayedUnit.CurrentMaxHealth, _DisplayedUnit.EffectiveWearPercent));
+            SetText(_EnergyText, GameLocalization.Get(GameLocalization.UiTable, "stats.energy", "Energy: {0}/{1}",
+                _DisplayedUnit.RemainingEnergy, _DisplayedUnit.Definition.EnergyPerTurn));
+            SetText(_MobilityText, GameLocalization.Get(GameLocalization.UiTable, "stats.mobility", "Mobility: {0}/{1}",
+                _DisplayedUnit.RemainingMobility, _DisplayedUnit.Definition.MobilityPerTurn));
         }
 
         #endregion

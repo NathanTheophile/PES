@@ -1,6 +1,7 @@
 using TacticalPort.Data;
 using TacticalPort.Shared;
 using UnityEngine;
+using UnityEngine.Serialization;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -12,7 +13,8 @@ namespace TacticalPort.View
         #region _____________________________/ VALUES
 
         [SerializeField] private bool _IsWalkable = true;
-        [SerializeField] private bool _BlocksLineOfSight;
+        [FormerlySerializedAs("_BlocksLineOfSight")]
+        [SerializeField] private bool _BlocksVisibility;
         [SerializeField, Min(1)] private int _MovementCost = 1;
         [SerializeField] private bool _IsSpawner;
         [SerializeField] private MatchPlayerSlot _AssignedTeam;
@@ -24,7 +26,7 @@ namespace TacticalPort.View
         #region _____________________________/ ACCESSORS
 
         public bool IsWalkable => _IsWalkable;
-        public bool BlocksLineOfSight => _BlocksLineOfSight;
+        public bool BlocksVisibility => _BlocksVisibility;
         public int MovementCost => Mathf.Max(1, _MovementCost);
         public bool IsSpawner => _IsSpawner;
         public MatchPlayerSlot AssignedTeam => _IsSpawner ? _AssignedTeam : MatchPlayerSlot.None;

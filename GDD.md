@@ -57,7 +57,7 @@ Ce lexique définit les termes produit, UI, design et documentation. Le code, le
 | Cooldown | Recharge | Nombre de tours avant qu’une compétence puisse être réutilisée. |
 | Range | Portée | Distance minimale et maximale d’utilisation d’une compétence. |
 | Area of Effect | Zone d’effet | Ensemble des cases affectées par une compétence. L’abréviation technique AoE reste admise. |
-| Line of Sight | Ligne de vue | Condition de visibilité requise entre lanceur et cible. |
+| Visibility | Visibilité | Condition de visibilité requise entre lanceur et cible. |
 | Character | Personnage | Élément jouable du roster, possédant ses données, compétences et passifs. |
 | Unit | Unité | Entité présente dans le runtime de combat : personnage, invocation ou entité neutre. |
 | Team | Équipe | Groupe de personnages contrôlé par un joueur. |
@@ -282,6 +282,10 @@ Une compétence peut posséder le vol de vie. Elle soigne alors son lanceur de `
 Les coups critiques sont une surprise occasionnelle et un élément d’identité pour certaines compétences. Ils augmentent uniquement les dommages. Leur taux doit être visible sur les compétences du joueur et peut être modifié par des bonus ou malus.
 
 Les états cumulables constituent un système central. Les bonus et malus sont visibles sur les unités, avec détails accessibles. La dissipation doit rester rare et précieuse.
+
+La durée d'un état temporaire est pilotée par son lanceur. Au début du tour d'une unité, tous les états temporaires dont elle est la source perdent un tour, quelle que soit leur cible. Les effets provenant d'une invocation inactive utilisent le tour de son propriétaire. Une ancienne instance sans source utilise sa cible comme propriétaire de durée afin de rester compatible. Lorsqu'une unité source meurt, tous les états qu'elle a appliqués sont immédiatement retirés. Les états persistants ne perdent pas de durée et les markers de passifs sont exclus de la décrémentation ordinaire.
+
+Les constructions invoquées inactives sont des obstacles destructibles sans activation dans la timeline. Un glyphe attaché à une construction attribue ses effets au personnage qui l'a invoquée, mais utilise la construction comme ancre de durée de vie. La destruction ou le remplacement de la construction retire immédiatement son glyphe. La mort du propriétaire détruit immédiatement toutes ses constructions possédées et leurs glyphes.
 
 ---
 

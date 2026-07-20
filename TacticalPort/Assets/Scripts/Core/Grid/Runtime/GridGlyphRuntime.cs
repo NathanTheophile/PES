@@ -38,6 +38,28 @@ namespace TacticalPort.Core
             AppliedStateDurationTurns = pAppliedStateDurationTurns;
         }
 
+        public GridGlyphRuntime(
+            UnitId pSourceUnitId,
+            Team pSourceTeam,
+            GridCoord pCell,
+            GlyphDefinition pDefinition,
+            int pRemainingTurns,
+            string pSourceSkillId,
+            string pGlyphGroupId,
+            UnitId pLifetimeSourceUnitId = default)
+        {
+            SourceUnitId = pSourceUnitId;
+            SourceTeam = pSourceTeam;
+            Cell = pCell;
+            Definition = pDefinition;
+            RemainingTurns = pLifetimeSourceUnitId.IsValid ? 0 : (pRemainingTurns <= 0 ? 1 : pRemainingTurns);
+            SourceSkillId = pSourceSkillId ?? string.Empty;
+            GlyphGroupId = string.IsNullOrWhiteSpace(pGlyphGroupId) ? SourceSkillId : pGlyphGroupId;
+            LifetimeSourceUnitId = pLifetimeSourceUnitId;
+            AppliedStateStacks = 1;
+            AppliedStateDurationTurns = -1;
+        }
+
         public UnitId SourceUnitId { get; }
         public Team SourceTeam { get; }
         public GridCoord Cell { get; }
@@ -49,12 +71,27 @@ namespace TacticalPort.Core
         public StateDefinition AppliedState { get; }
         public int AppliedStateStacks { get; }
         public int AppliedStateDurationTurns { get; }
-        public bool IsExpired => RemainingTurns <= 0;
+        public GlyphDefinition Definition { get; }
+        public UnitId LifetimeSourceUnitId { get; }
+        public bool IsSourceBound => LifetimeSourceUnitId.IsValid;
+        public GlyphTriggerTiming TriggerTiming => Definition != null ? Definition.TriggerTiming : GlyphTriggerTiming.TurnStart;
+        public bool IsExpired => !IsSourceBound && RemainingTurns <= 0;
 
         public bool CanAffect(UnitRuntime pUnit)
         {
             if (pUnit == null || !pUnit.IsAlive)
                 return false;
+
+            if (Definition != null)
+            {
+                bool lIsSummon = pUnit.OwnerUnitId.IsValid;
+                return Definition.TargetUnitType switch
+                {
+                    GlyphTargetUnitType.CharactersOnly => !lIsSummon,
+                    GlyphTargetUnitType.SummonsOnly => lIsSummon,
+                    _ => true
+                };
+            }
 
             switch (TargetRule)
             {
@@ -71,8 +108,21 @@ namespace TacticalPort.Core
 
         public void AdvanceTurn()
         {
-            if (RemainingTurns > 0)
+            if (!IsSourceBound && RemainingTurns > 0)
                 RemainingTurns--;
+        }
+
+        public IReadOnlyList<GlyphEffectDefinition> GetEffectsFor(UnitRuntime pUnit)
+        {
+            if (Definition == null || pUnit == null)
+                return System.Array.Empty<GlyphEffectDefinition>();
+
+            if (pUnit.Team == SourceTeam)
+                return Definition.AllyEffects;
+
+            bool lAreOpponents = (SourceTeam == Team.TeamA && pUnit.Team == Team.TeamB)
+                || (SourceTeam == Team.TeamB && pUnit.Team == Team.TeamA);
+            return lAreOpponents ? Definition.EnemyEffects : Definition.NeutralEffects;
         }
     }
 

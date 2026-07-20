@@ -87,6 +87,7 @@ namespace TacticalPort.Core
             }
 
             BattleServiceMaintenance.RefreshAllPhaseStates(_UnitsById.Values);
+            RefreshPersistentPresenceGlyphs();
             _TurnSystem.Initialize(_UnitsById.Values, pPerfectVelocityTieStartingTeam);
             Phase = BattlePhase.Setup;
             Outcome = BattleOutcome.None;
@@ -114,6 +115,13 @@ namespace TacticalPort.Core
             ApplyStartTurnEffects();
             Phase = BattlePhase.AwaitingAction;
             TurnStarted?.Invoke(pTurnContext);
+            if (TryResolveActiveUnit(out UnitRuntime lAutonomousUnit)
+                && lAutonomousUnit.Definition.AutonomousBehavior != AutonomousUnitBehavior.None)
+            {
+                ResolveAutonomousTurn(lAutonomousUnit);
+                if (CurrentTurn?.UnitId == lAutonomousUnit.Id)
+                    EndTurn(lAutonomousUnit.Id);
+            }
             return true;
         }
 
@@ -138,6 +146,8 @@ namespace TacticalPort.Core
 
             if (!_UnitPlacementService.TryRelocateUnit(lUnit, pDestination))
                 return BattleActionResult.Failed(BattleActionType.Placement, "Target placement cell is not available.");
+
+            RefreshPersistentPresenceGlyphs();
 
             return BattleActionResult.Succeeded(
                 BattleActionType.Placement,
@@ -178,6 +188,7 @@ namespace TacticalPort.Core
             string lMessage = "Movement applied.";
             BattleServiceMaintenance.RefreshPhaseStates(_UnitsById, new[] { pUnitId });
             BattleServiceMaintenance.CleanupDefeatedUnits(_UnitsById.Values, _GridService, _TurnSystem);
+            RefreshPersistentPresenceGlyphs();
             BattleServiceMaintenance.CompleteTurnIfActiveUnitIsGone(_TurnSystem, _UnitsById);
             EvaluateOutcome();
             if (Outcome == BattleOutcome.None)
@@ -199,20 +210,23 @@ namespace TacticalPort.Core
                 return lError;
 
             Phase = BattlePhase.ResolvingAction;
-            Dictionary<UnitId, int> lHealthBefore = CaptureHealthByUnit();
+            UnitRuntime lPrimaryTarget = TryResolveUnitAtCell(pTarget.Cell);
+            Dictionary<UnitId, long> lHealthBefore = CaptureHealthByUnit();
             BattleActionResult lResult = _SkillExecutor.Execute(lUnit, lBaseSkill, lEffectiveSkill, pTarget, lContext);
             SkillResolutionReport lReport = null;
 
             if (lResult.IsSuccess)
             {
                 lUnit.TrySpendEnergy(lEffectiveSkill.EnergyCost);
+                ApplyDirectSkillTargetInteraction(lUnit, lEffectiveSkill, lPrimaryTarget);
                 lReport = BuildSkillResolutionReport(lUnit.Id, lBaseSkill, lEffectiveSkill, lHealthBefore);
-                if (lReport.UsedVariant)
+                if (lReport.UsedVariant && lBaseSkill.VariantTrigger == SkillVariantTrigger.StateEnabler)
                     lUnit.ConsumeSkillVariantEnablers();
 
                 BattlePassiveResolver.Resolve(lUnit, lReport, _UnitsById.Values);
                 BattleServiceMaintenance.RefreshPhaseStates(_UnitsById, lResult.AffectedUnitIds);
                 BattleServiceMaintenance.CleanupDefeatedUnits(_UnitsById.Values, _GridService, _TurnSystem);
+                RefreshPersistentPresenceGlyphs();
                 BattleServiceMaintenance.CompleteTurnIfActiveUnitIsGone(_TurnSystem, _UnitsById);
             }
 
@@ -231,9 +245,13 @@ namespace TacticalPort.Core
             if (CurrentTurn == null || CurrentTurn.UnitId != pUnitId)
                 return BattleActionResult.Failed(BattleActionType.EndTurn, "Unit does not own the active turn.");
 
+            if (_UnitsById.TryGetValue(pUnitId, out UnitRuntime lActiveUnit) && lActiveUnit != null && lActiveUnit.IsAlive)
+                BattleHazardResolver.ApplyEndTurnGlyphs(_GridService, lActiveUnit);
+
             BattleServiceMaintenance.CleanupDefeatedUnits(_UnitsById.Values, _GridService, _TurnSystem);
             _TurnSystem.CompleteCurrentTurn();
             _GridService.AdvancePersistentEffects();
+            RefreshPersistentPresenceGlyphs();
             ResolveTelegraphedHazards();
             EvaluateOutcome();
 
@@ -246,7 +264,7 @@ namespace TacticalPort.Core
 
         public bool IsUnitActive(UnitId pUnitId) => CurrentTurn != null && CurrentTurn.UnitId == pUnitId;
         public bool IsInside(GridCoord pCoordinate) => _GridService.IsInside(pCoordinate);
-        public bool BlocksLineOfSight(GridCoord pCoordinate) => _GridService.BlocksLineOfSight(pCoordinate);
+        public bool BlocksVisibility(GridCoord pCoordinate) => _GridService.BlocksVisibility(pCoordinate);
         public bool TryGetActiveUnit(out UnitRuntime pUnit) => TryResolveActiveUnit(out pUnit);
         public bool TryGetUnit(UnitId pUnitId, out UnitRuntime pUnit) => _UnitsById.TryGetValue(pUnitId, out pUnit);
         public IReadOnlyCollection<GridGlyphRuntime> GetActiveGlyphs() => _GridService.GetAllGlyphs();
@@ -273,6 +291,7 @@ namespace TacticalPort.Core
                 out bool lResolvedAny);
 
             BattleServiceMaintenance.CleanupDefeatedUnits(_UnitsById.Values, _GridService, _TurnSystem);
+            RefreshPersistentPresenceGlyphs();
             BattleServiceMaintenance.CompleteTurnIfActiveUnitIsGone(_TurnSystem, _UnitsById);
             EvaluateOutcome();
 
@@ -365,13 +384,6 @@ namespace TacticalPort.Core
                 return false;
             }
 
-            pEffectiveSkill = pUnit.ResolveEffectiveSkill(pBaseSkill);
-            if (!pUnit.CanSpendEnergy(pEffectiveSkill.EnergyCost))
-            {
-                pError = BattleActionResult.Failed(BattleActionType.Skill, "Unit does not have enough Energy.");
-                return false;
-            }
-
             pContext = new SkillExecutionContext(
                 _GridService,
                 _UnitsById,
@@ -380,17 +392,34 @@ namespace TacticalPort.Core
                 TrySummonUnit,
                 pGlyph => _GridService.AddOrReplaceGlyph(pGlyph),
                 TryScheduleHazard);
+            UnitRuntime lPrimaryTarget = TryResolveUnitAtCell(pTarget.Cell);
+            pEffectiveSkill = pUnit.ResolveEffectiveSkill(pBaseSkill, lPrimaryTarget);
+            if (pBaseSkill.VariantTrigger == SkillVariantTrigger.PrimaryTargetOwnedState
+                && pBaseSkill.VariantTargetRequiredState != null
+                && lPrimaryTarget != null
+                && lPrimaryTarget.HasState(pBaseSkill.VariantTargetRequiredState)
+                && pEffectiveSkill == pBaseSkill)
+            {
+                pError = BattleActionResult.Failed(BattleActionType.Skill, "The targeted relay is not owned by the caster.");
+                return false;
+            }
+            if (!pUnit.CanSpendEnergy(pEffectiveSkill.EnergyCost))
+            {
+                pError = BattleActionResult.Failed(BattleActionType.Skill, "Unit does not have enough Energy.");
+                return false;
+            }
+
             pError = _SkillExecutor.Validate(pUnit, pBaseSkill, pEffectiveSkill, pTarget, pContext);
             return pError.IsSuccess;
         }
 
-        private Dictionary<UnitId, int> CaptureHealthByUnit()
+        private Dictionary<UnitId, long> CaptureHealthByUnit()
         {
-            Dictionary<UnitId, int> lHealthByUnit = new Dictionary<UnitId, int>(_UnitsById.Count);
+            Dictionary<UnitId, long> lHealthByUnit = new Dictionary<UnitId, long>(_UnitsById.Count);
             foreach (KeyValuePair<UnitId, UnitRuntime> lPair in _UnitsById)
             {
                 if (lPair.Value != null)
-                    lHealthByUnit[lPair.Key] = lPair.Value.CurrentHealth;
+                    lHealthByUnit[lPair.Key] = lPair.Value.CumulativeHealthLost;
             }
 
             return lHealthByUnit;
@@ -400,15 +429,16 @@ namespace TacticalPort.Core
             UnitId pActorId,
             SkillDefinition pBaseSkill,
             SkillDefinition pEffectiveSkill,
-            IReadOnlyDictionary<UnitId, int> pHealthBefore)
+            IReadOnlyDictionary<UnitId, long> pHealthBefore)
         {
             List<SkillHealthLoss> lHealthLosses = new List<SkillHealthLoss>();
-            foreach (KeyValuePair<UnitId, int> lPair in pHealthBefore)
+            foreach (KeyValuePair<UnitId, long> lPair in pHealthBefore)
             {
                 if (!_UnitsById.TryGetValue(lPair.Key, out UnitRuntime lUnit) || lUnit == null)
                     continue;
 
-                int lHealthLost = Math.Max(0, lPair.Value - lUnit.CurrentHealth);
+                long lHealthLostValue = Math.Max(0L, lUnit.CumulativeHealthLost - lPair.Value);
+                int lHealthLost = lHealthLostValue > int.MaxValue ? int.MaxValue : (int)lHealthLostValue;
                 if (lHealthLost > 0)
                     lHealthLosses.Add(new SkillHealthLoss(lPair.Key, lHealthLost));
             }
@@ -417,13 +447,41 @@ namespace TacticalPort.Core
             return new SkillResolutionReport(pActorId, pBaseSkill, pEffectiveSkill, lHealthLosses);
         }
 
-        private UnitRuntime TrySummonUnit(UnitDefinition pDefinition, SkillSummonTeamRule pTeamRule, UnitRuntime pSummoner, GridCoord pDestination)
+        private UnitRuntime TrySummonUnit(UnitDefinition pDefinition, SkillSummonTeamRule pTeamRule, UnitRuntime pSummoner, GridCoord pDestination, bool pReplaceOwnedSameDefinition)
         {
-            UnitRuntime lRuntime = _UnitPlacementService.TrySummonUnit(pDefinition, pTeamRule, pSummoner, pDestination);
+            UnitRuntime lRuntime = _UnitPlacementService.TrySummonUnit(pDefinition, pTeamRule, pSummoner, pDestination, pReplaceOwnedSameDefinition);
             if (lRuntime != null)
                 BattleServiceMaintenance.RefreshPhaseStates(lRuntime);
 
             return lRuntime;
+        }
+
+        private UnitRuntime TryResolveUnitAtCell(GridCoord pCell)
+        {
+            return _GridService.TryGetOccupant(pCell, out UnitId lUnitId)
+                && _UnitsById.TryGetValue(lUnitId, out UnitRuntime lUnit)
+                && lUnit != null
+                && lUnit.IsAlive
+                ? lUnit
+                : null;
+        }
+
+        private void ApplyDirectSkillTargetInteraction(UnitRuntime pActor, SkillDefinition pSkill, UnitRuntime pTarget)
+        {
+            if (pActor == null
+                || pSkill?.PrimaryEffectType != SkillPrimaryEffectType.Damage
+                || pTarget == null
+                || !pTarget.IsAlive
+                || pTarget.Definition.DirectSkillDamage <= 0)
+            {
+                return;
+            }
+
+            StateDefinition lSwapState = pTarget.Definition.DirectSkillSwapRequiredState;
+            if (lSwapState != null && pTarget.HasState(lSwapState))
+                _UnitPlacementService.TrySwapUnits(pActor, pTarget);
+
+            pTarget.ApplyDirectHealthLoss(pTarget.Definition.DirectSkillDamage);
         }
 
         private void ApplyStartTurnEffects()
@@ -431,12 +489,149 @@ namespace TacticalPort.Core
             if (!TryResolveActiveUnit(out UnitRuntime lActiveUnit) || lActiveUnit == null || !lActiveUnit.IsAlive)
                 return;
 
+            IReadOnlyList<HealthLossResolutionReport> lStateDamageReports = lActiveUnit.ResolveBeginTurnStateDamage();
+            for (int lIndex = 0; lIndex < lStateDamageReports.Count; lIndex++)
+                BattlePassiveResolver.ResolveObservedHealthLoss(lStateDamageReports[lIndex], _UnitsById.Values);
+            BattleServiceMaintenance.TickTemporaryStateDurationsForTurnOwner(lActiveUnit, _UnitsById);
+            if (lActiveUnit.IsAlive)
+                BattlePassiveResolver.ResolveBeginTurn(lActiveUnit, _UnitsById.Values);
             BattleHazardResolver.ApplyStartTurnGlyphs(_GridService, lActiveUnit);
             BattleServiceMaintenance.RefreshPhaseStates(_UnitsById, new[] { lActiveUnit.Id });
             BattleServiceMaintenance.CleanupDefeatedUnits(_UnitsById.Values, _GridService, _TurnSystem);
+            RefreshPersistentPresenceGlyphs();
             BattleServiceMaintenance.CompleteTurnIfActiveUnitIsGone(_TurnSystem, _UnitsById);
             EvaluateOutcome();
         }
+
+        private void ResolveAutonomousTurn(UnitRuntime pUnit)
+        {
+            if (pUnit == null
+                || !pUnit.IsAlive
+                || (pUnit.Definition.AutonomousRequiredState != null && !pUnit.HasState(pUnit.Definition.AutonomousRequiredState)))
+            {
+                return;
+            }
+
+            switch (pUnit.Definition.AutonomousBehavior)
+            {
+                case AutonomousUnitBehavior.PullOrthogonalUnits:
+                    ResolveAutonomousPull(pUnit);
+                    break;
+
+                case AutonomousUnitBehavior.UseSkillOnNearestEnemy:
+                    ResolveAutonomousSkill(pUnit);
+                    break;
+            }
+        }
+
+        private void ResolveAutonomousPull(UnitRuntime pUnit)
+        {
+            List<UnitRuntime> lTargets = new List<UnitRuntime>();
+            foreach (UnitRuntime lCandidate in _UnitsById.Values)
+            {
+                if (lCandidate == null)
+                    continue;
+
+                int lDistance = pUnit.Position.ManhattanDistanceTo(lCandidate.Position);
+                if (lCandidate.IsAlive
+                    && lCandidate.Id != pUnit.Id
+                    && lDistance > 0
+                    && lDistance <= pUnit.Definition.AutonomousRange
+                    && (lCandidate.Position.X == pUnit.Position.X || lCandidate.Position.Y == pUnit.Position.Y)
+                    && (pUnit.Definition.AutonomousExcludedTargetState == null || !lCandidate.HasState(pUnit.Definition.AutonomousExcludedTargetState)))
+                {
+                    lTargets.Add(lCandidate);
+                }
+            }
+
+            lTargets.Sort((pLeft, pRight) =>
+            {
+                int lDistance = pUnit.Position.ManhattanDistanceTo(pLeft.Position)
+                    .CompareTo(pUnit.Position.ManhattanDistanceTo(pRight.Position));
+                return lDistance != 0 ? lDistance : pLeft.Id.Value.CompareTo(pRight.Id.Value);
+            });
+
+            SkillExecutionContext lContext = CreateSkillContext();
+            for (int lIndex = 0; lIndex < lTargets.Count; lIndex++)
+            {
+                int lDistance = pUnit.Position.ManhattanDistanceTo(lTargets[lIndex].Position);
+                SkillPullResolver.TryPullUnitToward(pUnit, lTargets[lIndex], Math.Max(0, lDistance - 1), lContext);
+            }
+        }
+
+        private void ResolveAutonomousSkill(UnitRuntime pUnit)
+        {
+            SkillDefinition lSkill = pUnit.Definition.AutonomousSkill;
+            if (lSkill == null)
+                return;
+
+            for (int lExecution = 0; lExecution < pUnit.Definition.AutonomousExecutionsPerTurn; lExecution++)
+            {
+                List<UnitRuntime> lTargets = ResolveOrderedEnemies(pUnit);
+                bool lExecuted = false;
+                for (int lIndex = 0; lIndex < lTargets.Count; lIndex++)
+                {
+                    UnitRuntime lTarget = lTargets[lIndex];
+                    SkillTarget lSkillTarget = SkillTarget.ForCell(lTarget.Position);
+                    SkillExecutionContext lContext = CreateSkillContext();
+                    if (!_SkillExecutor.Validate(pUnit, lSkill, lSkill, lSkillTarget, lContext).IsSuccess)
+                        continue;
+
+                    Dictionary<UnitId, long> lHealthBefore = CaptureHealthByUnit();
+                    BattleActionResult lResult = _SkillExecutor.Execute(pUnit, lSkill, lSkill, lSkillTarget, lContext);
+                    if (!lResult.IsSuccess)
+                        continue;
+
+                    pUnit.TrySpendEnergy(lSkill.EnergyCost);
+                    ApplyDirectSkillTargetInteraction(pUnit, lSkill, lTarget);
+                    SkillResolutionReport lReport = BuildSkillResolutionReport(pUnit.Id, lSkill, lSkill, lHealthBefore);
+                    SkillUsed?.Invoke(lResult);
+                    SkillResolved?.Invoke(lReport);
+                    BattleServiceMaintenance.CleanupDefeatedUnits(_UnitsById.Values, _GridService, _TurnSystem);
+                    RefreshPersistentPresenceGlyphs();
+                    lExecuted = true;
+                    break;
+                }
+
+                if (!lExecuted)
+                    break;
+            }
+        }
+
+        private void RefreshPersistentPresenceGlyphs() =>
+            BattleHazardResolver.RefreshPersistentPresenceGlyphs(_GridService, _UnitsById.Values);
+
+        private List<UnitRuntime> ResolveOrderedEnemies(UnitRuntime pActor)
+        {
+            List<UnitRuntime> lTargets = new List<UnitRuntime>();
+            foreach (UnitRuntime lUnit in _UnitsById.Values)
+            {
+                if (lUnit != null
+                    && lUnit.IsAlive
+                    && ((pActor.Team == Team.TeamA && lUnit.Team == Team.TeamB)
+                        || (pActor.Team == Team.TeamB && lUnit.Team == Team.TeamA)))
+                {
+                    lTargets.Add(lUnit);
+                }
+            }
+
+            lTargets.Sort((pLeft, pRight) =>
+            {
+                int lDistance = pActor.Position.ManhattanDistanceTo(pLeft.Position)
+                    .CompareTo(pActor.Position.ManhattanDistanceTo(pRight.Position));
+                return lDistance != 0 ? lDistance : pLeft.Id.Value.CompareTo(pRight.Id.Value);
+            });
+            return lTargets;
+        }
+
+        private SkillExecutionContext CreateSkillContext() => new SkillExecutionContext(
+            _GridService,
+            _UnitsById,
+            _UnitPlacementService.TryRelocateUnit,
+            _UnitPlacementService.TrySwapUnits,
+            TrySummonUnit,
+            pGlyph => _GridService.AddOrReplaceGlyph(pGlyph),
+            TryScheduleHazard);
 
         private void EvaluateOutcome()
         {

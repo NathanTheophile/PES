@@ -1,0 +1,311 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9620f8c34305754d8cc9a7e49e852d9, type: 3}
+  m_Name: States_en
+  m_EditorClassIdentifier: Unity.Localization::UnityEngine.Localization.Tables.StringTable
+  m_LocaleId:
+    m_Code: en
+  m_SharedData: {fileID: 11400000, guid: 1c402ebc4b3bc3048bd3a5b50cd49ee7, type: 2}
+  m_Metadata:
+    m_Items: []
+  m_TableData:
+  - m_Id: 53543137280
+    m_Localized: Net Cast
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53564108800
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 55086641152
+    m_Localized: Jackpot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 55086641153
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56835665920
+    m_Localized: Jackpot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56835665921
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 58333032448
+    m_Localized: Share the Treasure
+    m_Metadata:
+      m_Items: []
+  - m_Id: 58333032449
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 59842981888
+    m_Localized: Hooked Sabre
+    m_Metadata:
+      m_Items: []
+  - m_Id: 59842981889
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 61478760448
+    m_Localized: Pistol Shot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 61478760449
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 63198425088
+    m_Localized: Pistol Shot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 63198425089
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64637071360
+    m_Localized: Sapping Shot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64637071361
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66771972096
+    m_Localized: Treasure
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66771972097
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66797137920
+    m_Localized: Treasure
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66797137921
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66813915136
+    m_Localized: Ballista Support
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66813915137
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66839080960
+    m_Localized: Carpenter Construction
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66839080961
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66864246784
+    m_Localized: Broken Energy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66864246785
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66889412608
+    m_Localized: Collective Plating
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66889412609
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66922967040
+    m_Localized: Harpoon Support
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66922967041
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66956521472
+    m_Localized: Light Hindrance
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66956521473
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66985881600
+    m_Localized: Heavy Hindrance
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66985881601
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67006853120
+    m_Localized: Persistent Damage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67006853121
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67040407552
+    m_Localized: Pulley Momentum
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67040407553
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67069767680
+    m_Localized: Stripped Armor
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67069767681
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67094933504
+    m_Localized: Recovered Armor
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67094933505
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67115905024
+    m_Localized: Active Turret
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67115905025
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67145265152
+    m_Localized: Inactive Turret
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67145265153
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67170430976
+    m_Localized: Protected by the Depths
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67170430977
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67199791104
+    m_Localized: Abyssal Resistance
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67199791105
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67229151232
+    m_Localized: Siphoned
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67229151233
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67258511360
+    m_Localized: Momentum
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67258511361
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67283677184
+    m_Localized: Favorable Horizon
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67283677185
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67308843008
+    m_Localized: Obscured Horizon
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67308843009
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67338203136
+    m_Localized: Salt Erosion
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67338203137
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67363368960
+    m_Localized: Shared Momentum
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67363368961
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67396923392
+    m_Localized: Marked by the Undertow
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67396923393
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67673747456
+    m_Localized: Unhealable
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67673747457
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67690524672
+    m_Localized: Horizon Conch
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67690524673
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67715690496
+    m_Localized: Nourishing Coral
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67715690497
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67749244928
+    m_Localized: Siphoning Shell
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67749244929
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  references:
+    version: 2
+    RefIds: []

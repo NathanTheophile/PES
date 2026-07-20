@@ -6,14 +6,26 @@
 
 using System;
 using TacticalPort.Data;
+using TacticalPort.Shared;
 
 namespace TacticalPort.Core
 {
     public sealed class BattleStateRuntime
     {
-        public BattleStateRuntime(string pKey, StateDefinition pDefinition, int pStacks, int pRemainingTurns, bool pIsPersistent)
+        public BattleStateRuntime(
+            string pKey,
+            StateDefinition pDefinition,
+            int pStacks,
+            int pRemainingTurns,
+            bool pIsPersistent,
+            UnitId pSourceUnitId = default,
+            Team pSourceTeam = Team.Neutral,
+            string pSourceContextId = null)
         {
             Key = pKey ?? string.Empty;
+            SourceUnitId = pSourceUnitId;
+            SourceTeam = pSourceTeam;
+            SourceContextId = pSourceContextId ?? string.Empty;
             Reconfigure(pDefinition, pStacks, pRemainingTurns, pIsPersistent);
         }
 
@@ -22,6 +34,9 @@ namespace TacticalPort.Core
         public int Stacks { get; private set; }
         public int RemainingTurns { get; private set; }
         public bool IsPersistent { get; private set; }
+        public UnitId SourceUnitId { get; private set; }
+        public Team SourceTeam { get; private set; }
+        public string SourceContextId { get; private set; }
         public bool HasDuration => RemainingTurns > 0;
 
         internal void Reconfigure(StateDefinition pDefinition, int pStacks, int pRemainingTurns, bool pIsPersistent)
@@ -35,6 +50,13 @@ namespace TacticalPort.Core
             IsPersistent = pIsPersistent;
         }
 
+        internal void SetSource(UnitId pSourceUnitId, Team pSourceTeam, string pSourceContextId)
+        {
+            SourceUnitId = pSourceUnitId;
+            SourceTeam = pSourceTeam;
+            SourceContextId = pSourceContextId ?? string.Empty;
+        }
+
         internal void AddStacks(int pStacks)
         {
             if (pStacks <= 0 || Definition == null)
@@ -45,7 +67,7 @@ namespace TacticalPort.Core
 
         internal void SetRemainingTurns(int pRemainingTurns) => RemainingTurns = Math.Max(0, pRemainingTurns);
 
-        internal bool TickTurnEnd()
+        internal bool TickDuration()
         {
             if (IsPersistent || RemainingTurns <= 0)
                 return false;

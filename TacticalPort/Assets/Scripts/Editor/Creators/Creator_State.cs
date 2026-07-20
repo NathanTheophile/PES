@@ -21,6 +21,10 @@ namespace TacticalPort.EditorTools
         private int _DurationTurns = 0;
         private int _MaxStacks = 1;
         private bool _IsPassiveMarker;
+        private bool _BlocksHealing;
+        private bool _ProtectsDurationReduction;
+        private bool _UsesSourceScopedInstances;
+        private int _BeginTurnDamagePerStack;
         private bool _EnablesSkillVariant;
         private StateDefinition _VariantConsumedReplacementState;
         private int _DamageModifierPerStack = 0;
@@ -53,14 +57,18 @@ namespace TacticalPort.EditorTools
         {
             DrawTitle("Create State Definition", StatesFolder);
 
-            _DisplayName = EditorGUILayout.TextField("Display Name", _DisplayName);
+            _DisplayName = EditorGUILayout.TextField("English Display Name", _DisplayName);
             _Id = EditorGUILayout.TextField("Id", _Id);
-            _Description = EditorGUILayout.TextField("Description", _Description);
+            _Description = EditorGUILayout.TextField("English Description", _Description);
 
             DrawSectionHeader("Rules");
             _DurationTurns = Mathf.Max(0, EditorGUILayout.IntField("Duration Turns", _DurationTurns));
             _MaxStacks = Mathf.Max(1, EditorGUILayout.IntField("Max Stacks", _MaxStacks));
             _IsPassiveMarker = EditorGUILayout.Toggle("Passive Marker", _IsPassiveMarker);
+            _BlocksHealing = EditorGUILayout.Toggle("Blocks Healing", _BlocksHealing);
+            _ProtectsDurationReduction = EditorGUILayout.Toggle("Protects Duration Reduction", _ProtectsDurationReduction);
+            _UsesSourceScopedInstances = EditorGUILayout.Toggle("Source Scoped Instances", _UsesSourceScopedInstances);
+            _BeginTurnDamagePerStack = Mathf.Max(0, EditorGUILayout.IntField("Begin Turn Damage / Stack", _BeginTurnDamagePerStack));
             _EnablesSkillVariant = EditorGUILayout.Toggle("Enables Skill Variant", _EnablesSkillVariant);
             if (_EnablesSkillVariant)
             {
@@ -103,6 +111,10 @@ namespace TacticalPort.EditorTools
             SetInt(lSerializedObject, "_DurationTurns", Mathf.Max(0, _DurationTurns));
             SetInt(lSerializedObject, "_MaxStacks", Mathf.Max(1, _MaxStacks));
             SetBool(lSerializedObject, "_IsPassiveMarker", _IsPassiveMarker);
+            SetBool(lSerializedObject, "_BlocksHealing", _BlocksHealing);
+            SetBool(lSerializedObject, "_ProtectsDurationReduction", _ProtectsDurationReduction);
+            SetBool(lSerializedObject, "_UsesSourceScopedInstances", _UsesSourceScopedInstances);
+            SetInt(lSerializedObject, "_BeginTurnDamagePerStack", Mathf.Max(0, _BeginTurnDamagePerStack));
             SetBool(lSerializedObject, "_EnablesSkillVariant", _EnablesSkillVariant);
             SetObject(lSerializedObject, "_VariantConsumedReplacementState", _EnablesSkillVariant ? _VariantConsumedReplacementState : null);
             SetInt(lSerializedObject, "_DamageModifierPerStack", _DamageModifierPerStack);
@@ -120,6 +132,7 @@ namespace TacticalPort.EditorTools
 
             string lFileName = BuildFileName("State", lId, _DisplayName, "state");
             Creator_FileSaver.CreateAsset(lAsset, StatesFolder, lFileName);
+            ContentLocalizationEditorUtility.EnsureEntries(GameLocalization.StatesTable, lId, lAsset.EnglishDisplayName, lAsset.EnglishDescription);
             Close();
         }
 

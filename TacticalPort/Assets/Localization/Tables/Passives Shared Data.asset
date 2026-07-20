@@ -1,0 +1,76 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b11a58205ec3474ca216360e9fa74a8, type: 3}
+  m_Name: Passives Shared Data
+  m_EditorClassIdentifier: Unity.Localization::UnityEngine.Localization.Tables.SharedTableData
+  m_TableCollectionName: Passives
+  m_TableCollectionNameGuidString: e0cfbded1175b6446aab33676524ce22
+  m_Entries:
+  - m_Id: 48107319296
+    m_Key: thirst_for_wealth.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48140873728
+    m_Key: thirst_for_wealth.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 49847955456
+    m_Key: buccaneers_hide.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 49847955457
+    m_Key: buccaneers_hide.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51672477696
+    m_Key: carpenter_permanent_maintenance.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51672477697
+    m_Key: carpenter_permanent_maintenance.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53270507520
+    m_Key: carpenter_workshop_network.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53270507521
+    m_Key: carpenter_workshop_network.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 54667210752
+    m_Key: solidarity_tide.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 54667210753
+    m_Key: solidarity_tide.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 54679793664
+    m_Key: deep_aegis.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 54679793665
+    m_Key: deep_aegis.description
+    m_Metadata:
+      m_Items: []
+  m_Metadata:
+    m_Items: []
+  m_KeyGenerator:
+    rid: 2073694767051964684
+  references:
+    version: 2
+    RefIds:
+    - rid: 2073694767051964684
+      type: {class: DistributedUIDGenerator, ns: UnityEngine.Localization.Tables, asm: Unity.Localization}
+      data:
+        m_CustomEpoch: 1784479480474

@@ -42,7 +42,8 @@ namespace TacticalPort.UI
 
         #region _____________________________/ VALUES
 
-        [SerializeField] private List<UnitDefinition> _AvailableUnits = new List<UnitDefinition>();
+        [SerializeField] private PlayableRosterDefinition _PlayableRoster;
+        [SerializeField, HideInInspector] private List<UnitDefinition> _AvailableUnits = new List<UnitDefinition>();
         [SerializeField] private string _MainMenuSceneName = "S_MainMenu";
         [Tooltip("Message displayed by the persistent loading screen when the standalone scene returns to frontend.")]
         [SerializeField] private string _LoadingMessage = "Returning to menu...";
@@ -231,7 +232,9 @@ namespace TacticalPort.UI
                 return;
 
             if (pSlot.Name != null)
-                pSlot.Name.text = pDefinition != null ? pDefinition.DisplayName : "Empty";
+                pSlot.Name.text = pDefinition != null
+                    ? pDefinition.DisplayName
+                    : GameLocalization.Get(GameLocalization.UiTable, "common.empty", "Empty");
 
             if (pSlot.Visual != null)
             {
@@ -256,7 +259,9 @@ namespace TacticalPort.UI
             }
 
             if (pItem.Name != null)
-                pItem.Name.text = pDefinition != null ? pDefinition.DisplayName : "Empty";
+                pItem.Name.text = pDefinition != null
+                    ? pDefinition.DisplayName
+                    : GameLocalization.Get(GameLocalization.UiTable, "common.empty", "Empty");
 
             if (pItem.Button == null)
                 pItem.Button = pItem.Root.GetComponent<Button>();
@@ -368,7 +373,7 @@ namespace TacticalPort.UI
             for (int lIndex = 0; lIndex < pAvailableUnits.Count; lIndex++)
             {
                 UnitDefinition lUnit = pAvailableUnits[lIndex];
-                if (lUnit != null && string.Equals(lUnit.Id, pId, System.StringComparison.Ordinal))
+                if (lUnit != null && ContentIdAliases.Matches(lUnit.Id, pId))
                     return lUnit;
             }
 
@@ -398,7 +403,7 @@ namespace TacticalPort.UI
                     : null;
 
             if (lLabel != null)
-                lLabel.text = "SAVE";
+                lLabel.text = GameLocalization.Get(GameLocalization.UiTable, "common.save", "SAVE");
         }
 
         private Button ResolveSaveButton() => _SaveButton != null ? _SaveButton : _LaunchButton;
@@ -443,11 +448,13 @@ namespace TacticalPort.UI
 
         private List<UnitDefinition> GetAvailableUnits()
         {
-            List<UnitDefinition> lUnits = new List<UnitDefinition>(_AvailableUnits.Count);
-            for (int lIndex = 0; lIndex < _AvailableUnits.Count; lIndex++)
+            IReadOnlyList<UnitDefinition> lSource = _PlayableRoster != null ? _PlayableRoster.Units : _AvailableUnits;
+            List<UnitDefinition> lUnits = new List<UnitDefinition>(lSource.Count);
+            for (int lIndex = 0; lIndex < lSource.Count; lIndex++)
             {
-                if (_AvailableUnits[lIndex] != null)
-                    lUnits.Add(_AvailableUnits[lIndex]);
+                UnitDefinition lUnit = lSource[lIndex];
+                if (lUnit != null && !lUnits.Contains(lUnit))
+                    lUnits.Add(lUnit);
             }
 
             return lUnits;

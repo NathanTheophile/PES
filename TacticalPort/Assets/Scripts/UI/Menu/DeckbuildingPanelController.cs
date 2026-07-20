@@ -44,6 +44,9 @@ namespace TacticalPort.UI
             public TMP_Text Name;
             public DeckbuildingSkillTooltipView Tooltip;
             public GameObject SelectedIndicator;
+            [NonSerialized] public Image Ornament;
+            [NonSerialized] public Image OrnamentSecondary;
+            [NonSerialized] public Material IconMaterialInstance;
         }
 
         [Serializable]
@@ -51,10 +54,14 @@ namespace TacticalPort.UI
         {
             public Button Button;
             public Image Background;
+            [NonSerialized] public Image Circle;
+            [NonSerialized] public Image Ornament;
+            [NonSerialized] public Image OrnamentSecondary;
             public Image Icon;
             public TMP_Text Name;
             public TMP_Text Meta;
             public DeckbuildingSkillTooltipView Tooltip;
+            [NonSerialized] public Material IconMaterialInstance;
         }
 
         [Serializable]
@@ -93,7 +100,8 @@ namespace TacticalPort.UI
         private const int EquippedSkillCount = 6;
 
         [Header("Data")]
-        [SerializeField] private List<UnitDefinition> _AvailableUnits = new List<UnitDefinition>();
+        [SerializeField] private PlayableRosterDefinition _PlayableRoster;
+        [SerializeField, HideInInspector] private List<UnitDefinition> _AvailableUnits = new List<UnitDefinition>();
         [SerializeField, Min(1)] private int _TeamSize = DefaultTeamSize;
         [SerializeField, Min(0)] private int _CurrentSlotIndex;
 
@@ -136,6 +144,9 @@ namespace TacticalPort.UI
         private int _PendingSkillSlotIndex = -1;
         private bool _HasHookedStaticButtons;
 
+        private static readonly int SkillColorPropertyId = Shader.PropertyToID("_ColorB");
+        private static readonly int PassiveColorPropertyId = Shader.PropertyToID("_ColorA");
+
         public event Action TeamSelectionChanged;
         public event Action Closed;
 
@@ -150,6 +161,15 @@ namespace TacticalPort.UI
         }
 
         private void OnEnable() => RefreshSelectionView();
+
+        private void OnDestroy()
+        {
+            for (int lIndex = 0; lIndex < _PassiveSlots.Count; lIndex++)
+                DestroyRuntimeMaterial(_PassiveSlots[lIndex]?.IconMaterialInstance);
+
+            for (int lIndex = 0; lIndex < _SkillSlots.Count; lIndex++)
+                DestroyRuntimeMaterial(_SkillSlots[lIndex]?.IconMaterialInstance);
+        }
 
         #endregion
 
@@ -213,7 +233,7 @@ namespace TacticalPort.UI
 
             _Draft = new TeamPresetDraft(
                 _TeamSize,
-                _AvailableUnits,
+                _PlayableRoster != null ? _PlayableRoster.Units : _AvailableUnits,
                 TeamSelectionState.SelectedUnits,
                 TeamSelectionState.SelectedUnitIds,
                 TeamPresetState.ActivePreset);
@@ -238,7 +258,7 @@ namespace TacticalPort.UI
         private void BindCharacter(UnitDefinition pUnit)
         {
             if (_Character.Name != null)
-                _Character.Name.text = pUnit != null ? pUnit.DisplayName : "Empty";
+                _Character.Name.text = pUnit != null ? pUnit.DisplayName : Localize("common.empty", "Empty");
 
             if (_Character.Description != null)
             {
@@ -298,10 +318,10 @@ namespace TacticalPort.UI
                 bool lSelected = lHasPassive && lPassive == lSelectedPassive;
 
                 if (lSlot.Name != null)
-                    lSlot.Name.text = lHasPassive ? lPassive.DisplayName : "Empty";
+                lSlot.Name.text = lHasPassive ? lPassive.DisplayName : Localize("common.empty", "Empty");
 
-                SetImage(lSlot.Icon, lHasPassive ? lPassive.Icon : null);
-                SetBackground(lSlot.Background, lHasPassive ? _NormalCellColor : _DisabledCellColor);
+                SetIconSprite(lSlot.Icon, lHasPassive ? lPassive.Icon : null);
+                ApplyPassiveSelectionVisuals(lSlot, lSelected);
                 lSlot.Tooltip?.Bind(lPassive);
                 SetActive(lSlot.SelectedIndicator, lSelected);
 
@@ -325,13 +345,13 @@ namespace TacticalPort.UI
                 SkillSlotView lSlot = _SkillSlots[lIndex];
 
                 if (lSlot.Name != null)
-                    lSlot.Name.text = lSkill != null ? lSkill.DisplayName : "Empty";
+                    lSlot.Name.text = lSkill != null ? lSkill.DisplayName : Localize("common.empty", "Empty");
 
                 if (lSlot.Meta != null)
                     lSlot.Meta.text = lSkill != null ? BuildShortSkillMeta(lSkill) : string.Empty;
 
-                SetImage(lSlot.Icon, lSkill != null ? lSkill.Icon : null);
-                SetBackground(lSlot.Background, lSkill != null ? _NormalCellColor : _DisabledCellColor);
+                SetIconSprite(lSlot.Icon, lSkill != null ? lSkill.Icon : null);
+                ApplySkillColor(lSlot, lSkill);
                 lSlot.Tooltip?.Bind(lSkill);
 
                 if (lSlot.Button != null)
@@ -455,10 +475,12 @@ namespace TacticalPort.UI
             bool lUsedElsewhere = IsUnitSelectedInAnotherSlot(pUnit);
 
             if (pItem.Name != null)
-                pItem.Name.text = pUnit != null ? pUnit.DisplayName : "Empty";
+                pItem.Name.text = pUnit != null ? pUnit.DisplayName : Localize("common.empty", "Empty");
 
             if (pItem.State != null)
-                pItem.State.text = lSelectedCurrent ? "Selected" : lUsedElsewhere ? "Already used" : string.Empty;
+                pItem.State.text = lSelectedCurrent
+                    ? Localize("common.selected", "Selected")
+                    : lUsedElsewhere ? Localize("common.already_used", "Already used") : string.Empty;
 
             SetImage(pItem.Icon, pUnit != null ? pUnit.DisplaySprite : null);
             SetBackground(pItem.Background, lSelectedCurrent ? _SelectedCellColor : lUsedElsewhere ? _DisabledCellColor : _NormalCellColor);
@@ -548,15 +570,17 @@ namespace TacticalPort.UI
             bool lEquippedElsewhere = IsSkillEquippedInAnotherSlot(pSkill);
 
             if (pItem.Name != null)
-                pItem.Name.text = pSkill != null ? pSkill.DisplayName : "Empty";
+                pItem.Name.text = pSkill != null ? pSkill.DisplayName : Localize("common.empty", "Empty");
 
             if (pItem.Meta != null)
                 pItem.Meta.text = pSkill != null ? BuildFullSkillMeta(pSkill) : string.Empty;
 
             if (pItem.State != null)
-                pItem.State.text = lEquippedHere ? "Equipped" : lEquippedElsewhere ? "Already equipped" : string.Empty;
+                pItem.State.text = lEquippedHere
+                    ? Localize("common.equipped", "Equipped")
+                    : lEquippedElsewhere ? Localize("common.already_equipped", "Already equipped") : string.Empty;
 
-            SetImage(pItem.Icon, pSkill != null ? pSkill.Icon : null);
+            SetIconSprite(pItem.Icon, pSkill != null ? pSkill.Icon : null);
             SetBackground(pItem.Background, lEquippedHere ? _SelectedCellColor : lEquippedElsewhere ? _DisabledCellColor : _NormalCellColor);
             pItem.Tooltip?.Bind(pSkill);
 
@@ -681,8 +705,7 @@ namespace TacticalPort.UI
                 return string.Empty;
 
             string lMeta = $"Energy {pSkill.EnergyCost} | Range {pSkill.RangeMin}-{pSkill.RangeMax}";
-            if (pSkill.RequiresLineOfSight)
-                lMeta += " | LoS";
+            lMeta += pSkill.RequiresVisibility ? " | Visibility" : " | No Visibility";
             if (pSkill.CooldownTurns > 0)
                 lMeta += $" | CD {pSkill.CooldownTurns}";
             if (pSkill.UsePerTurn > 0)
@@ -798,11 +821,110 @@ namespace TacticalPort.UI
             pImage.color = Color.white;
         }
 
+        private static void SetIconSprite(Image pImage, Sprite pSprite)
+        {
+            if (pImage == null)
+                return;
+
+            pImage.sprite = pSprite;
+            pImage.preserveAspect = true;
+            pImage.enabled = pSprite != null;
+        }
+
+        private void ApplySkillColor(SkillSlotView pSlot, SkillDefinition pSkill)
+        {
+            if (pSlot == null)
+                return;
+
+            Transform lRoot = pSlot.Button != null ? pSlot.Button.transform : null;
+            pSlot.Circle ??= FindDescendantComponent<Image>(lRoot, "Btn_Skill_Circle");
+            pSlot.Ornament ??= FindDescendantComponent<Image>(lRoot, "Btn_Skill_Ornament_L");
+            pSlot.OrnamentSecondary ??= FindDescendantComponent<Image>(lRoot, "Btn_Skill_Ornament_R");
+
+            Color lColor = pSkill != null ? ThemeManager.GetSkillColor(pSkill) : _DisabledCellColor;
+            SetBackground(pSlot.Background, lColor);
+            SetBackground(pSlot.Circle, lColor);
+            Color lOrnamentColor = WithHsvValue(lColor, 1f);
+            SetBackground(pSlot.Ornament, lOrnamentColor);
+            SetBackground(pSlot.OrnamentSecondary, lOrnamentColor);
+            SetIconGradientColor(pSlot.Icon, ref pSlot.IconMaterialInstance, SkillColorPropertyId, lColor);
+        }
+
+        private static void ApplyPassiveSelectionVisuals(PassiveSlotView pSlot, bool pSelected)
+        {
+            if (pSlot == null)
+                return;
+
+            Transform lRoot = pSlot.Button != null ? pSlot.Button.transform : null;
+            pSlot.Ornament ??= FindDescendantComponent<Image>(lRoot, "Btn_Skill_Ornament_L");
+            pSlot.OrnamentSecondary ??= FindDescendantComponent<Image>(lRoot, "Btn_Skill_Ornament_R");
+
+            Color lColor = pSelected ? ThemeManager.GoldColor : ThemeManager.SilverColor;
+            SetBackground(pSlot.Ornament, lColor);
+            SetBackground(pSlot.OrnamentSecondary, lColor);
+            SetIconGradientColor(pSlot.Icon, ref pSlot.IconMaterialInstance, PassiveColorPropertyId, lColor);
+        }
+
+        private static void SetIconGradientColor(Image pIcon, ref Material pMaterialInstance, int pColorPropertyId, Color pColor)
+        {
+            if (pIcon == null)
+                return;
+
+            Material lSourceMaterial = pIcon.material;
+            if (lSourceMaterial == null || !lSourceMaterial.HasProperty(pColorPropertyId))
+                return;
+
+            if (pMaterialInstance == null)
+            {
+                pMaterialInstance = new Material(lSourceMaterial)
+                {
+                    name = $"{lSourceMaterial.name} ({pIcon.name} Runtime)",
+                    hideFlags = HideFlags.DontSave
+                };
+                pIcon.material = pMaterialInstance;
+            }
+
+            pMaterialInstance.SetColor(pColorPropertyId, pColor);
+        }
+
+        private static Color WithHsvValue(Color pColor, float pValue)
+        {
+            Color.RGBToHSV(pColor, out float lHue, out float lSaturation, out _);
+            Color lResult = Color.HSVToRGB(lHue, lSaturation, Mathf.Clamp01(pValue));
+            lResult.a = pColor.a;
+            return lResult;
+        }
+
+        private static void DestroyRuntimeMaterial(Material pMaterial)
+        {
+            if (pMaterial != null)
+                UnityEngine.Object.Destroy(pMaterial);
+        }
+
+        private static T FindDescendantComponent<T>(Transform pRoot, string pName) where T : Component
+        {
+            if (pRoot == null || string.IsNullOrWhiteSpace(pName))
+                return null;
+
+            T[] lComponents = pRoot.GetComponentsInChildren<T>(true);
+            for (int lIndex = 0; lIndex < lComponents.Length; lIndex++)
+            {
+                T lComponent = lComponents[lIndex];
+                if (lComponent != null && lComponent.name == pName)
+                    return lComponent;
+            }
+
+            return null;
+        }
+
         private static void SetBackground(Image pImage, Color pColor)
         {
             if (pImage != null)
                 pImage.color = pColor;
         }
+
+        private static string Localize(string pKey, string pEnglishFallback) =>
+            GameLocalization.Get(GameLocalization.UiTable, pKey, pEnglishFallback);
 
         #endregion
     }

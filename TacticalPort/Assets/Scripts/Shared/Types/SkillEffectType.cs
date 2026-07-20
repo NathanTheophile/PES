@@ -23,7 +23,9 @@ namespace TacticalPort.Shared
         Summon = 4,
         CreateGlyph = 5,
         Pull = 6,
-        AdvanceActivePassiveProgression = 7
+        AdvanceActivePassiveProgression = 7,
+        RepairAndToggleStates = 8,
+        ReduceStateDurations = 9
     }
 
     public enum SkillCategory

@@ -52,6 +52,7 @@ namespace TacticalPort.Core
             pHash = Mix(pHash, pUnit.Id.Value);
             pHash = Mix(pHash, (int)pUnit.Team);
             pHash = Mix(pHash, pUnit.TeamSlotIndex);
+            pHash = Mix(pHash, pUnit.OwnerUnitId.Value);
             pHash = Mix(pHash, pUnit.Position.X);
             pHash = Mix(pHash, pUnit.Position.Y);
             pHash = Mix(pHash, pUnit.CurrentHealth);
@@ -78,6 +79,9 @@ namespace TacticalPort.Core
             pHash = Mix(pHash, pState.Stacks);
             pHash = Mix(pHash, pState.RemainingTurns);
             pHash = Mix(pHash, pState.IsPersistent ? 1 : 0);
+            pHash = Mix(pHash, pState.SourceUnitId.Value);
+            pHash = Mix(pHash, (int)pState.SourceTeam);
+            pHash = Mix(pHash, StableStringHash(pState.SourceContextId));
         }
 
         private static void MixGlyph(ref int pHash, GridGlyphRuntime pGlyph)
@@ -97,6 +101,10 @@ namespace TacticalPort.Core
             pHash = Mix(pHash, StableStringHash(pGlyph.AppliedState != null ? pGlyph.AppliedState.Id : string.Empty));
             pHash = Mix(pHash, pGlyph.AppliedStateStacks);
             pHash = Mix(pHash, pGlyph.AppliedStateDurationTurns);
+            pHash = Mix(pHash, StableStringHash(pGlyph.Definition != null ? pGlyph.Definition.Id : string.Empty));
+            pHash = Mix(pHash, (int)pGlyph.TriggerTiming);
+            pHash = Mix(pHash, pGlyph.LifetimeSourceUnitId.Value);
+            pHash = Mix(pHash, pGlyph.IsSourceBound ? 1 : 0);
         }
 
         private static void MixHazard(ref int pHash, TelegraphedHazardRuntime pHazard)

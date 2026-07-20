@@ -139,14 +139,14 @@ namespace TacticalPort.Core
             {
                 pCells.Add(lOccupiedCell);
                 GridCoord lDirection = pActor != null
-                    ? GridLineOfSightUtility.ResolveAreaDirection(pActor.Position, lOccupiedCell)
+                    ? GridVisibilityUtility.ResolveAreaDirection(pActor.Position, lOccupiedCell)
                     : new GridCoord(0, 1);
 
                 for (int lOffsetY = -lAoeSize; lOffsetY <= lAoeSize; lOffsetY++)
                 {
                     for (int lOffsetX = -lAoeSize; lOffsetX <= lAoeSize; lOffsetX++)
                     {
-                        if (!GridLineOfSightUtility.IsInsideAreaShape(pSkill.AoeShape, lOffsetX, lOffsetY, lAoeSize, lDirection))
+                        if (!GridVisibilityUtility.IsInsideAreaShape(pSkill.AoeShape, lOffsetX, lOffsetY, lAoeSize, lDirection))
                             continue;
 
                         pCells.Add(new GridCoord(lOccupiedCell.X - lOffsetX, lOccupiedCell.Y - lOffsetY));
@@ -252,7 +252,7 @@ namespace TacticalPort.Core
                     if (lDistance < lRangeMin || lDistance > lRangeMax)
                         continue;
 
-                    if (!GridLineOfSightUtility.MatchesAlignment(pActor.Position, lCell, pSkill.TargetAlignment))
+                    if (!GridVisibilityUtility.MatchesAlignment(pActor.Position, lCell, pSkill.TargetAlignment))
                         continue;
 
                     yield return lCell;
@@ -279,7 +279,7 @@ namespace TacticalPort.Core
                     int lRangePenalty = lDistance < lRangeMin ? lRangeMin - lDistance : Math.Max(0, lDistance - lRangeMax);
                     int lScore = 100 - lRangePenalty * 20;
 
-                    if (!GridLineOfSightUtility.MatchesAlignment(pCell, lTarget.Position, lSkill.TargetAlignment))
+                    if (!GridVisibilityUtility.MatchesAlignment(pCell, lTarget.Position, lSkill.TargetAlignment))
                         lScore -= 25;
 
                     lScore += Math.Max(0, lSkill.Power);

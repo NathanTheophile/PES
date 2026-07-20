@@ -36,6 +36,7 @@ namespace TacticalPort.Core
             }
 
             if (!ValidateTargetType(pActor, pEffectiveSkill, lResolvedTarget, out pFailure)
+                || !ValidatePrimaryTarget(pActor, pEffectiveSkill, lResolvedTarget.PrimaryTargetUnit, out pFailure)
                 || !ValidateTargetGeometry(pActor, pEffectiveSkill, lResolvedTarget, pContext, out pFailure))
             {
                 pResolvedTarget = null;
@@ -44,15 +45,9 @@ namespace TacticalPort.Core
 
             PopulateAffectedCells(pActor, pEffectiveSkill, lResolvedTarget.TargetCell, pContext, lResolvedTarget.AffectedCells);
             PopulateAffectedUnits(pActor, pEffectiveSkill, pContext, lResolvedTarget.AffectedCells, lResolvedTarget.AffectedUnits);
+            if (pEffectiveSkill.ExcludePrimaryTargetFromEffects && lResolvedTarget.PrimaryTargetUnit != null)
+                lResolvedTarget.AffectedUnits.Remove(lResolvedTarget.PrimaryTargetUnit);
             PopulateUsageTargetKeys(lResolvedTarget);
-
-            if (pEffectiveSkill.TargetType == SkillTargetType.Unit
-                && !ContainsUnit(lResolvedTarget.AffectedUnits, lResolvedTarget.PrimaryTargetUnit))
-            {
-                pResolvedTarget = null;
-                pFailure = BattleActionResult.Failed(BattleActionType.Skill, "The selected unit does not match this skill's target relation.");
-                return false;
-            }
 
             if (!ValidateEffectSpecificTargeting(pActor, pEffectiveSkill, lResolvedTarget, pContext, out pFailure))
             {
@@ -84,14 +79,56 @@ namespace TacticalPort.Core
                     pFailure = BattleActionResult.Failed(BattleActionType.Skill, "A living unit target is required.");
                     return false;
 
+                case SkillTargetType.Unit when !MatchesUnitType(pResolvedTarget.PrimaryTargetUnit, pSkill.TargetUnitType):
+                    pFailure = BattleActionResult.Failed(BattleActionType.Skill, "The selected unit does not match this skill's unit type rule.");
+                    return false;
+
                 case SkillTargetType.Self when pActor == null || pResolvedTarget.TargetCell != pActor.Position:
                     pFailure = BattleActionResult.Failed(BattleActionType.Skill, "This skill must target its caster.");
+                    return false;
+
+                case SkillTargetType.Self when !MatchesUnitType(pActor, pSkill.TargetUnitType):
+                    pFailure = BattleActionResult.Failed(BattleActionType.Skill, "The caster does not match this skill's unit type rule.");
                     return false;
 
                 default:
                     pFailure = null;
                     return true;
             }
+        }
+
+        private static bool ValidatePrimaryTarget(
+            UnitRuntime pActor,
+            SkillDefinition pSkill,
+            UnitRuntime pTarget,
+            out BattleActionResult pFailure)
+        {
+            if (pSkill.TargetType != SkillTargetType.Unit)
+            {
+                pFailure = null;
+                return true;
+            }
+
+            if (!MatchesRelation(pActor, pTarget, pSkill.TargetRelation))
+            {
+                pFailure = BattleActionResult.Failed(BattleActionType.Skill, "The selected unit does not match this skill's target relation.");
+                return false;
+            }
+
+            if (pSkill.RequiresPrimaryTargetOwnedByCaster && !pTarget.IsOwnedBy(pActor))
+            {
+                pFailure = BattleActionResult.Failed(BattleActionType.Skill, "The selected unit is not owned by the caster.");
+                return false;
+            }
+
+            if (pSkill.RequiredPrimaryTargetState != null && !pTarget.HasState(pSkill.RequiredPrimaryTargetState))
+            {
+                pFailure = BattleActionResult.Failed(BattleActionType.Skill, "The selected unit does not have the required state.");
+                return false;
+            }
+
+            pFailure = null;
+            return true;
         }
 
         public static IEnumerable<UnitId> ResolveAffectedUnitIds(UnitId pActorId, ResolvedSkillTarget pResolvedTarget)
@@ -175,17 +212,17 @@ namespace TacticalPort.Core
                 return false;
             }
 
-            if (!GridLineOfSightUtility.MatchesAlignment(pActor.Position, pTargetCell, pSkill.TargetAlignment))
+            if (!GridVisibilityUtility.MatchesAlignment(pActor.Position, pTargetCell, pSkill.TargetAlignment))
             {
                 pFailure = BattleActionResult.Failed(BattleActionType.Skill, ResolveAlignmentFailureMessage(pSkill.TargetAlignment));
                 return false;
             }
 
-            if (pSkill.RequiresLineOfSight
+            if (pSkill.RequiresVisibility
                 && pActor.Position != pTargetCell
-                && !HasLineOfSight(pActor, pTargetCell, pResolvedTarget.PrimaryTargetUnit, pContext))
+                && !HasVisibility(pActor, pTargetCell, pResolvedTarget.PrimaryTargetUnit, pContext))
             {
-                pFailure = BattleActionResult.Failed(BattleActionType.Skill, "Target is not in line of sight.");
+                pFailure = BattleActionResult.Failed(BattleActionType.Skill, "Target is not visible.");
                 return false;
             }
 
@@ -270,7 +307,7 @@ namespace TacticalPort.Core
             }
 
             GridCoord lDirection = pActor != null
-                ? GridLineOfSightUtility.ResolveAreaDirection(pActor.Position, pOrigin)
+                ? GridVisibilityUtility.ResolveAreaDirection(pActor.Position, pOrigin)
                 : new GridCoord(0, 1);
 
             for (int lOffsetY = -lSize; lOffsetY <= lSize; lOffsetY++)
@@ -281,7 +318,7 @@ namespace TacticalPort.Core
                     if (!pContext.GridService.IsInside(lCandidate))
                         continue;
 
-                    if (!GridLineOfSightUtility.IsInsideAreaShape(pSkill.AoeShape, lOffsetX, lOffsetY, lSize, lDirection))
+                    if (!GridVisibilityUtility.IsInsideAreaShape(pSkill.AoeShape, lOffsetX, lOffsetY, lSize, lDirection))
                         continue;
 
                     pCells.Add(lCandidate);
@@ -340,7 +377,29 @@ namespace TacticalPort.Core
             if (lIsCaster && !pSkill.CanAffectCaster)
                 return false;
 
-            switch (pSkill.TargetRelation)
+            return MatchesUnitType(pTarget, pSkill.TargetUnitType)
+                && MatchesRelation(pActor, pTarget, pSkill.EffectTargetRelation);
+        }
+
+        private static bool MatchesUnitType(UnitRuntime pUnit, UnitTargetType pTargetUnitType)
+        {
+            if (pUnit == null)
+                return false;
+
+            return pTargetUnitType switch
+            {
+                UnitTargetType.CharactersOnly => pUnit.IsCharacter,
+                UnitTargetType.SummonsOnly => pUnit.IsSummon,
+                _ => true
+            };
+        }
+
+        private static bool MatchesRelation(UnitRuntime pActor, UnitRuntime pTarget, SkillTargetRelation pRelation)
+        {
+            if (pActor == null || pTarget == null || !pTarget.IsAlive)
+                return false;
+
+            switch (pRelation)
             {
                 case SkillTargetRelation.AlliesOnly:
                     return pTarget.Team == pActor.Team;
@@ -376,20 +435,10 @@ namespace TacticalPort.Core
             pResolvedTarget.UsageTargetKeys.Clear();
 
             HashSet<string> lKeys = new HashSet<string>();
-            for (int lIndex = 0; lIndex < pResolvedTarget.AffectedUnits.Count; lIndex++)
-            {
-                UnitRuntime lUnit = pResolvedTarget.AffectedUnits[lIndex];
-                if (lUnit != null)
-                    lKeys.Add($"unit:{lUnit.Id.Value}");
-            }
-
-            if (lKeys.Count == 0)
-            {
-                if (pResolvedTarget.PrimaryTargetUnit != null)
-                    lKeys.Add($"unit:{pResolvedTarget.PrimaryTargetUnit.Id.Value}");
-                else
-                    lKeys.Add($"cell:{pResolvedTarget.TargetCell.X}:{pResolvedTarget.TargetCell.Y}");
-            }
+            if (pResolvedTarget.PrimaryTargetUnit != null)
+                lKeys.Add($"unit:{pResolvedTarget.PrimaryTargetUnit.Id.Value}");
+            else
+                lKeys.Add($"cell:{pResolvedTarget.TargetCell.X}:{pResolvedTarget.TargetCell.Y}");
 
             foreach (string lKey in lKeys)
                 pResolvedTarget.UsageTargetKeys.Add(lKey);
@@ -415,14 +464,14 @@ namespace TacticalPort.Core
             };
         }
 
-        private static bool HasLineOfSight(UnitRuntime pActor, GridCoord pTarget, UnitRuntime pTargetUnit, SkillExecutionContext pContext)
+        private static bool HasVisibility(UnitRuntime pActor, GridCoord pTarget, UnitRuntime pTargetUnit, SkillExecutionContext pContext)
         {
-            return GridLineOfSightUtility.HasLineOfSight(
+            return GridVisibilityUtility.HasVisibility(
                 pActor.Position,
                 pTarget,
                 pCell =>
                 {
-                    if (!pContext.GridService.IsInside(pCell) || pContext.GridService.BlocksLineOfSight(pCell))
+                    if (!pContext.GridService.IsInside(pCell) || pContext.GridService.BlocksVisibility(pCell))
                         return true;
 
                     if (!pContext.GridService.TryGetOccupant(pCell, out UnitId lOccupantId))
@@ -434,7 +483,9 @@ namespace TacticalPort.Core
                     if (pTargetUnit != null && lOccupantId == pTargetUnit.Id)
                         return pCell != pTarget;
 
-                    return true;
+                    return pContext.TryGetUnit(lOccupantId, out UnitRuntime lOccupant)
+                        ? lOccupant.BlocksVisibility
+                        : true;
                 });
         }
     }

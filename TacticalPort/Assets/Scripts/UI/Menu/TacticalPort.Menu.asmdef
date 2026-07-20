@@ -8,6 +8,7 @@
         "TacticalPort.Data",
         "TacticalPort.State",
         "TacticalPort.Matchmaking",
+        "TacticalPort.View",
         "Unity.TextMeshPro",
         "UnityEngine.UI"
     ],

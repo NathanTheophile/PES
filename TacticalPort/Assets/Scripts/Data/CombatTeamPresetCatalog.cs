@@ -69,7 +69,7 @@ namespace TacticalPort.Data
                 for (int lIndex = 0; lIndex < _Units.Count; lIndex++)
                 {
                     UnitDefinition lUnit = _Units[lIndex];
-                    if (lUnit != null && lUnit.Id == pUnitId)
+                    if (lUnit != null && ContentIdAliases.Matches(lUnit.Id, pUnitId))
                     {
                         pUnit = lUnit;
                         return true;
@@ -96,7 +96,7 @@ namespace TacticalPort.Data
                 for (int lIndex = 0; lIndex < pUnits.Count; lIndex++)
                 {
                     UnitDefinition lUnit = pUnits[lIndex];
-                    if (lUnit != null && lUnit.Id == pUnitId)
+                    if (lUnit != null && ContentIdAliases.Matches(lUnit.Id, pUnitId))
                     {
                         pUnit = lUnit;
                         return true;

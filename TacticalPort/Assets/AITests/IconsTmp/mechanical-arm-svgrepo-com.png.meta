@@ -1,0 +1,429 @@
+fileFormatVersion: 2
+guid: f89cfd540fb995a498a7bcdde871b549
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 8933667109722920588
+    second: mechanical-arm-svgrepo-com_0
+  - first:
+      213: 7838503960495021974
+    second: mechanical-arm-svgrepo-com_1
+  - first:
+      213: 7650549249301022427
+    second: mechanical-arm-svgrepo-com_2
+  - first:
+      213: -3534480924042314151
+    second: mechanical-arm-svgrepo-com_3
+  - first:
+      213: 4443990425175289614
+    second: mechanical-arm-svgrepo-com_4
+  - first:
+      213: 1148014944187307988
+    second: mechanical-arm-svgrepo-com_5
+  - first:
+      213: -3257300957701376475
+    second: mechanical-arm-svgrepo-com_6
+  - first:
+      213: 2378278753166710278
+    second: mechanical-arm-svgrepo-com_7
+  - first:
+      213: 1888485369644731162
+    second: mechanical-arm-svgrepo-com_8
+  - first:
+      213: 1369667900438658923
+    second: mechanical-arm-svgrepo-com_9
+  - first:
+      213: 7145567233246866508
+    second: mechanical-arm-svgrepo-com_10
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 1
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WindowsStoreApps
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: mechanical-arm-svgrepo-com_0
+      rect:
+        serializedVersion: 2
+        x: 484
+        y: 927
+        width: 618
+        height: 552
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c8610a857e2cafb70800000000000000
+      internalID: 8933667109722920588
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mechanical-arm-svgrepo-com_1
+      rect:
+        serializedVersion: 2
+        x: 1066
+        y: 1248
+        width: 364
+        height: 140
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 69f5cc762d5f7cc60800000000000000
+      internalID: 7838503960495021974
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mechanical-arm-svgrepo-com_2
+      rect:
+        serializedVersion: 2
+        x: 278
+        y: 995
+        width: 202
+        height: 79
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bd6083502063c2a60800000000000000
+      internalID: 7650549249301022427
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mechanical-arm-svgrepo-com_3
+      rect:
+        serializedVersion: 2
+        x: 1105
+        y: 907
+        width: 242
+        height: 180
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 95e3019735003fec0800000000000000
+      internalID: -3534480924042314151
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mechanical-arm-svgrepo-com_4
+      rect:
+        serializedVersion: 2
+        x: 1149
+        y: 1071
+        width: 290
+        height: 136
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e0f6fc51fb93cad30800000000000000
+      internalID: 4443990425175289614
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mechanical-arm-svgrepo-com_5
+      rect:
+        serializedVersion: 2
+        x: 279
+        y: 861
+        width: 208
+        height: 91
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4d7df1162819eef00800000000000000
+      internalID: 1148014944187307988
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mechanical-arm-svgrepo-com_6
+      rect:
+        serializedVersion: 2
+        x: 363
+        y: 541
+        width: 317
+        height: 330
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5267ba1790ebbc2d0800000000000000
+      internalID: -3257300957701376475
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mechanical-arm-svgrepo-com_7
+      rect:
+        serializedVersion: 2
+        x: 573
+        y: 410
+        width: 238
+        height: 195
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6065c53ece7510120800000000000000
+      internalID: 2378278753166710278
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mechanical-arm-svgrepo-com_8
+      rect:
+        serializedVersion: 2
+        x: 618
+        y: 326
+        width: 235
+        height: 191
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a1b4235207f353a10800000000000000
+      internalID: 1888485369644731162
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mechanical-arm-svgrepo-com_9
+      rect:
+        serializedVersion: 2
+        x: 547
+        y: 191
+        width: 329
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b6fb6e9d2b9020310800000000000000
+      internalID: 1369667900438658923
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mechanical-arm-svgrepo-com_10
+      rect:
+        serializedVersion: 2
+        x: 450
+        y: 55
+        width: 532
+        height: 80
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c4ca9503a872a2360800000000000000
+      internalID: 7145567233246866508
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      mechanical-arm-svgrepo-com_0: 8933667109722920588
+      mechanical-arm-svgrepo-com_1: 7838503960495021974
+      mechanical-arm-svgrepo-com_10: 7145567233246866508
+      mechanical-arm-svgrepo-com_2: 7650549249301022427
+      mechanical-arm-svgrepo-com_3: -3534480924042314151
+      mechanical-arm-svgrepo-com_4: 4443990425175289614
+      mechanical-arm-svgrepo-com_5: 1148014944187307988
+      mechanical-arm-svgrepo-com_6: -3257300957701376475
+      mechanical-arm-svgrepo-com_7: 2378278753166710278
+      mechanical-arm-svgrepo-com_8: 1888485369644731162
+      mechanical-arm-svgrepo-com_9: 1369667900438658923
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

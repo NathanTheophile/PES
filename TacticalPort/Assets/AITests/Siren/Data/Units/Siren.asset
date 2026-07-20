@@ -1,0 +1,77 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 282ce8e1fc4de754fae88d05b6b0928d, type: 3}
+  m_Name: Siren
+  m_EditorClassIdentifier: TacticalPort.Data::TacticalPort.Data.UnitDefinition
+  _Id: siren
+  _DisplayName: Corsair Siren
+  _Description: 
+  _Team: 1
+  _MaxHealth: 400
+  _MobilityPerTurn: 3
+  _EnergyPerTurn: 6
+  _Velocity: 65
+  _MeleeDamagePercent: 100
+  _RangedDamagePercent: 105
+  _GeneralDamagePercent: 0
+  _MeleeResistancePercent: -5
+  _RangedResistancePercent: 5
+  _GeneralResistancePercent: 0
+  _StatPointBudget: 120
+  _PushDamageBonus: 0
+  _FootprintWidth: 1
+  _FootprintHeight: 1
+  _ParticipatesInTurnOrder: 1
+  _CountsForVictory: 1
+  _DirectSkillDamage: 0
+  _CanReceiveStandardHealing: 1
+  _BlocksVisibility: 1
+  _VisibilityBlockingState: {fileID: 0}
+  _DirectSkillSwapRequiredState: {fileID: 0}
+  _AutonomousBehavior: 0
+  _AutonomousRequiredState: {fileID: 0}
+  _AutonomousExcludedTargetState: {fileID: 0}
+  _AutonomousRange: 0
+  _AutonomousExecutionsPerTurn: 1
+  _AutonomousSkill: {fileID: 0}
+  _AttachedGlyph: {fileID: 0}
+  _EnemyAiTargetPriority: 0
+  _EnemyAiMovementPolicy: 0
+  _EnemyAiPreferredDistance: 0
+  _EnemyAiThreatRadius: 0
+  _EnemyAiProfile: {fileID: 0}
+  _Skills:
+  - {fileID: 11400000, guid: e4c9ea4840276c44991d7948b9896de4, type: 2}
+  - {fileID: 11400000, guid: 5805fa73459bd2c4894912e7d898f035, type: 2}
+  - {fileID: 11400000, guid: 55259ce6f39b8e74f981a800d4e93c45, type: 2}
+  - {fileID: 11400000, guid: 0814972eec638d34091fd4d638a6a7c9, type: 2}
+  - {fileID: 11400000, guid: 88faff5edec162e498f0303956abfa76, type: 2}
+  - {fileID: 11400000, guid: 6f9755cb87776ba4db28fbe3223b8262, type: 2}
+  - {fileID: 11400000, guid: 147cd1828893b814ea02cd7ff5584faf, type: 2}
+  - {fileID: 11400000, guid: 214921520eacec945a3bb609d547928a, type: 2}
+  - {fileID: 11400000, guid: 1a6454e81612d60498aa194765f02b8b, type: 2}
+  - {fileID: 11400000, guid: 73ba9dcc8b031e746b523d66c9949029, type: 2}
+  _Passives:
+  - {fileID: 11400000, guid: 06b9493cbb93bc844aee333680c2a661, type: 2}
+  - {fileID: 11400000, guid: e9d1d2071c7893341bd8719e7ee52666, type: 2}
+  _DefaultPassive: {fileID: 11400000, guid: 06b9493cbb93bc844aee333680c2a661, type: 2}
+  _SkillAiOverrides: []
+  _BaseStates: []
+  _PhaseStates: []
+  _CombatViewPrefab: {fileID: 6292429647394850086, guid: 60114851700ded341b477fe2d2632b76, type: 3}
+  _ModelPrefab: {fileID: 3101219085853781118, guid: 261843b68715a59469fe206eac2f0195, type: 3}
+  _PreviewSprite: {fileID: 2080515067170978351, guid: 730a64fc32f9a5f4f96a36c3837cc0ba, type: 3}
+  _Portrait: {fileID: 2080515067170978351, guid: 730a64fc32f9a5f4f96a36c3837cc0ba, type: 3}
+  _Tint: {r: 0.18, g: 0.56, b: 0.68, a: 1}
+  references:
+    version: 2
+    RefIds: []

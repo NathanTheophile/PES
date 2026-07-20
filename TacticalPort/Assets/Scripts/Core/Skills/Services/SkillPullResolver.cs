@@ -36,6 +36,16 @@ namespace TacticalPort.Core
             return BattleActionResult.Succeeded(BattleActionType.Skill, lMessage, lAffectedUnitIds);
         }
 
+        public static bool TryPullUnitToward(UnitRuntime pSource, UnitRuntime pTarget, int pDistance, SkillExecutionContext pContext)
+        {
+            if (pSource == null || pTarget == null || !pSource.IsAlive || !pTarget.IsAlive || pContext == null)
+                return false;
+
+            GridCoord lDirection = ResolveDirection(pTarget.Position, pSource.Position);
+            GridCoord lDestination = ResolveDestination(pTarget, lDirection, pDistance, pContext);
+            return lDestination != pTarget.Position && pContext.TryRelocateUnit(pTarget, lDestination);
+        }
+
         private static GridCoord ResolveDestination(
             UnitRuntime pTarget,
             GridCoord pDirection,

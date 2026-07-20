@@ -33,8 +33,8 @@ Checklist de portage combat. Cocher seulement quand le comportement Unity est v�
 - [ ] Portée calculée en Manhattan.
 - [ ] `linear` limite aux axes X/Y.
 - [ ] `rangeMin = 0` permet les skills self/centre sur soi.
-- [ ] La LoS bloque sur unités et obstacles.
-- [ ] Une cellule sans LoS est previewée comme invalide ou non ciblable.
+- [ ] La visibility bloque sur unités et obstacles.
+- [ ] Une cellule sans visibility est previewée comme invalide ou non ciblable.
 
 ## AoE
 

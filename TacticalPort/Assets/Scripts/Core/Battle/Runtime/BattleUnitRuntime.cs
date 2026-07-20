@@ -18,7 +18,7 @@ namespace TacticalPort.Core
 
         #region _____________________________| INIT
 
-        public UnitRuntime(UnitId pId, UnitDefinition pDefinition, GridCoord pPosition, Team? pTeamOverride = null, int pTeamSlotIndex = -1)
+        public UnitRuntime(UnitId pId, UnitDefinition pDefinition, GridCoord pPosition, Team? pTeamOverride = null, int pTeamSlotIndex = -1, UnitId pOwnerUnitId = default)
         {
             if (pDefinition == null)
                 throw new ArgumentNullException(nameof(pDefinition));
@@ -27,6 +27,7 @@ namespace TacticalPort.Core
             Definition = pDefinition;
             _TeamOverride = pTeamOverride;
             TeamSlotIndex = pTeamSlotIndex;
+            OwnerUnitId = pOwnerUnitId;
             Position = pPosition;
             _Skills = BuildRuntimeSkills(pDefinition);
             _OccupiedCellOffsets = BuildOccupiedCellOffsets(pDefinition);
@@ -49,6 +50,7 @@ namespace TacticalPort.Core
         private readonly Team? _TeamOverride;
         private PassiveDefinition _ActivePassive;
         private int _WearRemainder;
+        private long _CumulativeHealthLost;
         private bool _IsTurnActive;
 
         #endregion
@@ -59,14 +61,20 @@ namespace TacticalPort.Core
         public UnitDefinition Definition { get; }
         public Team Team => _TeamOverride ?? Definition.Team;
         public int TeamSlotIndex { get; }
+        public UnitId OwnerUnitId { get; }
+        public bool IsSummon => OwnerUnitId.IsValid;
+        public bool IsCharacter => !IsSummon;
         public GridCoord Position { get; private set; }
         public int CurrentHealth { get; private set; }
         public int CurrentMaxHealth { get; private set; }
         public int EffectiveWearPercent => Math.Min(MaxWearPercent, Math.Max(BaseWearPercent, BaseWearPercent + _States.GetWearPercent()));
         internal int WearRemainder => _WearRemainder;
+        internal long CumulativeHealthLost => _CumulativeHealthLost;
         public int RemainingMobility { get; private set; }
         public int RemainingEnergy { get; private set; }
         public bool IsAlive => CurrentHealth > 0;
+        public bool BlocksVisibility => Definition.BlocksVisibility
+            || (Definition.VisibilityBlockingState != null && HasState(Definition.VisibilityBlockingState));
         public IReadOnlyList<SkillDefinition> Skills => _Skills;
         public IReadOnlyList<GridCoord> OccupiedCellOffsets => _OccupiedCellOffsets;
         public IReadOnlyList<BattleStateRuntime> ActiveStates => _States.States;
@@ -98,7 +106,6 @@ namespace TacticalPort.Core
 
         public void EndTurn()
         {
-            _States.TickDurationsAtTurnEnd();
             _IsTurnActive = false;
             ClearTurnResources();
         }
@@ -219,6 +226,19 @@ namespace TacticalPort.Core
         public int ApplySkillDamage(int pAmount, DamageRangeType pDamageRange = DamageRangeType.None)
             => ApplyDamageInternal(pAmount, pDamageRange, true);
 
+        public int ApplyDirectHealthLoss(int pAmount)
+        {
+            if (pAmount <= 0 || !IsAlive)
+                return 0;
+
+            int lApplied = Math.Min(CurrentHealth, pAmount);
+            CurrentHealth -= lApplied;
+            _CumulativeHealthLost += lApplied;
+            if (lApplied > 0)
+                ValueChanged?.Invoke(lApplied, false);
+            return lApplied;
+        }
+
         private int ApplyDamageInternal(int pAmount, DamageRangeType pDamageRange, bool pApplyWear)
         {
             if (pAmount <= 0 || !IsAlive)
@@ -230,6 +250,7 @@ namespace TacticalPort.Core
 
             int lApplied = Math.Min(CurrentHealth, lResolvedAmount);
             CurrentHealth -= lApplied;
+            _CumulativeHealthLost += lApplied;
             if (pApplyWear)
                 ApplyWear(lApplied);
 
@@ -239,6 +260,9 @@ namespace TacticalPort.Core
         }
 
         public int RestoreHealth(int pAmount)
+            => Definition.CanReceiveStandardHealing && !_States.BlocksHealing ? RestoreDirectHealth(pAmount) : 0;
+
+        public int RestoreDirectHealth(int pAmount)
         {
             if (pAmount <= 0 || !IsAlive)
                 return 0;
@@ -251,19 +275,92 @@ namespace TacticalPort.Core
             return lRestored;
         }
 
-        public void SetPersistentState(string pStateKey, StateDefinition pState, int pStacks = 1)
+        public void SetPersistentState(
+            string pStateKey,
+            StateDefinition pState,
+            int pStacks = 1,
+            UnitId pSourceUnitId = default,
+            Team pSourceTeam = Team.Neutral,
+            string pSourceContextId = null)
         {
             int lPreviousEnergyModifier = GetEnergyModifier();
             int lPreviousMobilityModifier = GetMobilityModifier();
-            _States.SetPersistentState(pStateKey, pState, pStacks);
+            _States.SetPersistentState(pStateKey, pState, pStacks, pSourceUnitId, pSourceTeam, pSourceContextId);
             RefreshTurnResourcesAfterModifierChange(lPreviousEnergyModifier, lPreviousMobilityModifier);
         }
 
-        public bool TryApplyState(StateDefinition pState, int pStacks = 1, int pDurationTurns = -1)
+        public int ApplyBeginTurnStateDamage()
+        {
+            int lTotalDamage = 0;
+            IReadOnlyList<HealthLossResolutionReport> lReports = ResolveBeginTurnStateDamage();
+            for (int lIndex = 0; lIndex < lReports.Count; lIndex++)
+                lTotalDamage += lReports[lIndex].GetHealthLost(Id);
+            return lTotalDamage;
+        }
+
+        public IReadOnlyList<HealthLossResolutionReport> ResolveBeginTurnStateDamage()
+        {
+            IReadOnlyList<StateDamageResolution> lResolutions = _States.GetBeginTurnDamageResolutions();
+            List<HealthLossResolutionReport> lReports = new List<HealthLossResolutionReport>(lResolutions.Count);
+            for (int lIndex = 0; lIndex < lResolutions.Count && IsAlive; lIndex++)
+            {
+                StateDamageResolution lResolution = lResolutions[lIndex];
+                int lAppliedDamage = ApplyDamage(lResolution.Damage);
+                if (lAppliedDamage <= 0)
+                    continue;
+
+                lReports.Add(new HealthLossResolutionReport(
+                    lResolution.SourceUnitId,
+                    lResolution.SourceTeam,
+                    HealthLossResolutionKind.StateTick,
+                    new[] { new SkillHealthLoss(Id, lAppliedDamage) }));
+            }
+
+            return lReports;
+        }
+
+        public bool IsOwnedBy(UnitRuntime pOwner) => pOwner != null && OwnerUnitId == pOwner.Id;
+
+        public bool TryTogglePersistentStates(StateDefinition pStateA, StateDefinition pStateB)
+        {
+            if (pStateA == null || pStateB == null)
+                return false;
+
+            for (int lIndex = 0; lIndex < _States.States.Count; lIndex++)
+            {
+                BattleStateRuntime lState = _States.States[lIndex];
+                if (lState?.Definition != pStateA && lState?.Definition != pStateB)
+                    continue;
+
+                int lPreviousEnergyModifier = GetEnergyModifier();
+                int lPreviousMobilityModifier = GetMobilityModifier();
+                StateDefinition lReplacement = lState.Definition == pStateA ? pStateB : pStateA;
+                bool lReplaced = _States.ReplaceStateByKey(lState.Key, lReplacement, lState.Stacks);
+                if (lReplaced)
+                    RefreshTurnResourcesAfterModifierChange(lPreviousEnergyModifier, lPreviousMobilityModifier);
+                return lReplaced;
+            }
+
+            return false;
+        }
+
+        public bool TryApplyState(
+            StateDefinition pState,
+            int pStacks = 1,
+            int pDurationTurns = -1,
+            UnitId pSourceUnitId = default,
+            Team pSourceTeam = Team.Neutral,
+            string pSourceContextId = null)
         {
             int lPreviousEnergyModifier = GetEnergyModifier();
             int lPreviousMobilityModifier = GetMobilityModifier();
-            if (!_States.TryApplyState(pState, pStacks, pDurationTurns))
+            if (!_States.TryApplyState(
+                    pState,
+                    pStacks,
+                    pDurationTurns,
+                    pSourceUnitId,
+                    pSourceTeam,
+                    pSourceContextId))
                 return false;
 
             RefreshTurnResourcesAfterModifierChange(lPreviousEnergyModifier, lPreviousMobilityModifier);
@@ -292,8 +389,61 @@ namespace TacticalPort.Core
             return true;
         }
 
+        public int RemoveStatesBySource(
+            UnitId pSourceUnitId,
+            string pSourceContextId = null,
+            StateDefinition pState = null)
+        {
+            int lPreviousEnergyModifier = GetEnergyModifier();
+            int lPreviousMobilityModifier = GetMobilityModifier();
+            int lRemovedCount = _States.RemoveStatesBySource(pSourceUnitId, pSourceContextId, pState);
+            if (lRemovedCount > 0)
+                RefreshTurnResourcesAfterModifierChange(lPreviousEnergyModifier, lPreviousMobilityModifier);
+            return lRemovedCount;
+        }
+
+        public int TickTemporaryStateDurationsForSource(UnitId pSourceUnitId, bool pIncludeSourceLess = false)
+        {
+            int lPreviousEnergyModifier = GetEnergyModifier();
+            int lPreviousMobilityModifier = GetMobilityModifier();
+            int lTickedCount = _States.TickTemporaryDurationsForSource(pSourceUnitId, pIncludeSourceLess);
+            if (lTickedCount > 0)
+                RefreshTurnResourcesAfterModifierChange(lPreviousEnergyModifier, lPreviousMobilityModifier);
+            return lTickedCount;
+        }
+
+        public int ReduceTemporaryStateDurations(int pTurns)
+        {
+            int lPreviousEnergyModifier = GetEnergyModifier();
+            int lPreviousMobilityModifier = GetMobilityModifier();
+            int lReducedCount = _States.ReduceTemporaryStateDurations(pTurns);
+            if (lReducedCount > 0)
+                RefreshTurnResourcesAfterModifierChange(lPreviousEnergyModifier, lPreviousMobilityModifier);
+            return lReducedCount;
+        }
+
+        public BattleStateRuntime GetStateByKey(string pStateKey) => _States.FindStateByKey(pStateKey);
+
         public SkillDefinition ResolveEffectiveSkill(SkillDefinition pBaseSkill) =>
             pBaseSkill?.Variant != null && HasSkillVariantEnabler() ? pBaseSkill.Variant : pBaseSkill;
+
+        public SkillDefinition ResolveEffectiveSkill(SkillDefinition pBaseSkill, UnitRuntime pPrimaryTarget)
+        {
+            if (pBaseSkill?.Variant == null)
+                return pBaseSkill;
+
+            if (pBaseSkill.VariantTrigger == SkillVariantTrigger.PrimaryTargetOwnedState)
+            {
+                return pPrimaryTarget != null
+                    && pPrimaryTarget.IsAlive
+                    && pPrimaryTarget.IsOwnedBy(this)
+                    && (pBaseSkill.VariantTargetRequiredState == null || pPrimaryTarget.HasState(pBaseSkill.VariantTargetRequiredState))
+                    ? pBaseSkill.Variant
+                    : pBaseSkill;
+            }
+
+            return HasSkillVariantEnabler() ? pBaseSkill.Variant : pBaseSkill;
+        }
 
         public int ConsumeSkillVariantEnablers()
         {
@@ -323,7 +473,7 @@ namespace TacticalPort.Core
 
         public int GetStateProgressionIndex(StateProgressionDefinition pProgression)
         {
-            if (pProgression?.States == null)
+            if (pProgression == null || pProgression.LevelCount == 0)
                 return -1;
 
             string lProgressionKey = ResolveProgressionKey(pProgression);
@@ -333,10 +483,13 @@ namespace TacticalPort.Core
                 if (lRuntimeState == null || lRuntimeState.Key != lProgressionKey)
                     continue;
 
-                for (int lProgressionIndex = 0; lProgressionIndex < pProgression.States.Count; lProgressionIndex++)
+                for (int lProgressionIndex = 0; lProgressionIndex < pProgression.LevelCount; lProgressionIndex++)
                 {
-                    if (pProgression.States[lProgressionIndex] == lRuntimeState.Definition)
+                    if (pProgression.GetLevelState(lProgressionIndex) == lRuntimeState.Definition
+                        && pProgression.GetLevelStacks(lProgressionIndex) == lRuntimeState.Stacks)
+                    {
                         return lProgressionIndex;
+                    }
                 }
             }
 
@@ -345,15 +498,19 @@ namespace TacticalPort.Core
 
         public bool AdvanceStateProgression(StateProgressionDefinition pProgression, int pSteps = 1)
         {
-            if (pProgression?.States == null || pProgression.States.Count == 0 || pSteps <= 0)
+            if (pProgression == null || pProgression.LevelCount == 0 || pSteps <= 0)
                 return false;
 
             int lCurrentIndex = GetStateProgressionIndex(pProgression);
-            int lNextIndex = Math.Min(pProgression.States.Count - 1, lCurrentIndex + pSteps);
-            if (lNextIndex <= lCurrentIndex || pProgression.States[lNextIndex] == null)
+            int lNextIndex = Math.Min(pProgression.LevelCount - 1, lCurrentIndex + pSteps);
+            StateDefinition lNextState = pProgression.GetLevelState(lNextIndex);
+            if (lNextIndex <= lCurrentIndex || lNextState == null)
                 return false;
 
-            SetPersistentState(ResolveProgressionKey(pProgression), pProgression.States[lNextIndex], 1);
+            SetPersistentState(
+                ResolveProgressionKey(pProgression),
+                lNextState,
+                pProgression.GetLevelStacks(lNextIndex));
             return true;
         }
 
@@ -377,7 +534,7 @@ namespace TacticalPort.Core
 
             foreach (SkillDefinition lCandidate in _Skills)
             {
-                if (new SkillId(lCandidate.Id) == pSkillId)
+                if (ContentIdAliases.Matches(lCandidate.Id, pSkillId.Value))
                 {
                     pSkill = lCandidate;
                     return true;

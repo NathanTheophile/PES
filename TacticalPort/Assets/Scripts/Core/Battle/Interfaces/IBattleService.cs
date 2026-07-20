@@ -38,7 +38,7 @@ namespace TacticalPort.Core
         BattleActionResult EndTurn(UnitId unitId);
         bool IsUnitActive(UnitId unitId);
         bool IsInside(GridCoord coordinate);
-        bool BlocksLineOfSight(GridCoord coordinate);
+        bool BlocksVisibility(GridCoord coordinate);
         bool TryGetActiveUnit(out UnitRuntime unit);
         bool TryGetUnit(UnitId unitId, out UnitRuntime unit);
         IReadOnlyCollection<GridGlyphRuntime> GetActiveGlyphs();

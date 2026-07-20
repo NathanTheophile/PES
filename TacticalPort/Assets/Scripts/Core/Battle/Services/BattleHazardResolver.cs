@@ -5,12 +5,15 @@
 #endregion
 
 using System.Collections.Generic;
+using TacticalPort.Data;
 using TacticalPort.Shared;
 
 namespace TacticalPort.Core
 {
     internal static class BattleHazardResolver
     {
+        private const string GLYPH_PRESENCE_STATE_PREFIX = "glyph-presence::";
+
         public static bool TryScheduleHazard(
             IGridService pGridService,
             ICollection<TelegraphedHazardRuntime> pHazards,
@@ -78,6 +81,32 @@ namespace TacticalPort.Core
         }
 
         public static void ApplyStartTurnGlyphs(IGridService pGridService, UnitRuntime pActiveUnit)
+            => ApplyTriggeredGlyphs(pGridService, pActiveUnit, GlyphTriggerTiming.TurnStart);
+
+        public static void ApplyEndTurnGlyphs(IGridService pGridService, UnitRuntime pActiveUnit)
+            => ApplyTriggeredGlyphs(pGridService, pActiveUnit, GlyphTriggerTiming.TurnEnd);
+
+        public static void RefreshPersistentPresenceGlyphs(IGridService pGridService, IEnumerable<UnitRuntime> pUnits)
+        {
+            if (pGridService == null || pUnits == null)
+                return;
+
+            List<UnitRuntime> lUnits = new List<UnitRuntime>();
+            foreach (UnitRuntime lUnit in pUnits)
+            {
+                if (lUnit != null)
+                    lUnits.Add(lUnit);
+            }
+
+            lUnits.Sort((pLeft, pRight) => pLeft.Id.Value.CompareTo(pRight.Id.Value));
+            for (int lUnitIndex = 0; lUnitIndex < lUnits.Count; lUnitIndex++)
+                RefreshPersistentPresenceGlyphs(pGridService, lUnits[lUnitIndex]);
+        }
+
+        private static void ApplyTriggeredGlyphs(
+            IGridService pGridService,
+            UnitRuntime pActiveUnit,
+            GlyphTriggerTiming pTiming)
         {
             if (pGridService == null || pActiveUnit == null || !pActiveUnit.IsAlive)
                 return;
@@ -87,21 +116,126 @@ namespace TacticalPort.Core
             {
                 foreach (GridGlyphRuntime lGlyph in pGridService.GetGlyphsAt(lCell))
                 {
-                    if (lGlyph == null || !lGlyph.CanAffect(pActiveUnit))
+                    if (lGlyph == null || lGlyph.TriggerTiming != pTiming || !lGlyph.CanAffect(pActiveUnit))
                         continue;
 
-                    string lGlyphGroupId = string.IsNullOrWhiteSpace(lGlyph.GlyphGroupId)
-                        ? $"{lGlyph.SourceSkillId}:{lGlyph.Cell.X}:{lGlyph.Cell.Y}"
-                        : lGlyph.GlyphGroupId;
+                    string lGlyphGroupId = ResolveGroupId(lGlyph);
                     if (!lProcessedGlyphGroups.Add(lGlyphGroupId))
                         continue;
 
-                    pActiveUnit.ApplyDamage(lGlyph.Power);
-                    if (lGlyph.AppliedState != null)
-                        pActiveUnit.TryApplyState(lGlyph.AppliedState, lGlyph.AppliedStateStacks, lGlyph.AppliedStateDurationTurns);
+                    ApplyGlyphEffects(lGlyph, pActiveUnit);
                 }
             }
         }
+
+        private static void RefreshPersistentPresenceGlyphs(IGridService pGridService, UnitRuntime pUnit)
+        {
+            HashSet<string> lDesiredStateKeys = new HashSet<string>();
+            if (pUnit.IsAlive)
+            {
+                HashSet<string> lProcessedGroups = new HashSet<string>();
+                foreach (GridCoord lCell in pGridService.GetOccupiedCells(pUnit.Id))
+                {
+                    foreach (GridGlyphRuntime lGlyph in pGridService.GetGlyphsAt(lCell))
+                    {
+                        if (lGlyph?.Definition == null
+                            || lGlyph.TriggerTiming != GlyphTriggerTiming.PersistentPresence
+                            || !lGlyph.CanAffect(pUnit))
+                        {
+                            continue;
+                        }
+
+                        string lGroupId = ResolveGroupId(lGlyph);
+                        if (!lProcessedGroups.Add(lGroupId))
+                            continue;
+
+                        IReadOnlyList<GlyphEffectDefinition> lEffects = lGlyph.GetEffectsFor(pUnit);
+                        for (int lEffectIndex = 0; lEffectIndex < lEffects.Count; lEffectIndex++)
+                        {
+                            GlyphEffectDefinition lEffect = lEffects[lEffectIndex];
+                            if (lEffect?.Type != GlyphEffectType.ApplyState || lEffect.State == null)
+                                continue;
+
+                            string lStateKey = $"{GLYPH_PRESENCE_STATE_PREFIX}{lGroupId}::{lEffectIndex}";
+                            lDesiredStateKeys.Add(lStateKey);
+                            pUnit.SetPersistentState(
+                                lStateKey,
+                                lEffect.State,
+                                lEffect.StateStacks,
+                                lGlyph.SourceUnitId,
+                                lGlyph.SourceTeam,
+                                lGlyph.Definition.Id);
+                        }
+                    }
+                }
+            }
+
+            List<string> lKeysToRemove = new List<string>();
+            foreach (BattleStateRuntime lState in pUnit.ActiveStates)
+            {
+                if (lState != null
+                    && lState.Key.StartsWith(GLYPH_PRESENCE_STATE_PREFIX, System.StringComparison.Ordinal)
+                    && !lDesiredStateKeys.Contains(lState.Key))
+                {
+                    lKeysToRemove.Add(lState.Key);
+                }
+            }
+
+            lKeysToRemove.Sort(System.StringComparer.Ordinal);
+            for (int lIndex = 0; lIndex < lKeysToRemove.Count; lIndex++)
+                pUnit.RemoveStateByKey(lKeysToRemove[lIndex]);
+        }
+
+        private static void ApplyGlyphEffects(GridGlyphRuntime pGlyph, UnitRuntime pTarget)
+        {
+            if (pGlyph.Definition == null)
+            {
+                pTarget.ApplyDamage(pGlyph.Power);
+                if (pGlyph.AppliedState != null)
+                    pTarget.TryApplyState(
+                        pGlyph.AppliedState,
+                        pGlyph.AppliedStateStacks,
+                        pGlyph.AppliedStateDurationTurns,
+                        pGlyph.SourceUnitId,
+                        pGlyph.SourceTeam,
+                        pGlyph.SourceSkillId);
+                return;
+            }
+
+            IReadOnlyList<GlyphEffectDefinition> lEffects = pGlyph.GetEffectsFor(pTarget);
+            for (int lIndex = 0; lIndex < lEffects.Count; lIndex++)
+            {
+                GlyphEffectDefinition lEffect = lEffects[lIndex];
+                if (lEffect == null)
+                    continue;
+
+                switch (lEffect.Type)
+                {
+                    case GlyphEffectType.Damage:
+                        pTarget.ApplyDamage(lEffect.Power);
+                        break;
+
+                    case GlyphEffectType.Heal:
+                        pTarget.RestoreHealth(lEffect.Power);
+                        break;
+
+                    case GlyphEffectType.ApplyState when lEffect.State != null:
+                        pTarget.TryApplyState(
+                            lEffect.State,
+                            lEffect.StateStacks,
+                            lEffect.StateDurationTurns,
+                            pGlyph.SourceUnitId,
+                            pGlyph.SourceTeam,
+                            pGlyph.Definition.Id);
+                        break;
+                }
+            }
+        }
+
+        private static string ResolveGroupId(GridGlyphRuntime pGlyph) =>
+            string.IsNullOrWhiteSpace(pGlyph.GlyphGroupId)
+                ? $"{pGlyph.SourceSkillId}:{pGlyph.Cell.X}:{pGlyph.Cell.Y}"
+                : pGlyph.GlyphGroupId;
 
         private static int ApplyTelegraphedHazard(
             IGridService pGridService,

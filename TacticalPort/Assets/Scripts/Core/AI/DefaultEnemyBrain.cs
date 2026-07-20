@@ -76,15 +76,27 @@ namespace TacticalPort.Core
             UnitSkillAiOverride pRule,
             ref EnemyAiSkillEvaluation pBestEvaluation)
         {
-            SkillDefinition lEffectiveSkill = pContext.Actor.ResolveEffectiveSkill(pBaseSkill);
-            if (pBaseSkill == null
-                || lEffectiveSkill == null
-                || pContext.Actor.RemainingEnergy < lEffectiveSkill.EnergyCost
-                || !EnemyAiSkillRuleUtility.CanUseRule(pContext.Actor, pRule))
+            if (pBaseSkill == null || !EnemyAiSkillRuleUtility.CanUseRule(pContext.Actor, pRule))
                 return;
 
-            foreach (GridCoord lCell in EnemyAiTargeting.EnumerateTargetCells(pContext, lEffectiveSkill, pRule))
+            HashSet<GridCoord> lTargetCells = new HashSet<GridCoord>();
+            SkillDefinition lDefaultSkill = pContext.Actor.ResolveEffectiveSkill(pBaseSkill);
+            foreach (GridCoord lCell in EnemyAiTargeting.EnumerateTargetCells(pContext, lDefaultSkill, pRule))
+                lTargetCells.Add(lCell);
+
+            if (pBaseSkill.VariantTrigger == SkillVariantTrigger.PrimaryTargetOwnedState && pBaseSkill.Variant != null)
             {
+                foreach (GridCoord lCell in EnemyAiTargeting.EnumerateTargetCells(pContext, pBaseSkill.Variant, pRule))
+                    lTargetCells.Add(lCell);
+            }
+
+            foreach (GridCoord lCell in lTargetCells)
+            {
+                UnitRuntime lPrimaryTarget = ResolveUnitAtCell(pContext, lCell);
+                SkillDefinition lEffectiveSkill = pContext.Actor.ResolveEffectiveSkill(pBaseSkill, lPrimaryTarget);
+                if (lEffectiveSkill == null || pContext.Actor.RemainingEnergy < lEffectiveSkill.EnergyCost)
+                    continue;
+
                 SkillTarget lTarget = SkillTarget.ForCell(lCell);
                 if (!pContext.TryValidate(pBaseSkill, lTarget, out BattleActionResult lValidation))
                     continue;
@@ -101,6 +113,23 @@ namespace TacticalPort.Core
 
                 pBestEvaluation = lEvaluation;
             }
+        }
+
+        private static UnitRuntime ResolveUnitAtCell(EnemyAiContext pContext, GridCoord pCell)
+        {
+            foreach (UnitRuntime lUnit in pContext.BattleService.Units)
+            {
+                if (lUnit == null || !lUnit.IsAlive)
+                    continue;
+
+                foreach (GridCoord lOccupiedCell in lUnit.EnumerateOccupiedCells())
+                {
+                    if (lOccupiedCell == pCell)
+                        return lUnit;
+                }
+            }
+
+            return null;
         }
 
     }

@@ -64,6 +64,14 @@ namespace TacticalPort.Core
                 case SkillAdditionalEffectType.AdvanceActivePassiveProgression:
                     lResults.Add(ApplyActivePassiveProgression(pActor, pSkill));
                     break;
+
+                case SkillAdditionalEffectType.RepairAndToggleStates:
+                    lResults.Add(ApplyRepairAndToggle(pActor, pSkill, pResolvedTarget));
+                    break;
+
+                case SkillAdditionalEffectType.ReduceStateDurations:
+                    lResults.Add(ApplyStateDurationReduction(pActor, pSkill, pResolvedTarget));
+                    break;
             }
 
             BattleActionResult lAppliedStateResult = null;
@@ -77,7 +85,13 @@ namespace TacticalPort.Core
                 || (lAppliedStateResult != null
                     && (lAppliedStateResult.OutcomeFlags & BattleActionOutcomeFlags.StateApplied) != 0);
             if (pSkill.CasterAppliedState != null && lCanApplyCasterState)
-                lResults.Add(SkillDamageResolver.ApplyStateToCaster(pActor, pSkill));
+            {
+                int lCasterStacks = pSkill.CasterStateStacksPerAffectedTarget
+                    ? CountSuccessfullyAffectedUnits(lAppliedStateResult, pActor.Id)
+                    : -1;
+                if (lCasterStacks != 0)
+                    lResults.Add(SkillDamageResolver.ApplyStateToCaster(pActor, pSkill, lCasterStacks));
+            }
 
             return CombineEffectResults(pActor, lResults);
         }
@@ -98,6 +112,78 @@ namespace TacticalPort.Core
                 pActor != null ? new[] { pActor.Id } : null,
                 null,
                 lAdvanced ? BattleActionOutcomeFlags.StateApplied : BattleActionOutcomeFlags.None);
+        }
+
+        private static BattleActionResult ApplyRepairAndToggle(UnitRuntime pActor, SkillDefinition pSkill, ResolvedSkillTarget pTarget)
+        {
+            UnitRuntime lTarget = pTarget?.PrimaryTargetUnit;
+            if (lTarget == null || !lTarget.IsAlive)
+                return BattleActionResult.Failed(BattleActionType.Skill, "A living target is required.");
+
+            int lRestored = lTarget.RestoreDirectHealth(pSkill.RepairAmount);
+            if (!lTarget.TryTogglePersistentStates(pSkill.ToggleStateA, pSkill.ToggleStateB))
+                return BattleActionResult.Failed(BattleActionType.Skill, "The target has no toggleable state.");
+
+            return BattleActionResult.Succeeded(
+                BattleActionType.Skill,
+                $"{lTarget.Definition.DisplayName} was repaired for {lRestored} and changed mode.",
+                new[] { pActor.Id, lTarget.Id },
+                null,
+                lRestored > 0 ? BattleActionOutcomeFlags.Heal : BattleActionOutcomeFlags.StateApplied);
+        }
+
+        private static BattleActionResult ApplyStateDurationReduction(
+            UnitRuntime pActor,
+            SkillDefinition pSkill,
+            ResolvedSkillTarget pTarget)
+        {
+            List<UnitRuntime> lTargets = new List<UnitRuntime>();
+            if (pTarget?.AffectedUnits != null)
+            {
+                for (int lIndex = 0; lIndex < pTarget.AffectedUnits.Count; lIndex++)
+                {
+                    UnitRuntime lTarget = pTarget.AffectedUnits[lIndex];
+                    if (lTarget != null && lTarget.IsAlive)
+                        lTargets.Add(lTarget);
+                }
+            }
+
+            lTargets.Sort((pLeft, pRight) => pLeft.Id.Value.CompareTo(pRight.Id.Value));
+            int lReducedStateCount = 0;
+            List<UnitId> lAffectedIds = new List<UnitId> { pActor.Id };
+            for (int lIndex = 0; lIndex < lTargets.Count; lIndex++)
+            {
+                UnitRuntime lTarget = lTargets[lIndex];
+                int lReduced = lTarget.ReduceTemporaryStateDurations(pSkill.StateDurationReduction);
+                lReducedStateCount += lReduced;
+                if (lReduced > 0 && lTarget.Id != pActor.Id)
+                    lAffectedIds.Add(lTarget.Id);
+            }
+
+            string lMessage = lReducedStateCount > 0
+                ? $"Reduced the duration of {lReducedStateCount} state instance(s)."
+                : string.Empty;
+            return BattleActionResult.Succeeded(
+                BattleActionType.Skill,
+                lMessage,
+                lAffectedIds,
+                null,
+                lReducedStateCount > 0 ? BattleActionOutcomeFlags.StateDurationReduced : BattleActionOutcomeFlags.None);
+        }
+
+        private static int CountSuccessfullyAffectedUnits(BattleActionResult pResult, UnitId pActorId)
+        {
+            if (pResult?.AffectedUnitIds == null)
+                return 0;
+
+            int lCount = 0;
+            foreach (UnitId lUnitId in pResult.AffectedUnitIds)
+            {
+                if (lUnitId.IsValid && lUnitId != pActorId)
+                    lCount++;
+            }
+
+            return lCount;
         }
 
         private static BattleActionResult CombineEffectResults(UnitRuntime pActor, List<BattleActionResult> pResults)

@@ -20,11 +20,11 @@ namespace TacticalPort.Data
         [SerializeField] private string _Id = string.Empty;
 
         [TabGroup("Metadata")]
-        [LabelText("Display Name")]
+        [LabelText("English Display Name (Fallback)")]
         [SerializeField] private string _DisplayName = string.Empty;
 
         [TabGroup("Metadata")]
-        [LabelText("Description")]
+        [LabelText("English Description (Fallback)")]
         [SerializeField, TextArea] private string _Description = string.Empty;
 
         [TabGroup("Metadata")]
@@ -46,6 +46,21 @@ namespace TacticalPort.Data
         [SerializeField] private bool _IsPassiveMarker;
 
         [TabGroup("Rules")]
+        [LabelText("Blocks Healing")]
+        [Tooltip("Prevents standard healing received by the affected unit. Direct mechanical repairs remain allowed.")]
+        [SerializeField] private bool _BlocksHealing;
+
+        [TabGroup("Rules")]
+        [LabelText("Protects Duration Reduction")]
+        [Tooltip("Prevents skill effects from reducing this state's remaining duration.")]
+        [SerializeField] private bool _ProtectsDurationReduction;
+
+        [TabGroup("Rules")]
+        [LabelText("Source Scoped Instances")]
+        [Tooltip("When enabled, the same state keeps one independently capped instance per source unit.")]
+        [SerializeField] private bool _UsesSourceScopedInstances;
+
+        [TabGroup("Rules")]
         [LabelText("Enables Skill Variant")]
         [SerializeField] private bool _EnablesSkillVariant;
 
@@ -54,6 +69,15 @@ namespace TacticalPort.Data
         [LabelText("Variant Consumed Replacement")]
         [ValidateInput(nameof(IsVariantReplacementValid), "A state cannot replace itself when consuming a variant.")]
         [SerializeField] private StateDefinition _VariantConsumedReplacementState;
+
+        [TabGroup("Rules")]
+        [LabelText("Exclusive Group Id")]
+        [Tooltip("States sharing a non-empty group replace each other on the same unit.")]
+        [SerializeField] private string _ExclusiveGroupId = string.Empty;
+
+        [TabGroup("Rules")]
+        [LabelText("Begin Turn Damage / Stack")]
+        [SerializeField, Min(0)] private int _BeginTurnDamagePerStack;
 
         [TabGroup("Modifiers")]
         [LabelText("General Damage %/Stack")]
@@ -101,13 +125,20 @@ namespace TacticalPort.Data
         #region _____________________________/ ACCESSORS
 
         public string Id => string.IsNullOrWhiteSpace(_Id) ? name : _Id;
-        public string DisplayName => string.IsNullOrWhiteSpace(_DisplayName) ? name : _DisplayName;
-        public string Description => _Description;
+        public string EnglishDisplayName => string.IsNullOrWhiteSpace(_DisplayName) ? name : _DisplayName;
+        public string EnglishDescription => _Description;
+        public string DisplayName => GameLocalization.GetContentName(GameLocalization.StatesTable, Id, EnglishDisplayName);
+        public string Description => GameLocalization.GetContentDescription(GameLocalization.StatesTable, Id, EnglishDescription);
         public int DurationTurns => Mathf.Max(0, _DurationTurns);
         public int MaxStacks => Mathf.Max(1, _MaxStacks);
         public bool IsPassiveMarker => _IsPassiveMarker;
+        public bool BlocksHealing => _BlocksHealing;
+        public bool ProtectsDurationReduction => _ProtectsDurationReduction;
+        public bool UsesSourceScopedInstances => _UsesSourceScopedInstances;
         public bool EnablesSkillVariant => _EnablesSkillVariant;
         public StateDefinition VariantConsumedReplacementState => _VariantConsumedReplacementState != this ? _VariantConsumedReplacementState : null;
+        public string ExclusiveGroupId => _ExclusiveGroupId?.Trim() ?? string.Empty;
+        public int BeginTurnDamagePerStack => Mathf.Max(0, _BeginTurnDamagePerStack);
         public int DamageModifierPerStack => _DamageModifierPerStack;
         public int MeleeDamageModifierPerStack => _MeleeDamageModifierPerStack;
         public int RangedDamageModifierPerStack => _RangedDamageModifierPerStack;

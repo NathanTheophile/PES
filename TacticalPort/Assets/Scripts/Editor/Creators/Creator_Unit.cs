@@ -37,6 +37,7 @@ namespace TacticalPort.EditorTools
         [SerializeField] private int _FootprintHeight = 1;
         [SerializeField] private bool _ParticipatesInTurnOrder = true;
         [SerializeField] private bool _CountsForVictory = true;
+        [SerializeField] private GlyphDefinition _AttachedGlyph;
         [SerializeField] private UnitView _CombatViewPrefab;
         [SerializeField] private GameObject _ModelPrefab;
         [SerializeField] private Sprite _PreviewSprite;
@@ -77,9 +78,9 @@ namespace TacticalPort.EditorTools
 
             DrawTitle("Create Unit Definition", UnitsFolder);
 
-            _DisplayName = EditorGUILayout.TextField("Display Name", _DisplayName);
+            _DisplayName = EditorGUILayout.TextField("English Display Name", _DisplayName);
             _Id = EditorGUILayout.TextField("Id", _Id);
-            _Description = EditorGUILayout.TextField("Description", _Description);
+            _Description = EditorGUILayout.TextField("English Description", _Description);
 
             DrawSectionHeader("Stats");
             _Team = (Team)EditorGUILayout.EnumPopup("Team", _Team);
@@ -98,6 +99,9 @@ namespace TacticalPort.EditorTools
             _FootprintHeight = Mathf.Max(1, EditorGUILayout.IntField("Footprint Height", _FootprintHeight));
             _ParticipatesInTurnOrder = EditorGUILayout.Toggle("Participates In Turn Order", _ParticipatesInTurnOrder);
             _CountsForVictory = EditorGUILayout.Toggle("Counts For Victory", _CountsForVictory);
+
+            DrawSectionHeader("Runtime Rules");
+            _AttachedGlyph = (GlyphDefinition)EditorGUILayout.ObjectField("Attached Glyph", _AttachedGlyph, typeof(GlyphDefinition), false);
 
             DrawSectionHeader("Presentation");
             _CombatViewPrefab = (UnitView)EditorGUILayout.ObjectField("Combat View Prefab", _CombatViewPrefab, typeof(UnitView), false);
@@ -248,6 +252,7 @@ namespace TacticalPort.EditorTools
             SetInt(lSerializedObject, "_FootprintHeight", Mathf.Max(1, _FootprintHeight));
             SetBool(lSerializedObject, "_ParticipatesInTurnOrder", _ParticipatesInTurnOrder);
             SetBool(lSerializedObject, "_CountsForVictory", _CountsForVictory);
+            SetObject(lSerializedObject, "_AttachedGlyph", _AttachedGlyph);
             SetObject(lSerializedObject, "_CombatViewPrefab", _CombatViewPrefab);
             SetObject(lSerializedObject, "_ModelPrefab", _ModelPrefab);
             SetObject(lSerializedObject, "_PreviewSprite", _PreviewSprite);
@@ -274,6 +279,7 @@ namespace TacticalPort.EditorTools
 
             string lFileName = BuildFileName("Unit", lId, _DisplayName, "unit");
             Creator_FileSaver.CreateAsset(lAsset, UnitsFolder, lFileName);
+            ContentLocalizationEditorUtility.EnsureEntries(GameLocalization.CharactersTable, lId, lAsset.EnglishDisplayName, lAsset.EnglishDescription);
             Close();
         }
 

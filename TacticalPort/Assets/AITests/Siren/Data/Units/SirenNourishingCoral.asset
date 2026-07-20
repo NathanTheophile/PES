@@ -1,0 +1,65 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 282ce8e1fc4de754fae88d05b6b0928d, type: 3}
+  m_Name: SirenNourishingCoral
+  m_EditorClassIdentifier: TacticalPort.Data::TacticalPort.Data.UnitDefinition
+  _Id: siren_nourishing_coral
+  _DisplayName: Nourishing Coral
+  _Description: 
+  _Team: 1
+  _MaxHealth: 150
+  _MobilityPerTurn: 0
+  _EnergyPerTurn: 0
+  _Velocity: 0
+  _MeleeDamagePercent: 100
+  _RangedDamagePercent: 100
+  _GeneralDamagePercent: 0
+  _MeleeResistancePercent: 0
+  _RangedResistancePercent: 0
+  _GeneralResistancePercent: 0
+  _StatPointBudget: 0
+  _PushDamageBonus: 0
+  _FootprintWidth: 1
+  _FootprintHeight: 1
+  _ParticipatesInTurnOrder: 0
+  _CountsForVictory: 0
+  _DirectSkillDamage: 0
+  _CanReceiveStandardHealing: 1
+  _BlocksVisibility: 0
+  _VisibilityBlockingState: {fileID: 0}
+  _DirectSkillSwapRequiredState: {fileID: 0}
+  _AutonomousBehavior: 0
+  _AutonomousRequiredState: {fileID: 0}
+  _AutonomousExcludedTargetState: {fileID: 0}
+  _AutonomousRange: 0
+  _AutonomousExecutionsPerTurn: 1
+  _AutonomousSkill: {fileID: 0}
+  _AttachedGlyph: {fileID: 11400000, guid: 3cd4c1ce01f210a409fee8ff6e34ccb5, type: 2}
+  _EnemyAiTargetPriority: 0
+  _EnemyAiMovementPolicy: 0
+  _EnemyAiPreferredDistance: 0
+  _EnemyAiThreatRadius: 0
+  _EnemyAiProfile: {fileID: 0}
+  _Skills: []
+  _Passives: []
+  _DefaultPassive: {fileID: 0}
+  _SkillAiOverrides: []
+  _BaseStates: []
+  _PhaseStates: []
+  _CombatViewPrefab: {fileID: 6292429647394850086, guid: 60114851700ded341b477fe2d2632b76, type: 3}
+  _ModelPrefab: {fileID: 3318313458917842883, guid: badcb4838f5668e44b5300bcdb252749, type: 3}
+  _PreviewSprite: {fileID: 2080515067170978351, guid: 730a64fc32f9a5f4f96a36c3837cc0ba, type: 3}
+  _Portrait: {fileID: 2080515067170978351, guid: 730a64fc32f9a5f4f96a36c3837cc0ba, type: 3}
+  _Tint: {r: 0.22, g: 0.65, b: 0.55, a: 1}
+  references:
+    version: 2
+    RefIds: []

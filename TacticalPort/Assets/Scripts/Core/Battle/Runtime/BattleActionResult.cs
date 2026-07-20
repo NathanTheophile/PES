@@ -24,6 +24,46 @@ namespace TacticalPort.Core
         public int Amount { get; }
     }
 
+    public enum HealthLossResolutionKind
+    {
+        Skill = 0,
+        StateTick = 1,
+        Glyph = 2,
+        Hazard = 3
+    }
+
+    public sealed class HealthLossResolutionReport
+    {
+        public HealthLossResolutionReport(
+            UnitId pSourceUnitId,
+            Team pSourceTeam,
+            HealthLossResolutionKind pKind,
+            IReadOnlyList<SkillHealthLoss> pHealthLosses)
+        {
+            SourceUnitId = pSourceUnitId;
+            SourceTeam = pSourceTeam;
+            Kind = pKind;
+            HealthLosses = pHealthLosses ?? Array.Empty<SkillHealthLoss>();
+        }
+
+        public UnitId SourceUnitId { get; }
+        public Team SourceTeam { get; }
+        public HealthLossResolutionKind Kind { get; }
+        public IReadOnlyList<SkillHealthLoss> HealthLosses { get; }
+
+        public int GetHealthLost(UnitId pUnitId)
+        {
+            int lTotal = 0;
+            for (int lIndex = 0; lIndex < HealthLosses.Count; lIndex++)
+            {
+                if (HealthLosses[lIndex].UnitId == pUnitId)
+                    lTotal += HealthLosses[lIndex].Amount;
+            }
+
+            return lTotal;
+        }
+    }
+
     public sealed class SkillResolutionReport
     {
         public SkillResolutionReport(
@@ -65,7 +105,8 @@ namespace TacticalPort.Core
         CollisionDamage = 1 << 2,
         StateApplied = 1 << 3,
         Summon = 1 << 4,
-        Glyph = 1 << 5
+        Glyph = 1 << 5,
+        StateDurationReduced = 1 << 6
     }
 
     public sealed class BattleActionResult

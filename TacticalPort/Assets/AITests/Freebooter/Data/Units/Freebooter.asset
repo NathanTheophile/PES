@@ -1,0 +1,78 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 282ce8e1fc4de754fae88d05b6b0928d, type: 3}
+  m_Name: Freebooter
+  m_EditorClassIdentifier: TacticalPort.Data::TacticalPort.Data.UnitDefinition
+  _Id: freebooter
+  _DisplayName: Freebooter
+  _Description: A hybrid fighter who advances Treasure to Jackpot, then consumes
+    Jackpot to empower a skill.
+  _Team: 1
+  _MaxHealth: 420
+  _MobilityPerTurn: 3
+  _EnergyPerTurn: 6
+  _Velocity: 55
+  _MeleeDamagePercent: 100
+  _RangedDamagePercent: 105
+  _GeneralDamagePercent: 0
+  _MeleeResistancePercent: 0
+  _RangedResistancePercent: 0
+  _GeneralResistancePercent: 0
+  _StatPointBudget: 120
+  _PushDamageBonus: 15
+  _FootprintWidth: 1
+  _FootprintHeight: 1
+  _ParticipatesInTurnOrder: 1
+  _CountsForVictory: 1
+  _DirectSkillDamage: 0
+  _CanReceiveStandardHealing: 1
+  _BlocksVisibility: 1
+  _VisibilityBlockingState: {fileID: 0}
+  _DirectSkillSwapRequiredState: {fileID: 0}
+  _AutonomousBehavior: 0
+  _AutonomousRequiredState: {fileID: 0}
+  _AutonomousExcludedTargetState: {fileID: 0}
+  _AutonomousRange: 0
+  _AutonomousExecutionsPerTurn: 1
+  _AutonomousSkill: {fileID: 0}
+  _AttachedGlyph: {fileID: 0}
+  _EnemyAiTargetPriority: 0
+  _EnemyAiMovementPolicy: 0
+  _EnemyAiPreferredDistance: 0
+  _EnemyAiThreatRadius: 0
+  _EnemyAiProfile: {fileID: 0}
+  _Skills:
+  - {fileID: 11400000, guid: e424037bd5b86b34e89639e2a5479e8b, type: 2}
+  - {fileID: 11400000, guid: 5b3bc1b80dfde134e8262f15e2e5a844, type: 2}
+  - {fileID: 11400000, guid: 1467e1ed4ec2d1142b7063b0adcc432a, type: 2}
+  - {fileID: 11400000, guid: 26dc70ab54becda48816139ebd735084, type: 2}
+  - {fileID: 11400000, guid: 29f94a7453022304dbb3694ff09e75b9, type: 2}
+  - {fileID: 11400000, guid: bdb6e66c5cc1a5345bf36fed3602f898, type: 2}
+  - {fileID: 11400000, guid: d92bedd3a2a828644b622a17b3fc8418, type: 2}
+  - {fileID: 11400000, guid: 4fccd7747a1d49943b91a97b001f5d7e, type: 2}
+  - {fileID: 11400000, guid: 5362c3c802c278c4aac8aa130ef8ec2f, type: 2}
+  - {fileID: 11400000, guid: 516e556d92e440b47bbf3e671dfc470b, type: 2}
+  _Passives:
+  - {fileID: 11400000, guid: 302ddb32953a03f4bbf8bd0e978c8589, type: 2}
+  - {fileID: 11400000, guid: ad7084c986493ea42a77865642bc4fab, type: 2}
+  _DefaultPassive: {fileID: 11400000, guid: 302ddb32953a03f4bbf8bd0e978c8589, type: 2}
+  _SkillAiOverrides: []
+  _BaseStates: []
+  _PhaseStates: []
+  _CombatViewPrefab: {fileID: 6292429647394850086, guid: 60114851700ded341b477fe2d2632b76, type: 3}
+  _ModelPrefab: {fileID: 3490513046122275605, guid: cd61cbab4883aeb4987a977bad0b9e64, type: 3}
+  _PreviewSprite: {fileID: 21300000, guid: 1aa45694fc993de4491b10414276dafb, type: 3}
+  _Portrait: {fileID: 21300000, guid: 1aa45694fc993de4491b10414276dafb, type: 3}
+  _Tint: {r: 1, g: 1, b: 1, a: 1}
+  references:
+    version: 2
+    RefIds: []

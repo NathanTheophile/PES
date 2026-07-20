@@ -1,0 +1,316 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b11a58205ec3474ca216360e9fa74a8, type: 3}
+  m_Name: States Shared Data
+  m_EditorClassIdentifier: Unity.Localization::UnityEngine.Localization.Tables.SharedTableData
+  m_TableCollectionName: States
+  m_TableCollectionNameGuidString: 1c402ebc4b3bc3048bd3a5b50cd49ee7
+  m_Entries:
+  - m_Id: 53543137280
+    m_Key: net_cast_state.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53564108800
+    m_Key: net_cast_state.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 55086641152
+    m_Key: jackpot_damage.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 55086641153
+    m_Key: jackpot_damage.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56835665920
+    m_Key: jackpot_resistance.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56835665921
+    m_Key: jackpot_resistance.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 58333032448
+    m_Key: share_the_treasure_state.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 58333032449
+    m_Key: share_the_treasure_state.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 59842981888
+    m_Key: hooked_sabre_state.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 59842981889
+    m_Key: hooked_sabre_state.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 61478760448
+    m_Key: pistol_shot_caster_state.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 61478760449
+    m_Key: pistol_shot_caster_state.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 63198425088
+    m_Key: pistol_shot_target_state.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 63198425089
+    m_Key: pistol_shot_target_state.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64637071360
+    m_Key: sapping_shot_state.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64637071361
+    m_Key: sapping_shot_state.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66771972096
+    m_Key: treasure_damage.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66771972097
+    m_Key: treasure_damage.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66797137920
+    m_Key: treasure_resistance.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66797137921
+    m_Key: treasure_resistance.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66813915136
+    m_Key: carpenter_ballista_aura.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66813915137
+    m_Key: carpenter_ballista_aura.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66839080960
+    m_Key: carpenter_construction.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66839080961
+    m_Key: carpenter_construction.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66864246784
+    m_Key: carpenter_energy_minus_2.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66864246785
+    m_Key: carpenter_energy_minus_2.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66889412608
+    m_Key: carpenter_general_resistance_15.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66889412609
+    m_Key: carpenter_general_resistance_15.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66922967040
+    m_Key: carpenter_harpoon_aura.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66922967041
+    m_Key: carpenter_harpoon_aura.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66956521472
+    m_Key: carpenter_mobility_minus_1.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66956521473
+    m_Key: carpenter_mobility_minus_1.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66985881600
+    m_Key: carpenter_mobility_minus_2.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66985881601
+    m_Key: carpenter_mobility_minus_2.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67006853120
+    m_Key: carpenter_persistent_damage.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67006853121
+    m_Key: carpenter_persistent_damage.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67040407552
+    m_Key: carpenter_pulley_aura.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67040407553
+    m_Key: carpenter_pulley_aura.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67069767680
+    m_Key: carpenter_ranged_resistance_minus_5.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67069767681
+    m_Key: carpenter_ranged_resistance_minus_5.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67094933504
+    m_Key: carpenter_ranged_resistance_stolen_5.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67094933505
+    m_Key: carpenter_ranged_resistance_stolen_5.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67115905024
+    m_Key: carpenter_turret_active.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67115905025
+    m_Key: carpenter_turret_active.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67145265152
+    m_Key: carpenter_turret_inactive.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67145265153
+    m_Key: carpenter_turret_inactive.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67170430976
+    m_Key: siren_aegis_marked.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67170430977
+    m_Key: siren_aegis_marked.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67199791104
+    m_Key: siren_deep_resistance.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67199791105
+    m_Key: siren_deep_resistance.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67229151232
+    m_Key: siren_energy_drain.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67229151233
+    m_Key: siren_energy_drain.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67258511360
+    m_Key: siren_energy_gift.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67258511361
+    m_Key: siren_energy_gift.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67283677184
+    m_Key: siren_range_blessing.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67283677185
+    m_Key: siren_range_blessing.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67308843008
+    m_Key: siren_range_curse.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67308843009
+    m_Key: siren_range_curse.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67338203136
+    m_Key: siren_salt_resistance_break.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67338203137
+    m_Key: siren_salt_resistance_break.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67363368960
+    m_Key: siren_shared_mobility.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67363368961
+    m_Key: siren_shared_mobility.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67396923392
+    m_Key: siren_solidarity_marked.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67396923393
+    m_Key: siren_solidarity_marked.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67673747456
+    m_Key: unhealable.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67673747457
+    m_Key: unhealable.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67690524672
+    m_Key: siren_horizon_conch_glyph.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67690524673
+    m_Key: siren_horizon_conch_glyph.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67715690496
+    m_Key: siren_nourishing_coral_glyph.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67715690497
+    m_Key: siren_nourishing_coral_glyph.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67749244928
+    m_Key: siren_siphoning_shell_glyph.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67749244929
+    m_Key: siren_siphoning_shell_glyph.description
+    m_Metadata:
+      m_Items: []
+  m_Metadata:
+    m_Items: []
+  m_KeyGenerator:
+    rid: 2073694767051964685
+  references:
+    version: 2
+    RefIds:
+    - rid: 2073694767051964685
+      type: {class: DistributedUIDGenerator, ns: UnityEngine.Localization.Tables, asm: Unity.Localization}
+      data:
+        m_CustomEpoch: 1784479480750

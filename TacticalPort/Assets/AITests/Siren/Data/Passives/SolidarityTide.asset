@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8e1b21296fd6568499e2c62e7546942e, type: 3}
+  m_Name: SolidarityTide
+  m_EditorClassIdentifier: TacticalPort.Data::TacticalPort.Data.PassiveDefinition
+  _Id: solidarity_tide
+  _DisplayName: Solidarity Tide
+  _Description: 
+  _Icon: {fileID: 21300000, guid: b1fd8eb20e5180b4f9f44356758f1b60, type: 3}
+  _Trigger: 0
+  _StateProgression: {fileID: 0}
+  _ProgressionStepsPerTrigger: 1
+  _TriggerOnOwnerVariantExecutions: 0
+  _BeginTurnEffect: 0
+  _OwnedUnitRequiredState: {fileID: 0}
+  _OwnedUnitRestoreHealth: 0
+  _OwnedUnitAuras: []
+  _AutomaticTargetSelection: 1
+  _AutomaticTargetMarker: {fileID: 11400000, guid: a6d9ee9509484b14e8cc540e99133200, type: 2}
+  _AutomaticTargetUnitType: 1
+  _HealthLossSourceRule: 1
+  _HealthLossReactionTarget: 2
+  _HealthLossReactionState: {fileID: 11400000, guid: d3f3319e3db062941b87ec10ce844ff8, type: 2}
+  _HealthLossReactionStateStacks: 1
+  _IncludeSummonsAsReactionBeneficiaries: 0
+  _ClearReactionStateOnOwnerBeginTurn: 0

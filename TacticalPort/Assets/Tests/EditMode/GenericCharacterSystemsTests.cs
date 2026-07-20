@@ -279,6 +279,102 @@ namespace TacticalPort.State.Tests
         }
 
         [Test]
+        public void BlocksHealingStopsStandardHealingButKeepsDirectRepairAvailable()
+        {
+            UnitRuntime lUnit = new UnitRuntime(new UnitId(1), CreateUnit(Team.TeamA, 100, 10), new GridCoord(0, 0));
+            StateDefinition lUnhealable = CreateState("unhealable");
+            SetField(lUnhealable, "_BlocksHealing", true);
+            lUnit.ApplyDirectHealthLoss(30);
+
+            Assert.That(lUnit.TryApplyState(lUnhealable, 1, 3), Is.True);
+            Assert.That(lUnit.RestoreHealth(20), Is.Zero);
+            Assert.That(lUnit.CurrentHealth, Is.EqualTo(70));
+            Assert.That(lUnit.RestoreDirectHealth(10), Is.EqualTo(10));
+            Assert.That(lUnit.RemoveTemporaryState(lUnhealable), Is.True);
+            Assert.That(lUnit.RestoreHealth(20), Is.EqualTo(20));
+        }
+
+        [Test]
+        public void ReduceStateDurationsSkipsPersistentMarkersAndProtectedStates()
+        {
+            SkillDefinition lSkill = CreateSkill("reduce-durations", 0, 6, 0, SkillPrimaryEffectType.None);
+            SetField(lSkill, "_TargetType", SkillTargetType.Unit);
+            SetField(lSkill, "_TargetRelation", SkillTargetRelation.Anyone);
+            SetField(lSkill, "_CanAffectCaster", true);
+            SetField(lSkill, "_AdditionalEffectType", SkillAdditionalEffectType.ReduceStateDurations);
+            SetField(lSkill, "_StateDurationReduction", 2);
+            StateDefinition lReduced = CreateState("reduced");
+            StateDefinition lExpired = CreateState("expired");
+            StateDefinition lProtected = CreateState("protected");
+            StateDefinition lMarker = CreateState("marker");
+            StateDefinition lPersistent = CreateState("persistent");
+            SetField(lProtected, "_ProtectsDurationReduction", true);
+            SetField(lMarker, "_IsPassiveMarker", true);
+
+            IBattleService lBattle = CreateBattle(
+                Spawn(CreateUnit(Team.TeamA, 100, 100, new[] { lSkill }), 0, 0, 0),
+                Spawn(CreateUnit(Team.TeamB, 100, 1), 2, 0, 0));
+            lBattle.TryGetUnit(new UnitId(1), out UnitRuntime lActor);
+            lBattle.TryGetUnit(new UnitId(2), out UnitRuntime lTarget);
+            lTarget.TryApplyState(lReduced, 1, 4);
+            lTarget.TryApplyState(lExpired, 1, 1);
+            lTarget.TryApplyState(lProtected, 1, 3);
+            lTarget.TryApplyState(lMarker, 1, 3);
+            lTarget.SetPersistentState("progression::persistent", lPersistent);
+            Assert.That(lBattle.TryStartNextTurn(out _), Is.True);
+
+            BattleActionResult lResult = lBattle.UseSkill(lActor.Id, new SkillId(lSkill.Id), SkillTarget.ForCell(lTarget.Position));
+
+            Assert.That(lResult.IsSuccess, Is.True, lResult.Message);
+            Assert.That((lResult.OutcomeFlags & BattleActionOutcomeFlags.StateDurationReduced) != 0, Is.True);
+            Assert.That(FindState(lTarget, lReduced)?.RemainingTurns, Is.EqualTo(2));
+            Assert.That(lTarget.HasState(lExpired), Is.False);
+            Assert.That(FindState(lTarget, lProtected)?.RemainingTurns, Is.EqualTo(3));
+            Assert.That(FindState(lTarget, lMarker)?.RemainingTurns, Is.EqualTo(3));
+            Assert.That(lTarget.GetStateByKey("progression::persistent"), Is.Not.Null);
+        }
+
+        [Test]
+        public void CharactersOnlyAllMatchingScopeExcludesSummons()
+        {
+            UnitDefinition lSummonDefinition = CreateUnit(Team.TeamA, 40, 1);
+            StateDefinition lBuff = CreateState("characters-only-buff", pEnergy: 1);
+            SkillDefinition lSummonSkill = CreateSkill("summon", 0, 2, 0, SkillPrimaryEffectType.None);
+            SetField(lSummonSkill, "_AdditionalEffectType", SkillAdditionalEffectType.Summon);
+            SetField(lSummonSkill, "_SummonUnit", lSummonDefinition);
+            SetField(lSummonSkill, "_SummonTeamRule", SkillSummonTeamRule.Caster);
+            SkillDefinition lGlobalSkill = CreateSkill("characters-only", 0, 0, 0, SkillPrimaryEffectType.None);
+            SetField(lGlobalSkill, "_TargetType", SkillTargetType.Self);
+            SetField(lGlobalSkill, "_TargetRelation", SkillTargetRelation.AlliesOnly);
+            SetField(lGlobalSkill, "_TargetScope", SkillTargetScope.AllMatchingUnits);
+            SetField(lGlobalSkill, "_TargetUnitType", UnitTargetType.CharactersOnly);
+            SetField(lGlobalSkill, "_CanAffectCaster", true);
+            SetField(lGlobalSkill, "_AppliedState", lBuff);
+
+            IBattleService lBattle = CreateBattle(
+                Spawn(CreateUnit(Team.TeamA, 100, 100, new[] { lSummonSkill, lGlobalSkill }), 0, 0, 0),
+                Spawn(CreateUnit(Team.TeamA, 100, 1), 3, 0, 1),
+                Spawn(CreateUnit(Team.TeamB, 100, 1), 6, 0, 0));
+            lBattle.TryGetUnit(new UnitId(1), out UnitRuntime lActor);
+            lBattle.TryGetUnit(new UnitId(2), out UnitRuntime lAlly);
+            Assert.That(lBattle.TryStartNextTurn(out _), Is.True);
+            Assert.That(lBattle.UseSkill(lActor.Id, new SkillId(lSummonSkill.Id), SkillTarget.ForCell(new GridCoord(1, 0))).IsSuccess, Is.True);
+
+            UnitRuntime lSummon = null;
+            foreach (UnitRuntime lUnit in lBattle.Units)
+            {
+                if (lUnit.IsSummon)
+                    lSummon = lUnit;
+            }
+
+            Assert.That(lSummon, Is.Not.Null);
+            Assert.That(lBattle.UseSkill(lActor.Id, new SkillId(lGlobalSkill.Id), SkillTarget.ForCell(lActor.Position)).IsSuccess, Is.True);
+            Assert.That(lActor.HasState(lBuff), Is.True);
+            Assert.That(lAlly.HasState(lBuff), Is.True);
+            Assert.That(lSummon.HasState(lBuff), Is.False);
+        }
+
+        [Test]
         public void LinkedTargetAndCasterStatesModelImmediateStatSteal()
         {
             StateDefinition lTargetDebuff = CreateState("target-debuff", pMobility: -1);
@@ -324,6 +420,69 @@ namespace TacticalPort.State.Tests
             Assert.That(lEnemy.CurrentHealth, Is.EqualTo(100));
         }
 
+        [Test]
+        public void TemporaryStatesTickAtTheirSourceBeginTurnAcrossAllTargets()
+        {
+            StateDefinition lSourcedState = CreateState("sourced-duration");
+            StateDefinition lSelfState = CreateState("self-duration");
+            StateDefinition lLegacyState = CreateState("legacy-duration");
+            StateDefinition lPassiveMarker = CreateState("passive-marker");
+            SetField(lPassiveMarker, "_IsPassiveMarker", true);
+            IBattleService lBattle = CreateBattle(
+                Spawn(CreateUnit(Team.TeamA, 100, 100), 0, 0, 0),
+                Spawn(CreateUnit(Team.TeamB, 100, 1), 3, 0, 0));
+            lBattle.TryGetUnit(new UnitId(1), out UnitRuntime lSource);
+            lBattle.TryGetUnit(new UnitId(2), out UnitRuntime lTarget);
+
+            Assert.That(lBattle.TryStartNextTurn(out _), Is.True);
+            Assert.That(lTarget.TryApplyState(lSourcedState, 1, 2, lSource.Id, lSource.Team), Is.True);
+            Assert.That(lSource.TryApplyState(lSelfState, 1, 2, lSource.Id, lSource.Team), Is.True);
+            Assert.That(lTarget.TryApplyState(lLegacyState, 1, 2), Is.True);
+            Assert.That(lTarget.TryApplyState(lPassiveMarker, 1, 1, lSource.Id, lSource.Team), Is.True);
+
+            Assert.That(lBattle.EndTurn(lSource.Id).IsSuccess, Is.True);
+            Assert.That(lBattle.TryStartNextTurn(out _), Is.True);
+            Assert.That(FindState(lTarget, lSourcedState)?.RemainingTurns, Is.EqualTo(2));
+            Assert.That(FindState(lSource, lSelfState)?.RemainingTurns, Is.EqualTo(2));
+            Assert.That(FindState(lTarget, lLegacyState)?.RemainingTurns, Is.EqualTo(1));
+
+            Assert.That(lBattle.EndTurn(lTarget.Id).IsSuccess, Is.True);
+            Assert.That(lBattle.TryStartNextTurn(out _), Is.True);
+            Assert.That(FindState(lTarget, lSourcedState)?.RemainingTurns, Is.EqualTo(1));
+            Assert.That(FindState(lSource, lSelfState)?.RemainingTurns, Is.EqualTo(1));
+            Assert.That(FindState(lTarget, lPassiveMarker)?.RemainingTurns, Is.EqualTo(1));
+
+            Assert.That(lBattle.EndTurn(lSource.Id).IsSuccess, Is.True);
+            Assert.That(lBattle.TryStartNextTurn(out _), Is.True);
+            Assert.That(lTarget.HasState(lLegacyState), Is.False);
+            Assert.That(lBattle.EndTurn(lTarget.Id).IsSuccess, Is.True);
+            Assert.That(lBattle.TryStartNextTurn(out _), Is.True);
+            Assert.That(lTarget.HasState(lSourcedState), Is.False);
+            Assert.That(lSource.HasState(lSelfState), Is.False);
+            Assert.That(lTarget.HasState(lPassiveMarker), Is.True);
+        }
+
+        [Test]
+        public void SourceDeathImmediatelyRemovesAllOwnedStates()
+        {
+            StateDefinition lTemporaryState = CreateState("death-cleanup-temporary");
+            StateDefinition lPersistentState = CreateState("death-cleanup-persistent");
+            IBattleService lBattle = CreateBattle(
+                Spawn(CreateUnit(Team.TeamA, 100, 100), 0, 0, 0),
+                Spawn(CreateUnit(Team.TeamB, 100, 1), 3, 0, 0));
+            lBattle.TryGetUnit(new UnitId(1), out UnitRuntime lSource);
+            lBattle.TryGetUnit(new UnitId(2), out UnitRuntime lTarget);
+
+            Assert.That(lBattle.TryStartNextTurn(out _), Is.True);
+            Assert.That(lTarget.TryApplyState(lTemporaryState, 1, 3, lSource.Id, lSource.Team), Is.True);
+            lTarget.SetPersistentState("death-cleanup", lPersistentState, 1, lSource.Id, lSource.Team);
+            lSource.ApplyDirectHealthLoss(lSource.CurrentHealth);
+
+            Assert.That(lBattle.EndTurn(lSource.Id).IsSuccess, Is.True);
+            Assert.That(lTarget.HasState(lTemporaryState), Is.False);
+            Assert.That(lTarget.HasState(lPersistentState), Is.False);
+        }
+
         private UnitDefinition CreateUnit(
             Team pTeam,
             int pHealth,
@@ -342,6 +501,18 @@ namespace TacticalPort.State.Tests
             SetField(lUnit, "_Passives", pPassive != null ? new List<PassiveDefinition> { pPassive } : new List<PassiveDefinition>());
             SetField(lUnit, "_DefaultPassive", pPassive);
             return lUnit;
+        }
+
+        private static BattleStateRuntime FindState(UnitRuntime pUnit, StateDefinition pDefinition)
+        {
+            for (int lIndex = 0; lIndex < pUnit.ActiveStates.Count; lIndex++)
+            {
+                BattleStateRuntime lState = pUnit.ActiveStates[lIndex];
+                if (lState?.Definition == pDefinition)
+                    return lState;
+            }
+
+            return null;
         }
 
         private SkillDefinition CreateSkill(

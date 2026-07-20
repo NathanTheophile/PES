@@ -33,6 +33,7 @@ Transform:
   m_Children:
   - {fileID: 1585946867847612704}
   - {fileID: 1578499032860300293}
+  - {fileID: 4926099738184150013}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &6292429647394850086
@@ -47,6 +48,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 45da5c6831e87e548ae64860bbafe875, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TacticalPort.View.UnitView
+  _ModelRoot: {fileID: 4926099738184150013}
+  _Animator: {fileID: 0}
+  _ModelRotationEuler: {x: 0, y: 180, z: 0}
+  _TintRenderers: []
+  _TintColorProperty: _BaseColor
+  _InstantiateDefinitionModelPrefab: 1
   _SpriteFallbackRenderer: {fileID: 143113661708094281}
   _DefeatedTint: {r: 0.45, g: 0.45, b: 0.45, a: 0.8}
   _BaseSortingOrder: 1000
@@ -178,6 +185,37 @@ MonoBehaviour:
   m_BlockingMask:
     serializedVersion: 2
     m_Bits: 4294967295
+--- !u!1 &4373182963148778667
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4926099738184150013}
+  m_Layer: 0
+  m_Name: ModelRoot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4926099738184150013
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4373182963148778667}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6020410271563621164}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &7446390415055227812
 PrefabInstance:
   m_ObjectHideFlags: 0

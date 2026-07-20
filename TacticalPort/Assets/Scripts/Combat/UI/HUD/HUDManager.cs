@@ -6,6 +6,7 @@
 
 using System;
 using TacticalPort.Core;
+using TacticalPort.Data;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -163,10 +164,16 @@ namespace TacticalPort.UI
             if (_BattleService != null)
                 _BattleService.TryGetActiveUnit(out lActiveUnit);
 
-            SetText(_TxtCurrentPhase, _BattleService != null ? $"Phase: {_BattleService.Phase}" : "Phase: Unbound");
-            SetText(_TxtOutcome, _BattleService != null ? $"Outcome: {_BattleService.Outcome}" : "Outcome: None");
-            SetText(_TxtActiveUnit, $"Active Unit: {ResolveActiveUnitLabel()}");
-            SetText(_TxtCurrentTurn, $"Turn: {ResolveTurnLabel()}");
+            string lPhase = _BattleService != null
+                ? _BattleService.Phase.ToString()
+                : GameLocalization.Get(GameLocalization.CombatLogTable, "battle.unbound", "Unbound");
+            string lOutcome = _BattleService != null
+                ? _BattleService.Outcome.ToString()
+                : GameLocalization.Get(GameLocalization.CombatLogTable, "battle.no_outcome", "None");
+            SetText(_TxtCurrentPhase, GameLocalization.Get(GameLocalization.UiTable, "hud.phase", "Phase: {0}", lPhase));
+            SetText(_TxtOutcome, GameLocalization.Get(GameLocalization.UiTable, "hud.outcome", "Outcome: {0}", lOutcome));
+            SetText(_TxtActiveUnit, GameLocalization.Get(GameLocalization.UiTable, "hud.active_unit", "Active Unit: {0}", ResolveActiveUnitLabel()));
+            SetText(_TxtCurrentTurn, GameLocalization.Get(GameLocalization.UiTable, "hud.turn", "Turn: {0}", ResolveTurnLabel()));
             SetText(_TxtStatus, _StatusMessage);
             SetText(_TxtMode, _SkillModeMessage);
             SetUnitStats(lActiveUnit);
@@ -198,15 +205,18 @@ namespace TacticalPort.UI
         {
             if (pUnit == null)
             {
-                SetText(_HealthText, "Health: -");
-                SetText(_MobilityText, "Mobility: -");
-                SetText(_EnergyText, "Energy: -");
+                SetText(_HealthText, GameLocalization.Get(GameLocalization.UiTable, "stats.health_empty", "Health: -"));
+                SetText(_MobilityText, GameLocalization.Get(GameLocalization.UiTable, "stats.mobility_empty", "Mobility: -"));
+                SetText(_EnergyText, GameLocalization.Get(GameLocalization.UiTable, "stats.energy_empty", "Energy: -"));
                 return;
             }
 
-            SetText(_HealthText, $"Health: {pUnit.CurrentHealth}/{pUnit.CurrentMaxHealth} | Wear: {pUnit.EffectiveWearPercent}%");
-            SetText(_MobilityText, $"Mobility: {pUnit.RemainingMobility}/{Math.Max(0, pUnit.Definition.MobilityPerTurn + pUnit.GetMobilityModifier())}");
-            SetText(_EnergyText, $"Energy: {pUnit.RemainingEnergy}/{Math.Max(0, pUnit.Definition.EnergyPerTurn + pUnit.GetEnergyModifier())}");
+            SetText(_HealthText, GameLocalization.Get(GameLocalization.UiTable, "stats.health_wear", "Health: {0}/{1} | Wear: {2}%",
+                pUnit.CurrentHealth, pUnit.CurrentMaxHealth, pUnit.EffectiveWearPercent));
+            SetText(_MobilityText, GameLocalization.Get(GameLocalization.UiTable, "stats.mobility", "Mobility: {0}/{1}",
+                pUnit.RemainingMobility, Math.Max(0, pUnit.Definition.MobilityPerTurn + pUnit.GetMobilityModifier())));
+            SetText(_EnergyText, GameLocalization.Get(GameLocalization.UiTable, "stats.energy", "Energy: {0}/{1}",
+                pUnit.RemainingEnergy, Math.Max(0, pUnit.Definition.EnergyPerTurn + pUnit.GetEnergyModifier())));
         }
 
         #endregion

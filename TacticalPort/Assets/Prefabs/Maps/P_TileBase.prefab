@@ -46,7 +46,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BoardTileAuthoring
   _IsWalkable: 1
-  _BlocksLineOfSight: 0
+  _BlocksVisibility: 0
   _MovementCost: 1
   _IsSpawner: 0
   _AssignedTeam: 0

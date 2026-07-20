@@ -27,17 +27,75 @@ namespace TacticalPort.Core
             if (pUnits == null)
                 return;
 
-            List<UnitRuntime> lDefeatedUnits = new List<UnitRuntime>();
+            List<UnitRuntime> lUnits = new List<UnitRuntime>();
             foreach (UnitRuntime lUnit in pUnits)
             {
-                if (lUnit != null && !lUnit.IsAlive)
-                    lDefeatedUnits.Add(lUnit);
+                if (lUnit != null)
+                    lUnits.Add(lUnit);
             }
+
+            lUnits.Sort((pLeft, pRight) => pLeft.Id.Value.CompareTo(pRight.Id.Value));
+            List<UnitRuntime> lDefeatedUnits = lUnits.FindAll(pUnit => !pUnit.IsAlive);
+
+            for (int lDefeatedIndex = 0; lDefeatedIndex < lDefeatedUnits.Count; lDefeatedIndex++)
+            {
+                UnitRuntime lDefeatedOwner = lDefeatedUnits[lDefeatedIndex];
+                for (int lUnitIndex = 0; lUnitIndex < lUnits.Count; lUnitIndex++)
+                {
+                    UnitRuntime lOwnedUnit = lUnits[lUnitIndex];
+                    if (!lOwnedUnit.IsAlive || lOwnedUnit.OwnerUnitId != lDefeatedOwner.Id)
+                        continue;
+
+                    lOwnedUnit.ApplyDirectHealthLoss(lOwnedUnit.CurrentHealth);
+                    lDefeatedUnits.Add(lOwnedUnit);
+                }
+            }
+
+            lDefeatedUnits.Sort((pLeft, pRight) => pLeft.Id.Value.CompareTo(pRight.Id.Value));
 
             foreach (UnitRuntime lDefeatedUnit in lDefeatedUnits)
             {
+                for (int lIndex = 0; lIndex < lUnits.Count; lIndex++)
+                    lUnits[lIndex].RemoveStatesBySource(lDefeatedUnit.Id);
+
+                BattlePassiveResolver.CleanupOwnedEffects(lDefeatedUnit, lUnits);
+                pGridService.RemoveGlyphsByLifetimeSource(lDefeatedUnit.Id);
                 pGridService.RemoveUnit(lDefeatedUnit.Id);
                 pTurnSystem.RemoveUnit(lDefeatedUnit.Id);
+            }
+        }
+
+        public static void TickTemporaryStateDurationsForTurnOwner(
+            UnitRuntime pTurnOwner,
+            IReadOnlyDictionary<UnitId, UnitRuntime> pUnitsById)
+        {
+            if (pTurnOwner == null || pUnitsById == null)
+                return;
+
+            List<UnitId> lDurationSources = new List<UnitId> { pTurnOwner.Id };
+            foreach (UnitRuntime lUnit in pUnitsById.Values)
+            {
+                if (lUnit != null
+                    && lUnit.IsAlive
+                    && !lUnit.Definition.ParticipatesInTurnOrder
+                    && lUnit.OwnerUnitId == pTurnOwner.Id)
+                {
+                    lDurationSources.Add(lUnit.Id);
+                }
+            }
+
+            lDurationSources.Sort((pLeft, pRight) => pLeft.Value.CompareTo(pRight.Value));
+            List<UnitRuntime> lTargets = new List<UnitRuntime>(pUnitsById.Values);
+            lTargets.Sort((pLeft, pRight) => pLeft.Id.Value.CompareTo(pRight.Id.Value));
+            for (int lTargetIndex = 0; lTargetIndex < lTargets.Count; lTargetIndex++)
+            {
+                UnitRuntime lTarget = lTargets[lTargetIndex];
+                for (int lSourceIndex = 0; lSourceIndex < lDurationSources.Count; lSourceIndex++)
+                {
+                    lTarget.TickTemporaryStateDurationsForSource(
+                        lDurationSources[lSourceIndex],
+                        lDurationSources[lSourceIndex] == pTurnOwner.Id && lTarget.Id == pTurnOwner.Id);
+                }
             }
         }
 

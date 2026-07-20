@@ -18,7 +18,7 @@ namespace TacticalPort.Core
         private readonly IReadOnlyDictionary<UnitId, UnitRuntime> _UnitsById;
         private readonly Func<UnitRuntime, GridCoord, bool> _TryRelocateUnit;
         private readonly Func<UnitRuntime, UnitRuntime, bool> _TrySwapUnits;
-        private readonly Func<UnitDefinition, SkillSummonTeamRule, UnitRuntime, GridCoord, UnitRuntime> _TrySummonUnit;
+        private readonly Func<UnitDefinition, SkillSummonTeamRule, UnitRuntime, GridCoord, bool, UnitRuntime> _TrySummonUnit;
         private readonly Action<GridGlyphRuntime> _AddGlyph;
         private readonly Func<TelegraphedHazardRuntime, bool> _TryScheduleHazard;
 
@@ -31,7 +31,7 @@ namespace TacticalPort.Core
             IReadOnlyDictionary<UnitId, UnitRuntime> pUnitsById,
             Func<UnitRuntime, GridCoord, bool> pTryRelocateUnit,
             Func<UnitRuntime, UnitRuntime, bool> pTrySwapUnits,
-            Func<UnitDefinition, SkillSummonTeamRule, UnitRuntime, GridCoord, UnitRuntime> pTrySummonUnit,
+            Func<UnitDefinition, SkillSummonTeamRule, UnitRuntime, GridCoord, bool, UnitRuntime> pTrySummonUnit,
             Action<GridGlyphRuntime> pAddGlyph,
             Func<TelegraphedHazardRuntime, bool> pTryScheduleHazard = null)
         {
@@ -63,8 +63,8 @@ namespace TacticalPort.Core
         public bool TrySwapUnits(UnitRuntime pFirstUnit, UnitRuntime pSecondUnit) =>
             _TrySwapUnits != null && _TrySwapUnits.Invoke(pFirstUnit, pSecondUnit);
 
-        public UnitRuntime TrySummonUnit(UnitDefinition pDefinition, SkillSummonTeamRule pTeamRule, UnitRuntime pSummoner, GridCoord pDestination) =>
-            _TrySummonUnit != null ? _TrySummonUnit.Invoke(pDefinition, pTeamRule, pSummoner, pDestination) : null;
+        public UnitRuntime TrySummonUnit(UnitDefinition pDefinition, SkillSummonTeamRule pTeamRule, UnitRuntime pSummoner, GridCoord pDestination, bool pReplaceOwnedSameDefinition) =>
+            _TrySummonUnit != null ? _TrySummonUnit.Invoke(pDefinition, pTeamRule, pSummoner, pDestination, pReplaceOwnedSameDefinition) : null;
 
         public void AddGlyph(GridGlyphRuntime pGlyph) => _AddGlyph?.Invoke(pGlyph);
 

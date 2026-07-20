@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8e1b21296fd6568499e2c62e7546942e, type: 3}
+  m_Name: CarpenterWorkshopNetwork
+  m_EditorClassIdentifier: TacticalPort.Data::TacticalPort.Data.PassiveDefinition
+  _Id: carpenter_workshop_network
+  _DisplayName: Workshop Network
+  _Description: 
+  _Icon: {fileID: 2080515067170978351, guid: 730a64fc32f9a5f4f96a36c3837cc0ba, type: 3}
+  _Trigger: 3
+  _StateProgression: {fileID: 0}
+  _ProgressionStepsPerTrigger: 1
+  _TriggerOnOwnerVariantExecutions: 1
+  _BeginTurnEffect: 2
+  _OwnedUnitRequiredState: {fileID: 11400000, guid: ef0439d63746def48b374b5f5f8fb7f9, type: 2}
+  _OwnedUnitRestoreHealth: 0
+  _OwnedUnitAuras:
+  - _SourceUnit: {fileID: 11400000, guid: 9a5a9a9c0b4bb70449cf3a2b628b6e8e, type: 2}
+    _RequiredSourceState: {fileID: 11400000, guid: c05f31f47ffd4244cba5c7aab408309a, type: 2}
+    _ExcludedBeneficiaryState: {fileID: 11400000, guid: ef0439d63746def48b374b5f5f8fb7f9, type: 2}
+    _AppliedState: {fileID: 11400000, guid: 6f11ad7ae81891a4ebe4226032f72a3c, type: 2}
+    _Range: 1
+  - _SourceUnit: {fileID: 11400000, guid: 34a568814dd6cf043b982d6df77acd71, type: 2}
+    _RequiredSourceState: {fileID: 11400000, guid: c05f31f47ffd4244cba5c7aab408309a, type: 2}
+    _ExcludedBeneficiaryState: {fileID: 11400000, guid: ef0439d63746def48b374b5f5f8fb7f9, type: 2}
+    _AppliedState: {fileID: 11400000, guid: 7d7b7817eb933594c806dee4e057cdba, type: 2}
+    _Range: 1
+  - _SourceUnit: {fileID: 11400000, guid: 19baf53fd687eab4e86038de87713bd1, type: 2}
+    _RequiredSourceState: {fileID: 11400000, guid: c05f31f47ffd4244cba5c7aab408309a, type: 2}
+    _ExcludedBeneficiaryState: {fileID: 11400000, guid: ef0439d63746def48b374b5f5f8fb7f9, type: 2}
+    _AppliedState: {fileID: 11400000, guid: 78ba6119ad4409640b1108f9fb4b241b, type: 2}
+    _Range: 1
+  _AutomaticTargetSelection: 0
+  _AutomaticTargetMarker: {fileID: 0}
+  _AutomaticTargetUnitType: 1
+  _HealthLossSourceRule: 1
+  _HealthLossReactionTarget: 0
+  _HealthLossReactionState: {fileID: 0}
+  _HealthLossReactionStateStacks: 1
+  _IncludeSummonsAsReactionBeneficiaries: 0
+  _ClearReactionStateOnOwnerBeginTurn: 0
+  references:
+    version: 2
+    RefIds: []

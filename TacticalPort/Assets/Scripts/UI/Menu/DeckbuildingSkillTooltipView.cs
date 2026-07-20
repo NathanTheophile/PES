@@ -21,6 +21,7 @@ namespace TacticalPort.UI
         #region _____________________________/ VALUES
 
         [SerializeField] private GameObject _TooltipPanel;
+        [SerializeField] private TooltipPanelView _TooltipView;
         [SerializeField] private RectTransform _LayoutRoot;
         [SerializeField] private TMP_Text _NameText;
         [SerializeField] private TMP_Text _MetaText;
@@ -47,6 +48,7 @@ namespace TacticalPort.UI
 
         private void Awake()
         {
+            ResolveTooltipView();
             CacheTooltipTransform();
             ConfigureDynamicLayout();
             HideTooltip();
@@ -88,8 +90,13 @@ namespace TacticalPort.UI
             RefreshContent();
 
             MoveTooltipToOverlay();
-            _TooltipPanel.SetActive(true);
-            RefreshLayout();
+            if (_TooltipView != null)
+                _TooltipView.Show();
+            else
+            {
+                _TooltipPanel.SetActive(true);
+                RefreshLayout();
+            }
         }
 
         public void OnPointerExit(PointerEventData pEventData) => HideTooltip();
@@ -163,6 +170,12 @@ namespace TacticalPort.UI
 
         private void RefreshLayout()
         {
+            if (_TooltipView != null)
+            {
+                _TooltipView.RefreshLayout();
+                return;
+            }
+
             if (_LayoutRoot == null)
                 return;
 
@@ -175,7 +188,7 @@ namespace TacticalPort.UI
 
         private void ConfigureDynamicLayout()
         {
-            if (_LayoutRoot == null)
+            if (_TooltipView != null || _LayoutRoot == null)
                 return;
 
             if (_LayoutRoot.TryGetComponent(out VerticalLayoutGroup lLayout))
@@ -188,13 +201,22 @@ namespace TacticalPort.UI
 
             if (_LayoutRoot.TryGetComponent(out ContentSizeFitter lFitter))
             {
-                lFitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+                lFitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
                 lFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
             }
         }
 
         private void RefreshContent()
         {
+            if (_TooltipView != null)
+            {
+                if (_Skill != null)
+                    _TooltipView.Bind(_Skill);
+                else
+                    _TooltipView.Bind(_Passive);
+                return;
+            }
+
             bool lHasNativeLayout = _NameText != null || _MetaText != null || _PowerText != null || _AdditionalEffectText != null;
             if (!lHasNativeLayout)
             {
@@ -255,8 +277,7 @@ namespace TacticalPort.UI
             StringBuilder lBuilder = new StringBuilder(192);
             if (!string.IsNullOrWhiteSpace(pSkill.Description))
                 AppendLine(lBuilder, pSkill.Description);
-            if (pSkill.RequiresLineOfSight)
-                AppendLine(lBuilder, "Ligne de vue requise");
+            AppendLine(lBuilder, pSkill.RequiresVisibility ? "Visibility" : "No Visibility");
             if (pSkill.HasLifeSteal)
                 AppendLine(lBuilder, "Life Steal: 50% of enemy Health removed");
             AppendAreaOfEffect(lBuilder, pSkill);
@@ -281,8 +302,7 @@ namespace TacticalPort.UI
             AppendLine(lBuilder, pSkill.DisplayName);
             AppendLine(lBuilder, $"Energy {pSkill.EnergyCost} | Range {pSkill.RangeMin}-{pSkill.RangeMax}");
 
-            if (pSkill.RequiresLineOfSight)
-                AppendLine(lBuilder, "Ligne de vue requise");
+            AppendLine(lBuilder, pSkill.RequiresVisibility ? "Visibility" : "No Visibility");
 
             AppendPrimaryEffect(lBuilder, pSkill);
             AppendAdditionalEffect(lBuilder, pSkill);
@@ -371,6 +391,13 @@ namespace TacticalPort.UI
         }
 
         private static void AppendLine(StringBuilder pBuilder, string pText) => pBuilder.AppendLine(pText ?? string.Empty);
+
+        private void ResolveTooltipView()
+        {
+            _TooltipView ??= GetComponentInChildren<TooltipPanelView>(true);
+            if (_TooltipPanel == null && _TooltipView != null)
+                _TooltipPanel = _TooltipView.gameObject;
+        }
 
         #endregion
     }

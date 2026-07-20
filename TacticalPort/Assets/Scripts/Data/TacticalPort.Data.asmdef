@@ -2,7 +2,8 @@
     "name": "TacticalPort.Data",
     "rootNamespace": "TacticalPort.Data",
     "references": [
-        "TacticalPort.Shared"
+        "TacticalPort.Shared",
+        "Unity.Localization"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

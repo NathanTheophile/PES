@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cdc834a079e70b3499afef863376b88d, type: 3}
+  m_Name: SirenHorizonConchGlyph
+  m_EditorClassIdentifier: TacticalPort.Data::TacticalPort.Data.GlyphDefinition
+  _Id: siren_horizon_conch_glyph
+  _DisplayName: Horizon Conch
+  _Description: 
+  _Shape: 1
+  _Size: 2
+  _TriggerTiming: 2
+  _TargetUnitType: 1
+  _AllyEffects:
+  - _Type: 3
+    _Power: 0
+    _State: {fileID: 11400000, guid: 5aa8e4e72f314e54b94503215cc2724f, type: 2}
+    _StateStacks: 1
+    _StateDurationTurns: 0
+  _EnemyEffects:
+  - _Type: 3
+    _Power: 0
+    _State: {fileID: 11400000, guid: ebf53b449412c084da11aa431256f4ba, type: 2}
+    _StateStacks: 1
+    _StateDurationTurns: 0
+  _NeutralEffects: []
+  references:
+    version: 2
+    RefIds: []

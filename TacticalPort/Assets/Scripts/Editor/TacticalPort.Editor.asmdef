@@ -14,7 +14,9 @@
         "TacticalPort.Menu",
         "GiantGrey.TileWorldCreator",
         "Unity.TextMeshPro",
-        "UnityEngine.UI"
+        "UnityEngine.UI",
+        "Unity.Localization",
+        "Unity.Localization.Editor"
     ],
     "includePlatforms": [
         "Editor"

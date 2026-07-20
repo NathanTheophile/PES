@@ -8,6 +8,7 @@
 using TacticalPort.Shared;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace TacticalPort.Data
 {
@@ -21,7 +22,8 @@ namespace TacticalPort.Data
         HorizontalLine = 5,
         VerticalLine = 6,
         Cone = 7,
-        ConeReverse = 8
+        ConeReverse = 8,
+        PerpendicularLine = 9
     }
 
     public enum SkillTargetAlignment
@@ -65,6 +67,19 @@ namespace TacticalPort.Data
         AllMatchingUnits = 1
     }
 
+    public enum UnitTargetType
+    {
+        AllUnits = 0,
+        CharactersOnly = 1,
+        SummonsOnly = 2
+    }
+
+    public enum SkillVariantTrigger
+    {
+        StateEnabler = 0,
+        PrimaryTargetOwnedState = 1
+    }
+
     [CreateAssetMenu(fileName = "SkillDefinition", menuName = "Project/Data/Skill Definition")]
     public sealed class SkillDefinition : ScriptableObject
     {
@@ -77,11 +92,11 @@ namespace TacticalPort.Data
         [SerializeField] private string _Id = string.Empty;
 
         [TabGroup("Metadata")]
-        [LabelText("Display Name")]
+        [LabelText("English Display Name (Fallback)")]
         [SerializeField] private string _DisplayName = string.Empty;
 
         [TabGroup("Metadata")]
-        [LabelText("Description")]
+        [LabelText("English Description (Fallback)")]
         [SerializeField, TextArea] private string _Description = string.Empty;
 
         [TabGroup("Metadata")]
@@ -114,8 +129,33 @@ namespace TacticalPort.Data
         [SerializeField] private SkillTargetRelation _TargetRelation = SkillTargetRelation.Anyone;
 
         [TabGroup("Casting")]
+        [LabelText("Override Effect Relation")]
+        [SerializeField] private bool _OverrideEffectTargetRelation;
+
+        [TabGroup("Casting")]
+        [ShowIf(nameof(_OverrideEffectTargetRelation))]
+        [LabelText("Effect Target Relation")]
+        [SerializeField] private SkillTargetRelation _EffectTargetRelation = SkillTargetRelation.Anyone;
+
+        [TabGroup("Casting")]
+        [LabelText("Exclude Primary Target From Effects")]
+        [SerializeField] private bool _ExcludePrimaryTargetFromEffects;
+
+        [TabGroup("Casting")]
+        [LabelText("Primary Target Must Be Owned")]
+        [SerializeField] private bool _RequiresPrimaryTargetOwnedByCaster;
+
+        [TabGroup("Casting")]
+        [LabelText("Required Primary Target State")]
+        [SerializeField] private StateDefinition _RequiredPrimaryTargetState;
+
+        [TabGroup("Casting")]
         [LabelText("Target Scope")]
         [SerializeField] private SkillTargetScope _TargetScope = SkillTargetScope.Area;
+
+        [TabGroup("Casting")]
+        [LabelText("Target Unit Type")]
+        [SerializeField] private UnitTargetType _TargetUnitType = UnitTargetType.AllUnits;
 
         [TabGroup("Casting")]
         [LabelText("Range Min")]
@@ -132,8 +172,9 @@ namespace TacticalPort.Data
         [SerializeField] private SkillTargetAlignment _TargetAlignment = SkillTargetAlignment.Any;
 
         [TabGroup("Casting")]
-        [LabelText("Requires Line Of Sight")]
-        [SerializeField] private bool _RequiresLineOfSight;
+        [LabelText("Requires Visibility")]
+        [FormerlySerializedAs("_RequiresLineOfSight")]
+        [SerializeField] private bool _RequiresVisibility;
 
         [TabGroup("Casting")]
         [LabelText("AoE Shape")]
@@ -178,6 +219,15 @@ namespace TacticalPort.Data
         [ValidateInput(nameof(IsVariantValid), "A skill cannot reference itself as its variant.")]
         [SerializeField] private SkillDefinition _Variant;
 
+        [TabGroup("Variant")]
+        [LabelText("Variant Trigger")]
+        [SerializeField] private SkillVariantTrigger _VariantTrigger = SkillVariantTrigger.StateEnabler;
+
+        [TabGroup("Variant")]
+        [ShowIf(nameof(UsesTargetVariantTrigger))]
+        [LabelText("Variant Target State")]
+        [SerializeField] private StateDefinition _VariantTargetRequiredState;
+
         [TabGroup("Effects")]
         [LabelText("Power")]
         [SerializeField, Min(0)] private int _Power = 1;
@@ -194,9 +244,29 @@ namespace TacticalPort.Data
         [SerializeField, Min(0)] private int _PushDistance = 0;
 
         [TabGroup("Effects")]
+        [ShowIf(nameof(UsesRepairToggleEffect))]
+        [LabelText("Repair Amount")]
+        [SerializeField, Min(0)] private int _RepairAmount = 0;
+
+        [TabGroup("Effects")]
+        [ShowIf(nameof(UsesRepairToggleEffect))]
+        [LabelText("Toggle State A")]
+        [SerializeField] private StateDefinition _ToggleStateA;
+
+        [TabGroup("Effects")]
+        [ShowIf(nameof(UsesRepairToggleEffect))]
+        [LabelText("Toggle State B")]
+        [SerializeField] private StateDefinition _ToggleStateB;
+
+        [TabGroup("Effects")]
         [ShowIf(nameof(UsesPassiveProgressionEffect))]
         [LabelText("Progression Steps")]
         [SerializeField, Min(1)] private int _PassiveProgressionSteps = 1;
+
+        [TabGroup("Effects")]
+        [ShowIf(nameof(UsesDurationReductionEffect))]
+        [LabelText("State Duration Reduction")]
+        [SerializeField, Min(1)] private int _StateDurationReduction = 1;
 
         [TabGroup("Effects")]
         [ShowIf(nameof(UsesSummonEffect))]
@@ -210,9 +280,20 @@ namespace TacticalPort.Data
         [SerializeField] private SkillSummonTeamRule _SummonTeamRule = SkillSummonTeamRule.Definition;
 
         [TabGroup("Effects")]
+        [ShowIf(nameof(UsesSummonEffect))]
+        [LabelText("Replace Owned Summon Of Same Type")]
+        [SerializeField] private bool _ReplaceOwnedSummonOfSameDefinition;
+
+        [TabGroup("Effects")]
         [ShowIf(nameof(UsesGlyphEffect))]
         [LabelText("Glyph Duration")]
         [SerializeField, Min(1)] private int _GlyphDurationTurns = 1;
+
+        [TabGroup("Effects")]
+        [ShowIf(nameof(UsesGlyphEffect))]
+        [LabelText("Glyph Definition")]
+        [Tooltip("Optional generic definition. When empty, the legacy glyph fields below remain in use.")]
+        [SerializeField] private GlyphDefinition _GlyphDefinition;
 
         [TabGroup("Effects")]
         [ShowIf(nameof(UsesGlyphEffect))]
@@ -291,13 +372,20 @@ namespace TacticalPort.Data
         [Tooltip("Use -1 to keep the duration defined by the state asset.")]
         [SerializeField] private int _CasterAppliedStateDurationTurns = -1;
 
+        [TabGroup("Effects")]
+        [ShowIf(nameof(UsesCasterAppliedState))]
+        [LabelText("Caster State Stacks Per Affected Target")]
+        [SerializeField] private bool _CasterStateStacksPerAffectedTarget;
+
         #endregion
 
         #region _____________________________/ ACCESSORS
 
         public string Id => string.IsNullOrWhiteSpace(_Id) ? name : _Id;
-        public string DisplayName => string.IsNullOrWhiteSpace(_DisplayName) ? name : _DisplayName;
-        public string Description => _Description;
+        public string EnglishDisplayName => string.IsNullOrWhiteSpace(_DisplayName) ? name : _DisplayName;
+        public string EnglishDescription => _Description;
+        public string DisplayName => GameLocalization.GetContentName(GameLocalization.SkillsTable, Id, EnglishDisplayName);
+        public string Description => GameLocalization.GetContentDescription(GameLocalization.SkillsTable, Id, EnglishDescription);
         public SkillCategory Category => _Category;
         public bool HasExplicitCategory => _Category != SkillCategory.None;
         public SkillPrimaryEffectType PrimaryEffectType => _PrimaryEffectType;
@@ -306,11 +394,16 @@ namespace TacticalPort.Data
         public int RangeMin => Mathf.Clamp(_RangeMin, 0, RangeMax);
         public int RangeMax => Mathf.Max(0, _RangeMax);
         public SkillTargetAlignment TargetAlignment => _TargetAlignment;
-        public bool RequiresLineOfSight => _RequiresLineOfSight;
+        public bool RequiresVisibility => _RequiresVisibility;
         public bool CanAffectCaster => _CanAffectCaster;
         public SkillTargetType TargetType => _TargetType;
         public SkillTargetRelation TargetRelation => _TargetRelation;
+        public SkillTargetRelation EffectTargetRelation => _OverrideEffectTargetRelation ? _EffectTargetRelation : _TargetRelation;
+        public bool ExcludePrimaryTargetFromEffects => _ExcludePrimaryTargetFromEffects;
+        public bool RequiresPrimaryTargetOwnedByCaster => _RequiresPrimaryTargetOwnedByCaster;
+        public StateDefinition RequiredPrimaryTargetState => _RequiredPrimaryTargetState;
         public SkillTargetScope TargetScope => _TargetScope;
+        public UnitTargetType TargetUnitType => _TargetUnitType;
         public SkillAoeShape AoeShape => _AoeShape;
         public int AoeSize => Mathf.Max(0, _AoeShape == SkillAoeShape.Single ? 0 : _AoeSize);
         public bool UseAoeDamageFalloff => _AoeShape != SkillAoeShape.Single && _AoeDamageFalloffPercentPerCell > 0;
@@ -319,14 +412,22 @@ namespace TacticalPort.Data
         public int UsePerTarget => Mathf.Max(0, _UsePerTarget);
         public int CooldownTurns => Mathf.Max(0, _CooldownTurns);
         public SkillDefinition Variant => _Variant != this ? _Variant : null;
+        public SkillVariantTrigger VariantTrigger => _VariantTrigger;
+        public StateDefinition VariantTargetRequiredState => _VariantTargetRequiredState;
         public int Power => Mathf.Max(0, _Power);
         public bool HasLifeSteal => _HasLifeSteal && PrimaryEffectType == SkillPrimaryEffectType.Damage;
         public int EnergyCost => Mathf.Max(0, _EnergyCost);
         public int PushDistance => Mathf.Max(0, _PushDistance > 0 ? _PushDistance : _Power);
+        public int RepairAmount => Mathf.Max(0, _RepairAmount);
+        public StateDefinition ToggleStateA => _ToggleStateA;
+        public StateDefinition ToggleStateB => _ToggleStateB;
         public int PassiveProgressionSteps => Mathf.Max(1, _PassiveProgressionSteps);
+        public int StateDurationReduction => Mathf.Max(1, _StateDurationReduction);
         public UnitDefinition SummonUnit => _SummonUnit;
         public SkillSummonTeamRule SummonTeamRule => _SummonTeamRule;
+        public bool ReplaceOwnedSummonOfSameDefinition => _ReplaceOwnedSummonOfSameDefinition;
         public int GlyphDurationTurns => Mathf.Max(1, _GlyphDurationTurns);
+        public GlyphDefinition GlyphDefinition => _GlyphDefinition;
         public SkillGlyphTargetRule GlyphTargetRule => _GlyphTargetRule;
         public StateDefinition GlyphAppliedState => _GlyphAppliedState;
         public int GlyphAppliedStateStacks => Mathf.Max(1, _GlyphAppliedStateStacks);
@@ -342,6 +443,7 @@ namespace TacticalPort.Data
         public StateDefinition CasterAppliedState => _CasterAppliedState;
         public int CasterAppliedStateStacks => Mathf.Max(1, _CasterAppliedStateStacks);
         public int CasterAppliedStateDurationTurns => _CasterAppliedStateDurationTurns;
+        public bool CasterStateStacksPerAffectedTarget => _CasterStateStacksPerAffectedTarget;
         public Sprite Icon => _Icon;
 
         public DamageRangeType CategoryDamageRange =>
@@ -358,10 +460,13 @@ namespace TacticalPort.Data
 
         private bool IsRangeValid() => _RangeMin <= _RangeMax;
         private bool IsVariantValid() => _Variant == null || _Variant != this;
+        private bool UsesTargetVariantTrigger() => _VariantTrigger == SkillVariantTrigger.PrimaryTargetOwnedState;
         private bool UsesDamageEffect() => _PrimaryEffectType == SkillPrimaryEffectType.Damage;
         private bool HasAreaOfEffect() => _AoeShape != SkillAoeShape.Single;
         private bool UsesPushEffect() => _AdditionalEffectType is SkillAdditionalEffectType.Push or SkillAdditionalEffectType.Pull;
         private bool UsesPassiveProgressionEffect() => _AdditionalEffectType == SkillAdditionalEffectType.AdvanceActivePassiveProgression;
+        private bool UsesDurationReductionEffect() => _AdditionalEffectType == SkillAdditionalEffectType.ReduceStateDurations;
+        private bool UsesRepairToggleEffect() => _AdditionalEffectType == SkillAdditionalEffectType.RepairAndToggleStates;
         private bool UsesSummonEffect() => _AdditionalEffectType == SkillAdditionalEffectType.Summon;
         private bool UsesGlyphEffect() => _AdditionalEffectType == SkillAdditionalEffectType.CreateGlyph;
         private bool UsesGlyphState() => UsesGlyphEffect() && _GlyphAppliedState != null;

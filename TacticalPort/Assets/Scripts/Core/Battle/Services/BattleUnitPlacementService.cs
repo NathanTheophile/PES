@@ -108,7 +108,8 @@ namespace TacticalPort.Core
             UnitDefinition pDefinition,
             SkillSummonTeamRule pTeamRule,
             UnitRuntime pSummoner,
-            GridCoord pDestination)
+            GridCoord pDestination,
+            bool pReplaceOwnedSameDefinition = false)
         {
             if (pDefinition == null || !_GridService.IsInside(pDestination))
                 return null;
@@ -119,7 +120,10 @@ namespace TacticalPort.Core
                 : null;
 
             UnitId lUnitId = new UnitId(_NextUnitIdValue++);
-            UnitRuntime lRuntime = new UnitRuntime(lUnitId, pDefinition, pDestination, lRuntimeTeamOverride);
+            UnitId lOwnerUnitId = pSummoner != null
+                ? (pSummoner.OwnerUnitId.IsValid ? pSummoner.OwnerUnitId : pSummoner.Id)
+                : UnitId.None;
+            UnitRuntime lRuntime = new UnitRuntime(lUnitId, pDefinition, pDestination, lRuntimeTeamOverride, pOwnerUnitId: lOwnerUnitId);
             _GridService.RegisterUnitFootprint(lUnitId, lRuntime.OccupiedCellOffsets);
 
             if (!_GridService.TryPlaceUnit(lUnitId, pDestination))
@@ -127,7 +131,35 @@ namespace TacticalPort.Core
 
             _UnitsById[lUnitId] = lRuntime;
             _TurnSystem.AddUnit(lRuntime, pSummoner != null ? pSummoner.Id : UnitId.None);
+            if (pReplaceOwnedSameDefinition)
+                RemovePreviousOwnedSummons(pDefinition, lOwnerUnitId, lUnitId);
             return lRuntime;
+        }
+
+        private void RemovePreviousOwnedSummons(UnitDefinition pDefinition, UnitId pOwnerUnitId, UnitId pExceptUnitId)
+        {
+            List<UnitId> lUnitsToRemove = new List<UnitId>();
+            foreach (KeyValuePair<UnitId, UnitRuntime> lPair in _UnitsById)
+            {
+                UnitRuntime lUnit = lPair.Value;
+                if (lPair.Key != pExceptUnitId
+                    && lUnit != null
+                    && lUnit.Definition == pDefinition
+                    && lUnit.OwnerUnitId == pOwnerUnitId)
+                {
+                    lUnitsToRemove.Add(lPair.Key);
+                }
+            }
+
+            lUnitsToRemove.Sort((pLeft, pRight) => pLeft.Value.CompareTo(pRight.Value));
+            for (int lIndex = 0; lIndex < lUnitsToRemove.Count; lIndex++)
+            {
+                UnitId lUnitId = lUnitsToRemove[lIndex];
+                _GridService.RemoveGlyphsByLifetimeSource(lUnitId);
+                _GridService.RemoveUnit(lUnitId);
+                _TurnSystem.RemoveUnit(lUnitId);
+                _UnitsById.Remove(lUnitId);
+            }
         }
 
         private static Team? ResolveSummonTeamOverride(UnitDefinition pDefinition, SkillSummonTeamRule pTeamRule, UnitRuntime pSummoner)

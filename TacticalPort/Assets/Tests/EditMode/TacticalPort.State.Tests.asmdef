@@ -7,9 +7,13 @@
         "TacticalPort.Matchmaking.Contracts",
         "TacticalPort.Matchmaking",
         "TacticalPort.App",
+        "TacticalPort.CombatRuntime",
         "TacticalPort.Core",
         "TacticalPort.Menu",
-        "TacticalPort.Shared"
+        "TacticalPort.View",
+        "TacticalPort.Shared",
+        "Unity.TextMeshPro",
+        "Unity.Localization"
     ],
     "includePlatforms": [
         "Editor"

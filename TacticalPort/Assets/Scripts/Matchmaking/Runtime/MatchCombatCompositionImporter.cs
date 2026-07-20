@@ -249,7 +249,7 @@ namespace TacticalPort.Matchmaking
             for (int lIndex = 0; lIndex < pPassives.Count; lIndex++)
             {
                 PassiveDefinition lPassive = pPassives[lIndex];
-                if (lPassive != null && lPassive.Id == pPassiveId)
+                if (lPassive != null && ContentIdAliases.Matches(lPassive.Id, pPassiveId))
                     return lPassive;
             }
 
@@ -264,7 +264,7 @@ namespace TacticalPort.Matchmaking
             for (int lIndex = 0; lIndex < pSkills.Count; lIndex++)
             {
                 SkillDefinition lSkill = pSkills[lIndex];
-                if (lSkill != null && lSkill.Id == pSkillId)
+                if (lSkill != null && ContentIdAliases.Matches(lSkill.Id, pSkillId))
                     return lSkill;
             }
 
@@ -310,7 +310,7 @@ namespace TacticalPort.Matchmaking
             {
                 string lPath = AssetDatabase.GUIDToAssetPath(lGuids[lIndex]);
                 UnitDefinition lUnit = AssetDatabase.LoadAssetAtPath<UnitDefinition>(lPath);
-                if (lUnit != null && lUnit.Id == pUnitId)
+                if (lUnit != null && ContentIdAliases.Matches(lUnit.Id, pUnitId))
                     return lUnit;
             }
 

@@ -9,9 +9,17 @@ using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using TacticalPort.Shared;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace TacticalPort.Data
 {
+    public enum AutonomousUnitBehavior
+    {
+        None = 0,
+        PullOrthogonalUnits = 1,
+        UseSkillOnNearestEnemy = 2
+    }
+
     [CreateAssetMenu(fileName = "UnitDefinition", menuName = "Project/Data/Unit Definition")]
     public sealed class UnitDefinition : ScriptableObject
     {
@@ -22,11 +30,11 @@ namespace TacticalPort.Data
         [SerializeField] private string _Id = string.Empty;
 
         [TabGroup("Metadata")]
-        [LabelText("Display Name")]
+        [LabelText("English Display Name (Fallback)")]
         [SerializeField] private string _DisplayName = string.Empty;
 
         [TabGroup("Metadata")]
-        [LabelText("Description")]
+        [LabelText("English Description (Fallback)")]
         [SerializeField, TextArea] private string _Description = string.Empty;
 
         [TabGroup("Stats")]
@@ -64,16 +72,16 @@ namespace TacticalPort.Data
 
         [TabGroup("Stats")]
         [LabelText("Melee Resistance %")]
-        [SerializeField, Range(0, 100)] private int _MeleeResistancePercent = 0;
+        [SerializeField, Range(-100, 100)] private int _MeleeResistancePercent = 0;
 
         [TabGroup("Stats")]
         [LabelText("Ranged Resistance %")]
-        [SerializeField, Range(0, 100)] private int _RangedResistancePercent = 0;
+        [SerializeField, Range(-100, 100)] private int _RangedResistancePercent = 0;
 
         [TabGroup("Stats")]
         [LabelText("General Resistance %")]
         [Tooltip("Added to the matching melee or ranged resistance percentage. Zero is neutral.")]
-        [SerializeField, Range(0, 100)] private int _GeneralResistancePercent = 0;
+        [SerializeField, Range(-100, 100)] private int _GeneralResistancePercent = 0;
 
         [TabGroup("Stats")]
         [LabelText("Stat Point Budget")]
@@ -99,6 +107,58 @@ namespace TacticalPort.Data
         [TabGroup("Stats")]
         [LabelText("Counts For Victory")]
         [SerializeField] private bool _CountsForVictory = true;
+
+        [TabGroup("Runtime Rules")]
+        [LabelText("Direct Skill Damage")]
+        [Tooltip("When above zero, direct offensive skill targeting uses this fixed Health loss and incidental area damage is ignored.")]
+        [SerializeField, Min(0)] private int _DirectSkillDamage;
+
+        [TabGroup("Runtime Rules")]
+        [LabelText("Can Receive Standard Healing")]
+        [SerializeField] private bool _CanReceiveStandardHealing = true;
+
+        [TabGroup("Runtime Rules")]
+        [LabelText("Blocks Visibility")]
+        [FormerlySerializedAs("_BlocksLineOfSight")]
+        [SerializeField] private bool _BlocksVisibility = true;
+
+        [TabGroup("Runtime Rules")]
+        [LabelText("Visibility Blocking State")]
+        [FormerlySerializedAs("_LineOfSightBlockingState")]
+        [SerializeField] private StateDefinition _VisibilityBlockingState;
+
+        [TabGroup("Runtime Rules")]
+        [LabelText("Direct Skill Swap Required State")]
+        [SerializeField] private StateDefinition _DirectSkillSwapRequiredState;
+
+        [TabGroup("Autonomous")]
+        [LabelText("Behavior")]
+        [SerializeField] private AutonomousUnitBehavior _AutonomousBehavior;
+
+        [TabGroup("Autonomous")]
+        [LabelText("Required State")]
+        [SerializeField] private StateDefinition _AutonomousRequiredState;
+
+        [TabGroup("Autonomous")]
+        [LabelText("Excluded Target State")]
+        [SerializeField] private StateDefinition _AutonomousExcludedTargetState;
+
+        [TabGroup("Autonomous")]
+        [LabelText("Range")]
+        [SerializeField, Min(0)] private int _AutonomousRange;
+
+        [TabGroup("Autonomous")]
+        [LabelText("Executions Per Turn")]
+        [SerializeField, Min(1)] private int _AutonomousExecutionsPerTurn = 1;
+
+        [TabGroup("Autonomous")]
+        [LabelText("Skill")]
+        [SerializeField] private SkillDefinition _AutonomousSkill;
+
+        [TabGroup("Runtime Rules")]
+        [LabelText("Attached Glyph")]
+        [Tooltip("Optional glyph created with this unit when it is summoned. Its lifetime follows the summoned unit.")]
+        [SerializeField] private GlyphDefinition _AttachedGlyph;
 
         [TabGroup("AI")]
         [LabelText("Target Priority")]
@@ -183,8 +243,10 @@ namespace TacticalPort.Data
         #region _____________________________/ ACCESSORS
 
         public string Id => string.IsNullOrWhiteSpace(_Id) ? name : _Id;
-        public string DisplayName => string.IsNullOrWhiteSpace(_DisplayName) ? name : _DisplayName;
-        public string Description => _Description;
+        public string EnglishDisplayName => string.IsNullOrWhiteSpace(_DisplayName) ? name : _DisplayName;
+        public string EnglishDescription => _Description;
+        public string DisplayName => GameLocalization.GetContentName(GameLocalization.CharactersTable, Id, EnglishDisplayName);
+        public string Description => GameLocalization.GetContentDescription(GameLocalization.CharactersTable, Id, EnglishDescription);
         public Team Team => _Team;
         public int MaxHealth => Mathf.Max(1, _MaxHealth);
         public int MobilityPerTurn => Mathf.Max(0, _MobilityPerTurn);
@@ -193,15 +255,27 @@ namespace TacticalPort.Data
         public int MeleeDamagePercent => Mathf.Max(0, _MeleeDamagePercent);
         public int RangedDamagePercent => Mathf.Max(0, _RangedDamagePercent);
         public int GeneralDamagePercent => Mathf.Max(0, _GeneralDamagePercent);
-        public int MeleeResistancePercent => Mathf.Clamp(_MeleeResistancePercent, 0, 100);
-        public int RangedResistancePercent => Mathf.Clamp(_RangedResistancePercent, 0, 100);
-        public int GeneralResistancePercent => Mathf.Clamp(_GeneralResistancePercent, 0, 100);
+        public int MeleeResistancePercent => Mathf.Clamp(_MeleeResistancePercent, -100, 100);
+        public int RangedResistancePercent => Mathf.Clamp(_RangedResistancePercent, -100, 100);
+        public int GeneralResistancePercent => Mathf.Clamp(_GeneralResistancePercent, -100, 100);
         public int StatPointBudget => Mathf.Max(0, _StatPointBudget);
         public int PushDamageBonus => Mathf.Max(0, _PushDamageBonus);
         public int FootprintWidth => Mathf.Max(1, _FootprintWidth);
         public int FootprintHeight => Mathf.Max(1, _FootprintHeight);
         public bool ParticipatesInTurnOrder => _ParticipatesInTurnOrder;
         public bool CountsForVictory => _CountsForVictory;
+        public int DirectSkillDamage => Mathf.Max(0, _DirectSkillDamage);
+        public bool CanReceiveStandardHealing => _CanReceiveStandardHealing;
+        public bool BlocksVisibility => _BlocksVisibility;
+        public StateDefinition VisibilityBlockingState => _VisibilityBlockingState;
+        public StateDefinition DirectSkillSwapRequiredState => _DirectSkillSwapRequiredState;
+        public AutonomousUnitBehavior AutonomousBehavior => _AutonomousBehavior;
+        public StateDefinition AutonomousRequiredState => _AutonomousRequiredState;
+        public StateDefinition AutonomousExcludedTargetState => _AutonomousExcludedTargetState;
+        public int AutonomousRange => Mathf.Max(0, _AutonomousRange);
+        public int AutonomousExecutionsPerTurn => Mathf.Max(1, _AutonomousExecutionsPerTurn);
+        public SkillDefinition AutonomousSkill => _AutonomousSkill;
+        public GlyphDefinition AttachedGlyph => _AttachedGlyph;
         public bool IsBig => FootprintWidth > 1 || FootprintHeight > 1;
         public EnemyAiTargetPriority EnemyAiTargetPriority => _EnemyAiProfile != null ? _EnemyAiProfile.TargetPriority : _EnemyAiTargetPriority;
         public EnemyAiMovementPolicy EnemyAiMovementPolicy => _EnemyAiProfile != null ? _EnemyAiProfile.MovementPolicy : _EnemyAiMovementPolicy;
@@ -366,8 +440,8 @@ namespace TacticalPort.Data
             lDefinition.hideFlags = HideFlags.DontSave;
             lDefinition.name = $"{pSource.DisplayName}_Runtime";
             lDefinition._Id = pSource.Id;
-            lDefinition._DisplayName = pSource.DisplayName;
-            lDefinition._Description = pSource.Description;
+            lDefinition._DisplayName = pSource.EnglishDisplayName;
+            lDefinition._Description = pSource.EnglishDescription;
             lDefinition._Team = pTeamOverride ?? pSource.Team;
             UnitStatModifiers lStats = pLoadout?.StatModifiers ?? UnitStatModifiers.None;
             lDefinition._MaxHealth = pSource.MaxHealth + lStats.Health;

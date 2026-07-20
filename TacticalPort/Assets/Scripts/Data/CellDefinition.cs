@@ -6,6 +6,7 @@
 #endregion
 
 using System;
+using UnityEngine.Serialization;
 
 namespace TacticalPort.Data
 {
@@ -16,7 +17,8 @@ namespace TacticalPort.Data
 
         public SerializableGridCoord Coordinate = new SerializableGridCoord(0, 0);
         public bool IsWalkable = true;
-        public bool BlocksLineOfSight;
+        [FormerlySerializedAs("BlocksLineOfSight")]
+        public bool BlocksVisibility;
         public int MovementCost = 1;
 
         #endregion
@@ -27,7 +29,7 @@ namespace TacticalPort.Data
         {
             Coordinate = new SerializableGridCoord(Coordinate.X, Coordinate.Y),
             IsWalkable = IsWalkable,
-            BlocksLineOfSight = BlocksLineOfSight,
+            BlocksVisibility = BlocksVisibility,
             MovementCost = MovementCost
         };
 

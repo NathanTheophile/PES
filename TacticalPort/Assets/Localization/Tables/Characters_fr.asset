@@ -1,0 +1,96 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9620f8c34305754d8cc9a7e49e852d9, type: 3}
+  m_Name: Characters_fr
+  m_EditorClassIdentifier: Unity.Localization::UnityEngine.Localization.Tables.StringTable
+  m_LocaleId:
+    m_Code: fr
+  m_SharedData: {fileID: 11400000, guid: c8fbead87c31c5a47bab12cb6461421c, type: 2}
+  m_Metadata:
+    m_Items: []
+  m_TableData:
+  - m_Id: 7921692672
+    m_Localized: Forban
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7984607232
+    m_Localized: "Combattant hybride qui fait progresser Tr\xE9sor jusqu\u2019\xE0
+      Pactole, puis consomme Pactole pour renforcer une comp\xE9tence."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10035621888
+    m_Localized: Charpentier naval
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10035621889
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10056593408
+    m_Localized: Baliste de pont
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10056593409
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10077564928
+    m_Localized: Tourelle-harpon
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10077564929
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10094342144
+    m_Localized: "Poulie d\u2019amarrage"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10094342145
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10119507968
+    m_Localized: "Sir\xE8ne corsaire"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10119507969
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10148868096
+    m_Localized: Conque des horizons
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10148868097
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10174033920
+    m_Localized: Corail nourricier
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10174033921
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10199199744
+    m_Localized: Coquillage siphonneur
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10199199745
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  references:
+    version: 2
+    RefIds: []

@@ -21,6 +21,8 @@ namespace TacticalPort.View
         [SerializeField] private Transform _ModelRoot;
         [Tooltip("Optional Animator driven by the spawned or prebuilt 3D model.")]
         [SerializeField] private Animator _Animator;
+        [Tooltip("Local rotation applied to the instantiated 3D model. The shared actor billboard expects character models to face the camera after a 180-degree yaw.")]
+        [SerializeField] private Vector3 _ModelRotationEuler = new Vector3(0f, 180f, 0f);
         [Tooltip("Renderers tinted from the UnitDefinition tint and defeated tint. If empty, they are cached from the model root at runtime.")]
         [SerializeField] private Renderer[] _TintRenderers = System.Array.Empty<Renderer>();
         [Tooltip("Material color property used for 3D model tinting. URP Lit uses _BaseColor.")]
@@ -50,7 +52,6 @@ namespace TacticalPort.View
         private bool _HasBaseSpriteColor;
         private GameObject _RuntimeModelInstance;
         private MaterialPropertyBlock _TintPropertyBlock;
-        private int _TintColorPropertyId;
 
         #endregion
 
@@ -109,7 +110,7 @@ namespace TacticalPort.View
                 return;
 
             transform.position = ResolveWorldPosition();
-            gameObject.name = $"UnitView_{_Runtime.Id}_{_Runtime.Definition.DisplayName}";
+            gameObject.name = $"UnitView_{_Runtime.Id}_{_Runtime.Definition.Id}";
             ApplyVisualState();
         }
 
@@ -119,27 +120,32 @@ namespace TacticalPort.View
 
         private void RebuildRuntimeModelIfNeeded()
         {
+            DestroyRuntimeModel();
+
             if (!_InstantiateDefinitionModelPrefab || _Definition == null || _Definition.ModelPrefab == null)
                 return;
-
-            DestroyRuntimeModel();
 
             Transform lModelRoot = ResolveModelRoot();
             _RuntimeModelInstance = Instantiate(_Definition.ModelPrefab, lModelRoot);
             _RuntimeModelInstance.transform.localPosition = Vector3.zero;
-            _RuntimeModelInstance.transform.localRotation = Quaternion.identity;
+            _RuntimeModelInstance.transform.localRotation = Quaternion.Euler(_ModelRotationEuler);
             _RuntimeModelInstance.transform.localScale = Vector3.one;
 
             if (_Animator == null)
                 _Animator = _RuntimeModelInstance.GetComponentInChildren<Animator>(true);
 
-            CacheTintRenderers(lModelRoot);
+            CacheTintRenderers(_RuntimeModelInstance.transform);
         }
 
         private void DestroyRuntimeModel()
         {
             if (_RuntimeModelInstance == null)
                 return;
+
+            if (_Animator != null && _Animator.transform.IsChildOf(_RuntimeModelInstance.transform))
+                _Animator = null;
+
+            _TintRenderers = System.Array.Empty<Renderer>();
 
             if (Application.isPlaying)
                 Destroy(_RuntimeModelInstance);
@@ -163,7 +169,7 @@ namespace TacticalPort.View
             if (_SpriteFallbackRenderer == null)
                 return;
 
-            _SpriteFallbackRenderer.enabled = true;
+            _SpriteFallbackRenderer.enabled = _RuntimeModelInstance == null;
             _SpriteFallbackRenderer.color = pTint;
             _SpriteFallbackRenderer.sortingOrder = ResolveSortingOrder(_BodySortingOrderOffset);
             _SpriteFallbackRenderer.transform.localScale = _BaseSpriteLocalScale;
@@ -178,7 +184,6 @@ namespace TacticalPort.View
                 return;
 
             _TintPropertyBlock ??= new MaterialPropertyBlock();
-            _TintColorPropertyId = ResolveTintColorPropertyId();
 
             for (int lIndex = 0; lIndex < _TintRenderers.Length; lIndex++)
             {
@@ -186,10 +191,20 @@ namespace TacticalPort.View
                 if (lRenderer == null)
                     continue;
 
-                lRenderer.GetPropertyBlock(_TintPropertyBlock);
-                _TintPropertyBlock.SetColor(_TintColorPropertyId, pTint);
-                _TintPropertyBlock.SetColor("_Color", pTint);
-                lRenderer.SetPropertyBlock(_TintPropertyBlock);
+                Material[] lMaterials = lRenderer.sharedMaterials;
+                for (int lMaterialIndex = 0; lMaterialIndex < lMaterials.Length; lMaterialIndex++)
+                {
+                    Material lMaterial = lMaterials[lMaterialIndex];
+                    string lColorProperty = ResolveMaterialColorProperty(lMaterial);
+                    if (lMaterial == null || string.IsNullOrEmpty(lColorProperty))
+                        continue;
+
+                    int lColorPropertyId = Shader.PropertyToID(lColorProperty);
+                    Color lBaseColor = lMaterial.GetColor(lColorPropertyId);
+                    lRenderer.GetPropertyBlock(_TintPropertyBlock, lMaterialIndex);
+                    _TintPropertyBlock.SetColor(lColorPropertyId, lBaseColor * pTint);
+                    lRenderer.SetPropertyBlock(_TintPropertyBlock, lMaterialIndex);
+                }
             }
         }
 
@@ -228,7 +243,6 @@ namespace TacticalPort.View
                 _HasBaseSpriteColor = true;
             }
 
-            _TintColorPropertyId = ResolveTintColorPropertyId();
         }
 
         private Color ResolveAliveTint() =>
@@ -318,8 +332,19 @@ namespace TacticalPort.View
             _TintRenderers = lRenderers;
         }
 
-        private int ResolveTintColorPropertyId() =>
-            Shader.PropertyToID(string.IsNullOrWhiteSpace(_TintColorProperty) ? "_BaseColor" : _TintColorProperty);
+        private string ResolveMaterialColorProperty(Material pMaterial)
+        {
+            if (pMaterial == null)
+                return null;
+
+            if (!string.IsNullOrWhiteSpace(_TintColorProperty) && pMaterial.HasProperty(_TintColorProperty))
+                return _TintColorProperty;
+
+            if (pMaterial.HasProperty("_BaseColor"))
+                return "_BaseColor";
+
+            return pMaterial.HasProperty("_Color") ? "_Color" : null;
+        }
 
         private void CacheMissingReferences()
         {

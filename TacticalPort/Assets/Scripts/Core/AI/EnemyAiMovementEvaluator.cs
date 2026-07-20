@@ -137,7 +137,7 @@ namespace TacticalPort.Core
                     int lRangePenalty = lDistance < lRangeMin ? lRangeMin - lDistance : Math.Max(0, lDistance - lRangeMax);
                     int lScore = 80 - lRangePenalty * 20 + Math.Max(0, lSkill.Power);
 
-                    if (!GridLineOfSightUtility.MatchesAlignment(pCell, lTarget.Position, lSkill.TargetAlignment))
+                    if (!GridVisibilityUtility.MatchesAlignment(pCell, lTarget.Position, lSkill.TargetAlignment))
                         lScore -= 25;
 
                     lBestScore = Math.Max(lBestScore, lScore);

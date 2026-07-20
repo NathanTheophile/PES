@@ -3512,11 +3512,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1c1223db81c59324494282f1382f6760, type: 3}
   m_Name: 
   m_EditorClassIdentifier: TacticalPort.Menu::TacticalPort.UI.MainMenuTeamDeckbuildingController
+  _PlayableRoster: {fileID: 11400000, guid: c143013ff1c14550aa404369a7cda1c5, type: 2}
   _AvailableUnits:
   - {fileID: 11400000, guid: bfe6c0c4544a6974cb057f0a610a11a3, type: 2}
   - {fileID: 11400000, guid: 4cc0a833998e87b48b0f4e6266c3ca6d, type: 2}
   - {fileID: 11400000, guid: 89c692a66eeca3846ac801148c852c1e, type: 2}
   - {fileID: 11400000, guid: 9a0d9fdd0edf39c42a4a7377691a49fd, type: 2}
+  - {fileID: 11400000, guid: 13a0049a1a061fa47900b230b48ec411, type: 2}
+  - {fileID: 11400000, guid: 94a92319bd0ce5740866e467057d55e9, type: 2}
+  - {fileID: 11400000, guid: 004721ed995d6fd47babd9d7c1386625, type: 2}
   _TeamSlots:
   - Button: {fileID: 6057995319393761794}
     ModelAnchor: {fileID: 2506473082293131281}

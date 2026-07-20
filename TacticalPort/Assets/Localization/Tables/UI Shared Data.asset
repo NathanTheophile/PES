@@ -1,0 +1,104 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b11a58205ec3474ca216360e9fa74a8, type: 3}
+  m_Name: UI Shared Data
+  m_EditorClassIdentifier: Unity.Localization::UnityEngine.Localization.Tables.SharedTableData
+  m_TableCollectionName: UI
+  m_TableCollectionNameGuidString: 2f32f5367a76e724293a4a9e4b385a26
+  m_Entries:
+  - m_Id: 66742611968
+    m_Key: common.empty
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66771972096
+    m_Key: common.selected
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66771972097
+    m_Key: common.already_used
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66771972098
+    m_Key: common.equipped
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66771972099
+    m_Key: common.already_equipped
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66771972100
+    m_Key: common.save
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66771972101
+    m_Key: common.loading
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66771972102
+    m_Key: character.fallback
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66771972103
+    m_Key: stats.health
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66771972104
+    m_Key: stats.health_wear
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66771972105
+    m_Key: stats.energy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66771972106
+    m_Key: stats.mobility
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66771972107
+    m_Key: stats.health_empty
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66771972108
+    m_Key: stats.energy_empty
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66771972109
+    m_Key: stats.mobility_empty
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66771972110
+    m_Key: hud.phase
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66771972111
+    m_Key: hud.outcome
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66771972112
+    m_Key: hud.active_unit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66771972113
+    m_Key: hud.turn
+    m_Metadata:
+      m_Items: []
+  m_Metadata:
+    m_Items: []
+  m_KeyGenerator:
+    rid: 2073694767051964686
+  references:
+    version: 2
+    RefIds:
+    - rid: 2073694767051964686
+      type: {class: DistributedUIDGenerator, ns: UnityEngine.Localization.Tables, asm: Unity.Localization}
+      data:
+        m_CustomEpoch: 1784479480991

@@ -1751,7 +1751,7 @@ GameObject:
   - component: {fileID: 5648583307967961096}
   - component: {fileID: 3163514759064513043}
   m_Layer: 5
-  m_Name: Popup_TeamSelection
+  m_Name: UI_Popup_TeamSelection
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1829,9 +1829,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6d68783fe2be49aa8df5ece3498af6c9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TacticalPort.View.TeamSelectionController
+  _PlayableRoster: {fileID: 11400000, guid: c143013ff1c14550aa404369a7cda1c5, type: 2}
   _AvailableUnits:
   - {fileID: 11400000, guid: 89c692a66eeca3846ac801148c852c1e, type: 2}
   - {fileID: 11400000, guid: 9a0d9fdd0edf39c42a4a7377691a49fd, type: 2}
+  - {fileID: 11400000, guid: 13a0049a1a061fa47900b230b48ec411, type: 2}
+  - {fileID: 11400000, guid: 94a92319bd0ce5740866e467057d55e9, type: 2}
+  - {fileID: 11400000, guid: 004721ed995d6fd47babd9d7c1386625, type: 2}
+  _MainMenuSceneName: S_MainMenu
+  _LoadingMessage: Returning to menu...
   _Slots:
   - Root: {fileID: 7250831241116129753}
     Visual: {fileID: 8126815593216200150}
@@ -1848,7 +1854,12 @@ MonoBehaviour:
   _GridRoot: {fileID: 6610107530834493290}
   _GridItemPrefab: {fileID: 335675513420978099, guid: 1f0776d84f7b5ec48a9dc18c9b6089c5, type: 3}
   _GridPanel: {fileID: 4105864615572614190}
+  _SaveButton: {fileID: 0}
   _LaunchButton: {fileID: 8508581766582637539}
+  _SaveButtonLabel: {fileID: 0}
+  _EmbeddedMenuRouterSource: {fileID: 0}
+  _SceneTransitionServiceSource: {fileID: 0}
+  _UseEmbeddedReturn: 0
 --- !u!1 &6664048063866355120
 GameObject:
   m_ObjectHideFlags: 0

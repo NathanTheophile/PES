@@ -25,11 +25,12 @@ namespace TacticalPort.EditorTools
         private int _RangeMin = 0;
         private int _RangeMax = 1;
         private SkillTargetAlignment _TargetAlignment = SkillTargetAlignment.Any;
-        private bool _RequiresLineOfSight;
+        private bool _RequiresVisibility;
         private bool _CanAffectCaster = true;
         private SkillTargetType _TargetType = SkillTargetType.Cell;
         private SkillTargetRelation _TargetRelation = SkillTargetRelation.Anyone;
         private SkillTargetScope _TargetScope = SkillTargetScope.Area;
+        private UnitTargetType _TargetUnitType = UnitTargetType.AllUnits;
         private SkillAoeShape _AoeShape = SkillAoeShape.Single;
         private int _AoeSize = 0;
         private bool _UseAoeDamageFalloff;
@@ -42,9 +43,11 @@ namespace TacticalPort.EditorTools
         private int _EnergyCost = 1;
         private int _PushDistance = 1;
         private int _PassiveProgressionSteps = 1;
+        private int _StateDurationReduction = 1;
         private UnitDefinition _SummonUnit;
         private SkillSummonTeamRule _SummonTeamRule = SkillSummonTeamRule.Definition;
         private int _GlyphDurationTurns = 1;
+        private GlyphDefinition _GlyphDefinition;
         private SkillGlyphTargetRule _GlyphTargetRule = SkillGlyphTargetRule.EnemiesOnly;
         private StateDefinition _GlyphAppliedState;
         private int _GlyphAppliedStateStacks = 1;
@@ -81,9 +84,9 @@ namespace TacticalPort.EditorTools
         {
             DrawTitle("Create Skill Definition", SkillsFolder);
 
-            _DisplayName = EditorGUILayout.TextField("Display Name", _DisplayName);
+            _DisplayName = EditorGUILayout.TextField("English Display Name", _DisplayName);
             _Id = EditorGUILayout.TextField("Id", _Id);
-            _Description = EditorGUILayout.TextField("Description", _Description);
+            _Description = EditorGUILayout.TextField("English Description", _Description);
 
             DrawSectionHeader("Rules");
             _Category = (SkillCategory)EditorGUILayout.EnumPopup("Category", _Category);
@@ -92,11 +95,12 @@ namespace TacticalPort.EditorTools
             _RangeMin = Mathf.Max(0, EditorGUILayout.IntField("Range Min", _RangeMin));
             _RangeMax = Mathf.Max(_RangeMin, EditorGUILayout.IntField("Range Max", _RangeMax));
             _TargetAlignment = (SkillTargetAlignment)EditorGUILayout.EnumPopup("Target Alignment", _TargetAlignment);
-            _RequiresLineOfSight = EditorGUILayout.Toggle("Requires Line Of Sight", _RequiresLineOfSight);
+            _RequiresVisibility = EditorGUILayout.Toggle("Requires Visibility", _RequiresVisibility);
             _CanAffectCaster = EditorGUILayout.Toggle("Can Affect Caster", _CanAffectCaster);
             _TargetType = (SkillTargetType)EditorGUILayout.EnumPopup("Target Type", _TargetType);
             _TargetRelation = (SkillTargetRelation)EditorGUILayout.EnumPopup("Target Relation", _TargetRelation);
             _TargetScope = (SkillTargetScope)EditorGUILayout.EnumPopup("Target Scope", _TargetScope);
+            _TargetUnitType = (UnitTargetType)EditorGUILayout.EnumPopup("Target Unit Type", _TargetUnitType);
             _AoeShape = (SkillAoeShape)EditorGUILayout.EnumPopup("AoE Shape", _AoeShape);
             if (_AoeShape != SkillAoeShape.Single)
             {
@@ -137,6 +141,8 @@ namespace TacticalPort.EditorTools
                 _PushDistance = Mathf.Max(1, EditorGUILayout.IntField("Forced Movement Distance", _PushDistance));
             else if (_AdditionalEffectType == SkillAdditionalEffectType.AdvanceActivePassiveProgression)
                 _PassiveProgressionSteps = Mathf.Max(1, EditorGUILayout.IntField("Progression Steps", _PassiveProgressionSteps));
+            else if (_AdditionalEffectType == SkillAdditionalEffectType.ReduceStateDurations)
+                _StateDurationReduction = Mathf.Max(1, EditorGUILayout.IntField("State Duration Reduction", _StateDurationReduction));
             else if (_AdditionalEffectType == SkillAdditionalEffectType.Teleport)
                 EditorGUILayout.HelpBox("Teleport has no extra parameters for now.", MessageType.None);
             else if (_AdditionalEffectType == SkillAdditionalEffectType.SwitchPositions)
@@ -159,12 +165,17 @@ namespace TacticalPort.EditorTools
             if (_AdditionalEffectType == SkillAdditionalEffectType.CreateGlyph)
             {
                 _GlyphDurationTurns = Mathf.Max(1, EditorGUILayout.IntField("Glyph Duration", _GlyphDurationTurns));
-                _GlyphTargetRule = (SkillGlyphTargetRule)EditorGUILayout.EnumPopup("Glyph Target Rule", _GlyphTargetRule);
-                _GlyphAppliedState = (StateDefinition)EditorGUILayout.ObjectField("Glyph Applied State", _GlyphAppliedState, typeof(StateDefinition), false);
-                if (_GlyphAppliedState != null)
+                _GlyphDefinition = (GlyphDefinition)EditorGUILayout.ObjectField("Glyph Definition", _GlyphDefinition, typeof(GlyphDefinition), false);
+                if (_GlyphDefinition == null)
                 {
-                    _GlyphAppliedStateStacks = Mathf.Max(1, EditorGUILayout.IntField("Glyph State Stacks", _GlyphAppliedStateStacks));
-                    _GlyphAppliedStateDurationTurns = EditorGUILayout.IntField("Glyph State Duration Override", _GlyphAppliedStateDurationTurns);
+                    EditorGUILayout.HelpBox("Legacy fields are used while no Glyph Definition is assigned.", MessageType.Info);
+                    _GlyphTargetRule = (SkillGlyphTargetRule)EditorGUILayout.EnumPopup("Glyph Target Rule", _GlyphTargetRule);
+                    _GlyphAppliedState = (StateDefinition)EditorGUILayout.ObjectField("Glyph Applied State", _GlyphAppliedState, typeof(StateDefinition), false);
+                    if (_GlyphAppliedState != null)
+                    {
+                        _GlyphAppliedStateStacks = Mathf.Max(1, EditorGUILayout.IntField("Glyph State Stacks", _GlyphAppliedStateStacks));
+                        _GlyphAppliedStateDurationTurns = EditorGUILayout.IntField("Glyph State Duration Override", _GlyphAppliedStateDurationTurns);
+                    }
                 }
             }
 
@@ -211,11 +222,12 @@ namespace TacticalPort.EditorTools
             SetInt(lSerializedObject, "_RangeMin", Mathf.Max(0, _RangeMin));
             SetInt(lSerializedObject, "_RangeMax", Mathf.Max(_RangeMin, _RangeMax));
             SetEnum(lSerializedObject, "_TargetAlignment", (int)_TargetAlignment);
-            SetBool(lSerializedObject, "_RequiresLineOfSight", _RequiresLineOfSight);
+            SetBool(lSerializedObject, "_RequiresVisibility", _RequiresVisibility);
             SetBool(lSerializedObject, "_CanAffectCaster", _CanAffectCaster);
             SetEnum(lSerializedObject, "_TargetType", (int)_TargetType);
             SetEnum(lSerializedObject, "_TargetRelation", (int)_TargetRelation);
             SetEnum(lSerializedObject, "_TargetScope", (int)_TargetScope);
+            SetEnum(lSerializedObject, "_TargetUnitType", (int)_TargetUnitType);
             SetEnum(lSerializedObject, "_AoeShape", (int)_AoeShape);
             SetInt(lSerializedObject, "_AoeSize", _AoeShape == SkillAoeShape.Single ? 0 : Mathf.Max(1, _AoeSize));
             SetInt(lSerializedObject, "_AoeDamageFalloffPercentPerCell", _AoeShape != SkillAoeShape.Single && _UseAoeDamageFalloff ? SkillDefinition.FixedAoeDamageFalloffPercentPerCell : 0);
@@ -228,9 +240,11 @@ namespace TacticalPort.EditorTools
             SetInt(lSerializedObject, "_EnergyCost", Mathf.Max(0, _EnergyCost));
             SetInt(lSerializedObject, "_PushDistance", Mathf.Max(0, _PushDistance));
             SetInt(lSerializedObject, "_PassiveProgressionSteps", Mathf.Max(1, _PassiveProgressionSteps));
+            SetInt(lSerializedObject, "_StateDurationReduction", Mathf.Max(1, _StateDurationReduction));
             SetObject(lSerializedObject, "_SummonUnit", _SummonUnit);
             SetEnum(lSerializedObject, "_SummonTeamRule", (int)_SummonTeamRule);
             SetInt(lSerializedObject, "_GlyphDurationTurns", Mathf.Max(1, _GlyphDurationTurns));
+            SetObject(lSerializedObject, "_GlyphDefinition", _GlyphDefinition);
             SetEnum(lSerializedObject, "_GlyphTargetRule", (int)_GlyphTargetRule);
             SetObject(lSerializedObject, "_GlyphAppliedState", _GlyphAppliedState);
             SetInt(lSerializedObject, "_GlyphAppliedStateStacks", Mathf.Max(1, _GlyphAppliedStateStacks));
@@ -250,6 +264,7 @@ namespace TacticalPort.EditorTools
 
             ApplyAndSave(lSerializedObject);
             Creator_FileSaver.CreateAsset(lAsset, SkillsFolder, BuildFileName("Skill", lId, _DisplayName, "skill"));
+            ContentLocalizationEditorUtility.EnsureEntries(GameLocalization.SkillsTable, lId, lAsset.EnglishDisplayName, lAsset.EnglishDescription);
             Close();
         }
 

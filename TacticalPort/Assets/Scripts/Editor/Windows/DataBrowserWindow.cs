@@ -27,18 +27,20 @@ namespace TacticalPort.EditorTools
 
         private readonly struct AssetEntry
         {
-            public AssetEntry(ScriptableObject pAsset, string pPath, string pTitle, string pSubtitle)
+            public AssetEntry(ScriptableObject pAsset, string pPath, string pTitle, string pSubtitle, Sprite pArtwork = null)
             {
                 Asset = pAsset;
                 Path = pPath ?? string.Empty;
                 Title = pTitle ?? string.Empty;
                 Subtitle = pSubtitle ?? string.Empty;
+                Artwork = pArtwork;
             }
 
             public ScriptableObject Asset { get; }
             public string Path { get; }
             public string Title { get; }
             public string Subtitle { get; }
+            public Sprite Artwork { get; }
         }
 
         #endregion
@@ -56,7 +58,7 @@ namespace TacticalPort.EditorTools
 
         #region _____________________________| MENU
 
-        [MenuItem("Project/Data Browser...")]
+        [MenuItem("Project/Browse/Data Browser...", priority = 100)]
         public static void Open()
         {
             DataBrowserWindow lWindow = GetWindow<DataBrowserWindow>("Data Browser");
@@ -160,8 +162,7 @@ namespace TacticalPort.EditorTools
             EditorGUILayout.BeginVertical("box");
             EditorGUILayout.BeginHorizontal();
 
-            Texture lIcon = AssetPreview.GetMiniThumbnail(pEntry.Asset);
-            GUILayout.Label(lIcon, GUILayout.Width(20f), GUILayout.Height(20f));
+            DrawArtwork(pEntry);
 
             EditorGUILayout.BeginVertical();
             EditorGUILayout.LabelField(pEntry.Title, EditorStyles.boldLabel);
@@ -182,6 +183,49 @@ namespace TacticalPort.EditorTools
             EditorGUILayout.EndVertical();
 
             HandleEntryDoubleClick(pEntry);
+        }
+
+        private static void DrawArtwork(AssetEntry pEntry)
+        {
+            const float lSize = 42f;
+            Rect lRect = GUILayoutUtility.GetRect(lSize, lSize, GUILayout.Width(lSize), GUILayout.Height(lSize));
+            Sprite lSprite = pEntry.Artwork;
+            if (lSprite == null || lSprite.texture == null)
+            {
+                Texture lFallback = AssetPreview.GetMiniThumbnail(pEntry.Asset);
+                if (lFallback != null)
+                    GUI.DrawTexture(lRect, lFallback, ScaleMode.ScaleToFit, true);
+                return;
+            }
+
+            Rect lTextureRect = lSprite.textureRect;
+            Rect lUv = new Rect(
+                lTextureRect.x / lSprite.texture.width,
+                lTextureRect.y / lSprite.texture.height,
+                lTextureRect.width / lSprite.texture.width,
+                lTextureRect.height / lSprite.texture.height);
+            Rect lFittedRect = FitRect(lRect, lTextureRect.width / lTextureRect.height);
+            GUI.DrawTextureWithTexCoords(lFittedRect, lSprite.texture, lUv, true);
+        }
+
+        private static Rect FitRect(Rect pContainer, float pAspectRatio)
+        {
+            if (pAspectRatio <= 0f)
+                return pContainer;
+
+            float lWidth = pContainer.width;
+            float lHeight = lWidth / pAspectRatio;
+            if (lHeight > pContainer.height)
+            {
+                lHeight = pContainer.height;
+                lWidth = lHeight * pAspectRatio;
+            }
+
+            return new Rect(
+                pContainer.x + (pContainer.width - lWidth) * 0.5f,
+                pContainer.y + (pContainer.height - lHeight) * 0.5f,
+                lWidth,
+                lHeight);
         }
 
         private static void HandleEntryDoubleClick(AssetEntry pEntry)
@@ -244,13 +288,13 @@ namespace TacticalPort.EditorTools
                 lSubtitle += $" + {pSkill.AdditionalEffectType}";
 
             lSubtitle += $" | Range {pSkill.RangeMin}-{pSkill.RangeMax} | Energy {pSkill.EnergyCost}";
-            return new AssetEntry(pSkill, pPath, pSkill.DisplayName, lSubtitle);
+            return new AssetEntry(pSkill, pPath, pSkill.DisplayName, lSubtitle, pSkill.Icon);
         }
 
         private static AssetEntry BuildUnitEntry(UnitDefinition pUnit, string pPath)
         {
             string lSubtitle = $"{pUnit.Id} | {pUnit.Team} | Health {pUnit.MaxHealth} | Energy {pUnit.EnergyPerTurn} | Skills {pUnit.Skills.Count}";
-            return new AssetEntry(pUnit, pPath, pUnit.DisplayName, lSubtitle);
+            return new AssetEntry(pUnit, pPath, pUnit.DisplayName, lSubtitle, pUnit.Portrait);
         }
 
         private static AssetEntry BuildEnemyAiEntry(EnemyAiProfileDefinition pProfile, string pPath)

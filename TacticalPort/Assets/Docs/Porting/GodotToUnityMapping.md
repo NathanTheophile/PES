@@ -12,7 +12,7 @@ Sources lues en priorité:
 
 | Feature Godot | Constats | Equivalent Unity recommandé |
 |---|---|---|
-| `Battle Mechanics.gd` | Fait trop de choses: tour, pathfinding, LoS, dégâts, push, summon, états, UI hooks | `BattleFlowService` + `GridService` + `TargetingService` + `CombatResolver` + `ScenarioRules` |
+| `Battle Mechanics.gd` | Fait trop de choses: tour, pathfinding, visibility, dégâts, push, summon, états, UI hooks | `BattleFlowService` + `GridService` + `TargetingService` + `CombatResolver` + `ScenarioRules` |
 | `Entity.gd` | Mélange data exportée, runtime, signaux, anim, IA | `CombatantDefinition` (ScriptableObject) + `CombatantRuntime` (MonoBehaviour/pure C# state) |
 | `SkillScript.gd` + sous-scripts inline dans `.tscn` | Métadonnées communes + logique spéciale par skill | `SkillDefinition` + `SkillEffect` dédiés; data d’un côté, résolution de l’autre |
 | `Area.gd` | Bootstrap de map, UI, spawn, input, règles de scène | `BattleScenarioDefinition` + `BattleBootstrapper` + `BattleHUDPresenter` |
@@ -45,10 +45,10 @@ Sources lues en priorité:
 - `enemyfirst = true` existe au moins sur `Area5`.
 - Le round augmente au passage joueur->ennemis ou ennemis->joueur selon `enemyfirst`.
 
-### Portée / LoS / AoE
+### Portée / visibility / AoE
 - Portée en Manhattan entre `rangeMin` et `rangeMax`.
 - `linear = true` signifie alignement horizontal ou vertical seulement.
-- `sight = true` utilise `checkSight`, qui considère les cases occupées `1/2` comme des bloqueurs de LoS.
+- `visibility = true` utilise `checkVisibility`, qui considère les cases occupées `1/2` comme des bloqueurs de visibility.
 - La cellule cible n’est pas un bloqueur pour elle-même.
 - AoE réellement implémentées:
   - `0` single

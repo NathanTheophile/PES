@@ -71,12 +71,12 @@ namespace TacticalPort.Core
             return _CellsByCoordinate.TryGetValue(pCoordinate, out CellDefinition lCell) ? lCell.IsWalkable : true;
         }
 
-        public bool BlocksLineOfSight(GridCoord pCoordinate)
+        public bool BlocksVisibility(GridCoord pCoordinate)
         {
             if (!IsInside(pCoordinate))
                 return true;
 
-            return _CellsByCoordinate.TryGetValue(pCoordinate, out CellDefinition lCell) && lCell.BlocksLineOfSight;
+            return _CellsByCoordinate.TryGetValue(pCoordinate, out CellDefinition lCell) && lCell.BlocksVisibility;
         }
 
         public int GetMovementCost(GridCoord pCoordinate)
@@ -260,6 +260,42 @@ namespace TacticalPort.Core
                 if (lGlyphs.Count == 0)
                     _GlyphsByCoordinate.Remove(lCoordinate);
             }
+        }
+
+        public int RemoveGlyphsByLifetimeSource(UnitId pUnitId)
+        {
+            if (!pUnitId.IsValid)
+                return 0;
+
+            int lRemovedCount = 0;
+            List<GridCoord> lCoordinates = new List<GridCoord>(_GlyphsByCoordinate.Keys);
+            lCoordinates.Sort((pLeft, pRight) =>
+            {
+                int lX = pLeft.X.CompareTo(pRight.X);
+                return lX != 0 ? lX : pLeft.Y.CompareTo(pRight.Y);
+            });
+
+            for (int lCoordIndex = 0; lCoordIndex < lCoordinates.Count; lCoordIndex++)
+            {
+                GridCoord lCoordinate = lCoordinates[lCoordIndex];
+                if (!_GlyphsByCoordinate.TryGetValue(lCoordinate, out List<GridGlyphRuntime> lGlyphs) || lGlyphs == null)
+                    continue;
+
+                for (int lGlyphIndex = lGlyphs.Count - 1; lGlyphIndex >= 0; lGlyphIndex--)
+                {
+                    GridGlyphRuntime lGlyph = lGlyphs[lGlyphIndex];
+                    if (lGlyph != null && lGlyph.LifetimeSourceUnitId == pUnitId)
+                    {
+                        lGlyphs.RemoveAt(lGlyphIndex);
+                        lRemovedCount++;
+                    }
+                }
+
+                if (lGlyphs.Count == 0)
+                    _GlyphsByCoordinate.Remove(lCoordinate);
+            }
+
+            return lRemovedCount;
         }
 
         #endregion

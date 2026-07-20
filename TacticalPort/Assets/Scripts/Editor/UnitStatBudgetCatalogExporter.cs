@@ -13,7 +13,7 @@ namespace TacticalPort.Editor
     {
         private const string OutputPath = "CloudCodeModules/TeamPresets/Project/UnitStatBudgetCatalog.cs";
 
-        [MenuItem("Tools/TacticalPort/Data/Sync Unit Stat Budgets To Cloud Code")]
+        [MenuItem("Project/Deploy/Sync Unit Stat Budgets To Cloud Code")]
         public static void Export()
         {
             string[] lGuids = AssetDatabase.FindAssets("t:UnitDefinition", new[] { "Assets" });

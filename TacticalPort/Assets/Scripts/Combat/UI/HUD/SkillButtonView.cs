@@ -43,6 +43,9 @@ namespace TacticalPort.UI
         private bool _IsInteractable = true;
         private bool _IsSelected;
         private bool _HasResolvedVisualReferences;
+        private Material _SkillIconMaterialInstance;
+
+        private static readonly int ColorBPropertyId = Shader.PropertyToID("_ColorB");
 
         #endregion
 
@@ -64,6 +67,9 @@ namespace TacticalPort.UI
         {
             if (_Button != null)
                 _Button.onClick.RemoveListener(OnButtonClicked);
+
+            if (_SkillIconMaterialInstance != null)
+                Destroy(_SkillIconMaterialInstance);
         }
 
         #endregion
@@ -116,11 +122,11 @@ namespace TacticalPort.UI
 
         private void Refresh()
         {
-            SetLabel(_TxtSkillName, ResolveSkillNameText());
-            SetTooltipLine(_TxtAdditionalEffect, ResolveAdditionalEffectText());
-            SetLabel(_TxtEnergyCostAndRange, ResolveEnergyCostAndRangeText());
-            SetTooltipLine(_TxtPower, ResolvePowerText());
-            SetDescription(ResolveDescriptionText());
+            if (_TooltipPanel != null)
+                _TooltipPanel.Bind(_Skill);
+            else
+                RefreshLegacyTooltip();
+
             ApplySkillVisuals();
 
             bool lIsButtonInteractable = _Skill != null && _IsInteractable;
@@ -133,6 +139,15 @@ namespace TacticalPort.UI
                 _CanvasGroup.interactable = lIsButtonInteractable;
                 _CanvasGroup.blocksRaycasts = lIsButtonInteractable;
             }
+        }
+
+        private void RefreshLegacyTooltip()
+        {
+            SetLabel(_TxtSkillName, ResolveSkillNameText());
+            SetTooltipLine(_TxtAdditionalEffect, ResolveAdditionalEffectText());
+            SetLabel(_TxtEnergyCostAndRange, ResolveEnergyCostAndRangeText());
+            SetTooltipLine(_TxtPower, ResolvePowerText());
+            SetDescription(ResolveDescriptionText());
         }
 
         private string ResolveSkillNameText() => _Skill != null ? $"{_Skill.DisplayName} ({_Skill.Id})" : string.Empty;
@@ -223,15 +238,43 @@ namespace TacticalPort.UI
             if (_SkillIcon != null)
                 _SkillIcon.sprite = _Skill != null ? _Skill.Icon : null;
 
-            Color lColor = ResolveSkillColor(_Skill);
-            ApplyColor(_SkillBackground, lColor);
-            ApplyColor(_SkillCircle, lColor);
-            ApplyColor(_SkillIcon, ResolveIconColor(lColor));
-            ApplyColor(_SkillHighlight, lColor);
-            ApplyColor(_SkillOrnament, lColor);
-            ApplyColor(_SkillOrnamentSecondary, lColor);
-            ApplyColor(_TooltipOrnament, lColor);
-            ApplyColor(_TooltipOrnamentSecondary, lColor);
+            Color lSkillColor = ResolveSkillColor(_Skill);
+            ApplyColor(_SkillBackground, lSkillColor);
+            ApplyColor(_SkillCircle, lSkillColor);
+            Color lOrnamentColor = WithHsvValue(lSkillColor, 1f);
+            ApplyColor(_SkillOrnament, lOrnamentColor);
+            ApplyColor(_SkillOrnamentSecondary, lOrnamentColor);
+            ApplyIconGradientColor(lSkillColor);
+        }
+
+        private static Color WithHsvValue(Color pColor, float pValue)
+        {
+            Color.RGBToHSV(pColor, out float lHue, out float lSaturation, out _);
+            Color lResult = Color.HSVToRGB(lHue, lSaturation, Mathf.Clamp01(pValue));
+            lResult.a = pColor.a;
+            return lResult;
+        }
+
+        private void ApplyIconGradientColor(Color pColor)
+        {
+            if (_SkillIcon == null)
+                return;
+
+            Material lSourceMaterial = _SkillIcon.material;
+            if (lSourceMaterial == null || !lSourceMaterial.HasProperty(ColorBPropertyId))
+                return;
+
+            if (_SkillIconMaterialInstance == null)
+            {
+                _SkillIconMaterialInstance = new Material(lSourceMaterial)
+                {
+                    name = $"{lSourceMaterial.name} ({name} Runtime)",
+                    hideFlags = HideFlags.DontSave
+                };
+                _SkillIcon.material = _SkillIconMaterialInstance;
+            }
+
+            _SkillIconMaterialInstance.SetColor(ColorBPropertyId, pColor);
         }
 
         private void ResolveVisualReferences()
@@ -275,14 +318,6 @@ namespace TacticalPort.UI
         private Color ResolveSkillColor(SkillDefinition pSkill) =>
             ThemeManager.GetSkillColor(pSkill);
 
-        private static Color ResolveIconColor(Color pBaseColor)
-        {
-            Color.RGBToHSV(pBaseColor, out float lHue, out float lSaturation, out float lValue);
-            Color lIconColor = Color.HSVToRGB(lHue, lSaturation, Mathf.Clamp01(lValue + 0.1f));
-            lIconColor.a = pBaseColor.a;
-            return lIconColor;
-        }
-
         private Image FindChildImage(string pChildName)
         {
             if (string.IsNullOrWhiteSpace(pChildName))
@@ -311,10 +346,6 @@ namespace TacticalPort.UI
 
             lIsValid &= ValidateReference(_Button, nameof(_Button));
             lIsValid &= ValidateReference(_TooltipPanel, nameof(_TooltipPanel));
-            lIsValid &= ValidateReference(_TxtSkillName, nameof(_TxtSkillName));
-            lIsValid &= ValidateReference(_TxtAdditionalEffect, nameof(_TxtAdditionalEffect));
-            lIsValid &= ValidateReference(_TxtEnergyCostAndRange, nameof(_TxtEnergyCostAndRange));
-            lIsValid &= ValidateReference(_TxtPower, nameof(_TxtPower));
             lIsValid &= ValidateReference(_CanvasGroup, nameof(_CanvasGroup));
 
             return lIsValid;

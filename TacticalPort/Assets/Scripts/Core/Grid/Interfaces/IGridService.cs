@@ -18,7 +18,7 @@ namespace TacticalPort.Core
         void Initialize(BattleScenarioDefinition pScenario);
         bool IsInside(GridCoord coordinate);
         bool IsWalkable(GridCoord coordinate);
-        bool BlocksLineOfSight(GridCoord coordinate);
+        bool BlocksVisibility(GridCoord coordinate);
         int GetMovementCost(GridCoord coordinate);
         bool IsOccupied(GridCoord coordinate);
         bool TryGetOccupant(GridCoord coordinate, out UnitId unitId);
@@ -32,6 +32,7 @@ namespace TacticalPort.Core
         bool TryMoveUnit(UnitId unitId, GridCoord destination);
         bool RemoveUnit(UnitId unitId);
         void AddOrReplaceGlyph(GridGlyphRuntime glyph);
+        int RemoveGlyphsByLifetimeSource(UnitId unitId);
         void AdvancePersistentEffects();
     }
 }

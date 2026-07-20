@@ -155,10 +155,10 @@ namespace TacticalPort.Combat
             foreach (CellDefinition lCell in _Context.BoardView.Scenario.EnumerateCells())
             {
                 GridCoord lCoord = lCell.Coordinate.ToRuntime();
-                if (!TryClassifySkillCell(pActiveUnit, pSkill, lCoord, out bool lIsBlockedByLineOfSight))
+                if (!TryClassifySkillCell(pActiveUnit, pSkill, lCoord, out bool lIsBlockedByVisibility))
                     continue;
 
-                if (lIsBlockedByLineOfSight)
+                if (lIsBlockedByVisibility)
                     pBlockedReachableCells?.Add(lCoord);
                 else
                     pReachableCells?.Add(lCoord);
@@ -174,14 +174,14 @@ namespace TacticalPort.Combat
             GridCoord lOrigin = pTarget.Cell;
             int lSize = pSkill.AoeShape == SkillAoeShape.Single ? 0 : pSkill.AoeSize;
             GridCoord lDirection = _Context.Bootstrap.TryGetActiveUnit(out UnitRuntime lActiveUnit)
-                ? GridLineOfSightUtility.ResolveAreaDirection(lActiveUnit.Position, lOrigin)
+                ? GridVisibilityUtility.ResolveAreaDirection(lActiveUnit.Position, lOrigin)
                 : new GridCoord(0, 1);
 
             for (int lOffsetY = -lSize; lOffsetY <= lSize; lOffsetY++)
             {
                 for (int lOffsetX = -lSize; lOffsetX <= lSize; lOffsetX++)
                 {
-                    if (!GridLineOfSightUtility.IsInsideAreaShape(pSkill.AoeShape, lOffsetX, lOffsetY, lSize, lDirection))
+                    if (!GridVisibilityUtility.IsInsideAreaShape(pSkill.AoeShape, lOffsetX, lOffsetY, lSize, lDirection))
                         continue;
 
                     GridCoord lCandidate = new GridCoord(lOrigin.X + lOffsetX, lOrigin.Y + lOffsetY);
@@ -197,9 +197,9 @@ namespace TacticalPort.Combat
             UnitRuntime pActiveUnit,
             SkillDefinition pSkill,
             GridCoord pTargetCell,
-            out bool pIsBlockedByLineOfSight)
+            out bool pIsBlockedByVisibility)
         {
-            pIsBlockedByLineOfSight = false;
+            pIsBlockedByVisibility = false;
 
             if (pActiveUnit == null || pSkill == null)
                 return false;
@@ -210,29 +210,29 @@ namespace TacticalPort.Combat
             if (lDistance < lRangeMin || lDistance > lRangeMax)
                 return false;
 
-            if (!GridLineOfSightUtility.MatchesAlignment(pActiveUnit.Position, pTargetCell, pSkill.TargetAlignment))
+            if (!GridVisibilityUtility.MatchesAlignment(pActiveUnit.Position, pTargetCell, pSkill.TargetAlignment))
                 return false;
 
             if (!_Context.TryGetBoardCellDefinition(pTargetCell, out CellDefinition lCellDefinition) || !lCellDefinition.IsWalkable)
                 return false;
 
-            if (!pSkill.RequiresLineOfSight || pActiveUnit.Position == pTargetCell)
+            if (!pSkill.RequiresVisibility || pActiveUnit.Position == pTargetCell)
                 return true;
 
             _Context.TryResolveAliveUnitAtCell(pTargetCell, out UnitRuntime lTargetUnit);
-            if (HasLineOfSight(pActiveUnit, pTargetCell, lTargetUnit))
+            if (HasVisibility(pActiveUnit, pTargetCell, lTargetUnit))
                 return true;
 
-            pIsBlockedByLineOfSight = true;
+            pIsBlockedByVisibility = true;
             return true;
         }
 
-        private bool HasLineOfSight(UnitRuntime pSourceUnit, GridCoord pTarget, UnitRuntime pTargetUnit = null)
+        private bool HasVisibility(UnitRuntime pSourceUnit, GridCoord pTarget, UnitRuntime pTargetUnit = null)
         {
             if (_Context.BoardView == null || pSourceUnit == null)
                 return false;
 
-            return GridLineOfSightUtility.HasLineOfSight(
+            return GridVisibilityUtility.HasVisibility(
                 pSourceUnit.Position,
                 pTarget,
                 pCell =>
@@ -240,7 +240,7 @@ namespace TacticalPort.Combat
                     if (!_Context.TryGetBoardCellDefinition(pCell, out CellDefinition lCell))
                         return true;
 
-                    if (lCell.BlocksLineOfSight)
+                    if (lCell.BlocksVisibility)
                         return true;
 
                     if (!_Context.TryResolveAliveUnitAtCell(pCell, out UnitRuntime lBlockingUnit))

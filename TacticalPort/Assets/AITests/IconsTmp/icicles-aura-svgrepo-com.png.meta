@@ -1,0 +1,533 @@
+fileFormatVersion: 2
+guid: 60e54ea36a13cd84ebee780a3cad9ce9
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -3318626592571172902
+    second: icicles-aura-svgrepo-com_0
+  - first:
+      213: 1749688544097655375
+    second: icicles-aura-svgrepo-com_1
+  - first:
+      213: 3976764436341858770
+    second: icicles-aura-svgrepo-com_2
+  - first:
+      213: -6078130385346983071
+    second: icicles-aura-svgrepo-com_3
+  - first:
+      213: 9035548788905043405
+    second: icicles-aura-svgrepo-com_4
+  - first:
+      213: -6041752548759554520
+    second: icicles-aura-svgrepo-com_5
+  - first:
+      213: -1031626188523172947
+    second: icicles-aura-svgrepo-com_6
+  - first:
+      213: 4999548857417580950
+    second: icicles-aura-svgrepo-com_7
+  - first:
+      213: 6151681819332319692
+    second: icicles-aura-svgrepo-com_8
+  - first:
+      213: -3576582956854851493
+    second: icicles-aura-svgrepo-com_9
+  - first:
+      213: -2148981609088611522
+    second: icicles-aura-svgrepo-com_10
+  - first:
+      213: 7694695155451480678
+    second: icicles-aura-svgrepo-com_11
+  - first:
+      213: -8361799675559794705
+    second: icicles-aura-svgrepo-com_12
+  - first:
+      213: -412868078274325579
+    second: icicles-aura-svgrepo-com_13
+  - first:
+      213: -5422957640705746312
+    second: icicles-aura-svgrepo-com_14
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 1
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WindowsStoreApps
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: icicles-aura-svgrepo-com_0
+      rect:
+        serializedVersion: 2
+        x: 199
+        y: 1047
+        width: 298
+        height: 298
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ad751a762bed1f1d0800000000000000
+      internalID: -3318626592571172902
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icicles-aura-svgrepo-com_1
+      rect:
+        serializedVersion: 2
+        x: 386
+        y: 1136
+        width: 206
+        height: 407
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f4ad28ae574284810800000000000000
+      internalID: 1749688544097655375
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icicles-aura-svgrepo-com_2
+      rect:
+        serializedVersion: 2
+        x: 449
+        y: 54
+        width: 715
+        height: 1490
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2d1209f5f2e403730800000000000000
+      internalID: 3976764436341858770
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icicles-aura-svgrepo-com_3
+      rect:
+        serializedVersion: 2
+        x: 1020
+        y: 1132
+        width: 199
+        height: 411
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 16b82ea2e9426aba0800000000000000
+      internalID: -6078130385346983071
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icicles-aura-svgrepo-com_4
+      rect:
+        serializedVersion: 2
+        x: 1105
+        y: 1046
+        width: 301
+        height: 299
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dc5656940c7b46d70800000000000000
+      internalID: 9035548788905043405
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icicles-aura-svgrepo-com_5
+      rect:
+        serializedVersion: 2
+        x: 89
+        y: 946
+        width: 349
+        height: 154
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 82630664112672ca0800000000000000
+      internalID: -6041752548759554520
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icicles-aura-svgrepo-com_6
+      rect:
+        serializedVersion: 2
+        x: 1165
+        y: 946
+        width: 351
+        height: 154
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dab0614827deea1f0800000000000000
+      internalID: -1031626188523172947
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icicles-aura-svgrepo-com_7
+      rect:
+        serializedVersion: 2
+        x: 63
+        y: 774
+        width: 344
+        height: 137
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 691c5937237f16540800000000000000
+      internalID: 4999548857417580950
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icicles-aura-svgrepo-com_8
+      rect:
+        serializedVersion: 2
+        x: 1199
+        y: 774
+        width: 343
+        height: 137
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cc9188c850a2f5550800000000000000
+      internalID: 6151681819332319692
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icicles-aura-svgrepo-com_9
+      rect:
+        serializedVersion: 2
+        x: 59
+        y: 565
+        width: 339
+        height: 167
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b5843f210cc6d5ec0800000000000000
+      internalID: -3576582956854851493
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icicles-aura-svgrepo-com_10
+      rect:
+        serializedVersion: 2
+        x: 1213
+        y: 565
+        width: 334
+        height: 167
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e3b0d61cc984d22e0800000000000000
+      internalID: -2148981609088611522
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icicles-aura-svgrepo-com_11
+      rect:
+        serializedVersion: 2
+        x: 105
+        y: 304
+        width: 309
+        height: 185
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 66aca93c97c09ca60800000000000000
+      internalID: 7694695155451480678
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icicles-aura-svgrepo-com_12
+      rect:
+        serializedVersion: 2
+        x: 341
+        y: 70
+        width: 162
+        height: 280
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fe7284f6f7be4fb80800000000000000
+      internalID: -8361799675559794705
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icicles-aura-svgrepo-com_13
+      rect:
+        serializedVersion: 2
+        x: 1101
+        y: 70
+        width: 161
+        height: 280
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5b35c579ba2354af0800000000000000
+      internalID: -412868078274325579
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icicles-aura-svgrepo-com_14
+      rect:
+        serializedVersion: 2
+        x: 1190
+        y: 304
+        width: 308
+        height: 185
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 87a5eb102c8cdb4b0800000000000000
+      internalID: -5422957640705746312
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      icicles-aura-svgrepo-com_0: -3318626592571172902
+      icicles-aura-svgrepo-com_1: 1749688544097655375
+      icicles-aura-svgrepo-com_10: -2148981609088611522
+      icicles-aura-svgrepo-com_11: 7694695155451480678
+      icicles-aura-svgrepo-com_12: -8361799675559794705
+      icicles-aura-svgrepo-com_13: -412868078274325579
+      icicles-aura-svgrepo-com_14: -5422957640705746312
+      icicles-aura-svgrepo-com_2: 3976764436341858770
+      icicles-aura-svgrepo-com_3: -6078130385346983071
+      icicles-aura-svgrepo-com_4: 9035548788905043405
+      icicles-aura-svgrepo-com_5: -6041752548759554520
+      icicles-aura-svgrepo-com_6: -1031626188523172947
+      icicles-aura-svgrepo-com_7: 4999548857417580950
+      icicles-aura-svgrepo-com_8: 6151681819332319692
+      icicles-aura-svgrepo-com_9: -3576582956854851493
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

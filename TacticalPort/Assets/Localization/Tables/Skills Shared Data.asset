@@ -1,0 +1,360 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b11a58205ec3474ca216360e9fa74a8, type: 3}
+  m_Name: Skills Shared Data
+  m_EditorClassIdentifier: Unity.Localization::UnityEngine.Localization.Tables.SharedTableData
+  m_TableCollectionName: Skills
+  m_TableCollectionNameGuidString: 023ba41bd2de5b6439d2bfe2e91039bc
+  m_Entries:
+  - m_Id: 7791669248
+    m_Key: boarding_harpoon.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7829417984
+    m_Key: boarding_harpoon.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9788157952
+    m_Key: hooked_sabre.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9788157953
+    m_Key: hooked_sabre.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11700760576
+    m_Key: pistol_shot.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11700760577
+    m_Key: pistol_shot.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13588197376
+    m_Key: doubloon_rain.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13588197377
+    m_Key: doubloon_rain.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15492411392
+    m_Key: hull_breaker.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 15492411393
+    m_Key: hull_breaker.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 17455345664
+    m_Key: net_cast.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 17455345665
+    m_Key: net_cast.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 19208564736
+    m_Key: clever_grapple.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 19208564737
+    m_Key: clever_grapple.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21096001536
+    m_Key: share_the_treasure.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21096001537
+    m_Key: share_the_treasure.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22777917440
+    m_Key: sapping_shot.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 22777917441
+    m_Key: sapping_shot.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24325615616
+    m_Key: plunder_shot.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 24325615617
+    m_Key: plunder_shot.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 26661842944
+    m_Key: boarding_harpoon_variant.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 26661842945
+    m_Key: boarding_harpoon_variant.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 28368924672
+    m_Key: hooked_sabre_variant.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 28368924673
+    m_Key: hooked_sabre_variant.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 29895651328
+    m_Key: pistol_shot_variant.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 29895651329
+    m_Key: pistol_shot_variant.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 31569178624
+    m_Key: hull_breaker_variant.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 31569178625
+    m_Key: hull_breaker_variant.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 33267871744
+    m_Key: plunder_shot_variant.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 33267871745
+    m_Key: plunder_shot_variant.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 34786209792
+    m_Key: carpenter_deck_ballista_shot.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 34786209793
+    m_Key: carpenter_deck_ballista_shot.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 34798792704
+    m_Key: carpenter_collective_plating.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 34798792705
+    m_Key: carpenter_collective_plating.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 36199690240
+    m_Key: carpenter_hindering_shot.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 36199690241
+    m_Key: carpenter_hindering_shot.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 36212273152
+    m_Key: carpenter_precision_shot.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 36212273153
+    m_Key: carpenter_precision_shot.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37671890944
+    m_Key: carpenter_energy_break.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 37671890945
+    m_Key: carpenter_energy_break.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 39131508736
+    m_Key: carpenter_persistent_strike.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 39131508737
+    m_Key: carpenter_persistent_strike.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 40456908800
+    m_Key: carpenter_armor_siphon.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 40456908801
+    m_Key: carpenter_armor_siphon.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 41891360768
+    m_Key: carpenter_summon_deck_ballista.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 41891360769
+    m_Key: carpenter_summon_deck_ballista.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 41912332288
+    m_Key: carpenter_summon_harpoon_turret.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 41912332289
+    m_Key: carpenter_summon_harpoon_turret.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 41929109504
+    m_Key: carpenter_summon_mooring_pulley.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 41929109505
+    m_Key: carpenter_summon_mooring_pulley.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 41950081024
+    m_Key: carpenter_alternating_maintenance.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 41950081025
+    m_Key: carpenter_alternating_maintenance.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 43879460864
+    m_Key: carpenter_collective_plating_variant.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 43879460865
+    m_Key: carpenter_collective_plating_variant.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45536210944
+    m_Key: carpenter_hindering_shot_variant.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45536210945
+    m_Key: carpenter_hindering_shot_variant.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45557182464
+    m_Key: carpenter_long_range_shot_variant.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45557182465
+    m_Key: carpenter_long_range_shot_variant.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45573959680
+    m_Key: carpenter_persistent_strike_variant.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45573959681
+    m_Key: carpenter_persistent_strike_variant.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47377510400
+    m_Key: carpenter_armor_siphon_variant.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47377510401
+    m_Key: carpenter_armor_siphon_variant.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 49118146560
+    m_Key: abyssal_maelstrom.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 49118146561
+    m_Key: abyssal_maelstrom.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 49139118080
+    m_Key: gift_of_the_depths.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 49139118081
+    m_Key: gift_of_the_depths.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 49164283904
+    m_Key: horizon_conch.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 49164283905
+    m_Key: horizon_conch.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 49181061120
+    m_Key: mending_melody.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 49181061121
+    m_Key: mending_melody.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 49206226944
+    m_Key: momentum_song.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 49206226945
+    m_Key: momentum_song.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 49218809856
+    m_Key: nourishing_coral.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 49218809857
+    m_Key: nourishing_coral.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 49239781376
+    m_Key: salt_erosion.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 49239781377
+    m_Key: salt_erosion.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 49260752896
+    m_Key: siphoning_shell.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 49260752897
+    m_Key: siphoning_shell.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 49285918720
+    m_Key: transverse_surge.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 49285918721
+    m_Key: transverse_surge.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 49302695936
+    m_Key: unravel_charms.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 49302695937
+    m_Key: unravel_charms.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38137445969920
+    m_Key: New Entry
+    m_Metadata:
+      m_Items: []
+  m_Metadata:
+    m_Items: []
+  m_KeyGenerator:
+    rid: 2073694767051964683
+  references:
+    version: 2
+    RefIds:
+    - rid: 2073694767051964683
+      type: {class: DistributedUIDGenerator, ns: UnityEngine.Localization.Tables, asm: Unity.Localization}
+      data:
+        m_CustomEpoch: 1784479480184

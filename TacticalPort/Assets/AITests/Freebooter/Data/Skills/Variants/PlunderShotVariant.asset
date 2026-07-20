@@ -1,0 +1,77 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f40c21058987b94b8a7de74797fdb53, type: 3}
+  m_Name: PlunderShotVariant
+  m_EditorClassIdentifier: TacticalPort.Data::TacticalPort.Data.SkillDefinition
+  _Id: plunder_shot_variant
+  _DisplayName: "Plunder Shot \u2014 Variant"
+  _Description: 
+  _Icon: {fileID: 2080515067170978351, guid: 730a64fc32f9a5f4f96a36c3837cc0ba, type: 3}
+  _Category: 2
+  _PrimaryEffectType: 1
+  _AdditionalEffectType: 0
+  _CanAffectCaster: 0
+  _TargetType: 1
+  _TargetRelation: 2
+  _OverrideEffectTargetRelation: 0
+  _EffectTargetRelation: 0
+  _ExcludePrimaryTargetFromEffects: 0
+  _RequiresPrimaryTargetOwnedByCaster: 0
+  _RequiredPrimaryTargetState: {fileID: 0}
+  _TargetScope: 0
+  _TargetUnitType: 0
+  _RangeMin: 1
+  _RangeMax: 8
+  _TargetAlignment: 0
+  _RequiresVisibility: 1
+  _AoeShape: 0
+  _AoeSize: 0
+  _AoeDamageFalloffPercentPerCell: 0
+  _EnergyCost: 3
+  _UsePerTurn: 0
+  _UsePerTarget: 0
+  _CooldownTurns: 0
+  _Variant: {fileID: 0}
+  _VariantTrigger: 0
+  _VariantTargetRequiredState: {fileID: 0}
+  _Power: 32
+  _HasLifeSteal: 1
+  _PushDistance: 0
+  _RepairAmount: 0
+  _ToggleStateA: {fileID: 0}
+  _ToggleStateB: {fileID: 0}
+  _PassiveProgressionSteps: 1
+  _StateDurationReduction: 1
+  _SummonUnit: {fileID: 0}
+  _SummonTeamRule: 0
+  _ReplaceOwnedSummonOfSameDefinition: 0
+  _GlyphDurationTurns: 1
+  _GlyphDefinition: {fileID: 0}
+  _GlyphTargetRule: 2
+  _GlyphAppliedState: {fileID: 0}
+  _GlyphAppliedStateStacks: 1
+  _GlyphAppliedStateDurationTurns: -1
+  _SummonSpawnState: {fileID: 0}
+  _SummonSpawnStateStacks: 1
+  _SummonSpawnStateDurationTurns: -1
+  _SummonSpawnStateAreaSize: 1
+  _SummonSpawnStateTargetRule: 2
+  _AppliedState: {fileID: 0}
+  _AppliedStateStacks: 1
+  _AppliedStateDurationTurns: -1
+  _CasterAppliedState: {fileID: 0}
+  _CasterAppliedStateStacks: 1
+  _CasterAppliedStateDurationTurns: -1
+  _CasterStateStacksPerAffectedTarget: 0
+  references:
+    version: 2
+    RefIds: []

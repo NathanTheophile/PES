@@ -1,0 +1,311 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9620f8c34305754d8cc9a7e49e852d9, type: 3}
+  m_Name: States_fr
+  m_EditorClassIdentifier: Unity.Localization::UnityEngine.Localization.Tables.StringTable
+  m_LocaleId:
+    m_Code: fr
+  m_SharedData: {fileID: 11400000, guid: 1c402ebc4b3bc3048bd3a5b50cd49ee7, type: 2}
+  m_Metadata:
+    m_Items: []
+  m_TableData:
+  - m_Id: 53543137280
+    m_Localized: Coup de Filet
+    m_Metadata:
+      m_Items: []
+  - m_Id: 53564108800
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 55086641152
+    m_Localized: Pactole
+    m_Metadata:
+      m_Items: []
+  - m_Id: 55086641153
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56835665920
+    m_Localized: Pactole
+    m_Metadata:
+      m_Items: []
+  - m_Id: 56835665921
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 58333032448
+    m_Localized: "Partage du Tr\xE9sor"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 58333032449
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 59842981888
+    m_Localized: Sabre-Crochet
+    m_Metadata:
+      m_Items: []
+  - m_Id: 59842981889
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 61478760448
+    m_Localized: Tir de Pistolet
+    m_Metadata:
+      m_Items: []
+  - m_Id: 61478760449
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 63198425088
+    m_Localized: Tir de Pistolet
+    m_Metadata:
+      m_Items: []
+  - m_Id: 63198425089
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64637071360
+    m_Localized: Tir de Sape
+    m_Metadata:
+      m_Items: []
+  - m_Id: 64637071361
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66771972096
+    m_Localized: "Tr\xE9sor"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66771972097
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66797137920
+    m_Localized: "Tr\xE9sor"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66797137921
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66813915136
+    m_Localized: Soutien de baliste
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66813915137
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66839080960
+    m_Localized: Construction du Charpentier
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66839080961
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66864246784
+    m_Localized: "\xC9nergie bris\xE9e"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66864246785
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66889412608
+    m_Localized: Blindage collectif
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66889412609
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66922967040
+    m_Localized: Appui du harpon
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66922967041
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66956521472
+    m_Localized: "Entrave l\xE9g\xE8re"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66956521473
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66985881600
+    m_Localized: Entrave lourde
+    m_Metadata:
+      m_Items: []
+  - m_Id: 66985881601
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67006853120
+    m_Localized: "D\xE9g\xE2ts persistants"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67006853121
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67040407552
+    m_Localized: "\xC9lan de poulie"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67040407553
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67069767680
+    m_Localized: "Blindage arrach\xE9"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67069767681
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67094933504
+    m_Localized: "Blindage r\xE9cup\xE9r\xE9"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67094933505
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67115905024
+    m_Localized: Tourelle active
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67115905025
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67145265152
+    m_Localized: Tourelle inactive
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67145265153
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67170430976
+    m_Localized: "Prot\xE9g\xE9 des profondeurs"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67170430977
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67199791104
+    m_Localized: "R\xE9sistance abyssale"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67199791105
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67229151232
+    m_Localized: "Siphonn\xE9"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67229151233
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67258511360
+    m_Localized: Allant
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67258511361
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67283677184
+    m_Localized: Horizon favorable
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67283677185
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67308843008
+    m_Localized: "Horizon brouill\xE9"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67308843009
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67338203136
+    m_Localized: "\xC9rosion saline"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67338203137
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67363368960
+    m_Localized: "\xC9lan partag\xE9"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67363368961
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67396923392
+    m_Localized: "Marqu\xE9 par le ressac"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67396923393
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67673747456
+    m_Localized: Insoignable
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67673747457
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67690524672
+    m_Localized: Conque des horizons
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67690524673
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67715690496
+    m_Localized: Corail nourricier
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67715690497
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67749244928
+    m_Localized: Coquillage siphonneur
+    m_Metadata:
+      m_Items: []
+  - m_Id: 67749244929
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  references:
+    version: 2
+    RefIds: []

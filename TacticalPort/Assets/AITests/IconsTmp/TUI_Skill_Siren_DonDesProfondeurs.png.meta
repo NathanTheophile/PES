@@ -1,0 +1,351 @@
+fileFormatVersion: 2
+guid: d31ff672d0a749b47871aef2ee3e7f0c
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 6354784950292527462
+    second: TUI_Skill_Siren_DonDesProfondeurs_0
+  - first:
+      213: -4092396250138390981
+    second: TUI_Skill_Siren_DonDesProfondeurs_1
+  - first:
+      213: 1041931737379040964
+    second: TUI_Skill_Siren_DonDesProfondeurs_2
+  - first:
+      213: -3999651091721357582
+    second: TUI_Skill_Siren_DonDesProfondeurs_3
+  - first:
+      213: 2590028362338720470
+    second: TUI_Skill_Siren_DonDesProfondeurs_4
+  - first:
+      213: 7631452474957335965
+    second: TUI_Skill_Siren_DonDesProfondeurs_5
+  - first:
+      213: -2980923768088690932
+    second: TUI_Skill_Siren_DonDesProfondeurs_6
+  - first:
+      213: -7770017176131937049
+    second: TUI_Skill_Siren_DonDesProfondeurs_7
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 1
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WindowsStoreApps
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: TUI_Skill_Siren_DonDesProfondeurs_0
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 1283
+        width: 259
+        height: 259
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6693f224e3bb03850800000000000000
+      internalID: 6354784950292527462
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TUI_Skill_Siren_DonDesProfondeurs_1
+      rect:
+        serializedVersion: 2
+        x: 556
+        y: 55
+        width: 425
+        height: 1456
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b3e4c5efa43e437c0800000000000000
+      internalID: -4092396250138390981
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TUI_Skill_Siren_DonDesProfondeurs_2
+      rect:
+        serializedVersion: 2
+        x: 935
+        y: 1151
+        width: 209
+        height: 209
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4ceeeae056fa57e00800000000000000
+      internalID: 1041931737379040964
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TUI_Skill_Siren_DonDesProfondeurs_3
+      rect:
+        serializedVersion: 2
+        x: 137
+        y: 60
+        width: 326
+        height: 1008
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2f6f17ce5826e78c0800000000000000
+      internalID: -3999651091721357582
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TUI_Skill_Siren_DonDesProfondeurs_4
+      rect:
+        serializedVersion: 2
+        x: 885
+        y: 1051
+        width: 109
+        height: 109
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6dad26fa211a1f320800000000000000
+      internalID: 2590028362338720470
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TUI_Skill_Siren_DonDesProfondeurs_5
+      rect:
+        serializedVersion: 2
+        x: 1023
+        y: 55
+        width: 333
+        height: 1029
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d9d8b12c79d58e960800000000000000
+      internalID: 7631452474957335965
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TUI_Skill_Siren_DonDesProfondeurs_6
+      rect:
+        serializedVersion: 2
+        x: 1329
+        y: 486
+        width: 209
+        height: 209
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c0ffd8460a1a1a6d0800000000000000
+      internalID: -2980923768088690932
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TUI_Skill_Siren_DonDesProfondeurs_7
+      rect:
+        serializedVersion: 2
+        x: 534
+        y: 55
+        width: 271
+        height: 360
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7ecd8fdab8a5b2490800000000000000
+      internalID: -7770017176131937049
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      TUI_Skill_Siren_DonDesProfondeurs_0: 6354784950292527462
+      TUI_Skill_Siren_DonDesProfondeurs_1: -4092396250138390981
+      TUI_Skill_Siren_DonDesProfondeurs_2: 1041931737379040964
+      TUI_Skill_Siren_DonDesProfondeurs_3: -3999651091721357582
+      TUI_Skill_Siren_DonDesProfondeurs_4: 2590028362338720470
+      TUI_Skill_Siren_DonDesProfondeurs_5: 7631452474957335965
+      TUI_Skill_Siren_DonDesProfondeurs_6: -2980923768088690932
+      TUI_Skill_Siren_DonDesProfondeurs_7: -7770017176131937049
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

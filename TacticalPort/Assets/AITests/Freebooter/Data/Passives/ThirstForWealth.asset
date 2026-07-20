@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8e1b21296fd6568499e2c62e7546942e, type: 3}
+  m_Name: ThirstForWealth
+  m_EditorClassIdentifier: TacticalPort.Data::TacticalPort.Data.PassiveDefinition
+  _Id: thirst_for_wealth
+  _DisplayName: Thirst for Wealth
+  _Description: 
+  _Icon: {fileID: 2080515067170978351, guid: 730a64fc32f9a5f4f96a36c3837cc0ba, type: 3}
+  _Trigger: 1
+  _StateProgression: {fileID: 11400000, guid: 44941ec996f13fb47ad591d179fb05f3, type: 2}
+  _ProgressionStepsPerTrigger: 1
+  _TriggerOnOwnerVariantExecutions: 0
+  _BeginTurnEffect: 0
+  _OwnedUnitRequiredState: {fileID: 0}
+  _OwnedUnitRestoreHealth: 0
+  _OwnedUnitAuras: []
+  _AutomaticTargetSelection: 0
+  _AutomaticTargetMarker: {fileID: 0}
+  _AutomaticTargetUnitType: 1
+  _HealthLossSourceRule: 1
+  _HealthLossReactionTarget: 0
+  _HealthLossReactionState: {fileID: 0}
+  _HealthLossReactionStateStacks: 1
+  _IncludeSummonsAsReactionBeneficiaries: 0
+  _ClearReactionStateOnOwnerBeginTurn: 0
+  references:
+    version: 2
+    RefIds: []

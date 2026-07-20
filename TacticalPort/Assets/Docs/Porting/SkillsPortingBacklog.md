@@ -6,7 +6,7 @@ Backlog court, orienté “valider les systèmes”, pas “porter tout le roste
 
 | Priorité | Skill | Ce que ça valide | Notes |
 |---|---|---|---|
-| P0 | `Musket Shot` | portée longue, `linear`, LoS, single target | Bon test de base pour projectile sans AoE |
+| P0 | `Musket Shot` | portée longue, `linear`, visibility, single target | Bon test de base pour projectile sans AoE |
 | P0 | `Rubber Bazooka` | mêlée linéaire, dégâts + push + collision | Très bon test du resolver de push |
 | P0 | `Gunpowder Star` | projectile + `Circle` AoE | Valide centre AoE + dégâts multi-cibles |
 | P0 | `Lunch` ou `Cura Fervente` | self-heal / ally-heal | Valide `range 0`, soin, limites d’usage |

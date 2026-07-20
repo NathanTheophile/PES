@@ -49,13 +49,21 @@ namespace TacticalPort.Core
             ResolvedSkillTarget pResolvedTarget,
             SkillExecutionContext pContext)
         {
-            UnitRuntime lSummonedUnit = pContext.TrySummonUnit(pSkill.SummonUnit, pSkill.SummonTeamRule, pActor, pResolvedTarget.TargetCell);
+            UnitRuntime lSummonedUnit = pContext.TrySummonUnit(
+                pSkill.SummonUnit,
+                pSkill.SummonTeamRule,
+                pActor,
+                pResolvedTarget.TargetCell,
+                pSkill.ReplaceOwnedSummonOfSameDefinition);
             if (lSummonedUnit == null)
                 return BattleActionResult.Failed(BattleActionType.Skill, "Summon failed.");
 
             List<UnitId> lAffectedUnitIds = new List<UnitId> { pActor.Id, lSummonedUnit.Id };
+            int lGlyphCount = ApplyAttachedGlyph(pActor, lSummonedUnit, pSkill, pContext);
             int lSpawnStateCount = ApplySummonSpawnState(pActor, pSkill, lSummonedUnit, pContext, lAffectedUnitIds);
             string lMessage = $"{pActor.Definition.DisplayName} summoned {lSummonedUnit.Definition.DisplayName}.";
+            if (lGlyphCount > 0)
+                lMessage += $" {lGlyphCount} glyph cell(s) created.";
             if (lSpawnStateCount > 0)
                 lMessage += $" {pSkill.SummonSpawnState.DisplayName} applied to {lSpawnStateCount} unit(s).";
 
@@ -64,7 +72,9 @@ namespace TacticalPort.Core
                 lMessage,
                 lAffectedUnitIds,
                 null,
-                BattleActionOutcomeFlags.Summon | (lSpawnStateCount > 0 ? BattleActionOutcomeFlags.StateApplied : BattleActionOutcomeFlags.None));
+                BattleActionOutcomeFlags.Summon
+                | (lGlyphCount > 0 ? BattleActionOutcomeFlags.Glyph : BattleActionOutcomeFlags.None)
+                | (lSpawnStateCount > 0 ? BattleActionOutcomeFlags.StateApplied : BattleActionOutcomeFlags.None));
         }
 
         public static BattleActionResult ApplyGlyph(
@@ -78,18 +88,28 @@ namespace TacticalPort.Core
             foreach (GridCoord lCell in pResolvedTarget.AffectedCells)
             {
                 string lGlyphSkillId = $"{pSkill.Id}:{lCell.X}:{lCell.Y}";
-                pContext.AddGlyph(new GridGlyphRuntime(
-                    pActor.Id,
-                    pActor.Team,
-                    lCell,
-                    pSkill.Power,
-                    pSkill.GlyphDurationTurns,
-                    pSkill.GlyphTargetRule,
-                    lGlyphSkillId,
-                    lGlyphGroupId,
-                    pSkill.GlyphAppliedState,
-                    pSkill.GlyphAppliedStateStacks,
-                    pSkill.GlyphAppliedStateDurationTurns));
+                GridGlyphRuntime lGlyph = pSkill.GlyphDefinition != null
+                    ? new GridGlyphRuntime(
+                        pActor.Id,
+                        pActor.Team,
+                        lCell,
+                        pSkill.GlyphDefinition,
+                        pSkill.GlyphDurationTurns,
+                        lGlyphSkillId,
+                        lGlyphGroupId)
+                    : new GridGlyphRuntime(
+                        pActor.Id,
+                        pActor.Team,
+                        lCell,
+                        pSkill.Power,
+                        pSkill.GlyphDurationTurns,
+                        pSkill.GlyphTargetRule,
+                        lGlyphSkillId,
+                        lGlyphGroupId,
+                        pSkill.GlyphAppliedState,
+                        pSkill.GlyphAppliedStateStacks,
+                        pSkill.GlyphAppliedStateDurationTurns);
+                pContext.AddGlyph(lGlyph);
                 lGlyphCount++;
             }
 
@@ -99,6 +119,63 @@ namespace TacticalPort.Core
                 new[] { pActor.Id },
                 null,
                 lGlyphCount > 0 ? BattleActionOutcomeFlags.Glyph : BattleActionOutcomeFlags.None);
+        }
+
+        private static int ApplyAttachedGlyph(
+            UnitRuntime pActor,
+            UnitRuntime pSummonedUnit,
+            SkillDefinition pSkill,
+            SkillExecutionContext pContext)
+        {
+            GlyphDefinition lDefinition = pSummonedUnit?.Definition?.AttachedGlyph;
+            if (pActor == null || lDefinition == null || pContext?.GridService == null)
+                return 0;
+
+            int lCount = 0;
+            int lSize = lDefinition.Size;
+            string lGroupId = $"unit:{pSummonedUnit.Id.Value}:glyph:{lDefinition.Id}";
+            for (int lX = -lSize; lX <= lSize; lX++)
+            {
+                for (int lY = -lSize; lY <= lSize; lY++)
+                {
+                    if (!IsInsideGlyphShape(lDefinition.Shape, lX, lY, lSize))
+                        continue;
+
+                    GridCoord lCell = new GridCoord(pSummonedUnit.Position.X + lX, pSummonedUnit.Position.Y + lY);
+                    if (!pContext.GridService.IsInside(lCell))
+                        continue;
+
+                    string lSourceId = $"{pSkill.Id}:{lDefinition.Id}:{pSummonedUnit.Id.Value}:{lCell.X}:{lCell.Y}";
+                    pContext.AddGlyph(new GridGlyphRuntime(
+                        pActor.Id,
+                        pActor.Team,
+                        lCell,
+                        lDefinition,
+                        1,
+                        lSourceId,
+                        lGroupId,
+                        pSummonedUnit.Id));
+                    lCount++;
+                }
+            }
+
+            return lCount;
+        }
+
+        private static bool IsInsideGlyphShape(SkillAoeShape pShape, int pOffsetX, int pOffsetY, int pSize)
+        {
+            int lAbsX = System.Math.Abs(pOffsetX);
+            int lAbsY = System.Math.Abs(pOffsetY);
+            return pShape switch
+            {
+                SkillAoeShape.Single => pOffsetX == 0 && pOffsetY == 0,
+                SkillAoeShape.Circle => lAbsX + lAbsY <= pSize,
+                SkillAoeShape.Cross => (pOffsetX == 0 || pOffsetY == 0) && lAbsX + lAbsY <= pSize,
+                SkillAoeShape.X => lAbsX == lAbsY && lAbsX <= pSize,
+                SkillAoeShape.HorizontalLine => pOffsetY == 0 && lAbsX <= pSize,
+                SkillAoeShape.VerticalLine => pOffsetX == 0 && lAbsY <= pSize,
+                _ => lAbsX <= pSize && lAbsY <= pSize
+            };
         }
 
         private static int ApplySummonSpawnState(
@@ -123,7 +200,13 @@ namespace TacticalPort.Core
                     continue;
                 }
 
-                if (!lCandidate.TryApplyState(pSkill.SummonSpawnState, pSkill.SummonSpawnStateStacks, pSkill.SummonSpawnStateDurationTurns))
+                if (!lCandidate.TryApplyState(
+                        pSkill.SummonSpawnState,
+                        pSkill.SummonSpawnStateStacks,
+                        pSkill.SummonSpawnStateDurationTurns,
+                        pActor.Id,
+                        pActor.Team,
+                        pSkill.Id))
                     continue;
 
                 lAffectedCount++;

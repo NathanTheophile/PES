@@ -57,7 +57,7 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8553110421235476484, guid: 7e071f0ced94e794e86c9fae6b9a17ba, type: 3}
-      propertyPath: _BlocksLineOfSight
+      propertyPath: _BlocksVisibility
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []

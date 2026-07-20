@@ -45,7 +45,7 @@ namespace TacticalPort.View
                     {
                         Coordinate = new SerializableGridCoord(lRuntimeCoord.X, lRuntimeCoord.Y),
                         IsWalkable = lHasTile && lTile.IsWalkable,
-                        BlocksLineOfSight = !lHasTile || lTile.BlocksLineOfSight,
+                        BlocksVisibility = !lHasTile || lTile.BlocksVisibility,
                         MovementCost = lHasTile ? lTile.MovementCost : lDefaultMovementCost
                     });
 

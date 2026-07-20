@@ -58,14 +58,14 @@ namespace TacticalPort.Core
             }
 
             GridCoord lDirection = pActor != null
-                ? GridLineOfSightUtility.ResolveAreaDirection(pActor.Position, pOrigin)
+                ? GridVisibilityUtility.ResolveAreaDirection(pActor.Position, pOrigin)
                 : new GridCoord(0, 1);
 
             for (int lOffsetY = -lSize; lOffsetY <= lSize; lOffsetY++)
             {
                 for (int lOffsetX = -lSize; lOffsetX <= lSize; lOffsetX++)
                 {
-                    if (!GridLineOfSightUtility.IsInsideAreaShape(pSkill.AoeShape, lOffsetX, lOffsetY, lSize, lDirection))
+                    if (!GridVisibilityUtility.IsInsideAreaShape(pSkill.AoeShape, lOffsetX, lOffsetY, lSize, lDirection))
                         continue;
 
                     lCells.Add(new GridCoord(pOrigin.X + lOffsetX, pOrigin.Y + lOffsetY));
@@ -223,12 +223,12 @@ namespace TacticalPort.Core
                 return false;
 
             int lAoeSize = pSkill.AoeShape == SkillAoeShape.Single ? 0 : Math.Max(0, pSkill.AoeSize);
-            GridCoord lDirection = GridLineOfSightUtility.ResolveAreaDirection(pActor.Position, pTarget.Cell);
+            GridCoord lDirection = GridVisibilityUtility.ResolveAreaDirection(pActor.Position, pTarget.Cell);
             foreach (GridCoord lCell in pActor.EnumerateOccupiedCells())
             {
                 int lOffsetX = lCell.X - pTarget.Cell.X;
                 int lOffsetY = lCell.Y - pTarget.Cell.Y;
-                if (GridLineOfSightUtility.IsInsideAreaShape(pSkill.AoeShape, lOffsetX, lOffsetY, lAoeSize, lDirection))
+                if (GridVisibilityUtility.IsInsideAreaShape(pSkill.AoeShape, lOffsetX, lOffsetY, lAoeSize, lDirection))
                     return true;
             }
 
